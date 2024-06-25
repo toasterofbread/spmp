@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.platform.playerservice
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import io.ktor.http.Headers
-import spms.socketapi.shared.SpMsClientInfo
+import dev.toastbits.spms.socketapi.shared.SpMsClientInfo
 
 interface ClientServerPlayerService: PlayerService {
     data class ServerInfo(

@@ -29,7 +29,7 @@ data class RadioState(
     val current_filter_index: Int? = null
 ) {
     fun isContinuationAvailable(): Boolean =
-        continuation != null || !initial_songs_loaded
+        continuation != null || (item_uid != null && !initial_songs_loaded)
 
     internal suspend fun loadContinuation(context: AppContext): Result<RadioLoadResult?> = runCatching {
         if (item_uid == null) {

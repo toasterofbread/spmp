@@ -41,7 +41,7 @@ fun main(args: Array<String>) {
 
     SpMp.init(context)
 
-    val force_software_renderer: Boolean = context.settings.desktop.FORCE_SOFTWARE_RENDERER.get()
+    val force_software_renderer: Boolean = context.settings.platform.FORCE_SOFTWARE_RENDERER.get()
     if (force_software_renderer) {
         System.setProperty("skiko.renderApi", "SOFTWARE")
     }
@@ -105,7 +105,7 @@ fun main(args: Array<String>) {
             var player_initialised: Boolean by remember { mutableStateOf(false) }
 
             LaunchedEffect(Unit) {
-                player = SpMp.initPlayer(player_coroutine_scope)
+                player = SpMp.initPlayer(arguments, player_coroutine_scope)
                 player_initialised = true
 
                 window = this@Window.window
@@ -114,7 +114,7 @@ fun main(args: Array<String>) {
                     window.background = java.awt.Color(0, 0, 0, 0)
                 }
 
-                val startup_command: String = context.settings.desktop.STARTUP_COMMAND.get()
+                val startup_command: String = context.settings.platform.STARTUP_COMMAND.get()
                 if (startup_command.isBlank()) {
                     return@LaunchedEffect
                 }

@@ -73,18 +73,18 @@ data class SongLyrics(
             get() = start!! .. end!!
     }
 
-    init {
-        lazyAssert {
-            synchronized(lines) {
-                for (line in lines) {
-                    for (term in line) {
-                        if (sync_type != SyncType.NONE && (term.start == null || term.end == null)) {
-                            return@lazyAssert false
-                        }
-                    }
-                }
-            }
-            return@lazyAssert true
-        }
-    }
+    // init {
+    //     lazyAssert {
+    //         synchronized(lines) {
+    //             for (line in lines) {
+    //                 for (term in line) {
+    //                     if (sync_type != SyncType.NONE && (term.start == null || term.end == null)) {
+    //                         return@lazyAssert false
+    //                     }
+    //                 }
+    //             }
+    //         }
+    //         return@lazyAssert true
+    //     }
+    // }
 }

@@ -7,7 +7,7 @@ import dev.toastbits.composekit.settings.ui.Theme
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
-import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.youtubeapi.YtmApiType
 import dev.toastbits.ytmkt.model.YtmApi
 import kotlinx.coroutines.CoroutineScope
@@ -16,7 +16,7 @@ import spmp.shared.generated.resources.Res
 actual class AppContext(
     app_name: String,
     coroutine_scope: CoroutineScope
-): PlatformContext(app_name, PlatformPlayerService::class.java, coroutine_scope) {
+): PlatformContext(app_name, PlayerService::class.java, coroutine_scope) {
     override suspend fun getIconImageData(): ByteArray? =
         Res.readBytes("drawable/ic_spmp.png")
 

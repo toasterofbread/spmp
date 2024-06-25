@@ -57,6 +57,8 @@ fun getString(key: String): String {
 }
 
 kotlin {
+    jvmToolchain(21)
+
     jvm()
     sourceSets {
         val deps: SpMpDeps = SpMpDeps(extra.properties)
@@ -108,6 +110,9 @@ compose.desktop {
 
             targetFormats(TargetFormat.AppImage, TargetFormat.Deb, TargetFormat.Exe)
 
+            // spms
+            jvmArgs += listOf("--enable-preview", "--enable-native-access=ALL-UNNAMED")
+
             linux {
                 iconFile.set(rootProject.file("metadata/en-US/images/icon.png"))
                 appRelease = getString("version_code")
@@ -133,145 +138,7 @@ compose.desktop {
     }
 }
 
-abstract class PackageTask: DefaultTask() {
-    private data class Configuration(
-        val target_name: String,
-        val target_os: OS,
-        val server_build_task: Task,
-        val package_server: Boolean
-    )
-
-    private var configured: Boolean = false
-    private lateinit var configuration: Configuration
-
-    companion object {
-        const val FLAG_PACKAGE_SERVER: String = "packageServer"
-
-        fun getResourcesDir(project: Project, os: OS): File =
-            when (os) {
-                OS.LINUX -> project.file("build/package/linux")
-                OS.WINDOWS -> project.file("build/package/windows")
-            }
-    }
-
-    init {
-        outputs.upToDateWhen { false }
-    }
-
-    fun configure(package_server: Boolean, spms_os: OS, spms_arch: String, is_release: Boolean) {
-        val server_project = project.rootProject.project("spmp-server")
-        server_project.ext.set("LINK_STATIC", 1)
-
-        val target_name: String =
-            spms_os.name.lowercase() + '-' + spms_arch
-
-        val build_type: String =
-            if (is_release) "Release"
-            else "Debug"
-        val task_name: String =
-            "link${build_type}Executable${target_name.replaceFirstChar { it.uppercase() }}"
-
-        configuration = Configuration(
-            target_name = target_name,
-            target_os = spms_os,
-            server_build_task = server_project.tasks.getByName(task_name),
-            package_server = package_server
-        )
-
-        if (package_server) {
-            dependsOn(configuration.server_build_task)
-        }
-
-        configured = true
-    }
-
-    fun File.addExecutePermission() {
-        if (OperatingSystem.current().isUnix()) {
-            val permissions: MutableSet<PosixFilePermission> = getPosixFilePermissions(toPath())
-            permissions.add(PosixFilePermission.OWNER_EXECUTE)
-            setPosixFilePermissions(toPath(), permissions)
-        }
-    }
-
-    fun getPlatformServerFileExtension(target_os: OS): String =
-        when (target_os) {
-            OS.LINUX -> "kexe"
-            OS.WINDOWS -> "exe"
-        }
-
-    fun getPlatformServerFilename(target_os: OS): String =
-        "spms." + getPlatformServerFileExtension(target_os)
-
-    fun buildPlatformServer(dst_dir: File) {
-        check(configured) { "PackageTask was not configured" }
-
-        if (!configuration.package_server) {
-            val server_file: File = dst_dir.resolve(getPlatformServerFilename(OS.LINUX))
-            if (server_file.isFile) {
-                server_file.delete()
-            }
-            return
-        }
-
-        val output_directory: File = configuration.server_build_task.outputs.files.files.single()
-        val executable_file: File = output_directory.resolve("spms-${configuration.target_name}." + getPlatformServerFileExtension(configuration.target_os))
-
-        for (file in output_directory.listFiles()) {
-            if (file == executable_file || !file.name.endsWith(".dll")) {
-                continue
-            }
-
-            file.copyTo(dst_dir.resolve(file.name), overwrite = true)
-        }
-
-        check(executable_file.isFile) {
-            "Server executable $executable_file does not exist ($configuration)"
-        }
-
-        try {
-            println("Attempting to strip server executable ${executable_file.absolutePath}...")
-            CommandClass(project).cmd("strip", executable_file.absolutePath)
-        }
-        catch (e: Throwable) {
-            RuntimeException("Strip failed", e).printStackTrace()
-        }
-
-        val output_file: File = dst_dir.resolve(getPlatformServerFilename(configuration.target_os))
-        try {
-            executable_file.copyTo(output_file, overwrite = true)
-        }
-        catch (e: Throwable) {
-            throw RuntimeException("Copying $executable_file to $output_file failed", e)
-        }
-
-        output_file.addExecutePermission()
-    }
-
-    fun extractZip(file: File, output_dir: File) {
-        ZipFile(file).use { zip ->
-            val entries = zip.entries()
-            while (entries.hasMoreElements()) {
-                val entry = entries.nextElement()
-                val entry_destination = File(output_dir, entry.name)
-
-                if (entry.isDirectory) {
-                    entry_destination.mkdirs()
-                    continue
-                }
-
-                entry_destination.parentFile.mkdirs()
-
-                zip.getInputStream(entry).use { input ->
-                    FileOutputStream(entry_destination).use { output ->
-                        input.copyTo(output)
-                    }
-                }
-            }
-        }
-    }
-}
-
-abstract class ActuallyPackageAppImageTask: PackageTask() {
+abstract class ActuallyPackageAppImageTask: DefaultTask() {
     @get:Input
     abstract val appimage_arch: Property<String>
 
@@ -314,9 +181,6 @@ abstract class ActuallyPackageAppImageTask: PackageTask() {
         val icon_dst: File = icon_dst_file.get().asFile
         icon_src.copyTo(icon_dst, overwrite = true)
 
-        val server_dst_dir: File = appimage_dst.resolve("bin")
-        buildPlatformServer(server_dst_dir)
-
         val arch: String = appimage_arch.get()
         val appimage_output: File = appimage_output_file.get().asFile
 
@@ -333,6 +197,14 @@ abstract class ActuallyPackageAppImageTask: PackageTask() {
             project.logger.lifecycle("\nAppImage successfully packaged to ${appimage_output.absolutePath}")
         }
     }
+
+    fun File.addExecutePermission() {
+        if (OperatingSystem.current().isUnix()) {
+            val permissions: MutableSet<PosixFilePermission> = getPosixFilePermissions(toPath())
+            permissions.add(PosixFilePermission.OWNER_EXECUTE)
+            setPosixFilePermissions(toPath(), permissions)
+        }
+    }
 }
 
 fun registerAppImagePackageTasks() {
@@ -342,62 +214,24 @@ fun registerAppImagePackageTasks() {
     )
 
     for ((task_name, is_release) in package_tasks) {
-        val with_server_task =
-            tasks.register(task_name + "WithServer") {
-                finalizedBy(task_name)
-                group = tasks.getByName(task_name).group
-            }
+        val subtask_name: String =
+            if (is_release) "finishPackagingReleaseAppImage"
+            else "finishPackagingAppImage"
 
-        for (with_server in listOf(false, true)) {
-            val suffix: String =
-                if (with_server) "WithServer"
-                else ""
+        tasks.register<ActuallyPackageAppImageTask>(subtask_name) {
+            val build_dir: File = tasks.getByName(task_name).outputs.files.toList().single()
 
-            val subtask_name: String =
-                if (is_release) "finishPackagingReleaseAppImage" + suffix
-                else "finishPackagingAppImage" + suffix
+            appimage_arch = "x86_64"
+            appimage_output_file = build_dir.parentFile.resolve("appimage").resolve(rootProject.name.lowercase() + "-" + getString("version_string") + ".appimage")
 
-            tasks.register<ActuallyPackageAppImageTask>(subtask_name) {
-                val build_dir: File = tasks.getByName(task_name).outputs.files.toList().single()
+            appimage_src_dir = projectDir.resolve("appimage")
+            appimage_dst_dir = build_dir.resolve(rootProject.name)
 
-                val arch: String = "x86_64"
-                configure(with_server, OS.LINUX, arch, is_release)
-
-                appimage_arch = arch
-                appimage_output_file = build_dir.parentFile.resolve("appimage").resolve(rootProject.name.lowercase() + "-" + getString("version_string") + ".appimage")
-
-                appimage_src_dir = projectDir.resolve("appimage")
-                appimage_dst_dir = build_dir.resolve(rootProject.name)
-
-                icon_src_file = rootDir.resolve("metadata/en-US/images/icon.png")
-                icon_dst_file = appimage_dst_dir.get().asFile.resolve("${rootProject.name}.png")
-
-                onlyIf {
-                    with_server || !gradle.taskGraph.hasTask(":" + project.name + ":" + with_server_task.name)
-                }
-            }
-
-            tasks.getByName(task_name + suffix).finalizedBy(subtask_name)
+            icon_src_file = rootDir.resolve("metadata/en-US/images/icon.png")
+            icon_dst_file = appimage_dst_dir.get().asFile.resolve("${rootProject.name}.png")
         }
-    }
-}
 
-fun registerExePackageTasks() {
-    val package_tasks: List<Pair<Task, Boolean>> = listOf(
-        tasks.getByName("packageExe") to false,
-        tasks.getByName("packageReleaseExe") to true
-    )
-
-    for ((task, is_release) in package_tasks) {
-        tasks.register<PackageTask>(task.name + "WithServer") {
-            finalizedBy("packageReleaseExe")
-            group = task.group
-            configure(true, OS.WINDOWS, "x86_64", is_release)
-
-            doFirst {
-                buildPlatformServer(PackageTask.getResourcesDir(project, OS.WINDOWS))
-            }
-        }
+        tasks.getByName(task_name).finalizedBy(subtask_name)
     }
 }
 
@@ -405,7 +239,10 @@ fun configureRunTask() {
     tasks.getByName<JavaExec>("run") {
         val local_properties: Properties = Properties().apply {
             try {
-                load(FileInputStream(rootProject.file(local_properties_path)))
+                val file: File = rootProject.file(local_properties_path)
+                if (file.isFile) {
+                    load(FileInputStream(file))
+                }
             }
             catch (e: Throwable) {
                 RuntimeException("Ignoring exception while loading '$local_properties_path' in configureRunTask()", e).printStackTrace()
@@ -417,6 +254,5 @@ fun configureRunTask() {
 
 afterEvaluate {
     registerAppImagePackageTasks()
-    registerExePackageTasks()
     configureRunTask()
 }

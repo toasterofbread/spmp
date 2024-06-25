@@ -22,7 +22,7 @@ class Settings(context: AppContext) {
     val filter: FilterSettings = FilterSettings(context)
     val streaming: StreamingSettings = StreamingSettings(context)
     val shortcut: ShortcutSettings = ShortcutSettings(context)
-    val desktop: DesktopSettings = DesktopSettings(context)
+    val platform: PlatformSettings = PlatformSettings(context)
     val misc: MiscSettings = MiscSettings(context)
     val deps: DependencySettings = DependencySettings(context)
     val search: SearchSettings = SearchSettings(context)
@@ -44,7 +44,7 @@ class Settings(context: AppContext) {
             filter,
             streaming,
             shortcut,
-            desktop,
+            platform,
             misc,
             deps,
 

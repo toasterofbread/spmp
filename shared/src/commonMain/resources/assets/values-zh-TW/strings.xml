@@ -11,10 +11,10 @@
     <string name="server_info_url" translatable="false">https://spmp.toastbits.dev/docs/latest/server/about/</string>
     <string name="documentation_url" translatable="false">https://spmp.toastbits.dev/docs/latest/about</string>
     <string name="server_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/latest/server/about</string>
-    <string name="flatpak_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/latest/client/installation-flatpak</string>	
+    <string name="flatpak_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/latest/client/installation-flatpak</string>
 	-->
     <string name="project_url_name">專案 URL</string>
-	
+
 	<string name="info_using_release_$x">使用發行版 $x</string>
     <string name="info_using_non_release_commit_$x">使用未行的提交 $x</string>
 
@@ -38,7 +38,6 @@
     <string name="spms_client_type_info_url_player">https://spmp.toastbits.dev/docs/latest/player/about</string>
     <string name="spms_client_type_info_url_command_line">https://spmp.toastbits.dev/docs/latest/server/cli</string>
     <string name="spms_client_type_info_url_server">https://spmp.toastbits.dev/docs/latest/server/about/</string>
-	
     <string name="font_option_default_$x">預設 （$x）</string>
     <string name="font_option_system">系統字體</string>
     <string name="font_option_hc_maru_gothic">HC Maru Gothic</string>
@@ -266,14 +265,14 @@
     <string name="error_player_service_not_connected">播放器服務未連接&#xA;可能發生了錯誤</string>
     <string name="error_on_server_command_execution">執行服務器指令時發生錯誤</string>
 
-    <string name="desktop_splash_connecting_to_server_at_$x">正在連接到伺服器 $x</string>
-    <string name="desktop_splash_setting_initial_state">設定初始狀態</string>
-    <string name="desktop_splash_button_configure_connection">配置連接</string>
-    <string name="desktop_splash_title_configure_server_connection">配置伺服器連接</string>
-    <string name="desktop_splash_button_start_server">啟動本地伺服器</string>
-    <string name="desktop_splash_button_stop_process">停止行程</string>
-    <string name="desktop_splash_process_running_with_command_$x">行程正在運行此指令:&#xA;$x</string>
-    <string name="desktop_splash_local_server_command_not_set">未設定本地伺服器指令</string>
+    <string name="loading_splash_connecting_to_server_at_$x">正在連接到伺服器 $x</string>
+    <string name="loading_splash_setting_initial_state">設定初始狀態</string>
+    <string name="loading_splash_button_configure_connection">配置連接</string>
+    <string name="loading_splash_title_configure_server_connection">配置伺服器連接</string>
+    <string name="loading_splash_button_start_local_server">啟動本地伺服器</string>
+    <string name="loading_splash_button_stop_local_server">停止行程</string>
+    <string name="loading_splash_process_running_with_command_$x">行程正在運行此指令:&#xA;$x</string>
+    <string name="loading_splash_local_server_command_not_set">未設定本地伺服器指令</string>
 
     <string name="throw_error">拋出</string>
     <string name="report_error">報告</string>
@@ -359,7 +358,6 @@
     <string name="settings_value_out_of_$range">超出範圍 （$range）</string>
     <string name="settings_value_not_int">不是整數</string>
     <string name="settings_value_not_float">不是浮點數</string>
-    <string name="settings_value_not_ipv4">不是有效的 IPv4 地址</string>
     <string name="settings_value_not_port">不是有效的端口</string>
 
     <string name="s_page_preferences">設定</string>
@@ -507,7 +505,7 @@
 	<string name="s_key_np_default_image_corner_rounding">預設圖像圓角處理</string>
     <string name="s_key_np_default_wave_speed">預設波浪速度</string>
     <string name="s_key_np_default_wave_opacity">預設波浪不透明度</string>
-    
+
 	<string name="s_key_show_expanded_player_wave">在擴展播放機中顯示波浪</string>
 
     <string name="s_group_theming_desktop">電腦專門選項</string>
@@ -624,7 +622,6 @@
     <string name="s_sub_local_server_command">從 SpMp 內部手動啟動伺服器時運行的指令&#xA;第一次出現'$@'將被替換為伺服器參數，否則它們將被附加到指令</string>
     <string name="s_key_server_local_start_automatically">自動啟動本地伺服器</string>
     <string name="s_sub_server_local_start_automatically">在啟動時，如果立即找不到伺服器，將使用指定的指令自動啟動伺服器</string>
-    <string name="s_key_server_kill_child_on_exit">退出時停止子伺服器</string>
 
     <string name="s_cat_development">開發</string>
 
@@ -669,7 +666,7 @@
 
     <string name="s_cat_behaviour">行為</string>
     <string name="s_cat_desc_behaviour">各種顯示和動作調整</string>
-    
+
 	<string name="s_cat_layout">布局</string>
     <string name="s_cat_desc_layout">自訂布局安排內容</string>
 

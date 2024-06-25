@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.platform
 
 import android.net.Uri
-import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
 import dev.toastbits.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
@@ -16,7 +15,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
-@UnstableApi
 internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppContext, metered: Boolean): DataSpec {
     val song: SongRef = SongRef(data_spec.uri.toString())
 

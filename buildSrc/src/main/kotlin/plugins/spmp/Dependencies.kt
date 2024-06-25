@@ -23,6 +23,14 @@ class SpMpDeps(extra: Map<String, Any>) {
 
     val dependencies: Map<String, DependencyInfo> =
         mapOf(
+            "dev.toastbits:spms" to DependencyInfo(
+                version = "0.4.0-alpha2",
+                name = "spmp-server",
+                author = "toasterofbread",
+                url = "https://github.com/toasterofbread/spmp-server",
+                license = "GPL-2.0",
+                license_url = "https://github.com/toasterofbread/spmp-server/blob/6dde651ffc102d604ac7ecd5ac7471b1572fd2e6/LICENSE"
+            ),
             "dev.toastbits.composekit" to DependencyInfo(
                 version = "6788078322",
                 name = "ComposeKit",
@@ -32,7 +40,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/toasterofbread/ComposeKit/blob/136f216e65395660255d3270af9b79c90ae2254c/LICENSE"
             ),
             "dev.toastbits.ytmkt" to DependencyInfo(
-                version = "0.2.0",
+                version = "0.2.2",
                 name = "ytm-kt",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/ytm-kt",
@@ -155,7 +163,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 fork_url = "https://github.com/marcoc1712/jaudiotagger"
             ),
             "com.github.teamnewpipe:NewPipeExtractor" to DependencyInfo(
-                version = "v0.22.7",
+                version = "v0.24.0",
                 name = "NewPipe Extractor",
                 author = "Team NewPipe",
                 url = "https://github.com/TeamNewPipe/NewPipeExtractor",
@@ -163,7 +171,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/TeamNewPipe/NewPipeExtractor/blob/ec3e8378c627c682964f104fc2fb06ea5513b6b7/LICENSE"
             ),
             "org.zeromq:jeromq" to DependencyInfo(
-                version = "0.5.3",
+                version = "0.6.0",
                 name = "JeroMQ",
                 author = "zeromq",
                 url = "https://github.com/zeromq/jeromq",

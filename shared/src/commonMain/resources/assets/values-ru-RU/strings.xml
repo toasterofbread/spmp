@@ -242,14 +242,14 @@
     <string name="error_player_service_not_connected">Служба плеера не подключается. Возможно, произошла ошибка.</string>
     <string name="error_on_server_command_execution">Произошла ошибка при вызове команды сервера</string>
 
-    <string name="desktop_splash_connecting_to_server_at_$x">Подключение к серверу ($x)</string>
-    <string name="desktop_splash_setting_initial_state">Установка исходного состояния</string>
-    <string name="desktop_splash_button_configure_connection">Настроить подключение</string>
-    <string name="desktop_splash_title_configure_server_connection">Настроить подключение к серверу</string>
-    <string name="desktop_splash_button_start_server">Запустить локальный сервер</string>
-    <string name="desktop_splash_button_stop_process">Остановить</string>
-    <string name="desktop_splash_process_running_with_command_$x">Процесс, запущенный с помощью команды:&#xA;$x</string>
-    <string name="desktop_splash_local_server_command_not_set">Команда для локального сервера не задана</string>
+    <string name="loading_splash_connecting_to_server_at_$x">Подключение к серверу ($x)</string>
+    <string name="loading_splash_setting_initial_state">Установка исходного состояния</string>
+    <string name="loading_splash_button_configure_connection">Настроить подключение</string>
+    <string name="loading_splash_title_configure_server_connection">Настроить подключение к серверу</string>
+    <string name="loading_splash_button_start_local_server">Запустить локальный сервер</string>
+    <string name="loading_splash_button_stop_local_server">Остановить</string>
+    <string name="loading_splash_process_running_with_command_$x">Процесс, запущенный с помощью команды:&#xA;$x</string>
+    <string name="loading_splash_local_server_command_not_set">Команда для локального сервера не задана</string>
 
     <string name="throw_error">Отправить</string>
     <string name="report_error">Сообщить</string>
@@ -335,7 +335,6 @@
     <string name="settings_value_out_of_$range">Вне диапазона ($range)</string>
     <string name="settings_value_not_int">Не цифра</string>
     <string name="settings_value_not_float">Не дробь</string>
-    <string name="settings_value_not_ipv4">Невалидный IPv4 адрес</string>
     <string name="settings_value_not_port">Невалидный порт</string>
 
     <string name="s_page_preferences">Настройки</string>
@@ -589,7 +588,6 @@
     <string name="s_sub_local_server_command">Команда, выполняемая при ручном запуске сервера из SpMp&#xA; Первое появление '$@' будет заменено аргументами сервера, в противном случае они будут добавлены к команде</string>
     <string name="s_key_server_local_start_automatically">Запускать локальный сервер автоматически</string>
     <string name="s_sub_server_local_start_automatically">При запуске, если сервер не найден сразу, сервер будет запущен автоматически с помощью указанной команды</string>
-    <string name="s_key_server_kill_child_on_exit">Остановить дочерний сервер при выходе</string>
 
     <string name="s_cat_development">Разработка</string>
 

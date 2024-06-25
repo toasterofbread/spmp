@@ -3,13 +3,16 @@ package com.toasterofbread.spmp.service.playercontroller
 import androidx.compose.runtime.*
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.PlayerListener
-import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
-import spms.socketapi.shared.SpMsPlayerRepeatMode
+import com.toasterofbread.spmp.platform.playerservice.PlayerService
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 
 class PlayerStatus internal constructor() {
-    private var player: PlatformPlayerService? = null
+    private var player: PlayerService? = null
 
-    internal fun setPlayer(new_player: PlatformPlayerService) {
+    internal fun setPlayer(new_player: PlayerService) {
+        player?.removeListener(player_listener)
+        new_player.addListener(player_listener)
+
         player = new_player
 
         m_playing = playing
@@ -92,8 +95,8 @@ class PlayerStatus internal constructor() {
             "redo_count" to m_redo_count
         ).toString()
 
-    init {
-        PlatformPlayerService.addListener(object : PlayerListener() {
+    private val player_listener: PlayerListener =
+        object : PlayerListener() {
             init {
                 onEvents()
             }
@@ -127,6 +130,5 @@ class PlayerStatus internal constructor() {
                     }
                 }
             }
-        })
-    }
+        }
 }

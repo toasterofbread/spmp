@@ -16,7 +16,7 @@ import kotlin.math.cos
 import kotlin.math.floor
 import kotlin.math.pow
 
-// https://github.com/dzolnai/Visualiser
+// https://github.com/dzolnai/ExoVisualizer
 // Modified for use with Compose
 
 // Taken from: https://en.wikipedia.org/wiki/Preferred_number#Audio_frequencies

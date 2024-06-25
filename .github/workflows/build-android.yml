@@ -17,18 +17,9 @@ jobs:
     - uses: actions/checkout@v3
       with:
         submodules: recursive
-
-    - name: Set up JDK 17
-      uses: actions/setup-java@v3
-      with:
-        java-version: '17'
-        distribution: 'temurin'
-
-    - name: Set up Gradle
-      uses: gradle/gradle-build-action@v3
-
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
+    - uses: cachix/install-nix-action@v27
+    - uses: DeterminateSystems/magic-nix-cache-action@main
+    - uses: nicknovitski/nix-develop@v1
 
     - name: Build debug APK
       run: ./gradlew androidApp:packageDebug
@@ -54,7 +45,7 @@ jobs:
       uses: discord-actions/message@v2
       env:
         BUILD_NOTIFICATION_DISCORD_WEBHOOK: ${{ secrets.BUILD_NOTIFICATION_DISCORD_WEBHOOK }}
-      if: env.BUILD_NOTIFICATION_DISCORD_WEBHOOK != null
+      if: env.BUILD_NOTIFICATION_DISCORD_WEBHOOK != null && github.event_name != 'pull_request'
       with:
         webhookUrl: ${{ secrets.BUILD_NOTIFICATION_DISCORD_WEBHOOK }}
         message: "${{ github.workflow }} [build](<${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}>) completed for commit - [${{ env.COMMIT_SHA }}](<${{ github.event.head_commit.url }}>) ${{ github.event.head_commit.message }} - [Downloads](https://nightly.link/${{ github.repository }}/actions/runs/${{ github.run_id }})"

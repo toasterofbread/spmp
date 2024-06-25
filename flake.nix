@@ -29,18 +29,29 @@
         in
         pkgs.mkShell {
           packages = with pkgs; [
-            jdk17
+            jdk21
+            jdk22
             android-sdk
 
             # Runtime
             libglvnd
             xorg.libX11
             fontconfig
+            mpv
           ];
 
-          JAVA_HOME = "${pkgs.jdk17}/lib/openjdk";
+          JAVA_21_HOME = "${pkgs.jdk21}/lib/openjdk";
+          JAVA_22_HOME = "${pkgs.jdk22}/lib/openjdk";
+          JAVA_HOME = "${pkgs.jdk22}/lib/openjdk";
 
           GRADLE_OPTS = "-Dorg.gradle.project.android.aapt2FromMavenOverride=${android-sdk}/share/android-sdk/build-tools/34.0.0/aapt2";
+
+          shellHook = ''
+            # Add NIX_LDFLAGS to LD_LIBRARY_PATH
+            lib_paths=($(echo $NIX_LDFLAGS | grep -oP '(?<=-rpath\s| -L)[^ ]+'))
+            lib_paths_str=$(IFS=:; echo "''${lib_paths[*]}")
+            export LD_LIBRARY_PATH="$lib_paths_str:$LD_LIBRARY_PATH"
+          '';
         };
     };
 }

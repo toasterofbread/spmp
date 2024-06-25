@@ -47,7 +47,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueRadioInfoPosition
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.platform.PlayerListener
-import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -147,9 +147,14 @@ internal fun QueueTab(
     }
 
     DisposableEffect(Unit) {
-        PlatformPlayerService.addListener(queue_listener)
+        player.interactService {
+            it.addListener(queue_listener)
+        }
+
         onDispose {
-            PlatformPlayerService.removeListener(queue_listener)
+            player.interactService {
+                it.removeListener(queue_listener)
+            }
         }
     }
 

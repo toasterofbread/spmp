@@ -267,16 +267,19 @@
     <string name="error_message_generic">A error occurred</string>
     <string name="error_yt_feed_parse_failed">YouTube feed parsing failed</string>
     <string name="error_player_service_not_connected">Player service isn't connecting&#xA;A bug may have occurred</string>
+    <string name="error_while_connecting_to_server_at_$x">An error occurred while connecting to server at $x</string>
     <string name="error_on_server_command_execution">An error occurred while calling server command</string>
 
-    <string name="desktop_splash_connecting_to_server_at_$x">Connecting to server at $x</string>
-    <string name="desktop_splash_setting_initial_state">Setting initial state</string>
-    <string name="desktop_splash_button_configure_connection">Configure connection</string>
-    <string name="desktop_splash_title_configure_server_connection">Configure server connection</string>
-    <string name="desktop_splash_button_start_server">Start local server</string>
-    <string name="desktop_splash_button_stop_process">Stop process</string>
-    <string name="desktop_splash_process_running_with_command_$x">Process running with this command:&#xA;$x</string>
-    <string name="desktop_splash_local_server_command_not_set">Local server command not set</string>
+    <string name="loading_splash_connecting_to_server_at_$x">Connecting to server at $x</string>
+    <string name="loading_splash_setting_initial_state">Setting initial state</string>
+    <string name="loading_splash_button_configure_connection">Configure connection</string>
+    <string name="loading_splash_title_configure_server_connection">Configure server connection</string>
+    <string name="loading_splash_button_start_local_server">Start local server</string>
+    <string name="loading_splash_button_stop_local_server">Stop process</string>
+    <string name="loading_splash_button_local_server_unavailable">Local server unavailable</string>
+    <string name="loading_splash_process_running_with_command_$x">Process running with this command:&#xA;$x</string>
+    <string name="loading_splash_local_server_command_not_set">Local server command not set</string>
+    <string name="loading_splash_button_launch_without_server">Begin session without server</string>
 
     <string name="throw_error">Throw</string>
     <string name="report_error">Report</string>
@@ -362,7 +365,7 @@
     <string name="settings_value_out_of_$range">Out of range ($range)</string>
     <string name="settings_value_not_int">Not an integer</string>
     <string name="settings_value_not_float">Not a float</string>
-    <string name="settings_value_not_ipv4">Not a valid IPv4 address</string>
+    <string name="settings_value_not_ipv4_or_domain">Not a valid IPv4 address or domain</string>
     <string name="settings_value_not_port">Not a valid port</string>
 
     <string name="s_page_preferences">Settings</string>
@@ -621,13 +624,18 @@
     <string name="s_group_server">Server</string>
     <string name="s_info_server">The SpMp server component (SpMs) must be running at the specified port IP address and port. https://github.com/toasterofbread/spmp-server</string>
 
-    <string name="s_key_server_ip">Server IP address</string>
+    <string name="s_key_enable_external_server_mode">Enable external server mode</string>
+    <string name="s_sub_enable_external_server_mode">Instead of running its own internal server, SpMp will connect to the server defined below</string>
+
+    <string name="s_key_external_server_mode_ui_only">UI-only when in external server mode</string>
+    <string name="s_sub_external_server_mode_ui_only">If enabled and connecting to an external server, this app will not play audio</string>
+
+    <string name="s_key_server_ip">External server IP address</string>
     <string name="s_key_server_port">Server port</string>
     <string name="s_key_local_server_command">Server command</string>
     <string name="s_sub_local_server_command">Command to be run when manually starting the server from within SpMp&#xA;The first occurence of '$@' will be replaced with the server arguments, otherwise they will be appended to the command</string>
     <string name="s_key_server_local_start_automatically">Start local server automatically</string>
     <string name="s_sub_server_local_start_automatically">On startup, if a server is not found immediately, a server will be started automatically using the specified command</string>
-    <string name="s_key_server_kill_child_on_exit">Stop child server on exit</string>
 
     <string name="s_cat_development">Development</string>
 
@@ -703,6 +711,9 @@
     <string name="s_cat_shortcut">Shortcuts</string>
     <string name="s_cat_desc_shortcut">Bind keys or mouse buttons to in-app actions</string>
 
+    <string name="s_cat_android">Android</string>
+    <string name="s_cat_desc_android">Platform-specific configuration</string>
+
     <string name="s_cat_desktop">Desktop</string>
     <string name="s_cat_desc_desktop">Platform-specific configuration</string>
 
@@ -764,6 +775,10 @@
 
     <string name="warning_spms_api_version_mismatch">SpMs API version mismatch</string>
     <string name="warning_spms_api_version_mismatch_$theirs_$ours">The connected server's API version ($theirs) doesn't match the API version that this build of SpMp was designed for ($ours). This may cause unexpected behaviour or crashes.</string>
+
+    <string name="warning_server_unavailable">Local server unavailable because the following files are missing: </string>
+    <string name="warning_server_unavailable_title">Cannot start local server</string>
+    <string name="server_missing_files_splitter">, </string>
 
     <string name="youtube_manual_login_title">YouTube manual log-in</string>
     <string-array name="youtube_manual_login_steps">

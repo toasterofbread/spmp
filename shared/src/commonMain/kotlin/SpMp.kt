@@ -1,16 +1,21 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.background
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.*
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.utils.common.thenIf
@@ -24,9 +29,9 @@ import com.toasterofbread.spmp.resources.getStringOrNull
 import com.toasterofbread.spmp.resources.initResources
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.service.playercontroller.openUri
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.LoadingSplashView
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.RootView
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.SplashMode
+import com.toasterofbread.spmp.ui.layout.loadingsplash.LoadingSplash
+import com.toasterofbread.spmp.ui.layout.loadingsplash.SplashMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.model.appaction.shortcut.LocalShortcutState
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
@@ -34,10 +39,12 @@ import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import spms.socketapi.shared.SPMS_API_VERSION
+import kotlinx.coroutines.launch
+import dev.toastbits.spms.socketapi.shared.SPMS_API_VERSION
 import java.util.logging.Logger
 import org.jetbrains.compose.resources.FontResource
 import org.jetbrains.compose.resources.Font
+import ProgramArguments
 
 val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.player_state }
 val LocalProgramArguments: ProvidableCompositionLocal<ProgramArguments> = staticCompositionLocalOf { ProgramArguments() }
@@ -67,8 +74,11 @@ object SpMp {
         initResources(context.getUiLanguage(), context)
     }
 
-    fun initPlayer(composable_coroutine_scope: CoroutineScope): PlayerState {
-        val player: PlayerState = PlayerState(context, composable_coroutine_scope)
+    fun initPlayer(
+        launch_arguments: ProgramArguments,
+        composable_coroutine_scope: CoroutineScope
+    ): PlayerState {
+        val player: PlayerState = PlayerState(context, launch_arguments, composable_coroutine_scope)
         player.onStart()
         _player_state = player
         return player
@@ -100,6 +110,8 @@ object SpMp {
         context.theme.Update()
         shortcut_state.ObserveState()
 
+        val coroutine_scope: CoroutineScope = rememberCoroutineScope()
+
         DisposableEffect(window_fullscreen_toggler) {
             SpMp.window_fullscreen_toggler = window_fullscreen_toggler
             onDispose {
@@ -127,20 +139,32 @@ object SpMp {
                 ) {
                     var mismatched_server_api_version: Int? by remember { mutableStateOf(null) }
                     val splash_mode: SplashMode? = when (Platform.current) {
-                        Platform.ANDROID -> null
-                        Platform.DESKTOP -> if (!player_state.service_connected) SplashMode.SPLASH else null
+                        Platform.ANDROID ->
+                            if (!player_state.service_connected && player_state.settings.platform.ENABLE_EXTERNAL_SERVER_MODE.get()) SplashMode.SPLASH
+                            else null
+                        Platform.DESKTOP ->
+                            if (!player_state.service_connected) SplashMode.SPLASH
+                            else null
                     }
 
-                    LoadingSplashView(
+                    LoadingSplash(
                         splash_mode,
-                        player_state.service_loading_message,
-                        player_state.service_connection_error,
-                        arguments,
-                        Modifier
+                        player_state.service_load_state,
+                        requestServiceChange = { service_companion ->
+                            if (!service_companion.isAvailable(player_state.context, arguments)) {
+                                return@LoadingSplash
+                            }
+
+                            coroutine_scope.launch {
+                                player_state.requestServiceChange(service_companion)
+                            }
+                        },
+                        modifier = Modifier
                             .fillMaxSize()
                             .thenIf(splash_mode != null) {
                                 pointerInput(Unit) {}
-                            }
+                            },
+                        content_padding = PaddingValues(30.dp),
                     )
 
                     LaunchedEffect(splash_mode) {

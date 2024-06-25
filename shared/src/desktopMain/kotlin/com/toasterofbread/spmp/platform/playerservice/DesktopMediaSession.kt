@@ -4,13 +4,14 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
 import com.toasterofbread.spmp.platform.PlayerListener
+import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.db.Database
 import dev.toastbits.mediasession.MediaSession
 import dev.toastbits.mediasession.MediaSessionMetadata
 import dev.toastbits.mediasession.MediaSessionPlaybackStatus
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 
-internal fun createDesktopMediaSession(service: PlatformPlayerService): MediaSession? {
+internal fun createDesktopMediaSession(service: PlayerService): MediaSession? {
     val session: MediaSession? =
         try {
             MediaSession.create(
@@ -90,7 +91,7 @@ internal fun createDesktopMediaSession(service: PlatformPlayerService): MediaSes
     return session
 }
 
-private fun MediaSession.onSongChanged(song: Song?, service: PlatformPlayerService) {
+private fun MediaSession.onSongChanged(song: Song?, service: PlayerService) {
     val db: Database = service.context.database
     val album: Playlist? = song?.Album?.get(db)
     val album_items: List<Song>? = album?.Items?.get(db)

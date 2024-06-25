@@ -18,17 +18,16 @@ jobs:
       with:
         submodules: recursive
 
-    - name: Set up JDK 17
+    - name: Set up JDKs
       uses: actions/setup-java@v3
       with:
-        java-version: '17'
         distribution: 'temurin'
+        java-version: |
+          22
+          21
 
     - name: Set up Gradle
       uses: gradle/gradle-build-action@v3
-
-    - name: Grant execute permission for gradlew
-      run: chmod +x gradlew
 
     - name: Install desktop-file-utils, appstream
       uses: awalsh128/cache-apt-pkgs-action@latest

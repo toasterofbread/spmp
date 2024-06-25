@@ -2,15 +2,16 @@ package com.toasterofbread.spmp.model.settings.category
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DesktopWindows
+import androidx.compose.material.icons.outlined.Android
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.platform.PlatformPreferences
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getDesktopCategoryItems
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getPlatformCategoryItems
 import com.toasterofbread.spmp.platform.AppContext
 
-class DesktopSettings(val context: AppContext): SettingsGroup("DESKTOP", context.getPrefs()) {
+class PlatformSettings(val context: AppContext): SettingsGroup("DESKTOP", context.getPrefs()) {
     val STARTUP_COMMAND: PreferencesProperty<String> by property(
         getName = { getString("s_key_startup_command") },
         getDescription = { getString("s_sub_startup_command") },
@@ -41,19 +42,37 @@ class DesktopSettings(val context: AppContext): SettingsGroup("DESKTOP", context
         getDescription = { getString("s_sub_server_local_start_automatically") },
         getDefaultValue = { true }
     )
-    val SERVER_KILL_CHILD_ON_EXIT: PreferencesProperty<Boolean> by property(
-        getName = { getString("s_key_server_kill_child_on_exit") },
-        getDescription = { null },
-        getDefaultValue = { true }
+    val ENABLE_EXTERNAL_SERVER_MODE: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_enable_external_server_mode") },
+        getDescription = { getString("s_sub_enable_external_server_mode") },
+        getDefaultValue = { false }
+    )
+    val EXTERNAL_SERVER_MODE_UI_ONLY: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_external_server_mode_ui_only") },
+        getDescription = { getString("s_sub_external_server_mode_ui_only") },
+        getDefaultValue = { false }
     )
 
     override val page: CategoryPage? =
-        if (Platform.DESKTOP.isCurrent())
-            SimplePage(
-                { getString("s_cat_desktop") },
-                { getString("s_cat_desc_desktop") },
-                { getDesktopCategoryItems(context) },
-                { Icons.Outlined.DesktopWindows }
-            )
-        else null
+        SimplePage(
+            {
+                when (Platform.current) {
+                    Platform.ANDROID -> getString("s_cat_android")
+                    Platform.DESKTOP -> getString("s_cat_desktop")
+                }
+            },
+            {
+                when (Platform.current) {
+                    Platform.ANDROID -> getString("s_cat_desc_android")
+                    Platform.DESKTOP -> getString("s_cat_desc_desktop")
+                }
+            },
+            { getPlatformCategoryItems(context) },
+            {
+                when (Platform.current) {
+                    Platform.ANDROID -> Icons.Outlined.Android
+                    Platform.DESKTOP -> Icons.Outlined.DesktopWindows
+                }
+            }
+        )
 }

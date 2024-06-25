@@ -1,0 +1,91 @@
+package com.toasterofbread.spmp.ui.layout.loadingsplash
+
+import LocalPlayerState
+import SpMp
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
+import dev.toastbits.composekit.utils.composable.ShapedIconButton
+import com.toasterofbread.spmp.model.settings.Settings
+import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getServerGroupItems
+import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.platform.playerservice.LocalServer
+import dev.toastbits.composekit.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import LocalProgramArguments
+import ProgramArguments
+
+private const val LOCAL_SERVER_AUTOSTART_DELAY_MS: Long = 100
+
+@Composable
+fun SplashExtraLoadingContent(item_modifier: Modifier) {
+    val player: PlayerState = LocalPlayerState.current
+    var show_config_dialog: Boolean by remember { mutableStateOf(false) }
+
+    val button_colours: ButtonColors =
+        ButtonDefaults.buttonColors(
+            containerColor = player.theme.accent,
+            contentColor = player.theme.on_accent
+        )
+
+    Button(
+        { show_config_dialog = true },
+        colors = button_colours,
+        modifier = item_modifier
+    ) {
+        Text(getString("loading_splash_button_configure_connection"))
+    }
+
+    if (player.context.canOpenUrl()) {
+        ShapedIconButton(
+            {
+                player.context.openUrl(getString("server_info_url"))
+            },
+            colours = IconButtonDefaults.iconButtonColors(
+                containerColor = player.theme.accent,
+                contentColor = player.theme.on_accent
+            ),
+            modifier = item_modifier
+        ) {
+            Icon(Icons.Default.Info, null)
+        }
+    }
+
+    if (show_config_dialog) {
+        val settings_items: List<SettingsItem> = remember { getServerGroupItems(player.context) }
+
+        AlertDialog(
+            onDismissRequest = { show_config_dialog = false },
+            confirmButton = {
+                Button(
+                    { show_config_dialog = false },
+                    colors = button_colours
+                ) {
+                    Text(getString("action_close"))
+                }
+            },
+            title = {
+                Text(getString("loading_splash_title_configure_server_connection"))
+            },
+            text = {
+                LazyColumn(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                    items(settings_items) { item ->
+                        item.Item(player.app_page_state.Settings.settings_interface, { _, _ -> }, {}, Modifier)
+                    }
+                }
+            }
+        )
+    }
+}

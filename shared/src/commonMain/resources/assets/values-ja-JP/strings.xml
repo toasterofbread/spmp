@@ -241,16 +241,19 @@
     <string name="error_message_generic">エラーが発生しました</string>
     <string name="error_yt_feed_parse_failed">YouTubeフィード解析に失敗しました</string>
     <string name="error_player_service_not_connected">プレイヤーサービスとの接続がありません&#xA;バグが発生してる可能性があります</string>
+    <string name="error_while_connecting_to_server_at_$x">$xのサーバーに接続中にエラーが発生しました</string>
     <string name="error_on_server_command_execution">サーバーコマンドの実行中にエラーが発生しました</string>
 
-    <string name="desktop_splash_connecting_to_server_at_$x">$x のサーバーに接続中</string>
-    <string name="desktop_splash_setting_initial_state">初期状態の準備中</string>
-    <string name="desktop_splash_button_configure_connection">接続設定</string>
-    <string name="desktop_splash_title_configure_server_connection">サーバーの接続設定</string>
-    <string name="desktop_splash_button_start_server">ローカルサーバーを実行</string>
-    <string name="desktop_splash_button_stop_process">プロセスを停止</string>
-    <string name="desktop_splash_process_running_with_command_$x">このコマンドでプロセスが実行しています:&#xA;$x</string>
-    <string name="desktop_splash_local_server_command_not_set">ローカルサーバーの実行コマンドが設定されていません</string>
+    <string name="loading_splash_connecting_to_server_at_$x">$x のサーバーに接続中</string>
+    <string name="loading_splash_setting_initial_state">初期状態の準備中</string>
+    <string name="loading_splash_button_configure_connection">接続設定</string>
+    <string name="loading_splash_title_configure_server_connection">サーバーの接続設定</string>
+    <string name="loading_splash_button_start_local_server">ローカルサーバーを実行</string>
+    <string name="loading_splash_button_stop_local_server">プロセスを停止</string>
+    <string name="loading_splash_button_local_server_unavailable">ローカルサーバー利用不可</string>
+    <string name="loading_splash_process_running_with_command_$x">このコマンドでプロセスが実行しています:&#xA;$x</string>
+    <string name="loading_splash_local_server_command_not_set">ローカルサーバーの実行コマンドが設定されていません</string>
+    <string name="loading_splash_button_launch_without_server">このセッションはサーバー無しで実行</string>
 
     <string name="throw_error">スロー</string>
     <string name="report_error">報告する</string>
@@ -336,7 +339,7 @@
     <string name="settings_value_out_of_$range">範囲外です （$range）</string>
     <string name="settings_value_not_int">整数ではありません</string>
     <string name="settings_value_not_float">数ではありません</string>
-    <string name="settings_value_not_ipv4">正確なIPv4アドレスではありません</string>
+    <string name="settings_value_not_ipv4_or_domain">正確なIPv4アドレスまたはドメイン名ではありません</string>
     <string name="settings_value_not_port">正確なポートではありません</string>
 
     <string name="s_page_preferences">設定</string>
@@ -598,13 +601,18 @@
     <string name="s_group_server">サーバー</string>
     <string name="s_info_server">SpMpのサーバー部分(SpMs)が設定されたIPアドレスとポートで実行されていなければなりません。https://github.com/toasterofbread/spmp-server</string>
 
+    <string name="s_key_enable_external_server_mode">外部サーバーモード</string>
+    <string name="s_sub_enable_external_server_mode">このアプリ専用のサーバーを内部で実行せず、以下に設定さている外部サーバーに接続する</string>
+
+    <string name="s_key_external_server_mode_ui_only">外部サーバー使用時、UIのみ実行</string>
+    <string name="s_sub_external_server_mode_ui_only">有効の場合、外部サーバーに接続中ならこのアプリはオーディオを出力しません</string>
+
     <string name="s_key_server_ip">サーバーのIPアドレス</string>
     <string name="s_key_server_port">サーバーのポート</string>
     <string name="s_key_local_server_command">サーバー実行のコマンド</string>
     <string name="s_sub_local_server_command">SpMp内からサーバーを手動で実行するのに使われるコマンド&#xA;「$@」の最初の出現はサーバーへのアーギュメントに置き換えられ、「$@」がなければコマンドに直接追加されます</string>
     <string name="s_key_server_local_start_automatically">自動的にサーバーを実行する</string>
     <string name="s_sub_server_local_start_automatically">アプリ開始時にサーバーが見つからなければ、設定されたコマンドで自動的にサーバーを実行します</string>
-    <string name="s_key_server_kill_child_on_exit">終了時に子プロセスのサーバーを停止</string>
 
     <string name="s_cat_development">開発</string>
 
@@ -680,6 +688,9 @@
     <string name="s_cat_streaming">再生</string>
     <string name="s_cat_desc_streaming">音質や再生の調節</string>
 
+    <string name="s_cat_android">アンドロイド</string>
+    <string name="s_cat_desc_android">SpMpのアンドロイド版のみの設定</string>
+
     <string name="s_cat_desktop">デスクトップ</string>
     <string name="s_cat_desc_desktop">SpMpのデスクトップ版のみの設定</string>
 
@@ -740,6 +751,10 @@
 
     <string name="warning_spms_api_version_mismatch">SpMs API バージョンの不一致</string>
     <string name="warning_spms_api_version_mismatch_$theirs_$ours">接続されているサーバーの API バージョン ($theirs) は、SpMp のこのビルドが設計された API バージョン ($ours) と一致していません。 予期しない動作やクラッシュが発生する可能性があります。</string>
+
+    <string name="warning_server_unavailable">これらのファイルが見つからないので、ローカルサーバは利用不可です：</string>
+    <string name="warning_server_unavailable_title">ローカルサーバーを実行できません</string>
+    <string name="server_missing_files_splitter">・</string>
 
     <string name="youtube_manual_login_title">YouTube手動ログイン</string>
     <string-array name="youtube_manual_login_steps">

@@ -1,7 +1,9 @@
 package com.toasterofbread.spmp.platform.playerservice
 
 import com.toasterofbread.spmp.resources.getString
-import spms.socketapi.shared.SpMsClientType
+import dev.toastbits.spms.socketapi.shared.SpMsClientType
+import com.toasterofbread.spmp.platform.AppContext
+import java.io.File
 
 fun SpMsClientType.getName(): String =
     when (this) {
@@ -32,6 +34,23 @@ fun SpMsClientType.getInfoUrl(): String =
         SpMsClientType.SERVER -> getString("spms_client_type_info_url_server")
     }
 
-expect fun getSpMsMachineId(): String
+expect fun getSpMsMachineId(context: AppContext): String
 
-expect fun getServerExecutableFilename(): String?
+internal fun getSpMsMachineIdFromFile(id_file: File): String {
+    if (id_file.exists()) {
+        return id_file.readText()
+    }
+
+    if (!id_file.parentFile.exists()) {
+        id_file.parentFile.mkdirs()
+    }
+
+    val id_length: Int = 8
+    val allowed_chars: List<Char> = ('A'..'Z') + ('a'..'z') + ('0'..'9')
+
+    val new_id: String = (1..id_length).map { allowed_chars.random() }.joinToString("")
+
+    id_file.writeText(new_id)
+
+    return new_id
+}

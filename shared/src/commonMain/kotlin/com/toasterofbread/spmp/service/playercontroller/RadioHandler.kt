@@ -4,20 +4,28 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.model.radio.RadioState
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import com.toasterofbread.spmp.platform.playerservice.UndoRedoAction
+import com.toasterofbread.spmp.platform.playerservice.PlayerService
 
-// Radio continuation will be added if the amount of remaining songs (including current) falls below this
 // TODO Add setting
+// Radio continuation will be added if the amount of remaining songs (including current) falls below this
 private const val RADIO_MIN_LENGTH: Int = 10
 
-class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
-    val instance: RadioInstance = object : RadioInstance(context) {
-        override suspend fun onLoadCompleted(result: RadioInstance.LoadResult, is_continuation: Boolean) {
-            onRadioLoadCompleted(result, is_continuation)
+open class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
+    val instance: RadioInstance =
+        object : RadioInstance(context) {
+            override suspend fun onLoadCompleted(result: RadioInstance.LoadResult, is_continuation: Boolean) {
+                onRadioLoadCompleted(result, is_continuation)
+            }
+
+            override fun cancelRadio() {
+                super.cancelRadio()
+                onRadioCancelled()
+            }
         }
-    }
+
+    open fun onRadioCancelled() {}
 
     fun setUndoableRadioState(
         new_radio_state: RadioState,
@@ -30,7 +38,7 @@ class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
         return object : UndoRedoAction {
             var first_redo: Boolean = true
 
-            override fun redo(service: PlatformPlayerService) {
+            override fun redo(service: PlayerService) {
                 instance.setRadioState(
                     new_radio_state,
                     onCompleted =
@@ -61,7 +69,7 @@ class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
                 )
             }
 
-            override fun undo(service: PlatformPlayerService) {
+            override fun undo(service: PlayerService) {
                 instance.setRadioState(old_radio_state)
             }
         }
@@ -98,11 +106,11 @@ class RadioHandler(val player: PlayerServicePlayer, val context: AppContext) {
             )
 
             return@customUndoableAction object : UndoRedoAction {
-                override fun redo(service: PlatformPlayerService) {
+                override fun redo(service: PlayerService) {
                     instance.setFilter(filter_index)
                 }
 
-                override fun undo(service: PlatformPlayerService) {
+                override fun undo(service: PlayerService) {
                     instance.setFilter(previous_filter_index)
                 }
             }

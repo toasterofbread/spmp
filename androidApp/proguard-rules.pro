@@ -39,6 +39,9 @@
 -dontwarn org.jaudiotagger.**
 -keep class org.jaudiotagger.** { *; }
 
+# Ktor
+-dontwarn io.ktor.**
+
 # From proguard-android-optimize.txt
 
 -optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*

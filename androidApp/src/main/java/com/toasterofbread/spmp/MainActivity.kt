@@ -86,17 +86,19 @@ class MainActivity: ComponentActivity() {
             if (intent.action == Intent.ACTION_VIEW) intent.data
             else null
 
+        val launch_arguments: ProgramArguments = ProgramArguments()
+
         setContent {
             val player_coroutine_scope: CoroutineScope = rememberCoroutineScope()
             var player_initialised: Boolean by remember { mutableStateOf(false) }
 
             LaunchedEffect(Unit) {
-                SpMp.initPlayer(player_coroutine_scope)
+                SpMp.initPlayer(launch_arguments, player_coroutine_scope)
                 player_initialised = true
             }
 
             if (player_initialised) {
-                SpMp.App(ProgramArguments(), shortcut_state, open_uri = open_uri?.toString())
+                SpMp.App(launch_arguments, shortcut_state, open_uri = open_uri?.toString())
             }
         }
     }

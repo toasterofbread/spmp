@@ -4,16 +4,23 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import kotlinx.coroutines.*
-import spms.socketapi.shared.SpMsServerState
+import dev.toastbits.spms.socketapi.shared.SpMsServerState
 
 internal suspend fun SpMsPlayerService.applyServerState(
     state: SpMsServerState,
     coroutine_scope: CoroutineScope,
     onProgress: (String?) -> Unit = {}
 ) = withContext(Dispatchers.Default) {
-    assert(playlist.isEmpty())
-
     onProgress(null)
+
+    if (playlist.isNotEmpty()) {
+        for (i in playlist.size - 1 downTo 0) {
+            val song: Song = playlist.removeAt(i)
+            listeners.forEach {
+                it.onSongRemoved(i, song)
+            }
+        }
+    }
 
     val items: Array<Song?> = arrayOfNulls(state.queue.size)
     var completed: Int = 0
@@ -53,6 +60,9 @@ internal suspend fun SpMsPlayerService.applyServerState(
             }
 
             playlist.add(item)
+            listeners.forEach {
+                it.onSongAdded(playlist.size - 1, item)
+            }
         }
     }
 
@@ -71,23 +81,20 @@ internal suspend fun SpMsPlayerService.applyServerState(
         _is_playing = state.is_playing
         listeners.forEach {
             it.onPlayingChanged(_is_playing)
-            it.onEvents()
         }
     }
     if (state.current_item_index != _current_song_index) {
         _current_song_index = state.current_item_index
 
-        val song = playlist.getOrNull(_current_song_index)
+        val song: Song? = playlist.getOrNull(_current_song_index)
         listeners.forEach {
             it.onSongTransition(song, false)
-            it.onEvents()
         }
     }
     if (state.repeat_mode != _repeat_mode) {
         _repeat_mode = state.repeat_mode
         listeners.forEach {
             it.onRepeatModeChanged(_repeat_mode)
-            it.onEvents()
         }
     }
 

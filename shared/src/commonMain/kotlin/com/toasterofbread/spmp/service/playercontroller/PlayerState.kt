@@ -44,8 +44,12 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.download.DownloadMethodSelectionDialog
 import com.toasterofbread.spmp.platform.download.DownloadStatus
-import com.toasterofbread.spmp.platform.playerservice.PlatformPlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
+import com.toasterofbread.spmp.platform.playerservice.PlayerServiceLoadState
+import com.toasterofbread.spmp.platform.playerservice.PlayerServiceCompanion
+import com.toasterofbread.spmp.platform.playerservice.PlatformInternalPlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlatformExternalPlayerService
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenu
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.AppPageMultiSelectContext
@@ -71,6 +75,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.delay
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
 import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.ui.layout.BarColourState
@@ -85,19 +90,25 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.requiredWidth
 import kotlin.math.roundToInt
 import kotlin.math.absoluteValue
+import ProgramArguments
+import LocalProgramArguments
 
 typealias DownloadRequestCallback = (DownloadStatus?) -> Unit
 
 enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 
 // This is an atrocity
-class PlayerState(val context: AppContext, internal val coroutine_scope: CoroutineScope) {
+class PlayerState(
+    val context: AppContext,
+    val launch_arguments: ProgramArguments,
+    internal val coroutine_scope: CoroutineScope
+) {
     val database: Database get() = context.database
     val settings: Settings get() = context.settings
     val theme: Theme get() = context.theme
     val app_page: AppPage get() = app_page_state.current_page
 
-    private var _player: PlatformPlayerService? by mutableStateOf(null)
+    private var _player: PlayerService? by mutableStateOf(null)
 
     private val app_page_undo_stack: MutableList<AppPage?> = mutableStateListOf()
 
@@ -215,13 +226,18 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         SpMp.addLowMemoryListener(low_memory_listener)
         context.getPrefs().addListener(prefs_listener)
 
-        if (PlatformPlayerService.isServiceRunning(context)) {
-            connectService(null)
+        val service_companion: PlayerServiceCompanion =
+            if (!PlatformInternalPlayerService.isAvailable(context, launch_arguments) || settings.platform.ENABLE_EXTERNAL_SERVER_MODE.get())
+                PlatformExternalPlayerService
+            else PlatformInternalPlayerService
+
+        if (service_companion.isServiceRunning(context)) {
+            connectService(service_companion, null)
         }
         else {
             coroutine_scope.launch {
                 if (PersistentQueueHandler.isPopulatedQueueSaved(context)) {
-                    connectService(null)
+                    connectService(service_companion, null)
                 }
             }
         }
@@ -234,13 +250,14 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
     fun release() {
         service_connection?.also {
-            PlatformPlayerService.disconnect(context, it)
+            service_connection_companion?.disconnect(context, it)
         }
         service_connection = null
+        service_connection_companion = null
         _player = null
     }
 
-    fun interactService(action: (player: PlatformPlayerService) -> Unit) {
+    fun interactService(action: (player: PlayerService) -> Unit) {
         synchronized(service_connected_listeners) {
             _player?.also {
                 action(it)
@@ -619,7 +636,7 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
         }
     }
 
-    val controller: PlatformPlayerService? get() = _player
+    val controller: PlayerService? get() = _player
     fun withPlayer(action: PlayerServicePlayer.() -> Unit) {
         _player?.also {
             action(it.service_player)
@@ -633,21 +650,27 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
 
     @Composable
     fun withPlayerComposable(action: @Composable PlayerServicePlayer.() -> Unit) {
-        connectService(null)
+        LaunchedEffect(Unit) {
+            connectService(onConnected = null)
+        }
+
         _player?.service_player?.also {
             action(it)
         }
     }
 
-    val service_connected: Boolean get() = _player?.load_state?.loading == false
-    val service_loading_message: String? get() = _player?.load_state?.takeIf { it.loading }?.loading_message
-    val service_connection_error: Throwable? get() = _player?.connection_error
+    val service_connected: Boolean get() = _player?.load_state?.let { !it.loading && it.error == null } ?: false
+    val service_load_state: PlayerServiceLoadState? get() = _player?.load_state
 
-    private var service_connecting = false
-    private var service_connected_listeners = mutableListOf<(PlatformPlayerService) -> Unit>()
+    private var service_connecting: Boolean = false
+    private var service_connected_listeners: MutableList<(PlayerService) -> Unit> = mutableListOf()
     private var service_connection: Any? = null
+    private var service_connection_companion: PlayerServiceCompanion? = null
 
-    private fun connectService(onConnected: ((PlatformPlayerService) -> Unit)?) {
+    private fun connectService(
+        service_companion: PlayerServiceCompanion = service_connection_companion!!,
+        onConnected: ((PlayerService) -> Unit)?
+    ) {
         synchronized(service_connected_listeners) {
             if (service_connecting) {
                 if (onConnected != null) {
@@ -661,9 +684,12 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
                 return
             }
 
+            service_connection_companion = service_companion
+
             service_connecting = true
-            service_connection = PlatformPlayerService.connect(
+            service_connection = service_companion.connect(
                 context,
+                launch_arguments,
                 _player,
                 { service ->
                     synchronized(service_connected_listeners) {
@@ -682,6 +708,26 @@ class PlayerState(val context: AppContext, internal val coroutine_scope: Corouti
                     service_connecting = false
                 }
             )
+        }
+    }
+
+    suspend fun requestServiceChange(service_companion: PlayerServiceCompanion) = withContext(Dispatchers.Default) {
+        synchronized(service_connected_listeners) {
+            service_connection?.also { connection ->
+                service_connection_companion!!.disconnect(context, connection)
+                service_connection_companion = null
+                service_connection = null
+
+                _player?.also {
+                    launch(Dispatchers.Main) {
+                        it.onDestroy()
+                    }
+                    _player = null
+                }
+            }
+
+            service_connecting = false
+            connectService(service_companion, onConnected = null)
         }
     }
 

@@ -9,9 +9,9 @@ import kotlinx.serialization.json.int
 import kotlinx.serialization.json.long
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.Dispatchers
-import spms.socketapi.shared.SpMsPlayerEvent
-import spms.socketapi.shared.SpMsPlayerRepeatMode
-import spms.socketapi.shared.SpMsPlayerState
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerEvent
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 
 internal suspend fun SpMsPlayerService.applyPlayerEvents(events: List<SpMsPlayerEvent>) = withContext(Dispatchers.IO) {
     var item_transition_event: SpMsPlayerEvent? = null
@@ -39,7 +39,12 @@ private fun SpMsPlayerService.applyEvent(event: SpMsPlayerEvent) {
 
     when (event.type) {
         SpMsPlayerEvent.Type.ITEM_TRANSITION -> {
-            _current_song_index = event.properties["index"]!!.int
+            val target_index: Int = event.properties["index"]!!.int
+            if (target_index == _current_song_index) {
+                return
+            }
+
+            _current_song_index = target_index
             _duration_ms = -1
             updateCurrentSongPosition(0)
 
@@ -48,6 +53,80 @@ private fun SpMsPlayerService.applyEvent(event: SpMsPlayerEvent) {
                 it.onSongTransition(song, false)
                 it.onEvents()
             }
+        }
+        SpMsPlayerEvent.Type.SEEKED -> {
+            val position_ms: Long = event.properties["position_ms"]!!.long
+            updateCurrentSongPosition(position_ms)
+            listeners.forEach {
+                it.onSeeked(position_ms)
+                it.onEvents()
+            }
+        }
+        SpMsPlayerEvent.Type.ITEM_ADDED -> {
+            val song: SongData = SongData(event.properties["item_id"]!!.content)
+            val index: Int = event.properties["index"]!!.int
+
+            if (index <= _current_song_index) {
+                _current_song_index++
+            }
+
+            playlist.add(minOf(playlist.size, index), song)
+            listeners.forEach {
+                it.onSongAdded(index, song)
+                it.onEvents()
+            }
+            service_player.session_started = true
+        }
+        SpMsPlayerEvent.Type.ITEM_REMOVED -> {
+            val index: Int = event.properties["index"]!!.int
+            if (index !in playlist.indices) {
+                return
+            }
+
+            val song: Song = playlist.removeAt(index)
+            val transitioning: Boolean = index == _current_song_index
+
+            if (index <= _current_song_index) {
+                _current_song_index--
+            }
+
+            listeners.forEach {
+                it.onSongRemoved(index, song)
+                if (transitioning) {
+                    it.onSongTransition(playlist.getOrNull(_current_song_index), false)
+                }
+                it.onEvents()
+            }
+        }
+        SpMsPlayerEvent.Type.ITEM_MOVED -> {
+            val to: Int = event.properties["to"]!!.int
+            val from: Int = event.properties["from"]!!.int
+
+            val song: Song = playlist.removeAt(from)
+            playlist.add(to, song)
+
+            if (from == _current_song_index) {
+                _current_song_index = to
+            }
+
+            listeners.forEach {
+                it.onSongMoved(from, to)
+                it.onEvents()
+            }
+        }
+        SpMsPlayerEvent.Type.CLEARED -> {
+            for (i in playlist.indices.reversed()) {
+                val song: Song = playlist.removeAt(i)
+                listeners.forEach {
+                    it.onSongRemoved(i, song)
+                }
+            }
+            listeners.forEach {
+                it.onEvents()
+            }
+        }
+        SpMsPlayerEvent.Type.CANCEL_RADIO -> {
+            onRadioCancelRequested()
         }
         SpMsPlayerEvent.Type.PROPERTY_CHANGED -> {
             val key: String = event.properties["key"]!!.content
@@ -101,67 +180,6 @@ private fun SpMsPlayerService.applyEvent(event: SpMsPlayerEvent) {
                 else -> throw NotImplementedError(key)
             }
         }
-        SpMsPlayerEvent.Type.SEEKED -> {
-            val position_ms: Long = event.properties["position_ms"]!!.long
-            updateCurrentSongPosition(position_ms)
-            listeners.forEach {
-                it.onSeeked(position_ms)
-                it.onEvents()
-            }
-        }
-        SpMsPlayerEvent.Type.ITEM_ADDED -> {
-            val song: SongData = SongData(event.properties["item_id"]!!.content)
-            val index: Int = event.properties["index"]!!.int
-            playlist.add(minOf(playlist.size, index), song)
-            listeners.forEach {
-                it.onSongAdded(index, song)
-                it.onEvents()
-            }
-            service_player.session_started = true
-        }
-        SpMsPlayerEvent.Type.ITEM_REMOVED -> {
-            val index: Int = event.properties["index"]!!.int
-            if (index in playlist.indices) {
-                val song: Song = playlist.removeAt(index)
-                listeners.forEach {
-                    it.onSongRemoved(index, song)
-                    it.onEvents()
-                }
-            }
-        }
-        SpMsPlayerEvent.Type.ITEM_MOVED -> {
-            val to: Int = event.properties["to"]!!.int
-            val from: Int = event.properties["from"]!!.int
-
-            val song: Song = playlist.removeAt(from)
-            playlist.add(to, song)
-
-            if (from == _current_song_index) {
-                _current_song_index = to
-            }
-
-            listeners.forEach {
-                it.onSongMoved(from, to)
-
-                if (from == _current_song_index) {
-                    it.onSongTransition(song, true)
-                }
-
-                it.onEvents()
-            }
-        }
-        SpMsPlayerEvent.Type.CLEARED -> {
-            for (i in playlist.indices.reversed()) {
-                val song: Song = playlist.removeAt(i)
-                listeners.forEach {
-                    it.onSongRemoved(i, song)
-                }
-            }
-            listeners.forEach {
-                it.onEvents()
-            }
-        }
-
         SpMsPlayerEvent.Type.READY_TO_PLAY -> {}
     }
 }

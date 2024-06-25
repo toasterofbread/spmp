@@ -29,7 +29,7 @@ fun LazyListScope.QueueItems(
 ) {
     val items: List<QueueTabItem> = song_items.toList()
     items(items.size, { items[it].key }) { index ->
-        val item: QueueTabItem = song_items[index]
+        val item: QueueTabItem = song_items.getOrNull(index) ?: return@items
         ReorderableItem(queue_list_state, item.key, item_modifier) { is_dragging ->
             LaunchedEffect(is_dragging) {
                 if (is_dragging) {

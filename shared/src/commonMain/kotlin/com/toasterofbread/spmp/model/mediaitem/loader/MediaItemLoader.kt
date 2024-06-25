@@ -169,33 +169,33 @@ fun MediaItem.loadDataOnChange(
         mutableStateOf(MediaItemLoader.isUnknownLoading(this))
     }
 
-    // DisposableEffect(this) {
-    //     val listener = object : ListenerLoader.Listener<String, MediaItemData> {
-    //         override fun onLoadStarted(key: String) {
-    //             if (key == id) {
-    //                 loading_state.value = true
-    //             }
-    //         }
-    //         override fun onLoadFinished(key: String, value: MediaItemData) {
-    //             if (key == id) {
-    //                 onLoadSucceeded?.invoke(value)
-    //                 loading_state.value = false
-    //             }
-    //         }
-    //         override fun onLoadFailed(key: String, error: Throwable) {
-    //             if (key == id) {
-    //                 onLoadFailed?.invoke(error)
-    //                 loading_state.value = false
-    //             }
-    //         }
-    //     }
+    DisposableEffect(this) {
+        val listener = object : ListenerLoader.Listener<String, MediaItemData> {
+            override fun onLoadStarted(key: String) {
+                if (key == id) {
+                    loading_state.value = true
+                }
+            }
+            override fun onLoadFinished(key: String, value: MediaItemData) {
+                if (key == id) {
+                    onLoadSucceeded?.invoke(value)
+                    loading_state.value = false
+                }
+            }
+            override fun onLoadFailed(key: String, error: Throwable) {
+                if (key == id) {
+                    onLoadFailed?.invoke(error)
+                    loading_state.value = false
+                }
+            }
+        }
 
-    //     MediaItemLoader.addListener(listener)
+        MediaItemLoader.addListener(listener)
 
-    //     onDispose {
-    //         MediaItemLoader.removeListener(listener)
-    //     }
-    // }
+        onDispose {
+            MediaItemLoader.removeListener(listener)
+        }
+    }
 
     LaunchedEffect(this, load) {
         if (load) {
@@ -208,12 +208,12 @@ fun MediaItem.loadDataOnChange(
                 )
             }
             else if (onLoadSucceeded != null) {
-                loading_state.value = true
+                // loading_state.value = true
                 loadData(context, force = false).fold(
                     { onLoadSucceeded?.invoke(it) },
                     { onLoadFailed?.invoke(it) }
                 )
-                loading_state.value = false
+                // loading_state.value = false
             }
         }
     }

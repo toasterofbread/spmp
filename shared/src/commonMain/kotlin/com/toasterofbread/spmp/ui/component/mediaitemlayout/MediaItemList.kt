@@ -80,12 +80,11 @@ fun MediaItemList(
                     if (list_params.play_as_list && item is Song) {
                         player.withPlayer {
                             undoableAction {
-                                addMultipleToQueue(
-                                    filtered_items.filterIsInstance<Song>(),
-                                    clear = true
-                                )
+                                val songs: List<Song> = filtered_items.filterIsInstance<Song>()
+                                addMultipleToQueue(songs, clear = true)
 
-                                seekToSong(index!!)
+                                checkNotNull(index) { "Index is null ($item, ${songs.size}, $songs)" }
+                                seekToSong(index)
                             }
                         }
                     }
@@ -111,6 +110,7 @@ fun MediaItemList(
                         item.value,
                         Modifier.height(getDefaultMediaItemPreviewSize(true).height).fillMaxWidth(),
                         multiselect_context = layout_params.multiselect_context,
+                        multiselect_key = item.index,
                         show_download_indicator = layout_params.show_download_indicators
                     )
                 }

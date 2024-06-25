@@ -414,9 +414,12 @@ private fun PlayerQueueTab(
                 bottom = inner_bottom_padding.coerceAtLeast(0.dp) + 35.dp
             ),
             getBackgroundColour = {
-                getNPAltBackground().copy(alpha = background_opacity)
+                getNPAltBackground()
                 // if (player.np_theme_mode == ThemeMode.BACKGROUND) getNPAltOnBackground()
                 // else theme.background
+            },
+            getBackgroundOpacity = {
+                background_opacity
             },
             getOnBackgroundColour = {
                 when (player.np_theme_mode) {

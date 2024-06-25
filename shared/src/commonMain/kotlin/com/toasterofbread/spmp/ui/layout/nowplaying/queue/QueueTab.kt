@@ -81,8 +81,9 @@ internal fun QueueTab(
     wave_border_mode_override: NowPlayingQueueWaveBorderMode? = null,
     button_row_arrangement: Arrangement.Horizontal = Arrangement.SpaceEvenly,
     getBackgroundColour: PlayerState.() -> Color = { getNPAltOnBackground() },
+    getBackgroundOpacity: () -> Float = { 1f },
     getOnBackgroundColour: PlayerState.() -> Color = { getNPBackground() },
-    getWaveBorderColour: PlayerState.() -> Color = getOnBackgroundColour
+    getWaveBorderColour: PlayerState.() -> Color = getOnBackgroundColour,
 ) {
     val player: PlayerState = LocalPlayerState.current
     val density: Density = LocalDensity.current
@@ -214,7 +215,7 @@ internal fun QueueTab(
                             + MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
                     )
                 }
-                .background(shape) { getBackgroundColour(player) }
+                .background(shape) { getBackgroundColour(player).copy(alpha = getBackgroundOpacity()) }
                 .clip(shape)
         ) {
             val list_padding: Dp = 10.dp
@@ -238,7 +239,7 @@ internal fun QueueTab(
 
                 val wave_border_mode: NowPlayingQueueWaveBorderMode?
 
-                val show_border: Boolean by remember { derivedStateOf { getBackgroundColour(player).alpha >= 1f } }
+                val show_border: Boolean by remember { derivedStateOf { getBackgroundOpacity() >= 1f } }
                 if (show_border) {
                     val wave_border_mode_state: NowPlayingQueueWaveBorderMode by player.settings.player.QUEUE_WAVE_BORDER_MODE.observe()
                     wave_border_mode = wave_border_mode_override ?: wave_border_mode_state
@@ -249,6 +250,7 @@ internal fun QueueTab(
                         queue_list_state,
                         border_thickness,
                         getBackgroundColour = getBackgroundColour,
+                        getBackgroundOpacity = getBackgroundOpacity,
                         getBorderColour = getWaveBorderColour
                     )
                 }
@@ -291,7 +293,7 @@ internal fun QueueTab(
                         ) {
                             if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) {
                                 item {
-                                    CurrentRadioIndicator({ getBackgroundColour(player) }, multiselect_context, Modifier.padding(bottom = 15.dp)) {
+                                    CurrentRadioIndicator({ getBackgroundColour(player).copy(alpha = getBackgroundOpacity()) }, multiselect_context, Modifier.padding(bottom = 15.dp)) {
                                         song_items.map { MultiSelectItem(it.song, it.key) }
                                     }
                                 }
@@ -364,6 +366,7 @@ private fun QueueBorder(
     queue_list_state: ReorderableLazyListState,
     border_thickness: Dp,
     getBackgroundColour: PlayerState.() -> Color,
+    getBackgroundOpacity: () -> Float,
     getBorderColour: PlayerState.() -> Color
 ) {
     val player: PlayerState = LocalPlayerState.current
@@ -396,6 +399,7 @@ private fun QueueBorder(
         WaveBorder(
             Modifier.fillMaxWidth().zIndex(1f),
             getColour = { getBackgroundColour(player) },
+            getAlpha = { getBackgroundOpacity() },
             getWaveOffset = {
                 when (wave_border_mode) {
                     NowPlayingQueueWaveBorderMode.SCROLL -> {

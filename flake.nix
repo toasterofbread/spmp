@@ -3,10 +3,7 @@
 
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    android-nixpkgs = {
-      url = "github:HPRIOR/android-nixpkgs/516bd59caa6883d1a5dad0538af03a1f521e7764";
-      #follows = "nixpkgs";
-    };
+    android-nixpkgs.url = "github:HPRIOR/android-nixpkgs/516bd59caa6883d1a5dad0538af03a1f521e7764";
   };
 
   outputs = { self, nixpkgs, android-nixpkgs, ... }:
@@ -38,6 +35,7 @@
             xorg.libX11
             fontconfig
             mpv
+            vulkan-loader
           ];
 
           JAVA_21_HOME = "${pkgs.jdk21}/lib/openjdk";

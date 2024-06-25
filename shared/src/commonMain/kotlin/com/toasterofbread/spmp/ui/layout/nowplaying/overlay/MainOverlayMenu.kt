@@ -50,15 +50,15 @@ class MainPlayerOverlayMenu(
 
     @Composable
     override fun Menu(
-        getSong: () -> Song,
+        getSong: () -> Song?,
         getExpansion: () -> Float,
         openMenu: (PlayerOverlayMenu?) -> Unit,
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
+        val song: Song = getSong() ?: return
         val player: PlayerState = LocalPlayerState.current
         val download_manager = player.context.download_manager
-        val song: Song = getSong()
 
         val song_artists: List<Artist>? by song.Artists.observe(player.database)
 
@@ -77,7 +77,7 @@ class MainPlayerOverlayMenu(
         DisposableEffect(Unit) {
             val status_listener: PlayerDownloadManager.DownloadStatusListener = object : PlayerDownloadManager.DownloadStatusListener() {
                 override fun onDownloadChanged(status: DownloadStatus) {
-                    if (status.song.id == getSong().id) {
+                    if (status.song.id == getSong()?.id) {
                         download_status = status
                     }
                 }
@@ -96,7 +96,9 @@ class MainPlayerOverlayMenu(
         LaunchedEffect(Unit) {
             while (true) {
                 if (download_status?.status == DownloadStatus.Status.DOWNLOADING || download_status?.status == DownloadStatus.Status.PAUSED) {
-                    download_progress_target = download_manager.getDownload(getSong())!!.progress
+                    getSong()?.also { song ->
+                        download_progress_target = download_manager.getDownload(song)?.progress ?: return@also
+                    }
                 }
                 delay(1500)
             }
@@ -234,8 +236,9 @@ class MainPlayerOverlayMenu(
                             .align(Alignment.Center)
                             .fillMaxSize()
                             .clickable {
+                                val song: Song = getSong() ?: return@clickable
                                 if (download_status?.status != DownloadStatus.Status.FINISHED && download_status?.status != DownloadStatus.Status.ALREADY_FINISHED) {
-                                    player.onSongDownloadRequested(getSong())
+                                    player.onSongDownloadRequested(song)
                                 }
                             },
                         contentAlignment = Alignment.Center

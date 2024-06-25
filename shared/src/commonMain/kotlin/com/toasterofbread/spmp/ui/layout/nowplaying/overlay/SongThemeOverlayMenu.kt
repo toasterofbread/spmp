@@ -58,14 +58,14 @@ class SongThemePlayerOverlayMenu(
 
     @Composable
     override fun Menu(
-        getSong: () -> Song,
+        getSong: () -> Song?,
         getExpansion: () -> Float,
         openMenu: (PlayerOverlayMenu?) -> Unit,
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
+        val song: Song = getSong() ?: return
         val player: PlayerState = LocalPlayerState.current
-        val song: Song = getSong()
 
         val thumb_image: ImageBitmap? = getCurrentSongThumb()
         var palette_colours: List<Color>? by remember { mutableStateOf(null) }

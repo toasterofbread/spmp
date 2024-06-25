@@ -287,7 +287,7 @@ fun LargeThumbnailRow(
                             Crossfade(player.np_overlay_menu) { menu ->
                                 CompositionLocalProvider(LocalContentColor provides Color.White) {
                                     menu?.Menu(
-                                        { player.status.m_song!! },
+                                        { player.status.m_song },
                                         { expansion.getAbsolute() },
                                         { player.openNpOverlayMenu(it ?: main_overlay_menu) },
                                         getSeekState

@@ -9,7 +9,7 @@ actual fun notifImagePlayerOverlayMenuButtonText(): String? = null
 actual class NotifImagePlayerOverlayMenu actual constructor(): PlayerOverlayMenu() {
     @Composable
     override fun Menu(
-        getSong: () -> Song,
+        getSong: () -> Song?,
         getExpansion: () -> Float,
         openMenu: (PlayerOverlayMenu?) -> Unit,
         getSeekState: () -> Any,

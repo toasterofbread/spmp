@@ -35,7 +35,7 @@ enum class PlayerOverlayMenuAction {
 abstract class PlayerOverlayMenu {
     @Composable
     abstract fun Menu(
-        getSong: () -> Song,
+        getSong: () -> Song?,
         getExpansion: () -> Float,
         openMenu: (PlayerOverlayMenu?) -> Unit,
         getSeekState: () -> Any,

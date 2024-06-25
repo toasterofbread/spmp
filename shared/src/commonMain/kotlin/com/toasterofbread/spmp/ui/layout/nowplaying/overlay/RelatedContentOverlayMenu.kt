@@ -27,17 +27,18 @@ class RelatedContentPlayerOverlayMenu(
 
     @Composable
     override fun Menu(
-        getSong: () -> Song,
+        getSong: () -> Song?,
         getExpansion: () -> Float,
         openMenu: (PlayerOverlayMenu?) -> Unit,
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
+        val song: Song = getSong() ?: return
         val player: PlayerState = LocalPlayerState.current
 
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomEnd) {
             SongRelatedPage(
-                getSong(),
+                song,
                 related_endpoint,
                 Modifier.fillMaxSize(),
                 title_text_style = MaterialTheme.typography.headlineSmall,
@@ -54,7 +55,7 @@ class RelatedContentPlayerOverlayMenu(
                 1,
                 { index, _ ->
                     when (index) {
-                        0 -> 
+                        0 ->
                             ActionButton(Icons.Filled.Close) {
                                 openMenu(null)
                             }

@@ -43,18 +43,19 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
 
     @Composable
     override fun Menu(
-        getSong: () -> Song,
+        getSong: () -> Song?,
         getExpansion: () -> Float,
         openMenu: (PlayerOverlayMenu?) -> Unit,
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
+        val song: Song = getSong() ?: return
         val player: PlayerState = LocalPlayerState.current
         val coroutine_scope: CoroutineScope = rememberCoroutineScope()
         val scroll_state: LazyListState = rememberLazyListState()
         val pill_menu: PillMenu = remember { PillMenu(expand_state = mutableStateOf(false)) }
 
-        val lyrics_state: SongLyricsLoader.ItemState = SongLyricsLoader.rememberItemState(getSong(), player.context)
+        val lyrics_state: SongLyricsLoader.ItemState = SongLyricsLoader.rememberItemState(song, player.context)
         var show_furigana: Boolean by remember { mutableStateOf(player.settings.lyrics.DEFAULT_FURIGANA.get()) }
 
         var submenu: Submenu? by remember { mutableStateOf(null) }
@@ -72,7 +73,9 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
         }
 
         LaunchedEffect(lyrics_state) {
-            SongLyricsLoader.loadBySong(getSong(), player.context)
+            getSong()?.also { song ->
+                SongLyricsLoader.loadBySong(song, player.context)
+            }
         }
 
         LaunchedEffect(lyrics_state.loading) {
@@ -178,7 +181,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
             Crossfade(
                 Triple(
                     submenu,
-                    getSong(),
+                    song,
                     lyrics_state.lyrics ?: if (lyrics_state.loading) true else if (lyrics_state.is_none) null else false
                 ),
                 Modifier.fillMaxSize()
@@ -193,7 +196,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                         if (changed) {
                             coroutine_scope.launchSingle {
                                 val result: SongLyrics? =
-                                    SongLyricsLoader.loadBySong(getSong(), player.context)
+                                    SongLyricsLoader.loadBySong(song, player.context)
                                         ?.getOrNotify(player.context, "LyricsOverlayMenu lyrics search")
                             }
                         }

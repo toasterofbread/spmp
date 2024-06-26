@@ -28,8 +28,10 @@ jobs:
         java-version: |
           22
           21
-    
-    - run: echo %JAVA_HOME%
+
+    - run: echo %APPDATA%
+    - run: echo $JAVA_HOME
+    - run: echo $APPDATA
 
     - name: Set up Gradle
       uses: gradle/gradle-build-action@v3

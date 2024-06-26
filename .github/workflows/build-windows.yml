@@ -21,8 +21,6 @@ jobs:
       with:
         submodules: recursive
 
-    - run: echo %JAVA_HOME%
-
     - name: Set up JDKs
       uses: actions/setup-java@v3
       with:
@@ -30,6 +28,8 @@ jobs:
         java-version: |
           22
           21
+    
+    - run: echo %JAVA_HOME%
 
     - name: Set up Gradle
       uses: gradle/gradle-build-action@v3

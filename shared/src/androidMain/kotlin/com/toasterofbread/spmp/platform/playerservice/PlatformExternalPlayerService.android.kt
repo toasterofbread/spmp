@@ -28,6 +28,21 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
     private var target_playing: Boolean = false
     private var target_seek: Long? = null
 
+    private val server: ExternalPlayerService =
+        object : ExternalPlayerService(plays_audio = true) {
+            override fun createServicePlayer(): PlayerServicePlayer = this@PlatformExternalPlayerService.service_player
+        }
+
+    private val server_listener: PlayerListener =
+        object : PlayerListener() {
+            override fun onSongAdded(index: Int, song: Song) = this@PlatformExternalPlayerService.onSongAdded(index, song)
+            override fun onPlayingChanged(is_playing: Boolean) = this@PlatformExternalPlayerService.onPlayingChanged(is_playing)
+            override fun onSeeked(position_ms: Long) = this@PlatformExternalPlayerService.onSeeked(position_ms)
+            override fun onSongMoved(from: Int, to: Int) = this@PlatformExternalPlayerService.onSongMoved(from, to)
+            override fun onSongRemoved(index: Int, song: Song) = this@PlatformExternalPlayerService.onSongRemoved(index)
+            override fun onSongTransition(song: Song?, manual: Boolean) = this@PlatformExternalPlayerService.onSongTransition(current_song_index)
+        }
+
     @Composable
     override fun PersistentContent(requestServiceChange: (PlayerServiceCompanion) -> Unit) {
         val player: PlayerState = LocalPlayerState.current
@@ -92,21 +107,6 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
                 server.seekToSong(index)
                 server.seekTo(position_ms)
             }
-        }
-
-    private val server: ExternalPlayerService =
-        object : ExternalPlayerService(plays_audio = true) {
-            override fun createServicePlayer(): PlayerServicePlayer = this@PlatformExternalPlayerService.service_player
-        }
-
-    private val server_listener: PlayerListener =
-        object : PlayerListener() {
-            override fun onSongAdded(index: Int, song: Song) = this@PlatformExternalPlayerService.onSongAdded(index, song)
-            override fun onPlayingChanged(is_playing: Boolean) = this@PlatformExternalPlayerService.onPlayingChanged(is_playing)
-            override fun onSeeked(position_ms: Long) = this@PlatformExternalPlayerService.onSeeked(position_ms)
-            override fun onSongMoved(from: Int, to: Int) = this@PlatformExternalPlayerService.onSongMoved(from, to)
-            override fun onSongRemoved(index: Int, song: Song) = this@PlatformExternalPlayerService.onSongRemoved(index)
-            override fun onSongTransition(song: Song?, manual: Boolean) = this@PlatformExternalPlayerService.onSongTransition(current_song_index)
         }
 
     private val player_listener: Player.Listener =

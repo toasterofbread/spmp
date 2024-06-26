@@ -152,6 +152,10 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                 try {
                     socket.connectSocketToServer(with (Duration) { 5.seconds })
                 }
+                catch (e: CancellationException) {
+                    socket.close()
+                    break
+                }
                 catch (e: Throwable) {
                     e.printStackTrace()
                     socket.close()
@@ -220,13 +224,13 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
 
             try {
                 while (true) {
-                    println("LOOP 1")
+                    //println("LOOP 1")
                     if (server_state_applied && queued_events != null) {
-                        println("LOOP 1.1")
+                        //println("LOOP 1.1")
                         applyPlayerEvents(queued_events)
                         queued_events = null
                     }
-                    println("LOOP 1.2")
+                    //println("LOOP 1.2")
 
                     val poll_result: Boolean =
                         pollServerState(poller, with (Duration) { 100.milliseconds }) { events ->
@@ -239,34 +243,34 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                         }
 
                     if (poll_result) {
-                        println("LOOP 2")
+                        //println("LOOP 2")
                         last_server_heartbeat = TimeSource.Monotonic.markNow()
                     }
                     else if (last_server_heartbeat.elapsedNow() > CLIENT_HEARTBEAT_MAX_PERIOD) {
-                        println("LOOP 3")
+                        //println("LOOP 3")
                         onSocketConnectionLost(1, CLIENT_HEARTBEAT_MAX_PERIOD)
                         break
                     }
                     else {
-                        println("LOOP 4")
+                        //println("LOOP 4")
                     }
 
                     synchronized(queued_messages) {
-                        println("LOOP 4")
+                        //println("LOOP 4")
                         val message: ZMsg = ZMsg()
                         if (queued_messages.isNotEmpty()) {
                             for (queued in queued_messages) {
                                 message.addSafe(queued.first)
                                 message.addSafe(Json.encodeToString(queued.second))
                             }
-                            println("LOOP 5")
+                            //println("LOOP 5")
                         }
                         else if (last_heartbeat.elapsedNow() > CLIENT_HEARTBEAT_TARGET_PERIOD) {
                             message.add(byteArrayOf())
-                            println("LOOP 6")
+                            //println("LOOP 6")
                         }
                         else {
-                            println("LOOP 7")
+                            //println("LOOP 7")
                             return@synchronized
                         }
 

@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.overlay
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
+import androidx.compose.animation.core.AnimationVector1D
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectDragGestures
@@ -46,7 +47,9 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.getMediaNotificationImageMaxOffset
 import com.toasterofbread.spmp.platform.playerservice.getMediaNotificationImageSize
 import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlin.math.roundToInt
+import kotlinx.coroutines.CoroutineScope
 
 actual fun notifImagePlayerOverlayMenuButtonText(): String? = getString("song_notif_image_menu_open")
 
@@ -59,22 +62,22 @@ actual class NotifImagePlayerOverlayMenu: PlayerOverlayMenu() {
         getSeekState: () -> Any,
         getCurrentSongThumb: () -> ImageBitmap?,
     ) {
-        val player = LocalPlayerState.current
+        val song: Song = getSong() ?: return
+        val player: PlayerState = LocalPlayerState.current
 
         Column(
             Modifier.fillMaxSize(),
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.SpaceEvenly
         ) {
-            val song = getSong()
-            val thumbnail = getCurrentSongThumb()
-            val coroutine_scope = rememberCoroutineScope()
+            val thumbnail: ImageBitmap? = getCurrentSongThumb()
+            val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
             var size_and_max_offset: Triple<ImageBitmap, IntSize, IntOffset>? by remember { mutableStateOf(null) }
             val song_notif_offset: IntOffset? by song.NotificationImageOffset.observe(player.database)
 
-            val offset_x = remember { Animatable(0f) }
-            val offset_y = remember { Animatable(0f) }
+            val offset_x: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) }
+            val offset_y: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) }
 
             LaunchedEffect(song_notif_offset) {
                 offset_x.animateTo(song_notif_offset?.x?.toFloat() ?: 0f)

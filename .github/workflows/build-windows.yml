@@ -40,7 +40,7 @@ jobs:
         "/c/Program Files/7-Zip/7z.exe" x mpv.7z -o"mpv"
 
     - name: Copy libmpv-2.dll
-      run: xcopy /s /i /y /f "${{ github.workspace }}\mpv\libmpv-2.dll" "${{ github.workspace }}\desktopApp\build\package\windows\libmpv.dll"
+      run: xcopy /s /i /y "${{ github.workspace }}\mpv\libmpv-2.dll" "${{ github.workspace }}\desktopApp\build\package\windows\libmpv.dll*"
 
     - run: dir desktopApp\build\package\windows
 

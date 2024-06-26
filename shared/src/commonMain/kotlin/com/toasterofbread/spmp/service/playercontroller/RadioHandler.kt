@@ -31,6 +31,8 @@ open class RadioHandler(val player: PlayerServicePlayer, val context: AppContext
         new_radio_state: RadioState,
         furtherAction: (PlayerServicePlayer.() -> UndoRedoAction?) -> Unit,
         insertion_index: Int = -1,
+        skip_existing: Boolean = true,
+        clear_after: Boolean = false,
         onSuccessfulLoad: (RadioInstance.LoadResult) -> Unit = {}
     ): UndoRedoAction {
         val old_radio_state: RadioState = instance.state
@@ -61,7 +63,8 @@ open class RadioHandler(val player: PlayerServicePlayer, val context: AppContext
                             player.addMultipleToQueue(
                                 result.songs,
                                 if (insertion_index >= 0) insertion_index else player.song_count,
-                                skip_existing = true
+                                skip_existing = skip_existing,
+                                clear_after = clear_after
                             )
                             return@furtherAction null
                         }

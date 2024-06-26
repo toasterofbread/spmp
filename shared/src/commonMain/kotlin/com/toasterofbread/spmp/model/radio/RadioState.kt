@@ -37,12 +37,17 @@ data class RadioState(
         }
 
         val item: MediaItem = getMediaItemFromUid(item_uid)
-        if (continuation == null) {
-            return@runCatching loadInitialSongs(context, item)
+
+        val result: RadioLoadResult = (
+            if (continuation == null) loadInitialSongs(context, item)
+            else loadContinuationSongs(context, item, continuation)
+        ) ?: return@runCatching null
+
+        if (shuffle) {
+            return@runCatching result.copy(songs = result.songs.shuffled())
         }
-        else {
-            return@runCatching loadContinuationSongs(context, item, continuation)
-        }
+
+        return@runCatching result
     }
 
     private suspend fun loadInitialSongs(

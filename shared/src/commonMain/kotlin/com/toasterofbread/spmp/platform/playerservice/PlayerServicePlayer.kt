@@ -307,13 +307,13 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
                             item_queue_index = final_index,
                             shuffle = shuffle
                         ),
-                        furtherAction = { a: PlayerServicePlayer.() -> UndoRedoAction? ->
-                            furtherAction {
-                                a()
-                            }
+                        furtherAction = { action: PlayerServicePlayer.() -> UndoRedoAction? ->
+                            furtherAction { action() }
                         },
                         onSuccessfulLoad = onSuccessfulLoad,
-                        insertion_index = index
+                        insertion_index = index,
+                        skip_existing = false,
+                        clear_after = true
                     )
                 }
             }
@@ -419,10 +419,8 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
                             item_uid = song.getUid(),
                             item_queue_index = add_to_index
                         ),
-                        furtherAction = { a ->
-                            furtherAction {
-                                a()
-                            }
+                        furtherAction = { action ->
+                            furtherAction { action() }
                         }
                     )
                 }
@@ -444,7 +442,8 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
         save: Boolean = true,
         is_active_queue: Boolean = false,
         skip_existing: Boolean = false,
-        clear: Boolean = false
+        clear: Boolean = false,
+        clear_after: Boolean = false
     ) {
         val to_add: List<Song> =
             if (!skip_existing) {
@@ -467,6 +466,9 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
         undo_handler.undoableAction(null) {
             if (clear) {
                 clearQueue(save = false)
+            }
+            else if (clear_after) {
+                clearQueue(save = false, from = index)
             }
 
             for (song in to_add.withIndex()) {

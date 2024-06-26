@@ -513,8 +513,6 @@ class PlayerState(
                     item,
                     shuffle = shuffle,
                     onSuccessfulLoad = { result ->
-                        val added_songs: Int = result.songs?.size ?: return@startRadioAtIndex
-                        clearQueue(from = at_index + added_songs)
                         seekToSong(at_index)
                     }
                 )

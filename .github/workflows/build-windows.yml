@@ -21,6 +21,8 @@ jobs:
       with:
         submodules: recursive
 
+    - run: echo %JAVA_HOME%
+
     - name: Set up JDKs
       uses: actions/setup-java@v3
       with:

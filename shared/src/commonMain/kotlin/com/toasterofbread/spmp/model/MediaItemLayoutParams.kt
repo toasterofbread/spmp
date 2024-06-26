@@ -6,6 +6,7 @@ import com.toasterofbread.spmp.model.mediaitem.rememberFilteredItems
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.lazy.grid.LazyGridScope
 import androidx.compose.runtime.Composable
@@ -17,6 +18,7 @@ data class MediaItemLayoutParams(
     val items: List<MediaItemHolder> = emptyList(),
     val modifier: Modifier = Modifier,
     val title_modifier: Modifier = Modifier,
+    val getTitleTextStyle: (TextStyle) -> TextStyle = { it },
     val title: UiString? = null,
     val subtitle: UiString? = null,
     val view_more: YoutubePage? = null,

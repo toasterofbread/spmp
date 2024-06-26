@@ -117,7 +117,6 @@ internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
                     item_count = artists?.size ?: 0,
                     content_padding = PaddingValues(bottom = content_padding.calculateBottomPadding()),
                     arrangement = Arrangement.spacedBy(15.dp),
-                    reverse_scroll_bar_layout = slot.is_vertical,
                     scroll_bar_colour = LocalContentColor.current.copy(alpha = 0.6f),
                     modifier = list_modifier
                 ) { index ->

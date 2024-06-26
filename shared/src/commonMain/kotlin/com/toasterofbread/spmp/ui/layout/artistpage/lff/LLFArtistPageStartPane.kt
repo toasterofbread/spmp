@@ -30,6 +30,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import dev.toastbits.composekit.platform.composable.PlatformTextField
 import dev.toastbits.composekit.platform.composable.platformClickable
 import dev.toastbits.composekit.utils.common.blendWith
@@ -228,7 +229,8 @@ fun LFFArtistStartPane(
                             multiselect_context = multiselect_context,
                             apply_filter = apply_filter,
                             content_padding = PaddingValues(start = start_padding),
-                            title_modifier = Modifier.height(25.dp).alpha(0.75f)
+                            title_modifier = Modifier.alpha(0.75f),
+                            getTitleTextStyle = { style -> style.copy(fontSize = 20.sp )}
                         ),
                         grid_params = MediaItemGridParams(
                             itemSizeProvider = {

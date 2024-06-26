@@ -82,7 +82,7 @@ fun TitleBar(
                 modifier = modifier.weight(1f)
             ) {
                 if (subtitle_string != null) {
-                    WidthShrinkText(subtitle_string, style = MaterialTheme.typography.titleSmall.copy(color = player.theme.on_background))
+                    WidthShrinkText(subtitle_string, style = layout_params.getTitleTextStyle(MaterialTheme.typography.titleSmall.copy(color = player.theme.on_background)))
                 }
 
                 if (title_string != null) {
@@ -90,9 +90,11 @@ fun TitleBar(
                         title_string,
                         modifier = Modifier.fillMaxWidth(),
                         style = MaterialTheme.typography.headlineMedium.let { style ->
-                            style.copy(
-                                color = player.theme.on_background,
-                                fontSize = font_size ?: style.fontSize
+                            layout_params.getTitleTextStyle(
+                                style.copy(
+                                    color = player.theme.on_background,
+                                    fontSize = font_size ?: style.fontSize
+                                )
                             )
                         }
                     )

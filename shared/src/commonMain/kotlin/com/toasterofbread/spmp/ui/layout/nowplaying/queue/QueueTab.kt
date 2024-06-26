@@ -102,14 +102,29 @@ internal fun QueueTab(
     val queue_listener = remember {
         object : PlayerListener() {
             override fun onSongAdded(index: Int, song: Song) {
-                song_items.add(index, QueueTabItem(song, key_inc++))
+                song_items.add(index.coerceAtMost(song_items.size), QueueTabItem(song, key_inc++))
+
+                for (item in multiselect_context.getSelectedItems().map { it.second!! }.withIndex()) {
+                    if (item.value >= index) {
+                        multiselect_context.updateKey(item.index, item.value + 1)
+                    }
+                }
             }
             override fun onSongRemoved(index: Int, song: Song) {
-                try {
-                    song_items.removeAt(index)
-                }
-                catch (e: Throwable) {
-                    throw RuntimeException("$index ${song_items.toList()}", e)
+                val song: Song =
+                    try {
+                        song_items.removeAt(index).song
+                    }
+                    catch (e: Throwable) {
+                        throw RuntimeException("$index ${song_items.toList()}", e)
+                    }
+
+                multiselect_context.setItemSelected(Pair(song, index), false)
+
+                for (item in multiselect_context.getSelectedItems().map { it.second!! }.withIndex()) {
+                    if (item.value > index) {
+                        multiselect_context.updateKey(item.index, item.value - 1)
+                    }
                 }
             }
             override fun onSongMoved(from: Int, to: Int) {

@@ -13,9 +13,6 @@ jobs:
     runs-on: windows-latest
     if: ${{ github.event.pull_request.draft == false && (github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, 'noci')) }}
 
-    env:
-      PACKAGE_JAVA_HOME: /usr/lib/jvm/java-22-openjdk/
-
     steps:
     - uses: actions/checkout@v3
       with:
@@ -29,9 +26,8 @@ jobs:
           22
           21
 
-    - run: echo %APPDATA%
-    - run: echo $JAVA_HOME
-    - run: echo $APPDATA
+    - run: echo "PACKAGE_JAVA_HOME=$JAVA_HOME_22_X64" >> $GITHUB_ENV
+    - run: echo $PACKAGE_JAVA_HOME
 
     - name: Set up Gradle
       uses: gradle/gradle-build-action@v3

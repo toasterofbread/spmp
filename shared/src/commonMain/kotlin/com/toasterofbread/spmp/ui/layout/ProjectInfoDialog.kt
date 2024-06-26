@@ -77,7 +77,7 @@ fun ProjectInfoDialog(modifier: Modifier = Modifier, close: () -> Unit) {
                                     FilledTonalButton({ player.context.openUrl(getString("donation_url")) }) {
                                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                                             Icon(Icons.Default.LocalCafe, null)
-                                            Text(getString("project_info_dialog_project_donate_button"))
+                                            Text(getString("project_info_dialog_project_donate_button"), softWrap = false)
                                         }
                                     }
                                 }
@@ -95,7 +95,7 @@ fun ProjectInfoDialog(modifier: Modifier = Modifier, close: () -> Unit) {
                                     FilledTonalButton({ player.context.openUrl(getString("project_url")) }) {
                                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                                             Icon(painterResource(Res.drawable.ic_github), null)
-                                            Text(getString("project_info_dialog_project_source_button"))
+                                            Text(getString("project_info_dialog_project_source_button"), softWrap = false)
                                         }
                                     }
                                 }
@@ -115,7 +115,7 @@ fun ProjectInfoDialog(modifier: Modifier = Modifier, close: () -> Unit) {
                             },
                             Modifier.fillMaxWidth()
                         ) {
-                            Text(getString("project_info_dialog_dependencies_button"))
+                            Text(getString("project_info_dialog_dependencies_button"), maxLines = 2)
                         }
                     }
                 }

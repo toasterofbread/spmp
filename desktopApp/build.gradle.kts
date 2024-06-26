@@ -114,7 +114,7 @@ compose.desktop {
             targetFormats(TargetFormat.AppImage, TargetFormat.Deb, TargetFormat.Exe)
 
             // spms
-            jvmArgs += listOf("--enable-preview", "--enable-native-access=ALL-UNNAMED")
+            jvmArgs += listOf("--enable-preview", "--enable-native-access=ALL-UNNAMED", "-Djava.library.path=app/resources")
 
             linux {
                 iconFile.set(rootProject.file("metadata/en-US/images/icon.png"))

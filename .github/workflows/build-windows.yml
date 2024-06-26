@@ -28,7 +28,7 @@ jobs:
     
     - run: |
        chcp 65001
-       echo ("PACKAGE_JAVA_HOME=" + $JAVA_HOME_22_X64) >> $env:GITHUB_ENV
+       echo ("PACKAGE_JAVA_HOME=" + $env:JAVA_HOME_22_X64) >> $env:GITHUB_ENV
     - run: echo $PACKAGE_JAVA_HOME
 
     - name: Set up Gradle

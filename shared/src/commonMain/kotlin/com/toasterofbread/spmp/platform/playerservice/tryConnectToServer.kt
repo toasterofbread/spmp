@@ -47,12 +47,7 @@ internal suspend fun Socket.tryConnectToServer(
 
     log("Waiting for reply from server at $server_url...")
 
-    var reply: ZMsg?
-    do {
-        reply = recvMsg(with (Duration) { 500.milliseconds })
-        ensureActive()
-    }
-    while (reply == null)
+    val reply: ZMsg = recvMsg(with (Duration) { 500.milliseconds }) ?: throw NullPointerException("No reply from server")
 
     val joined_reply: List<String> = SpMsSocketApi.decode(reply.map { it.data.decodeToString() })
     val server_handshake_data: String = joined_reply.first()

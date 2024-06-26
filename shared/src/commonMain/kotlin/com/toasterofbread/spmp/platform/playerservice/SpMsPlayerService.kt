@@ -280,11 +280,11 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                         queued_messages.clear()
                         last_heartbeat = TimeSource.Monotonic.markNow()
 
-                        println("SENDING $message")
+                        // println("SENDING $message")
                         val send_result: Boolean = message.send(this@connectSocketToServer)
                         check(send_result) { "Sending message to server failed" }
 
-                        println("EXPECTING REP $actions_expecting_result")
+                        // println("EXPECTING REP $actions_expecting_result")
                         if (actions_expecting_result.isEmpty()) {
                             return@synchronized
                         }
@@ -300,7 +300,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                         }
 
                         if (results == null) {
-                            println("NO RESULTS")
+                            // println("NO RESULTS")
                             onSocketConnectionLost(1, SERVER_REPLY_TIMEOUT)
                             return@launchSingle
                         }
@@ -308,7 +308,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                         last_server_heartbeat = TimeSource.Monotonic.markNow()
 
                         val result_str: String = SpMsSocketApi.decode(results.map { it.data.decodeToString() }).first()
-                        println("RESULT STR $result_str")
+                        // println("RESULT STR $result_str")
                         if (result_str.isEmpty()) {
                             throw RuntimeException("Result string is empty")
                         }
@@ -422,7 +422,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
             throw RuntimeException(result.error, result.error_cause?.let { RuntimeException(it) })
         }
 
-        return Json.decodeFromJsonElement(result.result ?: throw NullPointerException("Result is null"))
+        return@runCatching Json.decodeFromJsonElement(result.result ?: throw NullPointerException("Result is null"))
     }
 
     override fun onSongFilesAdded(songs: List<DownloadStatus>) {

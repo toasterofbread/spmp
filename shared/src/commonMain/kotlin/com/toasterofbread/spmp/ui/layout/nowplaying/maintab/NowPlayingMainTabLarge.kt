@@ -76,9 +76,13 @@ private fun MainTabControls(
         player.status.m_song,
         { seek_progress ->
             player.withPlayer {
+                if (duration_ms <= 0) {
+                    return@withPlayer
+                }
+
                 seekTo((duration_ms * seek_progress).toLong())
+                onSeek(seek_progress)
             }
-            onSeek(seek_progress)
         },
         modifier.padding(top = 30.dp),
         enabled = enabled,

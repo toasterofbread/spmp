@@ -222,7 +222,7 @@ internal fun Controls(
         }
 
         if (!seek_bar_next_to_buttons) {
-            SeekBar(seek, getColour = getOnBackgroundColour, getTrackColour = getSeekBarTrackColour, enabled = enabled)
+            SeekBar(seek, getColour = getOnBackgroundColour, getTrackColour = getSeekBarTrackColour, enabled = enabled && player.status.m_duration_ms > 0)
         }
 
         Row(
@@ -274,7 +274,7 @@ internal fun Controls(
                     Modifier.fillMaxWidth().weight(1f).padding(start = 10.dp),
                     getColour = getOnBackgroundColour,
                     getTrackColour = getSeekBarTrackColour,
-                    enabled = enabled
+                    enabled = enabled && player.status.m_duration_ms > 0
                 )
             }
 

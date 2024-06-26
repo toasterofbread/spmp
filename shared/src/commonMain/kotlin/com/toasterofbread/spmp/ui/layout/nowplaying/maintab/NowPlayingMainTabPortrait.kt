@@ -181,9 +181,13 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(
                     current_song,
                     {
                         player.withPlayer {
+                            if (duration_ms <= 0) {
+                                return@withPlayer
+                            }
+
                             seekTo((duration_ms * it).toLong())
+                            seek_state = it
                         }
-                        seek_state = it
                     },
                     Modifier
                         .graphicsLayer {

@@ -53,7 +53,6 @@ fun SeekBar(
 
     var position_override by remember { mutableStateOf<Float?>(null) }
     var old_position by remember { mutableStateOf<Float?>(null) }
-    var cancel_area_side: Int? by remember { mutableStateOf(null) }
 
     fun getSliderValue(): Float {
         if (position_override != null && old_position != null) {
@@ -94,7 +93,6 @@ fun SeekBar(
                         seek(it)
                     }
                     old_position = player.status.getProgress()
-                    cancel_area_side = null
                 },
                 thumbSizeInDp = DpSize(12.dp, 12.dp),
                 track = { a, b, _, _, e -> SeekTrack(a, b, e, getTrackColour(player), getColour(player)) },

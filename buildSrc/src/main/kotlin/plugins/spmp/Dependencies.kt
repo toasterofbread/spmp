@@ -278,6 +278,14 @@ class SpMpDeps(extra: Map<String, Any>) {
                 url = "https://github.com/Selemba1000/JavaMediaTransportControls",
                 license = "MIT",
                 license_url = "https://github.com/toasterofbread/mediasession-kt/blob/ee08de4f82375e90fad0d285dca5add66227b5e5/library/src/nativeInterop/mingw-x86_64/thirdparty/libsmtc/LICENSE"
+            ),
+            "com.egeniq.exovisualizer" to DependencyInfo(
+                version = null,
+                name = "ExoVisualizer",
+                author = "dzolnai",
+                url = "https://github.com/dzolnai/ExoVisualizer",
+                license = "MIT",
+                license_url = "https://github.com/dzolnai/ExoVisualizer/blob/720e1b127b900aece546b8e88aed65db50379f0a/LICENSE"
             )
         )
 }

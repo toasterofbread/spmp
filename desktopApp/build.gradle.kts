@@ -93,6 +93,9 @@ kotlin {
 compose.desktop {
     application {
         mainClass = "MainKt"
+        System.getenv("PACKAGE_JAVA_HOME")?.takeIf { it.isNotBlank() }?.also {
+            javaHome = it
+        }
 
         nativeDistributions {
             modules(

@@ -13,6 +13,9 @@ jobs:
     runs-on: windows-latest
     if: ${{ github.event.pull_request.draft == false && (github.event_name == 'workflow_dispatch' || !contains(github.event.head_commit.message, 'noci')) }}
 
+    env:
+      PACKAGE_JAVA_LIBRARY_PATH: app/resources
+
     steps:
     - uses: actions/checkout@v3
       with:
@@ -28,8 +31,8 @@ jobs:
 
     - name: Set PACKAGE_JAVA_HOME
       run: |
-       chcp 65001
-       echo ("PACKAGE_JAVA_HOME=" + $env:JAVA_HOME_22_X64) >> $env:GITHUB_ENV
+        chcp 65001
+        echo ("PACKAGE_JAVA_HOME=" + $env:JAVA_HOME_22_X64) >> $env:GITHUB_ENV
 
     - name: Download mpv
       run: curl -L https://downloads.sourceforge.net/project/mpv-player-windows/libmpv/mpv-dev-x86_64-20240114-git-bd35dc8.7z --output mpv.7z

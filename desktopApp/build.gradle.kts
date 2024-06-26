@@ -114,15 +114,19 @@ compose.desktop {
             targetFormats(TargetFormat.AppImage, TargetFormat.Deb, TargetFormat.Exe)
 
             // spms
-            jvmArgs += listOf("--enable-preview", "--enable-native-access=ALL-UNNAMED", "-Djava.library.path=app/resources")
+            jvmArgs += listOf("--enable-preview", "--enable-native-access=ALL-UNNAMED")
+
+            // Required for setting WM_CLASS in main.kt
+            // https://stackoverflow.com/a/69404254
+            jvmArgs += listOf("--add-opens=java.desktop/sun.awt.X11=ALL-UNNAMED")
+
+            System.getenv("PACKAGE_JAVA_LIBRARY_PATH")?.takeIf { it.isNotBlank() }?.also {
+                jvmArgs += listOf("-Djava.library.path=$it")
+            }
 
             linux {
                 iconFile.set(rootProject.file("metadata/en-US/images/icon.png"))
                 appRelease = getString("version_code")
-
-                // Required for setting WM_CLASS in main.kt
-                // https://stackoverflow.com/a/69404254
-                jvmArgs += listOf("--add-opens=java.desktop/sun.awt.X11=ALL-UNNAMED")
             }
 
             windows {

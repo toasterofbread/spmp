@@ -88,7 +88,7 @@ private fun Modifier.desktopMediaItemPreviewInteraction(
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     val onItemClick = onClick ?: { item, key -> click_overrides.onMediaItemClicked(item, player, key) }
-    val onItemLongClick = onLongClick ?: { item, data -> click_overrides.onMediaItemLongClicked(item, player, data) }
+    val onItemLongClick = onLongClick ?: { item, data -> click_overrides.onMediaItemAltClicked(item, player, data) }
 
     return platformClickableWithOffset(
         onClick = { MediaItemPreviewInteractionPressStage.INSTANT.execute(item, long_press_menu_data, it, onItemClick, onItemLongClick) },
@@ -111,7 +111,7 @@ private fun Modifier.androidMediaItemPreviewInteraction(
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     val onItemClick = onClick ?: { item, key -> click_overrides.onMediaItemClicked(item, player, key) }
-    val onItemLongClick = onLongClick ?: { item, data -> click_overrides.onMediaItemLongClicked(item, player, data) }
+    val onItemLongClick = onLongClick ?: { item, data -> click_overrides.onMediaItemAltClicked(item, player, data) }
 
     var current_press_stage: MediaItemPreviewInteractionPressStage by remember { mutableStateOf(MediaItemPreviewInteractionPressStage.INSTANT) }
     val long_press_timeout: Long = LocalViewConfiguration.current.longPressTimeoutMillis

@@ -262,7 +262,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(
                             {
                                 current_song?.let { song ->
                                     if (1f - expansion.getDisappearing() > 0f) {
-                                        click_overrides.onMediaItemLongClicked(song, player.status.m_index, player)
+                                        click_overrides.onMediaItemAltClicked(song, player.status.m_index, player)
                                     }
                                 }
                             }

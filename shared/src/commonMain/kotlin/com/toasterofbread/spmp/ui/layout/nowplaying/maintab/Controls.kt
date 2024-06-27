@@ -1,55 +1,34 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.maintab
 
 import LocalPlayerState
-import androidx.compose.foundation.Canvas
-import androidx.compose.foundation.clickable
+import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.rounded.Pause
-import androidx.compose.material.icons.rounded.PlayArrow
-import androidx.compose.material.icons.rounded.SkipNext
-import androidx.compose.material.icons.rounded.SkipPrevious
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.material.icons.rounded.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.geometry.Size
-import androidx.compose.ui.graphics.BlendMode
-import androidx.compose.ui.graphics.Brush
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.graphics.vector.VectorPainter
-import androidx.compose.ui.graphics.vector.rememberVectorPainter
-import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.TextUnit
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
+import androidx.compose.ui.*
+import androidx.compose.ui.geometry.*
+import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.vector.*
+import androidx.compose.ui.text.style.*
+import androidx.compose.ui.unit.*
+import com.toasterofbread.spmp.model.mediaitem.artist.*
+import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitles
+import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.service.playercontroller.*
+import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
+import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
+import com.toasterofbread.spmp.ui.layout.nowplaying.*
+import com.toasterofbread.spmp.resources.getString
 import dev.toastbits.composekit.platform.composable.platformClickable
 import dev.toastbits.composekit.platform.vibrateShort
 import dev.toastbits.composekit.utils.common.getValue
 import dev.toastbits.composekit.utils.composable.Marquee
 import dev.toastbits.composekit.utils.modifier.bounceOnClick
-import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.model.mediaitem.artist.formatArtistTitles
-import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitles
-import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
-import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
-import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
-import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
-import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 
 private const val TITLE_FONT_SIZE_SP: Float = 21f
 private const val ARTIST_FONT_SIZE_SP: Float = 12f
@@ -180,6 +159,43 @@ internal fun Controls(
                 }
 
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                    var selecting_artists: List<Artist>? by remember { mutableStateOf(null) }
+                    selecting_artists?.also { artists ->
+                        AlertDialog(
+                            onDismissRequest = {
+                                selecting_artists = null
+                            },
+                            confirmButton = {
+                                Button({
+                                    selecting_artists = null
+                                }) {
+                                    Text(getString("action_cancel"))
+                                }
+                            },
+                            title = {
+                                Text(MediaItemType.ARTIST.getReadable(true))
+                            },
+                            text = {
+                                CompositionLocalProvider(LocalPlayerClickOverrides provides click_overrides.copy(
+                                    onClickOverride = { item, _ ->
+                                        player.openMediaItem(item)
+                                        selecting_artists = null
+                                    },
+                                    onAltClickOverride = { item, p2 ->
+                                        click_overrides.onMediaItemAltClicked(item, player, p2)
+                                        selecting_artists = null
+                                    }
+                                )) {
+                                    Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
+                                        for (artist in artists) {
+                                            MediaItemPreviewLong(artist)
+                                        }
+                                    }
+                                }
+                            }
+                        )
+                    }
+
                     artistRowStartContent()
                     Spacer(Modifier)
                     Text(
@@ -197,15 +213,18 @@ internal fun Controls(
                             .platformClickable(
                                 enabled = enabled,
                                 onClick = {
-                                    val artist: Artist? = song?.Artists?.get(player.database)?.firstOrNull()
-                                    if (artist?.isForItem() == false) {
-                                        click_overrides.onMediaItemClicked(artist, player)
+                                    val artists: List<Artist> = song?.Artists?.get(player.database)?.filter { !it.isForItem() } ?: return@platformClickable
+                                    if (artists.size == 1) {
+                                        click_overrides.onMediaItemClicked(artists.first(), player)
+                                    }
+                                    else if (artists.size > 1) {
+                                        selecting_artists = artists
                                     }
                                 },
                                 onAltClick = {
-                                    val artist: Artist? = song?.Artists?.get(player.database)?.firstOrNull()
+                                    val artist: Artist? = song?.Artists?.get(player.database)?.singleOrNull()
                                     if (artist?.isForItem() == false) {
-                                        click_overrides.onMediaItemLongClicked(artist, player)
+                                        click_overrides.onMediaItemAltClicked(artist, player)
                                         player.context.vibrateShort()
                                     }
                                 }

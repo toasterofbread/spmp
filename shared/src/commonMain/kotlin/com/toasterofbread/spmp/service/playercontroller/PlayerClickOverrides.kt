@@ -50,10 +50,10 @@ data class PlayerClickOverrides(
         }
     }
 
-    fun onMediaItemLongClicked(item: MediaItem, queue_index: Int, player: PlayerState) {
-        onMediaItemLongClicked(item, player, LongPressMenuData(item, multiselect_key = queue_index))
+    fun onMediaItemAltClicked(item: MediaItem, queue_index: Int, player: PlayerState) {
+        onMediaItemAltClicked(item, player, LongPressMenuData(item, multiselect_key = queue_index))
     }
-    fun onMediaItemLongClicked(item: MediaItem, player: PlayerState, long_press_data: LongPressMenuData? = null) {
+    fun onMediaItemAltClicked(item: MediaItem, player: PlayerState, long_press_data: LongPressMenuData? = null) {
         if (onAltClickOverride != null) {
             onAltClickOverride.invoke(item, long_press_data)
             return

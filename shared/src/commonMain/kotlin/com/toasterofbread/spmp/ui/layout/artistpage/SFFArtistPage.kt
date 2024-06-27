@@ -172,7 +172,7 @@ internal fun ArtistAppPage.SFFArtistPage(
                                     }
                                 },
                                 onAltClickOverride = { item, long_press_data ->
-                                    click_overrides.onMediaItemLongClicked(
+                                    click_overrides.onMediaItemAltClicked(
                                         item,
                                         player,
                                         long_press_data =

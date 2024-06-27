@@ -40,6 +40,11 @@ class PlayerSettings(val context: AppContext): SettingsGroup("PLAYER", context.g
         getDescription = { null },
         getDefaultValue = { true }
     )
+    val LANDSCAPE_SWAP_CONTROLS_AND_IMAGE: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_player_landscape_swap_controls_and_image") },
+        getDescription = { null },
+        getDefaultValue = { false }
+    )
     val OVERLAY_CUSTOM_ACTION: PreferencesProperty<PlayerOverlayMenuAction> by enumProperty(
         getName = { getString("s_key_player_overlay_menu_custom_action") },
         getDescription = { getString("s_sub_player_overlay_menu_custom_action") },

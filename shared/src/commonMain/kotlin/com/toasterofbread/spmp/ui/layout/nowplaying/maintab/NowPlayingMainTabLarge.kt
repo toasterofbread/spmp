@@ -105,6 +105,8 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
     val layout_direction: LayoutDirection = LocalLayoutDirection.current
     val density: Density = LocalDensity.current
 
+    val swap_controls_and_image: Boolean by player.settings.player.LANDSCAPE_SWAP_CONTROLS_AND_IMAGE.observe()
+
     val proportion: Float = WindowInsets.getTop() / page_height
     val proportion_exp: Float by remember { derivedStateOf {
         (expansion.get().coerceIn(0f, 1f) * (1f - proportion)).coerceAtLeast(0f)
@@ -211,8 +213,14 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                     CompositionLocalProvider(LocalContentColor provides bar_background_colour.getContrasted()) {
                         var bottom_bar_position: DpOffset by remember { mutableStateOf(DpOffset.Zero) }
 
-                        val thumb_pos: Dp = page_height - top_padding - controls_target_height - thumb_size - CONTROLS_IMAGE_SEPARATION_DP.dp
-                        val inset_depth: Dp = if (bottom_bar_height - thumb_pos > 4.dp) 4.dp else 0.dp
+                        val inset_depth: Dp
+                        if (swap_controls_and_image) {
+                            inset_depth = 0.dp
+                        }
+                        else {
+                            val thumb_pos: Dp = page_height - top_padding - controls_target_height - thumb_size - CONTROLS_IMAGE_SEPARATION_DP.dp
+                            inset_depth = if (bottom_bar_height - thumb_pos > 4.dp) 4.dp else 0.dp
+                        }
 
                         LargeBottomBar(
                             bar_background_colour,
@@ -258,38 +266,45 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
 
                             Spacer(Modifier.fillMaxHeight().weight(1f))
 
-                            MainTabControls(
-                                { seek_state = it },
-                                enabled = expanded,
-                                button_size = 50.dp,
-                                seek_bar_next_to_buttons = !compact_mode,
-                                modifier = Modifier
-                                    .requiredHeight((if (compact_mode) controls_target_height + 200.dp else controls_target_height) * ((absolute_expansion - 0.5f) * 2f))
-                                    .scale(1f, absolute_expansion)
-                                    .padding(bottom = CONTROLS_IMAGE_SEPARATION_DP.dp)
-                                    .graphicsLayer {
-                                        alpha = if (compact_mode) (absolute_expansion - 0.5f).coerceAtLeast(0f) * 2f else 1f
-                                    },
-                                textRowStartContent = {
-                                    if (compact_mode) {
-                                        val song: Song? by player.status.song_state
+                            @Composable
+                            fun Controls(modifier: Modifier = Modifier) {
+                                MainTabControls(
+                                    { seek_state = it },
+                                    enabled = expanded,
+                                    button_size = 50.dp,
+                                    seek_bar_next_to_buttons = !compact_mode,
+                                    modifier = Modifier
+                                        .requiredHeight((if (compact_mode) controls_target_height + 200.dp else controls_target_height) * ((absolute_expansion - 0.5f) * 2f))
+                                        .scale(1f, absolute_expansion)
+                                        .then(modifier)
+                                        .graphicsLayer {
+                                            alpha = if (compact_mode) (absolute_expansion - 0.5f).coerceAtLeast(0f) * 2f else 1f
+                                        },
+                                    textRowStartContent = {
+                                        if (compact_mode) {
+                                            val song: Song? by player.status.song_state
 
-                                        val thumbnail_rounding: Int = song.observeThumbnailRounding()
-                                        val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding)
+                                            val thumbnail_rounding: Int = song.observeThumbnailRounding()
+                                            val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding)
 
-                                        song?.Thumbnail(
-                                            ThumbnailProvider.Quality.HIGH,
-                                            Modifier
-                                                .padding(end = 10.dp)
-                                                .size(controls_target_height - 100.dp)
-                                                .clip(thumbnail_shape),
-                                            onLoaded = {
-                                                onThumbnailLoaded(song, it)
-                                            }
-                                        )
+                                            song?.Thumbnail(
+                                                ThumbnailProvider.Quality.HIGH,
+                                                Modifier
+                                                    .padding(end = 10.dp)
+                                                    .size(controls_target_height - 100.dp)
+                                                    .clip(thumbnail_shape),
+                                                onLoaded = {
+                                                    onThumbnailLoaded(song, it)
+                                                }
+                                            )
+                                        }
                                     }
-                                }
-                            )
+                                )
+                            }
+
+                            if (!swap_controls_and_image) {
+                                Controls(Modifier.padding(bottom = CONTROLS_IMAGE_SEPARATION_DP.dp))
+                            }
 
                             val max_thumbnail_row_height: Dp =
                                 if (compact_mode) (1f - absolute_expansion) * thumb_size
@@ -327,6 +342,10 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                             }
                                         }
                                 )
+                            }
+
+                            if (swap_controls_and_image) {
+                                Controls(Modifier.padding(top = CONTROLS_IMAGE_SEPARATION_DP.dp, bottom = 30.dp))
                             }
 
                             Spacer(Modifier.requiredHeight(animateDpAsState(inner_bottom_padding * compact_mode.toInt()).value).weight(1f, false))

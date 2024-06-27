@@ -53,6 +53,11 @@ internal fun getPlayerCategoryItems(context: AppContext): List<SettingsItem> {
             title_max_lines = 2
         ),
 
+        ToggleSettingsItem(
+            context.settings.player.LANDSCAPE_SWAP_CONTROLS_AND_IMAGE,
+            title_max_lines = 2
+        ),
+
         MultipleChoiceSettingsItem(
             context.settings.player.OVERLAY_CUSTOM_ACTION,
         ) { action ->

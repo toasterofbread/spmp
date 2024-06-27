@@ -451,6 +451,8 @@
 
     <string name="s_key_player_show_progress_bar_gradient">Show gradient in seek bar</string>
 
+    <string name="s_key_player_landscape_swap_controls_and_image">Swap controls and song image in landscape player</string>
+
     <string name="s_key_player_overlay_menu_custom_action">Overlay menu custom action</string>
     <string name="s_sub_player_overlay_menu_custom_action">By default, triggers on long press</string>
     <string name="s_key_player_overlay_menu_swap_long_short_press_actions">Swap overlay menu long and short press actions</string>

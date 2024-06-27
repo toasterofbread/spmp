@@ -425,6 +425,8 @@
 
     <string name="s_key_player_show_progress_bar_gradient">シークバーの中にグラデーションを表示</string>
 
+    <string name="s_key_player_landscape_swap_controls_and_image">ランドスケーププレイヤーの曲画像とコントロールの位置を入れ替える</string>
+
     <string name="s_key_player_overlay_menu_custom_action">オーバーレイ画面のカスタムアクション</string>
     <string name="s_sub_player_overlay_menu_custom_action">デフォルトでは、長押しで発生します</string>
     <string name="s_key_player_overlay_menu_swap_long_short_press_actions">オーバーレイ画面の短押しと長押しアクションを交換する</string>

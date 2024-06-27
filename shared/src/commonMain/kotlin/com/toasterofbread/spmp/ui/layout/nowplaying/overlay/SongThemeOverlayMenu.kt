@@ -90,6 +90,7 @@ class SongThemePlayerOverlayMenu(
                     ScrollBarLazyColumn(
                         Modifier.fillMaxHeight(),
                         contentPadding = PaddingValues(top = 10.dp, bottom = 10.dp, start = 10.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically),
                         reverseScrollBarLayout = true
                     ) {
@@ -100,11 +101,28 @@ class SongThemePlayerOverlayMenu(
                                 },
                                 modifier = Modifier
                                     .clip(CircleShape)
-                                    .requiredSize(40.dp),
+                                    .requiredSize(width = 48.dp, height = 40.dp)
+                                    .padding(horizontal = 4.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = colour
                                 )
                             ) {}
+                        }
+
+                        item {
+                            IconButton(
+                                {
+                                    colourpick_requested = true
+                                    requestColourPicker {
+                                        colourpick_requested = false
+                                        if (it != null) {
+                                            onColourSelected(it)
+                                        }
+                                    }
+                                }
+                            ) {
+                                Icon(Icons.Default.Colorize, null)
+                            }
                         }
                     }
 
@@ -194,28 +212,11 @@ class SongThemePlayerOverlayMenu(
 
                         Spacer(Modifier.fillMaxHeight().weight(1f))
 
-                        Row(Modifier.fillMaxWidth()) {
-                            IconButton(
-                                {
-                                    colourpick_requested = true
-                                    requestColourPicker {
-                                        colourpick_requested = false
-                                        if (it != null) {
-                                            onColourSelected(it)
-                                        }
-                                    }
-                                }
-                            ) {
-                                Icon(Icons.Default.Colorize, null)
-                            }
 
-                            Spacer(Modifier.fillMaxWidth().weight(1f))
-
-                            val notif_image_menu_button_text: String? = notifImagePlayerOverlayMenuButtonText()
-                            if (notif_image_menu_button_text != null) {
-                                Button({ openMenu(NotifImagePlayerOverlayMenu()) }, colors = button_colours) {
-                                    Text(notif_image_menu_button_text)
-                                }
+                        val notif_image_menu_button_text: String? = notifImagePlayerOverlayMenuButtonText()
+                        if (notif_image_menu_button_text != null) {
+                            Button({ openMenu(NotifImagePlayerOverlayMenu()) }, colors = button_colours) {
+                                Text(notif_image_menu_button_text)
                             }
                         }
                     }

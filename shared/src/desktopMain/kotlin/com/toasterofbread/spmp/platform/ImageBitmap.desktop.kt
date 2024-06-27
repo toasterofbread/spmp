@@ -10,6 +10,7 @@ import java.awt.image.BufferedImage
 import java.io.ByteArrayOutputStream
 import java.io.IOException
 import javax.imageio.ImageIO
+import dev.toastbits.composekit.utils.common.sortedByHue
 
 actual fun ByteArray.toImageBitmap(): ImageBitmap =
     Image.makeFromEncoded(this).toComposeImageBitmap()
@@ -55,5 +56,5 @@ actual fun ImageBitmap.generatePalette(max_amount: Int): List<Color> {
 
     val scaled = toScaledBufferedImage(50, 50)
     val palette = ColorThief.getColorMap(scaled, max_amount, 10, false).palette()
-    return palette.map { Color(it[0], it[1], it[2]) }
+    return palette.map { Color(it[0], it[1], it[2]) }.sortedByHue()
 }

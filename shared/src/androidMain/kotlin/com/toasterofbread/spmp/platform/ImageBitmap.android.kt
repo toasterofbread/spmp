@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.palette.graphics.Palette
 import java.io.ByteArrayOutputStream
+import dev.toastbits.composekit.utils.common.sortedByHue
 
 actual fun ByteArray.toImageBitmap(): ImageBitmap =
     BitmapFactory.decodeByteArray(this, 0, size).asImageBitmap()
@@ -59,5 +60,5 @@ actual fun ImageBitmap.generatePalette(max_amount: Int): List<Color> {
         }
     }
 
-    return colours
+    return colours.sortedByHue()
 }

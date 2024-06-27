@@ -15,6 +15,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.isActive
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.CancellationException
 import dev.toastbits.composekit.utils.common.launchSingle
 
 @Composable
@@ -64,7 +65,9 @@ fun VideoPlayerFFmpeg(
                 }
             }
             catch (e: Throwable) {
-                RuntimeException("Error during VideoPlayerFFmpeg playback, aborting", e).printStackTrace()
+                if (e !is CancellationException) {
+                    RuntimeException("Error during VideoPlayerFFmpeg playback, aborting", e).printStackTrace()
+                }
             }
         }
 

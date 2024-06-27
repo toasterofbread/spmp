@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -273,7 +272,8 @@ fun MediaItemPreviewLong(
         Column(
             Modifier
                 .padding(horizontal = 10.dp)
-                .fillMaxWidth()
+                .fillMaxWidth(),
+            verticalArrangement = Arrangement.Center
         ) {
             val item_title: String? by loaded_item.observeActiveTitle()
             Text(
@@ -366,8 +366,9 @@ fun MediaItemPreviewLong(
 private fun InfoText(text: String, contentColour: (() -> Color)?) {
     Text(
         text,
-        Modifier.alpha(0.5f).requiredHeight(20.dp),
+        Modifier.alpha(0.5f),
         fontSize = 12.sp,
+        lineHeight = 12.sp,
         color = contentColour?.invoke() ?: Color.Unspecified,
         maxLines = 1,
         softWrap = false,

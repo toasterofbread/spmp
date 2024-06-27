@@ -128,7 +128,6 @@ internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
                                 if (slot.is_vertical) fillMaxWidth()
                                 else fillMaxHeight()
                             }
-                            .aspectRatio(1f)
                             .padding(horizontal = side_padding),
                         multiselect_context = player.main_multiselect_context,
                         apply_size = false

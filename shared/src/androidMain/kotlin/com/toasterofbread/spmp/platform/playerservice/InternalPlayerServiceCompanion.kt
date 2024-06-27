@@ -58,4 +58,6 @@ abstract class InternalPlayerServiceCompanion(
         }
         return false
     }
+
+    override fun isServiceAttached(context: AppContext): Boolean = isServiceRunning(context)
 }

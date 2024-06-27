@@ -8,6 +8,7 @@ interface PlayerServiceCompanion {
     fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean = getUnavailabilityReason(context, launch_arguments) == null
 
     fun isServiceRunning(context: AppContext): Boolean
+    fun isServiceAttached(context: AppContext): Boolean = false
     fun playsAudio(): Boolean = false
 
     fun connect(

@@ -227,7 +227,7 @@ class PlayerState(
         context.getPrefs().addListener(prefs_listener)
 
         val service_companion: PlayerServiceCompanion =
-            if (!PlatformInternalPlayerService.isAvailable(context, launch_arguments) || settings.platform.ENABLE_EXTERNAL_SERVER_MODE.get())
+            if (!PlatformInternalPlayerService.isServiceAttached(context) && (!PlatformInternalPlayerService.isAvailable(context, launch_arguments) || settings.platform.ENABLE_EXTERNAL_SERVER_MODE.get()))
                 PlatformExternalPlayerService
             else PlatformInternalPlayerService
 

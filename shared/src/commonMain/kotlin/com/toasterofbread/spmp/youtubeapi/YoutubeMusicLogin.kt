@@ -54,7 +54,7 @@ object YTMLogin {
 
         if (!account.isSelected) {
             val sign_in_url_path: String =
-                account.serviceEndpoint.selectActiveIdentityEndpoint.supportedTokens.first { it.accountSigninToken != null }.accountSigninToken!!.signinUrl
+                account.serviceEndpoint.selectActiveIdentityEndpoint!!.supportedTokens.first { it.accountSigninToken != null }.accountSigninToken!!.signinUrl
 
             val sign_in_response: HttpResponse =
                 HttpClient(CIO).get("https://music.youtube.com/" + sign_in_url_path) {

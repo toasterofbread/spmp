@@ -48,7 +48,7 @@ data class AccountSwitcherEndpoint(val data: Data) {
     @Serializable
     data class AccountItemText(val simpleText: String)
     @Serializable
-    data class ServiceEndpoint(val selectActiveIdentityEndpoint: SelectActiveIdentityEndpoint)
+    data class ServiceEndpoint(val selectActiveIdentityEndpoint: SelectActiveIdentityEndpoint? = null)
     @Serializable
     data class SelectActiveIdentityEndpoint(val supportedTokens: List<Token>)
     @Serializable

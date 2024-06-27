@@ -120,7 +120,7 @@ class YoutubeMusicLoginPage(val api: YoutubeiApi): LoginPage() {
                     return
                 }
 
-                val accounts = parsed.getAccounts().filter { it.serviceEndpoint.selectActiveIdentityEndpoint.supportedTokens.any { it.accountSigninToken != null } }
+                val accounts = parsed.getAccounts().filter { it.serviceEndpoint.selectActiveIdentityEndpoint?.supportedTokens?.any { it.accountSigninToken != null } == true }
                 if (accounts.size > 1) {
                     account_selection_data = AccountSelectionData(accounts, final_headers)
                     return

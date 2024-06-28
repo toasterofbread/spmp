@@ -19,7 +19,11 @@ import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.utils.composable.AlignableCrossfade
 import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
+import com.toasterofbread.spmp.youtubeapi.lyrics.createFuriganaTokeniser
 import kotlinx.coroutines.delay
+import LocalPlayerState
 
 private const val UPDATE_INTERVAL_MS = 100L
 
@@ -31,12 +35,15 @@ fun HorizontalLyricsLineDisplay(
     text_colour: Color = LocalContentColor.current,
     text_align: TextAlign = TextAlign.Center,
     lyrics_linger: Boolean = false,
-    show_furigana: Boolean = false,
+    show_furigana: Boolean? = null,
     // max_lines: Int = 1,
     // preallocate_max_space: Boolean = false,
     emptyContent: (@Composable () -> Unit)? = null
 ) {
     require(lyrics.synced)
+
+    val show_furigana_option: Boolean by LocalPlayerState.current.settings.lyrics.DEFAULT_FURIGANA.observe()
+    val current_line_state: CurrentLineState = rememberCurrentLineState(lyrics, lyrics_linger, getTime)
 
     val lyrics_text_style: TextStyle =
         LocalTextStyle.current.copy(
@@ -47,8 +54,6 @@ fun HorizontalLyricsLineDisplay(
             color = text_colour,
             textAlign = text_align
         )
-
-    val current_line_state: CurrentLineState = rememberCurrentLineState(lyrics, lyrics_linger, getTime)
 
     Box(
         modifier.height(IntrinsicSize.Min),
@@ -71,7 +76,7 @@ fun HorizontalLyricsLineDisplay(
 
                 HorizontalFuriganaText(
                     current_line,
-                    show_readings = show_furigana,
+                    show_readings = show_furigana ?: show_furigana_option,
                     style = lyrics_text_style,
                     // max_lines = max_lines,
                     // preallocate_needed_space = preallocate_max_space
@@ -143,7 +148,7 @@ fun VerticalLyricsLineDisplay(
     }
 }
 
-private class CurrentLineState(val lyrics: SongLyrics) {
+private class CurrentLineState(val lines: List<List<SongLyrics.Term>>) {
     private var current_line: Int? by mutableStateOf(null)
     private var show_line_a: Boolean by mutableStateOf(true)
 
@@ -175,15 +180,15 @@ private class CurrentLineState(val lyrics: SongLyrics) {
 
     @Composable
     fun LyricsDisplay(LineDisplay: @Composable (show: Boolean, line: List<SongLyrics.Term>?) -> Unit) {
-        LineDisplay(shouldShowLineA(), line_a?.let { lyrics.lines[it] })
-        LineDisplay(shouldShowLineB(), line_b?.let { lyrics.lines[it] })
+        LineDisplay(shouldShowLineA(), line_a?.let { lines[it] })
+        LineDisplay(shouldShowLineB(), line_b?.let { lines[it] })
     }
 
     private fun getCurrentLine(time: Long, linger: Boolean): Int? {
         var last_before: Int? = null
 
-        for (line in lyrics.lines.withIndex()) {
-            val range = line.value.firstOrNull()?.line_range ?: continue
+        for (line in lines.withIndex()) {
+            val range: LongRange = line.value.firstOrNull()?.line_range ?: continue
             if (range.contains(time)) {
                 return line.index
             }
@@ -202,8 +207,13 @@ private fun rememberCurrentLineState(
     linger: Boolean,
     getTime: () -> Long
 ): CurrentLineState {
-    val state: CurrentLineState = remember(lyrics) {
-        CurrentLineState(lyrics).apply { update(getTime(), linger) }
+    val player: PlayerState = LocalPlayerState.current
+    val romanise_furigana: Boolean by player.settings.lyrics.ROMANISE_FURIGANA.observe()
+
+    val state: CurrentLineState = remember(romanise_furigana) {
+        val tokeniser: LyricsFuriganaTokeniser = createFuriganaTokeniser(romanise_furigana)
+        val lines: List<List<SongLyrics.Term>> = lyrics.lines.map { tokeniser.mergeAndFuriganiseTerms(it) }
+        CurrentLineState(lines).apply { update(getTime(), linger) }
     }
 
     LaunchedEffect(linger) {

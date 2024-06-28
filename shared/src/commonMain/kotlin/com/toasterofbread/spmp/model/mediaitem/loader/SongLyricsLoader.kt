@@ -24,8 +24,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
 
     suspend fun loadBySong(
         song: Song,
-        context: AppContext,
-        tokeniser: LyricsFuriganaTokeniser? = null
+        context: AppContext
     ): Result<SongLyrics>? {
         loaded_by_song[song.id]?.get()?.also {
             return Result.success(it)
@@ -47,24 +46,22 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
             if (lyrics_reference.isNone()) {
                 return null
             }
-            return loadByLyrics(lyrics_reference, context, tokeniser ?: createFuriganaTokeniser())
+            return loadByLyrics(lyrics_reference, context)
         }
 
         return performSafeLoad(
             song.id,
             loading_by_id
         ) {
-            val result: Result<SongLyrics> = LyricsSource.searchSongLyricsByPriority(song, context, tokeniser ?: createFuriganaTokeniser())
+            val result: Result<SongLyrics> = LyricsSource.searchSongLyricsByPriority(song, context)
             result.onSuccess { lyrics ->
-                if (tokeniser == null) {
-                    loaded_by_reference[lyrics.reference] = WeakReference(lyrics)
-                }
+                loaded_by_reference[lyrics.reference] = WeakReference(lyrics)
                 song.Lyrics.set(lyrics.reference, context.database)
             }
         }
     }
 
-    suspend fun loadByLyrics(lyrics_reference: LyricsReference, context: AppContext, tokeniser: LyricsFuriganaTokeniser): Result<SongLyrics> {
+    suspend fun loadByLyrics(lyrics_reference: LyricsReference, context: AppContext): Result<SongLyrics> {
         require(!lyrics_reference.isNone())
 
         val loaded: SongLyrics? = withContext(Dispatchers.Main) { loaded_by_reference[lyrics_reference]?.get() }
@@ -77,7 +74,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
             lock,
             loading_by_reference
         ) {
-            val result: Result<SongLyrics> = loadLyrics(lyrics_reference, context, tokeniser)
+            val result: Result<SongLyrics> = loadLyrics(lyrics_reference, context)
             result.onSuccess { lyrics ->
                 loaded_by_reference[lyrics_reference] = WeakReference(lyrics)
             }
@@ -128,7 +125,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
                 context.database.songQueries.lyricsById(song.id).addListener(listener)
             }
         }
-        
+
         return state
     }
 }

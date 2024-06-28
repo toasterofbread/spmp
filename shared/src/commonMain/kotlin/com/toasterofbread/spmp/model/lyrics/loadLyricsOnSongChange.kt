@@ -13,7 +13,6 @@ import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.youtubeapi.lyrics.createFuriganaTokeniser
 
 @Composable
 fun loadLyricsOnSongChange(song: Song?, context: AppContext, load_lyrics: Boolean = true): SongLyrics? {
@@ -44,7 +43,7 @@ fun loadLyricsOnSongChange(song: Song?, context: AppContext, load_lyrics: Boolea
             if (load_lyrics) {
                 coroutine_scope.launchSingle {
                     val result: Result<SongLyrics>? =
-                        if (reference != null) SongLyricsLoader.loadByLyrics(reference, context, createFuriganaTokeniser())
+                        if (reference != null) SongLyricsLoader.loadByLyrics(reference, context)
                         else SongLyricsLoader.loadBySong(song, context)
 
                     result?.onSuccess {

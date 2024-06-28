@@ -7,9 +7,7 @@ import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
-import com.toasterofbread.spmp.youtubeapi.lyrics.createFuriganaTokeniser
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.OutputStreamWriter
@@ -239,16 +237,12 @@ object LyricsFileConverter {
             }
         }
 
-        val tokeniser: LyricsFuriganaTokeniser = createFuriganaTokeniser()
-
         return@withContext Pair(
             song,
             SongLyrics(
                 LyricsReference(lyrics_source!!, lyrics_id!!, file),
                 SongLyrics.SyncType.WORD_SYNC,
-                lines.map { terms ->
-                    tokeniser.mergeAndFuriganiseTerms(terms)
-                }
+                lines
             )
         )
     }

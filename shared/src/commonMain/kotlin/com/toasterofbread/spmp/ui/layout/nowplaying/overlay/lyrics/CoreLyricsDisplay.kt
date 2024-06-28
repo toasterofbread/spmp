@@ -23,6 +23,8 @@ import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.HorizontalFuriganaText
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING_DP
+import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
+import com.toasterofbread.spmp.youtubeapi.lyrics.createFuriganaTokeniser
 import kotlinx.coroutines.delay
 
 @Composable
@@ -40,21 +42,29 @@ fun CoreLyricsDisplay(
     val density: Density = LocalDensity.current
     val lyrics_sync_offset: Long? by song.getLyricsSyncOffset(player.database, false)
 
+    val romanise_furigana: Boolean by player.settings.lyrics.ROMANISE_FURIGANA.observe()
+    val add_padding: Boolean by player.settings.lyrics.EXTRA_PADDING.observe()
+
     var area_size: Dp by remember { mutableStateOf(0.dp) }
     val size_px: Float = with(density) { ((area_size - (NOW_PLAYING_MAIN_PADDING_DP.dp * 2) - (15.dp * getExpansion() * 2)).value * 0.9.dp).toPx() }
     val line_height: Float = with (density) { 20.sp.toPx() }
     val line_spacing: Float = with (density) { 25.dp.toPx() }
 
-    val add_padding: Boolean by player.settings.lyrics.EXTRA_PADDING.observe()
     val static_scroll_offset: Int = with(density) { 2.dp.toPx().toInt() }
     val padding_height: Int =
         if (add_padding) (size_px + line_height + line_spacing).toInt() + static_scroll_offset
         else line_height.toInt() + static_scroll_offset
 
     var current_range: IntRange? by remember { mutableStateOf(null) }
+    var tokenised_lines: List<List<SongLyrics.Term>>? by remember { mutableStateOf(null) }
 
     fun getScrollOffset(follow_offset: Float = player.settings.lyrics.FOLLOW_OFFSET.get()): Int =
         (padding_height - static_scroll_offset - size_px * follow_offset).toInt()
+
+    LaunchedEffect(lyrics, romanise_furigana) {
+        val tokeniser: LyricsFuriganaTokeniser = createFuriganaTokeniser(romanise_furigana)
+        tokenised_lines = lyrics.lines.map { tokeniser.mergeAndFuriganiseTerms(it) }
+    }
 
     LaunchedEffect(lyrics) {
         scroll_state.scrollToItem(0, getScrollOffset(0f))
@@ -116,7 +126,7 @@ fun CoreLyricsDisplay(
                     area_size = with(density) { it.height.toDp() }
                 },
             state = scroll_state,
-            horizontalAlignment = 
+            horizontalAlignment =
                 when (text_alignment) {
                     0 -> if (LocalLayoutDirection.current == LayoutDirection.Ltr) Alignment.Start else Alignment.End
                     1 -> Alignment.CenterHorizontally
@@ -130,7 +140,7 @@ fun CoreLyricsDisplay(
                 )
             }
         ) {
-            itemsIndexed(lyrics.lines) { index, line ->
+            itemsIndexed(tokenised_lines.orEmpty()) { index, line ->
                 val current: Boolean = current_range?.contains(index) ?: false
 
                 HorizontalFuriganaText(

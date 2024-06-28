@@ -19,6 +19,11 @@ class LyricsSettings(val context: AppContext): SettingsGroup("LYRICS", context.g
         getDescription = { getString("s_sub_lyrics_follow_offset") },
         getDefaultValue = { 0.25f }
     )
+    val ROMANISE_FURIGANA: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_lyrics_romanise_furigana") },
+        getDescription = { null },
+        getDefaultValue = { false }
+    )
     val DEFAULT_FURIGANA: PreferencesProperty<Boolean> by property(
         getName = { getString("s_key_lyrics_default_furigana") },
         getDescription = { null },

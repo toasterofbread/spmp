@@ -535,6 +535,7 @@
     <string name="s_option_lyrics_follow_offset_top">Top</string>
     <string name="s_option_lyrics_follow_offset_bottom">Bottom</string>
 
+    <string name="s_key_lyrics_romanise_furigana">Romanise furigana (readings)</string>
     <string name="s_key_lyrics_default_furigana">Show furigana by default</string>
 
     <string name="s_key_lyrics_text_alignment">Text alignment</string>

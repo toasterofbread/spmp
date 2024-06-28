@@ -33,8 +33,7 @@ internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
 
     override suspend fun getLyrics(
         lyrics_id: String,
-        context: AppContext,
-        tokeniser: LyricsFuriganaTokeniser
+        context: AppContext
     ): Result<SongLyrics> = runCatching {
         var exception: Throwable? = null
 
@@ -50,7 +49,7 @@ internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
             }
 
             if (data.startsWith("<wsy>")) {
-                val lyrics: List<List<SongLyrics.Term>> = parseTimedLyrics(data, tokeniser).getOrThrow()
+                val lyrics: List<List<SongLyrics.Term>> = parseTimedLyrics(data).getOrThrow()
 
                 return@runCatching SongLyrics(
                     LyricsReference(source_index, lyrics_id),
@@ -62,7 +61,7 @@ internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
                 return@runCatching SongLyrics(
                     LyricsReference(source_index, lyrics_id),
                     SongLyrics.SyncType.NONE,
-                    parseStaticLyrics(data, tokeniser)
+                    parseStaticLyrics(data)
                 )
             }
         }

@@ -53,6 +53,7 @@ kotlin {
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
                 implementation(deps.get("org.apache.commons:commons-text"))
                 implementation(deps.get("com.atilika.kuromoji:kuromoji-ipadic"))
+                implementation(deps.get("com.andree-surya:moji4j"))
                 implementation(deps.get("org.jsoup:jsoup"))
                 implementation(deps.get("com.github.toasterofbread.ComposeReorderable:reorderable"))
                 implementation(deps.get("com.github.SvenWoltmann:color-thief-java"))

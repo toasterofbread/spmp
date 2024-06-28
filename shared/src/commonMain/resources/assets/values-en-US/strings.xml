@@ -18,5 +18,7 @@
     <string name="s_cat_desc_lyrics">Lyrics appearance and behavior</string>
     <string name="colour_selector_dialog_title">Select color</string>
 
+    <string name="s_key_lyrics_romanise_furigana">Romanize furigana (readings)</string>
+
     <string name="notif_download_cancelled">Download was canceled</string>
 </resources>

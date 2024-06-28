@@ -10,7 +10,6 @@ import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.model.mediaitem.song.getSongAudioFormatByQuality
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
 import dev.toastbits.ytmkt.model.external.YoutubeVideoFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -179,7 +178,6 @@ abstract class SongDownloader(
     private val song_download_dir: PlatformFile get() = MediaItemLibrary.getSongDownloadsDir(context)
     private val song_storage_dir: PlatformFile get() = MediaItemLibrary.getLocalSongsDir(context)
     private var stopping: Boolean = false
-    private val lyrics_tokeniser: LyricsFuriganaTokeniser = LyricsFuriganaTokeniser { terms -> terms }
 
     fun stop() {
         synchronized(download_executor) {
@@ -397,7 +395,7 @@ abstract class SongDownloader(
                 launch {
                     if (download.lyrics_file == null && download.download_lyrics) {
                         val lyrics_file: PlatformFile = MediaItemLibrary.getLocalLyricsFile(download.song, context)
-                        SongLyricsLoader.loadBySong(download.song, context, lyrics_tokeniser)?.onSuccess { lyrics ->
+                        SongLyricsLoader.loadBySong(download.song, context)?.onSuccess { lyrics ->
                             with (LyricsFileConverter) {
                                 val exception: Throwable? = lyrics.saveToFile(lyrics_file, context).exceptionOrNull()
                                 exception?.printStackTrace()

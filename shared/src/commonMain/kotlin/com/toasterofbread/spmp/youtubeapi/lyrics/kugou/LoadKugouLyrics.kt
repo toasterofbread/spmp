@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.youtubeapi.lyrics.kugou
 
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.JsonHttpClient
-import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
 import dev.toastbits.ytmkt.uistrings.localised.UILanguages
 import dev.toastbits.ytmkt.uistrings.localised.matchesLanguage
 import io.ktor.client.HttpClient
@@ -18,7 +17,6 @@ private const val START_SKIP_LINES: Int = 0
 
 suspend fun loadKugouLyrics(
     hash: String,
-    tokeniser: LyricsFuriganaTokeniser,
     lang: String
 ): Result<List<List<SongLyrics.Term>>> = runCatching {
     val client: HttpClient = JsonHttpClient
@@ -72,10 +70,7 @@ suspend fun loadKugouLyrics(
         term.value.line_range = term.value.start!! .. term.value.end!!
     }
 
-    return@runCatching reverse_lines.asReversed().mapIndexedNotNull { index, line ->
-        if (index < START_SKIP_LINES) null
-        else tokeniser.mergeAndFuriganiseTerms(listOf(line))
-    }
+    return@runCatching reverse_lines.asReversed().drop(START_SKIP_LINES).map { listOf(it) }
 }
 
 private fun formatLyricsLine(line: String, lang: String): String {

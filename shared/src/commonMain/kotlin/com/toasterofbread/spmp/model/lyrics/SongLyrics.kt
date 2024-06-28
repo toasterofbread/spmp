@@ -51,23 +51,7 @@ data class SongLyrics(
         var line_range: LongRange? = null
         var data: Any? = null
 
-        data class Text(val text: String, var reading: String? = null) {
-            init {
-                // require(text.isNotEmpty())
-
-                if (reading != null) {
-                    if (reading == "*") {
-                        this.reading = null
-                    }
-                    else {
-                        reading = reading!!.toHiragana()
-                        if (reading == text.toHiragana()) {
-                            reading = null
-                        }
-                    }
-                }
-            }
-        }
+        data class Text(val text: String, var reading: String? = null)
 
         val range: LongRange
             get() = start!! .. end!!

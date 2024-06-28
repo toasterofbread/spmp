@@ -104,6 +104,14 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license = "Apache-2.0",
                 license_url = "https://github.com/atilika/kuromoji/blob/e18ff911fdea0a93c92ec600dc6e123df363fa52/LICENSE.md"
             ),
+            "com.andree-surya:moji4j" to DependencyInfo(
+                version = "1.2.0",
+                name = "Moji4J",
+                author = "Andree Surya",
+                url = "https://github.com/andree-surya/moji4jh",
+                license = "Apache-2.0",
+                license_url = "https://github.com/andree-surya/moji4j/blob/ea0168f125da8791e951eab7cdf18b06a7db705b/README.md"
+            ),
             "org.jsoup:jsoup" to DependencyInfo(
                 version = "1.16.1",
                 name = "jsoup",

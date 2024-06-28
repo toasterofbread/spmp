@@ -11,12 +11,13 @@ import dev.toastbits.composekit.utils.common.isKatakana
 import dev.toastbits.composekit.utils.common.toHiragana
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import java.nio.channels.ClosedByInterruptException
+import com.moji4j.MojiConverter
 
 fun interface LyricsFuriganaTokeniser {
     fun mergeAndFuriganiseTerms(terms: List<SongLyrics.Term>): List<SongLyrics.Term>
 }
 
-private class LyricsFuriganaTokeniserImpl(val tokeniser: Tokenizer): LyricsFuriganaTokeniser {
+private class LyricsFuriganaTokeniserImpl(val tokeniser: Tokenizer, val romanise: Boolean): LyricsFuriganaTokeniser {
     override fun mergeAndFuriganiseTerms(terms: List<SongLyrics.Term>): List<SongLyrics.Term> {
         if (terms.isEmpty()) {
             return emptyList()
@@ -26,32 +27,38 @@ private class LyricsFuriganaTokeniserImpl(val tokeniser: Tokenizer): LyricsFurig
         val terms_to_process: MutableList<SongLyrics.Term> = mutableListOf()
 
         for (term in terms) {
-            val text = term.subterms.single().text
+            val text: String = term.subterms.single().text
             if (text.any { it.isJP() }) {
                 terms_to_process.add(term)
             }
             else {
-                ret.addAll(tokeniser._mergeAndFuriganiseTerms(terms_to_process))
+                ret.addAll(tokeniser._mergeAndFuriganiseTerms(terms_to_process, romanise))
                 ret.add(term)
                 terms_to_process.clear()
             }
         }
 
-        ret.addAll(tokeniser._mergeAndFuriganiseTerms(terms_to_process))
+        ret.addAll(tokeniser._mergeAndFuriganiseTerms(terms_to_process, romanise))
+
+        if (romanise) {
+            val converter: MojiConverter = MojiConverter()
+            for (term in ret) {
+                for (subterm in term.subterms) {
+                    subterm.reading = subterm.reading?.let { converter.convertKanaToRomaji(it).filter { it != 'っ' } }
+                }
+            }
+        }
 
         return ret
     }
 }
 
-private var tokeniser_impl: LyricsFuriganaTokeniserImpl? = null
+private val tokeniser_impl: Tokenizer by lazy { Tokenizer() }
 
 @Synchronized
-fun createFuriganaTokeniser(): LyricsFuriganaTokeniser {
+fun createFuriganaTokeniser(romanise: Boolean): LyricsFuriganaTokeniser {
     try {
-        if (tokeniser_impl == null) {
-            tokeniser_impl = LyricsFuriganaTokeniserImpl(Tokenizer())
-        }
-        return tokeniser_impl!!
+        return LyricsFuriganaTokeniserImpl(tokeniser_impl, romanise)
     }
     catch (e: RuntimeException) {
         if (e.cause is ClosedByInterruptException) {
@@ -63,7 +70,7 @@ fun createFuriganaTokeniser(): LyricsFuriganaTokeniser {
     }
 }
 
-private fun Tokenizer._mergeAndFuriganiseTerms(terms: List<SongLyrics.Term>): List<SongLyrics.Term> {
+private fun Tokenizer._mergeAndFuriganiseTerms(terms: List<SongLyrics.Term>, all: Boolean = false): List<SongLyrics.Term> {
     if (terms.isEmpty()) {
         return emptyList()
     }
@@ -83,15 +90,15 @@ private fun Tokenizer._mergeAndFuriganiseTerms(terms: List<SongLyrics.Term>): Li
     var term_head: Int = 0
 
     for (token in tokens) {
-        val token_base = token.surface
+        val token_base: String = token.surface
 
         var text: String = ""
         var start: Long? = null
         var end: Long? = null
 
         while (text.length < token_base.length) {
-            val term = terms[current_term]
-            val subterm = term.subterms.single()
+            val term: SongLyrics.Term = terms[current_term]
+            val subterm: SongLyrics.Term.Text = term.subterms.single()
 
             if (term.start != null && (start == null || term.start < start)) {
                 start = term.start
@@ -100,7 +107,7 @@ private fun Tokenizer._mergeAndFuriganiseTerms(terms: List<SongLyrics.Term>): Li
                 end = term.end
             }
 
-            val needed = token_base.length - text.length
+            val needed: Int = token_base.length - text.length
             if (needed < subterm.text.length - term_head) {
                 text += subterm.text.substring(term_head, term_head + needed)
                 term_head += needed
@@ -112,21 +119,29 @@ private fun Tokenizer._mergeAndFuriganiseTerms(terms: List<SongLyrics.Term>): Li
             }
         }
 
-        val term = SongLyrics.Term(
-            trimOkurigana(SongLyrics.Term.Text(text, token.reading))
-                .flatMap {
-                    removeHiraganaReadings(it)
-                }
-                .flatMap {
-                    splitCombinedReading(it)
-                }
-                .flatMap {
-                    applyCustomReadings(it)
-                },
-            line_index,
-            start,
-            end
-        )
+        val term: SongLyrics.Term =
+            SongLyrics.Term(
+                listOf(SongLyrics.Term.Text(text, token.reading.toHiragana()))
+                    .let { terms ->
+                        if (all) terms
+                        else terms
+                            .flatMap {
+                                trimOkurigana(it)
+                            }
+                            .flatMap {
+                                removeHiraganaReadings(it)
+                            }
+                    }
+                    .flatMap {
+                        splitCombinedReading(it)
+                    }
+                    .flatMap {
+                        applyCustomReadings(it)
+                    },
+                line_index,
+                start,
+                end
+            )
         term.line_range = line_range
         ret.add(term)
     }
@@ -182,31 +197,39 @@ private fun removeHiraganaReadings(term: SongLyrics.Term.Text): List<SongLyrics.
     var hira_section: String = ""
 
     fun checkHiraSection() {
-        if (hira_section.isNotEmpty()) {
-            val index = reading.indexOf(hira_section, reading_head)
-            if (index != -1) {
-                val second_index = term.text.indexOf(hira_section, index + 1)
-                if (second_index == -1) {
-                    terms.add(
-                        SongLyrics.Term.Text(
-                            kanji_section,
-                            reading.substring(reading_head, index)
-                        )
-                    )
-
-                    terms.add(
-                        SongLyrics.Term.Text(
-                            hira_section
-                        )
-                    )
-
-                    reading_head += index + hira_section.length
-
-                    hira_section = ""
-                    kanji_section = ""
-                }
-            }
+        if (hira_section.isEmpty()) {
+            return
         }
+
+        val converted_hira_section: String = hira_section.toHiragana()
+
+        val index: Int = reading.indexOf(converted_hira_section, reading_head)
+        if (index == -1) {
+            return
+        }
+
+        val second_index: Int = term.text.indexOf(converted_hira_section, index + 1)
+        if (second_index != -1) {
+            return
+        }
+
+        terms.add(
+            SongLyrics.Term.Text(
+                kanji_section,
+                reading.substring(reading_head, index)
+            )
+        )
+
+        terms.add(
+            SongLyrics.Term.Text(
+                hira_section
+            )
+        )
+
+        reading_head += index + hira_section.length
+
+        hira_section = ""
+        kanji_section = ""
     }
 
     for (char in term.text) {

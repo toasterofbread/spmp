@@ -512,6 +512,7 @@
     <string name="s_option_lyrics_follow_offset_top">上</string>
     <string name="s_option_lyrics_follow_offset_bottom">下</string>
 
+    <string name="s_key_lyrics_romanise_furigana">ふりがなをローマ字で表示</string>
     <string name="s_key_lyrics_default_furigana">ふりがなをデフォルトで表示する</string>
 
     <string name="s_key_lyrics_text_alignment">歌詞のアラインメント</string>

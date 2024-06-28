@@ -15,10 +15,9 @@ internal class KugouLyricsSource(source_idx: Int): LyricsSource(source_idx) {
 
     override suspend fun getLyrics(
         lyrics_id: String,
-        context: AppContext,
-        tokeniser: LyricsFuriganaTokeniser
+        context: AppContext
     ): Result<SongLyrics> = runCatching {
-        val lines: List<List<SongLyrics.Term>> = loadKugouLyrics(lyrics_id, tokeniser, context.getUiLanguage()).getOrThrow()
+        val lines: List<List<SongLyrics.Term>> = loadKugouLyrics(lyrics_id, context.getUiLanguage()).getOrThrow()
 
         return@runCatching SongLyrics(
             LyricsReference(source_index, lyrics_id),

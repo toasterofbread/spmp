@@ -6,7 +6,7 @@ import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
 import org.kobjects.ktxml.api.EventType
 import org.kobjects.ktxml.mini.MiniXmlPullParser
 
-internal fun parseTimedLyrics(data: String, tokeniser: LyricsFuriganaTokeniser): Result<List<List<SongLyrics.Term>>> {
+internal fun parseTimedLyrics(data: String): Result<List<List<SongLyrics.Term>>> {
     val parser = MiniXmlPullParser(data.iterator())
     parser.nextTag()
 
@@ -110,7 +110,7 @@ internal fun parseTimedLyrics(data: String, tokeniser: LyricsFuriganaTokeniser):
         }
 
         parser.require(EventType.END_TAG, null, "line")
-        return tokeniser.mergeAndFuriganiseTerms(terms)
+        return terms
     }
 
     val ret: MutableList<List<SongLyrics.Term>> = mutableListOf()

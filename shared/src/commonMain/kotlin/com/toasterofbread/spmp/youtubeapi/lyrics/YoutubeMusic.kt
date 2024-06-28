@@ -41,7 +41,7 @@ internal class YoutubeMusicLyricsSource(source_idx: Int): LyricsSource(source_id
         )
     }
 
-    override suspend fun getLyrics(lyrics_id: String, context: AppContext, tokeniser: LyricsFuriganaTokeniser): Result<SongLyrics> = withContext(Dispatchers.IO) {
+    override suspend fun getLyrics(lyrics_id: String, context: AppContext): Result<SongLyrics> = withContext(Dispatchers.IO) {
         val result = context.ytapi.SongLyrics.getSongLyrics(lyrics_id)
         return@withContext result.fold(
             { lyrics_text ->
@@ -49,7 +49,7 @@ internal class YoutubeMusicLyricsSource(source_idx: Int): LyricsSource(source_id
                     SongLyrics(
                         LyricsReference(source_index, lyrics_id),
                         SongLyrics.SyncType.NONE,
-                        parseStaticLyrics(lyrics_text, tokeniser)
+                        parseStaticLyrics(lyrics_text)
                     )
                 )
             },

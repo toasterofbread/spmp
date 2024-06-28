@@ -29,6 +29,10 @@ internal fun getLyricsCategoryItems(context: AppContext): List<SettingsItem> {
         ),
 
         ToggleSettingsItem(
+            context.settings.lyrics.ROMANISE_FURIGANA
+        ),
+
+        ToggleSettingsItem(
             context.settings.lyrics.DEFAULT_FURIGANA
         ),
 

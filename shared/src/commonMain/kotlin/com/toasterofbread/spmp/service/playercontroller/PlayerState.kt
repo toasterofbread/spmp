@@ -222,22 +222,22 @@ class PlayerState(
         }
     }
 
+    private fun getServiceCompanion(): PlayerServiceCompanion =
+        if (!PlatformInternalPlayerService.isServiceAttached(context) && (!PlatformInternalPlayerService.isAvailable(context, launch_arguments) || settings.platform.ENABLE_EXTERNAL_SERVER_MODE.get()))
+            PlatformExternalPlayerService
+        else PlatformInternalPlayerService
+
     fun onStart() {
         SpMp.addLowMemoryListener(low_memory_listener)
         context.getPrefs().addListener(prefs_listener)
 
-        val service_companion: PlayerServiceCompanion =
-            if (!PlatformInternalPlayerService.isServiceAttached(context) && (!PlatformInternalPlayerService.isAvailable(context, launch_arguments) || settings.platform.ENABLE_EXTERNAL_SERVER_MODE.get()))
-                PlatformExternalPlayerService
-            else PlatformInternalPlayerService
-
-        if (service_companion.isServiceRunning(context)) {
-            connectService(service_companion, null)
+        if (getServiceCompanion().isServiceRunning(context)) {
+            connectService()
         }
         else {
             coroutine_scope.launch {
                 if (PersistentQueueHandler.isPopulatedQueueSaved(context)) {
-                    connectService(service_companion, null)
+                    connectService()
                 }
             }
         }
@@ -666,8 +666,8 @@ class PlayerState(
     private var service_connection_companion: PlayerServiceCompanion? = null
 
     private fun connectService(
-        service_companion: PlayerServiceCompanion = service_connection_companion!!,
-        onConnected: ((PlayerService) -> Unit)?
+        service_companion: PlayerServiceCompanion = getServiceCompanion(),
+        onConnected: ((PlayerService) -> Unit)? = null
     ) {
         synchronized(service_connected_listeners) {
             if (service_connecting) {

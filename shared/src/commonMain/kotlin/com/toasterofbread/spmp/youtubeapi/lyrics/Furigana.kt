@@ -121,7 +121,13 @@ private fun Tokenizer._mergeAndFuriganiseTerms(terms: List<SongLyrics.Term>, all
 
         val term: SongLyrics.Term =
             SongLyrics.Term(
-                listOf(SongLyrics.Term.Text(text, token.reading.toHiragana()))
+                listOf(
+                    SongLyrics.Term.Text(
+                        text,
+                        if (token.reading == "*") text
+                        else token.reading.toHiragana()
+                    )
+                )
                     .let { terms ->
                         if (all) terms
                         else terms

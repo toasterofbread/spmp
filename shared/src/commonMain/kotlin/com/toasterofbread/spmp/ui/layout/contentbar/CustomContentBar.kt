@@ -140,53 +140,53 @@ internal fun CustomBarContent(
             else -> content_colour
         }
 
-    val displaying: Boolean = always_display || elements.shouldDisplayBarOf()
+    if (!elements.shouldDisplayBarOf() && !always_display) {
+        return false
+    }
 
-    if (displaying) {
-        BoxWithConstraints(
-            modifier
-                .padding(content_padding)
-                .thenIf(apply_size) {
-                    if (vertical) requiredWidth(size)
-                    else requiredHeight(size)
-                },
-            contentAlignment = Alignment.Center
-        ) {
-            SidebarButtonSelector(
-                selected_button = selected_element,
-                buttons = elements,
-                indicator_colour = indicator_colour,
-                vertical = vertical,
-                scrolling = scrolling,
-                alignment = 0,
-                isSpacing = {
-                    it.blocksIndicatorAnimation()
-                },
-                arrangement = Arrangement.spacedBy(1.dp),
-                showButton = { element ->
-                    return@SidebarButtonSelector shouldShowButton(element)
-                },
-                getButtonModifier = { index, element ->
-                    val base_modifier: Modifier =
-                        if (element.shouldFillLength()) getFillLengthModifier()
-                        else Modifier
+    BoxWithConstraints(
+        modifier
+            .padding(content_padding)
+            .thenIf(apply_size) {
+                if (vertical) requiredWidth(size)
+                else requiredHeight(size)
+            },
+        contentAlignment = Alignment.Center
+    ) {
+        SidebarButtonSelector(
+            selected_button = selected_element,
+            buttons = elements,
+            indicator_colour = indicator_colour,
+            vertical = vertical,
+            scrolling = scrolling,
+            alignment = 0,
+            isSpacing = {
+                it.blocksIndicatorAnimation()
+            },
+            arrangement = Arrangement.spacedBy(1.dp),
+            showButton = { element ->
+                return@SidebarButtonSelector shouldShowButton(element)
+            },
+            getButtonModifier = { index, element ->
+                val base_modifier: Modifier =
+                    if (element.shouldFillLength()) getFillLengthModifier()
+                    else Modifier
 
-                    if (element is ContentBarElementSpacer && getSpacerElementModifier != null) {
-                        return@SidebarButtonSelector base_modifier.then(getSpacerElementModifier(index, element))
-                    }
-                    return@SidebarButtonSelector base_modifier
+                if (element is ContentBarElementSpacer && getSpacerElementModifier != null) {
+                    return@SidebarButtonSelector base_modifier.then(getSpacerElementModifier(index, element))
                 }
-            ) { index, element ->
-                CompositionLocalProvider(
-                    LocalContentColor provides
-                        if (index == selected_element) indicator_colour.getContrasted()
-                        else background_colour?.get(player.theme)?.getContrasted() ?: LocalContentColor.current
-                ) {
-                    buttonContent(index, element, DpSize(this@BoxWithConstraints.maxWidth, this@BoxWithConstraints.maxHeight))
-                }
+                return@SidebarButtonSelector base_modifier
+            }
+        ) { index, element ->
+            CompositionLocalProvider(
+                LocalContentColor provides
+                    if (index == selected_element) indicator_colour.getContrasted()
+                    else background_colour?.get(player.theme)?.getContrasted() ?: LocalContentColor.current
+            ) {
+                buttonContent(index, element, DpSize(this@BoxWithConstraints.maxWidth, this@BoxWithConstraints.maxHeight))
             }
         }
     }
 
-    return displaying
+    return true
 }

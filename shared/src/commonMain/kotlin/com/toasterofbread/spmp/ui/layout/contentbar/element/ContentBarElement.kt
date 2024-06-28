@@ -7,7 +7,6 @@ import androidx.compose.material3.*
 import androidx.compose.material3.Switch
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
-import androidx.compose.ui.draw.clipToBounds
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.utils.common.thenWith
@@ -76,7 +75,6 @@ sealed class ContentBarElement {
                     if (vertical) width(bar_size.height)
                     else height(bar_size.height)
                 }
-                .clipToBounds()
         )
     }
 

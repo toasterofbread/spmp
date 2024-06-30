@@ -1,18 +1,5 @@
 <resources>
     <string name="language_name">繁體中文</string>
-	<!--
-	<string name="version_string" translatable="false">0.3.1</string>
-    <string name="version_code" translatable="false">12</string>
-
-    <string name="app_name" translatable="false">SpMp</string>
-    <string name="app_name_debug" translatable="false">SpMp (debug)</string>
-    <string name="project_url" translatable="false">https://github.com/toasterofbread/spmp</string>
-    <string name="report_issue_url" translatable="false">https://github.com/toasterofbread/spmp/issues/new?labels=Bug&amp;template=bug_report.md&amp;title=%5BBug%5D+</string>
-    <string name="server_info_url" translatable="false">https://spmp.toastbits.dev/docs/latest/server/about/</string>
-    <string name="documentation_url" translatable="false">https://spmp.toastbits.dev/docs/latest/about</string>
-    <string name="server_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/latest/server/about</string>
-    <string name="flatpak_documentation_url" translatable="false">https://spmp.toastbits.dev/docs/latest/client/installation-flatpak</string>
-	-->
     <string name="project_url_name">專案 URL</string>
 
 	<string name="info_using_release_$x">使用發行版 $x</string>

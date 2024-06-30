@@ -133,6 +133,10 @@ compose.desktop {
                 iconFile.set(rootProject.file("metadata/en-US/images/icon.ico"))
                 shortcut = true
                 dirChooser = true
+
+                if (getString("version_string").contains("-")) {
+                    exePackageVersion = "0.0.0"
+                }
             }
         }
 

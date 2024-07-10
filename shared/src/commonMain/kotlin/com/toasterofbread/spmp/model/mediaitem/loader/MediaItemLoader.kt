@@ -139,6 +139,10 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
                                 uncertain = false,
                                 subitems_uncertain = true
                             )
+
+                            if (item.continuation == null) {
+                                item.Continuation.set(null, context.database)
+                            }
                         }
 
                         return@runCatching item

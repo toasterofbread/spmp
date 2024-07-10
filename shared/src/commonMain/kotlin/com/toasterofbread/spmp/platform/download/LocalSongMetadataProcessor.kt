@@ -89,7 +89,7 @@ object JAudioTaggerMetadataProcessor: MetadataProcessor {
             set(FieldKey.TITLE, song.getActiveTitle(context.database))
             set(FieldKey.ARTIST, artists?.firstOrNull()?.getActiveTitle(context.database))
             set(FieldKey.ALBUM, album?.getActiveTitle(context.database))
-            set(FieldKey.URL_OFFICIAL_ARTIST_SITE, song.Album.get(context.database)?.getURL(context))
+            set(FieldKey.URL_OFFICIAL_ARTIST_SITE, artists?.firstOrNull()?.getURL(context))
             set(FieldKey.URL_LYRICS_SITE, song.Lyrics.get(context.database)?.getUrl())
 
             val custom_metadata: CustomMetadata =
@@ -137,7 +137,6 @@ object JAudioTaggerMetadataProcessor: MetadataProcessor {
             if (custom_metadata?.song_id == null || (match_id != null && custom_metadata.song_id != match_id)) {
                 return@withContext null
             }
-
 
             val song: SongData = SongData(custom_metadata.song_id)
             if (load_data) {

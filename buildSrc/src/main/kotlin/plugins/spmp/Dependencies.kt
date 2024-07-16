@@ -24,7 +24,7 @@ class SpMpDeps(extra: Map<String, Any>) {
     val dependencies: Map<String, DependencyInfo> =
         mapOf(
             "dev.toastbits:spms" to DependencyInfo(
-                version = "0.4.0-alpha4",
+                version = "0.4.0-beta2-SNAPSHOT",
                 name = "spmp-server",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/spmp-server",
@@ -121,7 +121,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/jhy/jsoup/blob/1f1f72d1e89821c630dcfc35e1a0a7f653cc877b/LICENSE"
             ),
             "com.github.toasterofbread.ComposeReorderable" to DependencyInfo(
-                version = "e9ef693f63",
+                version = "434c321a8f",
                 name = "ComposeReorderable",
                 author = "aclassen",
                 url = "https://github.com/aclassen/ComposeReorderable",
@@ -153,13 +153,13 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license = "Apache-2.0",
                 license_url = "https://github.com/paramsen/noise/blob/0cccb4caaa0c7d31b5c76ec6e61805f937c4399e/LICENSE"
             ),
-            "org.kobjects.ktxml:core" to DependencyInfo(
-                version = "0.2.3",
-                name = "KtXml",
-                author = "kobjects",
-                url = "https://github.com/kobjects/ktxml",
+            "io.github.pdvrieze.xmlutil" to DependencyInfo(
+                version = "0.90.1",
+                name = "XmlUtil",
+                author = "pdvrieze",
+                url = "https://github.com/pdvrieze/xmlutil",
                 license = "Apache-2.0",
-                license_url = "https://github.com/kobjects/ktxml/blob/428b7c1023c752354472c62b6f03490651458beb/LICENSE"
+                license_url = "https://github.com/pdvrieze/xmlutil/blob/0c9e14016b9cfc1682642a8d6ad40ae64cf6ef6f/COPYING"
             ),
             "org.bitbucket.ijabz:jaudiotagger" to DependencyInfo(
                 version = "v3.0.1",
@@ -187,7 +187,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/zeromq/jeromq/blob/30b2bf4e1c7332108497db7e4125cd8b15113ea4/LICENSE"
             ),
             "media.kamel:kamel-image" to DependencyInfo(
-                version = "0.9.4",
+                version = "1.0.0-beta.6",
                 name = "Kamel",
                 author = "Kamel-Media",
                 url = "https://github.com/Kamel-Media/Kamel",
@@ -195,7 +195,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/Kamel-Media/Kamel/blob/6eb1dd7fea43beb2e30d8e5d162b2b5e212e5950/LICENSE"
             ),
             "io.ktor" to DependencyInfo(
-                version = "2.3.9",
+                version = "3.0.0-beta-2-eap-972",
                 name = "Ktor",
                 author = "JetBrains",
                 url = "https://github.com/ktorio/ktor",

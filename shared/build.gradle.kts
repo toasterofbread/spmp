@@ -1,4 +1,6 @@
 import plugin.spmp.SpMpDeps
+import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 
 plugins {
     id("generate-build-config")
@@ -17,6 +19,25 @@ kotlin {
     androidTarget()
 
     jvm("desktop")
+
+    @OptIn(ExperimentalWasmDsl::class)
+    wasmJs {
+        moduleName = project.parent!!.name
+        browser {
+            commonWebpackConfig {
+                outputFileName = "composeApp.js"
+                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+                    static = (static ?: mutableListOf()).apply {
+                        // Serve sources to debug inside browser
+                        add(project.projectDir.path)
+                        add(project.projectDir.path + "/commonMain/")
+                        add(project.projectDir.path + "/wasmJsMain/")
+                    }
+                }
+            }
+        }
+        binaries.executable()
+    }
 
     sourceSets {
         val deps: SpMpDeps = SpMpDeps(extra.properties)
@@ -59,7 +80,7 @@ kotlin {
                 implementation(deps.get("com.github.SvenWoltmann:color-thief-java"))
                 implementation(deps.get("com.github.catppuccin:java"))
                 implementation(deps.get("com.github.paramsen:noise"))
-                implementation(deps.get("org.kobjects.ktxml:core"))
+                implementation(deps.get("io.github.pdvrieze.xmlutil:core", "io.github.pdvrieze.xmlutil"))
                 implementation(deps.get("org.bitbucket.ijabz:jaudiotagger"))
                 implementation(deps.get("com.github.teamnewpipe:NewPipeExtractor"))
                 implementation(deps.get("org.zeromq:jeromq"))

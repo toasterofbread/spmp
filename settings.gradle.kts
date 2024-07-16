@@ -40,5 +40,7 @@ dependencyResolutionManagement {
 
         // https://github.com/KevinnZou/compose-webview-multiplatform
         maven("https://jogamp.org/deployment/maven")
+
+        maven("https://maven.pkg.jetbrains.space/public/p/ktor/eap/")
     }
 }

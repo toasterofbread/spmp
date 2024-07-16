@@ -30,6 +30,7 @@ import com.toasterofbread.spmp.ui.layout.contentbar.TemplateCustomContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBarTemplate
 import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElementContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElement
+import com.toasterofbread.spmp.ui.layout.contentbar.CircularReferenceWarning
 import dev.toastbits.composekit.platform.PreferencesProperty
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
@@ -309,16 +310,28 @@ fun LayoutSlotEditor(
             }
         }
 
+        var show_circular_reference_warning: Boolean by remember { mutableStateOf(false) }
+        if (show_circular_reference_warning) {
+            CircularReferenceWarning { show_circular_reference_warning = false }
+        }
+
         Crossfade(Triple(slots_property, available_slots, editing_custom_bar), modifier) {
             val (key, available, editing_bar) = it
 
             if (editing_bar != null) {
                 val editor: CustomContentBarEditor = remember {
                     object : CustomContentBarEditor() {
-                        override fun commit(edited_bar: CustomContentBar) {
+                        override fun commit(edited_bar: CustomContentBar): Boolean {
                             val bars: MutableList<CustomContentBar> = custom_bars.toMutableList()
                             bars[editing_bar.index] = edited_bar
+
+                            if (doesCustomBarRecurseInfinitely(editing_bar.index, bars)) {
+                                show_circular_reference_warning = true
+                                return false
+                            }
+
                             custom_bars = bars
+                            return true
                         }
                     }
                 }
@@ -336,4 +349,29 @@ fun LayoutSlotEditor(
             }
         }
     }
+}
+
+private fun doesCustomBarRecurseInfinitely(bar_index: Int, custom_bars: List<CustomContentBar>): Boolean {
+    val traversed: MutableList<Int> = mutableListOf(bar_index)
+    val bars: MutableList<Int> = mutableListOf(bar_index)
+
+    while (bars.isNotEmpty()) {
+        val custom_bar: CustomContentBar = custom_bars[bars.removeLast()]
+        for (element in custom_bar.elements) {
+            for (bar_reference in element.getContainedBars()) {
+                if (bar_reference.type != ContentBarReference.Type.CUSTOM) {
+                    continue
+                }
+
+                if (traversed.contains(bar_reference.index)) {
+                    return true
+                }
+
+                bars.add(bar_reference.index)
+                traversed.add(bar_reference.index)
+            }
+        }
+    }
+
+    return false
 }

@@ -14,6 +14,7 @@ import dev.toastbits.composekit.utils.composable.*
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import kotlinx.serialization.*
 import kotlinx.serialization.json.JsonObject
 
@@ -47,6 +48,8 @@ sealed class ContentBarElement {
 
     open fun blocksIndicatorAnimation(): Boolean = false
 
+    open fun getContainedBars(): List<ContentBarReference> = emptyList()
+
     @Composable
     fun Element(
         vertical: Boolean,
@@ -65,6 +68,7 @@ sealed class ContentBarElement {
         ElementContent(
             vertical,
             slot,
+            bar_size,
             onPreviewClick,
             modifier
                 .thenWith(size_dp) {
@@ -79,7 +83,7 @@ sealed class ContentBarElement {
     }
 
     @Composable
-    protected abstract fun ElementContent(vertical: Boolean, slot: LayoutSlot?, onPreviewClick: (() -> Unit)?, modifier: Modifier)
+    protected abstract fun ElementContent(vertical: Boolean, slot: LayoutSlot?, bar_size: DpSize, onPreviewClick: (() -> Unit)?, modifier: Modifier)
 
     @Composable
     open fun SubConfigurationItems(item_modifier: Modifier, onModification: (ContentBarElement) -> Unit) {}
@@ -201,7 +205,8 @@ sealed class ContentBarElement {
         LYRICS,
         VISUALISER,
         PINNED_ITEMS,
-        CONTENT_BAR;
+        CONTENT_BAR,
+        CROSSFADE;
 
         fun isAvailable(): Boolean =
             when (this) {
@@ -217,6 +222,7 @@ sealed class ContentBarElement {
                 VISUALISER -> getString("content_bar_element_type_visualiser")
                 PINNED_ITEMS -> getString("content_bar_element_type_pinned_items")
                 CONTENT_BAR -> getString("content_bar_element_type_content_bar")
+                CROSSFADE -> getString("content_bar_element_type_crossfade")
             }
 
         fun getIcon(): ImageVector =
@@ -227,6 +233,7 @@ sealed class ContentBarElement {
                 VISUALISER -> Icons.Default.Waves
                 PINNED_ITEMS -> Icons.Default.PushPin
                 CONTENT_BAR -> Icons.Default.TableRows
+                CROSSFADE -> Icons.Default.Shuffle
             }
 
         fun createElement(): ContentBarElement =
@@ -237,6 +244,7 @@ sealed class ContentBarElement {
                 VISUALISER -> ContentBarElementVisualiser()
                 PINNED_ITEMS -> ContentBarElementPinnedItems()
                 CONTENT_BAR -> ContentBarElementContentBar()
+                CROSSFADE -> ContentBarElementCrossfade()
             }
     }
 

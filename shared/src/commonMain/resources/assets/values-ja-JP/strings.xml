@@ -811,6 +811,9 @@
     <string name="content_bar_selection_exit_warning_title">重要なバーが設定されていません</string>
     <string name="content_bar_selection_exit_warning_text">本当に戻りますか？</string>
 
+    <string name="content_bar_warn_circular_reference">無限再帰</string>
+    <string name="content_bar_warn_circular_reference_change_reverted">変更は保存されませんでした</string>
+
     <string name="content_bar_empty">空</string>
     <string name="content_bar_primary">プライマリー</string>
     <string name="content_bar_desc_primary">ページごとに異なるプライマリーコンテンツ</string>
@@ -845,6 +848,7 @@
     <string name="content_bar_element_type_visualiser">ビジュアライザー</string>
     <string name="content_bar_element_type_pinned_items">固定アイテム</string>
     <string name="content_bar_element_type_content_bar">コンテントバー</string>
+    <string name="content_bar_element_type_crossfade">クロスフェード</string>
 
     <string name="content_bar_element_builtin_config_size_mode">ザイズモード</string>
     <string name="content_bar_element_builtin_config_size_mode_fill">フィル</string>

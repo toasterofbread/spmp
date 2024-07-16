@@ -11,6 +11,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.TableRows
@@ -39,6 +40,8 @@ data class ContentBarElementContentBar(
 
     override fun blocksIndicatorAnimation(): Boolean = true
 
+    override fun getContainedBars(): List<ContentBarReference> = listOf(bar)
+
     @Composable
     override fun isDisplaying(): Boolean {
         val player: PlayerState = LocalPlayerState.current
@@ -47,7 +50,7 @@ data class ContentBarElementContentBar(
     }
 
     @Composable
-    override fun ElementContent(vertical: Boolean, slot: LayoutSlot?, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
+    override fun ElementContent(vertical: Boolean, slot: LayoutSlot?, bar_size: DpSize, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
         if (onPreviewClick != null) {
             Box(modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 IconButton(onPreviewClick) {

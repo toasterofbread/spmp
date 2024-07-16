@@ -835,6 +835,9 @@
     <string name="content_bar_selection_exit_warning_title">Important bars not set</string>
     <string name="content_bar_selection_exit_warning_text">Are you sure you want to exit?</string>
 
+    <string name="content_bar_warn_circular_reference">Circular reference detected</string>
+    <string name="content_bar_warn_circular_reference_change_reverted">Change was not saved</string>
+
     <string name="content_bar_empty">Empty</string>
     <string name="content_bar_primary">Primary</string>
     <string name="content_bar_desc_primary">Primary page-specific content</string>
@@ -869,6 +872,7 @@
     <string name="content_bar_element_type_visualiser">Visualiser</string>
     <string name="content_bar_element_type_pinned_items">Pinned items</string>
     <string name="content_bar_element_type_content_bar">Content bar</string>
+    <string name="content_bar_element_type_crossfade">Crossfade</string>
 
     <string name="content_bar_element_builtin_config_size_mode">Size mode</string>
     <string name="content_bar_element_builtin_config_size_mode_fill">Fill</string>

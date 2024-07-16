@@ -15,6 +15,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.*
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.DpSize
 import dev.toastbits.composekit.utils.common.getValue
 import dev.toastbits.composekit.utils.composable.*
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
@@ -58,7 +59,7 @@ data class ContentBarElementLyrics(
     }
 
     @Composable
-    override fun ElementContent(vertical: Boolean, slot: LayoutSlot?, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
+    override fun ElementContent(vertical: Boolean, slot: LayoutSlot?, bar_size: DpSize, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
         val player: PlayerState = LocalPlayerState.current
         val current_song: Song? by player.status.song_state
         val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(player.database, true)

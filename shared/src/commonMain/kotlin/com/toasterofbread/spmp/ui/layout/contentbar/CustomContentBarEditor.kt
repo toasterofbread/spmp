@@ -41,15 +41,18 @@ internal abstract class CustomContentBarEditor() {
         get() = _bar!!
         set(value) { _bar = value }
 
-    abstract fun commit(edited_bar: CustomContentBar)
+    abstract fun commit(edited_bar: CustomContentBar): Boolean
 
     private fun useVerticalBarLayout(): Boolean = true
 
     private fun editElementData(action: MutableList<ContentBarElement>.() -> Unit) {
         val data: MutableList<ContentBarElement> = bar.elements.toMutableList()
         action(data)
-        bar = bar.copy(elements = data)
-        commit(bar)
+
+        val new_bar: CustomContentBar = bar.copy(elements = data)
+        if (commit(new_bar)) {
+            bar = new_bar
+        }
     }
 
     private fun deleteElement(index: Int) {
@@ -107,8 +110,9 @@ internal abstract class CustomContentBarEditor() {
 
         StickyHeightColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             BarConfig(bar) {
-                bar = it
-                commit(bar)
+                if (commit(it)) {
+                    bar = it
+                }
             }
 
             val vertical_bar: Boolean = useVerticalBarLayout()
@@ -217,13 +221,16 @@ internal abstract class CustomContentBarEditor() {
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            ElementSelector(button_colours, Modifier.fillMaxWidth().weight(1f)) { element_type ->
-                bar = bar.copy(
-                    elements = listOf(element_type.createElement()) + bar.elements
-                )
+            ContentBarElementSelector(button_colours, Modifier.fillMaxWidth().weight(1f)) { element_type ->
                 selected_element = 0
 
-                commit(bar)
+                val new_bar: CustomContentBar =
+                    bar.copy(
+                        elements = listOf(element_type.createElement()) + bar.elements
+                    )
+                if (commit(new_bar)) {
+                    bar = new_bar
+                }
             }
 
             FlowRow(
@@ -233,8 +240,10 @@ internal abstract class CustomContentBarEditor() {
                     bar.elements,
                     Modifier.align(Alignment.CenterVertically)
                 ) {
-                    bar = bar.copy(elements = it)
-                    commit(bar)
+                    val new_bar: CustomContentBar = bar.copy(elements = it)
+                    if (commit(new_bar)) {
+                        bar = new_bar
+                    }
                 }
 
                 Button(
@@ -384,74 +393,6 @@ internal abstract class CustomContentBarEditor() {
             }
 
             element.ConfigurationItems(onModification = onModification)
-        }
-    }
-}
-
-@Composable
-private fun ElementSelector(
-    button_colours: ButtonColors,
-    modifier: Modifier = Modifier,
-    onSelected: (ContentBarElement.Type) -> Unit
-) {
-    val show_element_buttons: Boolean = FormFactor.observe().value == FormFactor.LANDSCAPE
-    var show_element_selector: Boolean by remember(show_element_buttons) { mutableStateOf(false) }
-
-    val available_elements: List<ContentBarElement.Type> = ContentBarElement.Type.entries.filter { it.isAvailable() }
-
-    LargeDropdownMenu(
-        show_element_selector,
-        { show_element_selector = false },
-        available_elements.size,
-        null,
-        {
-            val element: ContentBarElement.Type = available_elements[it]
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Icon(element.getIcon(), null)
-                Text(element.getName(), softWrap = false)
-            }
-        }
-    ) {
-        onSelected(available_elements[it])
-        show_element_selector = false
-    }
-
-    if (!show_element_buttons) {
-        Button(
-            { show_element_selector = true },
-            colors = button_colours
-        ) {
-            Icon(Icons.Default.Add, null)
-            Text(getString("content_bar_editor_add_element"))
-        }
-    }
-    else {
-        Column(
-            modifier,
-            verticalArrangement = Arrangement.spacedBy(5.dp)
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Icon(Icons.Default.Add, null)
-                Text(getString("content_bar_editor_add_element"))
-            }
-
-            FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
-                for (type in ContentBarElement.Type.entries.filter { it.isAvailable() }) {
-                    Button(
-                        { onSelected(type) },
-                        colors = button_colours
-                    ) {
-                        Icon(type.getIcon(), null)
-                        Text(type.getName(), softWrap = false)
-                    }
-                }
-            }
         }
     }
 }

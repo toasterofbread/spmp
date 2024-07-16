@@ -35,7 +35,7 @@ data class ContentBarElementSpacer(
     override fun blocksIndicatorAnimation(): Boolean = true
 
     @Composable
-    override fun ElementContent(vertical: Boolean, slot: LayoutSlot?, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
+    override fun ElementContent(vertical: Boolean, slot: LayoutSlot?, bar_size: DpSize, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
         Box(
             modifier
                 .run {

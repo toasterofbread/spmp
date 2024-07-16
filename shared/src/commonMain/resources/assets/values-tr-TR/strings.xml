@@ -1,35 +1,51 @@
 <resources>
-    <string name="language_name">Türkçe</string>
-    <string name="project_url_name">proje bağlantısı</string>
-    <string name="info_using_release_$x">$x sürümünü kullanma</string>
-    <string name="info_using_non_release_commit_$x">Yayınlanmama taahhüdünü kullanma $x</string>
-    <string name="version_message_release_$appver_$apiver_$split">SpMp sürümü build $appver $splitand API version $apiver</string>
-    <string name="version_message_non_release_$commit_$apiver_$split">$commit $ splitand API sürümü $apiver üzerinde SpMp yayınlanmayan derleme</string>
-    <string name="help_message">YAPILACAK</string>
+    <string name="language_name">Türkçe (TR)</string>
+
+    <string name="project_url_name">proje URL'si</string>
+
+    <string name="info_using_release_$x">Sürüm kullanılıyor $x</string>
+    <string name="info_using_non_release_commit_$x">Sürüm dışı commit kullanılıyor $x</string>
+
+    <string name="version_message_release_$appver_$apiver_$split">SpMp sürüm yapısı $appver $split ve API sürümü $apiver</string> <!--‘and’ kelimesine dikkat edin. -->
+    <string name="version_message_non_release_$commit_$apiver_$split">SpMp sürüm dışı yapısı $commit $split ve API sürümü $apiver</string>
+    <string name="help_message">TODO</string>
+
     <string name="spms_client_type_spmp_player">SpMp (oynatıcı)</string>
-    <string name="spms_client_type_info_spmp_player">Kendi sesini çalan SpMp'nin grafiksel bir örneği</string>
+    <string name="spms_client_type_info_spmp_player">Kendi sesini oynatan grafiksel bir SpMp örneği</string>
     <string name="spms_client_type_spmp_standalone">SpMp (bağımsız)</string>
-    <string name="spms_client_type_info_spmp_standalone">Ses için harici bir oynatıcıya dayanan SpMp'nin grafiksel bir örneği</string>
+    <string name="spms_client_type_info_spmp_standalone">Ses için harici bir oynatıcıya bağımlı grafiksel bir SpMp örneği</string>
     <string name="spms_client_type_player">Oynatıcı</string>
-    <string name="spms_client_type_info_player">GUI içermeyen bağımsız bir ses çalar</string>
+    <string name="spms_client_type_info_player">Grafik arayüzü olmayan bağımsız bir ses oynatıcı</string>
     <string name="spms_client_type_command_line">Komut satırı</string>
-    <string name="spms_client_type_info_command_line">Sunucu ile iletişim kuran bir araç veya komut dosyası</string>
+    <string name="spms_client_type_info_command_line">Sunucuyla iletişim kuran bir araç veya betik</string>
     <string name="spms_client_type_server">Sunucu</string>
-    <string name="spms_client_type_info_server">Bu istemcinin bağlı olduğu sunucu</string>
+    <string name="spms_client_type_info_server">Bu istemcinin bağlandığı sunucu</string>
+
     <string name="spms_client_type_info_url_spmp_player">https://spmp.toastbits.dev/docs/latest/client/about</string>
     <string name="spms_client_type_info_url_spmp_standalone">https://spmp.toastbits.dev/docs/latest/client/about</string>
     <string name="spms_client_type_info_url_player">https://spmp.toastbits.dev/docs/latest/player/about</string>
     <string name="spms_client_type_info_url_command_line">https://spmp.toastbits.dev/docs/latest/server/cli</string>
     <string name="spms_client_type_info_url_server">https://spmp.toastbits.dev/docs/latest/server/about/</string>
+
     <string name="font_option_default_$x">Varsayılan ($x)</string>
     <string name="font_option_system">Sistem yazı tipi</string>
     <string name="font_option_hc_maru_gothic">HC Maru Gothic</string>
+
+    <string name="app_page_song_feed">Şarkı beslemesi</string>
+    <string name="app_page_library">Kütüphane</string>
+    <string name="app_page_search">Arama</string>
+    <string name="app_page_radio_builder">Radyo oluşturucu</string>
+    <string name="app_page_control_panel">Kontrol paneli</string>
+    <string name="app_page_settings">Ayarlar</string>
+    <string name="app_page_profile">Profil</string>
+
     <string name="home_feed_listen_again">Tekrar dinle</string>
-    <string name="home_feed_mixed_for_you">Sizin için karışık</string>
+    <string name="home_feed_mixed_for_you">Senin için karışık</string>
     <string name="home_feed_new_releases">Yeni sürümler</string>
     <string name="home_feed_moods_and_genres">Önerilen çalma listeleri</string>
-    <string name="home_feed_charts">Grafikler</string>
-    <string name="home_feed_rec_general">Önerilen</string>
+    <string name="home_feed_charts">Listeler</string>
+
+    <string name="home_feed_rec_general">Önerilenler</string>
     <string name="home_feed_rec_songs">Önerilen şarkılar</string>
     <string name="home_feed_rec_artists">Önerilen sanatçılar</string>
     <string name="home_feed_rec_albums">Önerilen albümler</string>
@@ -37,148 +53,186 @@
     <string name="home_feed_rec_music_videos">Önerilen müzik videoları</string>
     <string name="home_feed_rec_albums_playlists">Sanatçılar ve albümler</string>
     <string name="home_feed_similar_to">Benzer</string>
-    <string name="home_feed_more_from">Daha fazlası</string>
-    <string name="home_feed_filter_energise">Enerji Verme</string>
-    <string name="home_feed_filter_relax">Rahatlayın</string>
-    <string name="home_feed_filter_workout">Egzersiz</string>
-    <string name="home_feed_filter_commute">Gidiş - geliş</string>
-    <string name="home_feed_filter_focus">Odak</string>
+    <string name="home_feed_more_from">Daha fazla</string>
+
+    <string name="home_feed_filter_energise">Enerji ver</string>
+    <string name="home_feed_filter_relax">Rahatla</string>
+    <string name="home_feed_filter_workout">Antrenman</string>
+    <string name="home_feed_filter_commute">Yolculuk</string>
+    <string name="home_feed_filter_focus">Odaklan</string>
+
     <string name="library_local">Yerel</string>
     <string name="library_account">Hesap</string>
-    <string name="library_songs_downloaded">İndirildi</string>
+
+    <string name="library_songs_downloaded">İndirilen</string>
     <string name="library_songs_downloaded_title">İndirilen şarkılar</string>
-    <string name="library_songs_liked">Beğendi</string>
+    <string name="library_songs_liked">Beğenilen</string>
     <string name="library_songs_liked_title">Beğenilen şarkılar</string>
+
     <string name="library_no_local_songs">Yerel şarkı yok</string>
     <string name="library_no_local_artists">Yerel sanatçı yok</string>
-    <string name="library_no_liked_artists">Kütüphane sanatçısı yok</string>
-    <string name="library_no_liked_albums">Kütüphane albümü yok</string>
+    <string name="library_no_liked_artists">Kütüphanede sanatçı yok</string>
+    <string name="library_no_liked_albums">Kütüphanede albüm yok</string>
     <string name="library_no_liked_songs">Beğenilen şarkı yok</string>
-    <string name="library_no_playlists">Oynatma listesi yok</string>
-    <string name="library_no_items_match_filter">Eşleşen öğe yok filtresi</string>
-    <string name="library_$x_songs">$x şarkı</string>
-    <string name="library_$x_playlists">$x oynatma listesi</string>
-    <string name="artist_$x_songs">$x şarkı</string>
+    <string name="library_no_playlists">Çalma listesi yok</string>
+    <string name="library_no_items_match_filter">Filtreye uygun öğe yok</string>
+
+    <string name="library_$x_songs">$x şarkılar</string>
+    <string name="library_$x_playlists">$x çalma listeleri</string>
+    <string name="artist_$x_songs">$x şarkılar</string>
+
     <string name="library_recent_songs_all">Tümü</string>
     <string name="library_recent_songs_year">Yıl</string>
     <string name="library_recent_songs_month">Ay</string>
     <string name="library_recent_songs_week">Hafta</string>
     <string name="library_recent_songs_day">Gün</string>
-    <string name="mediaitem_play_count_$x_short">$x oyun</string>
+
+    <string name="mediaitem_play_count_$x_short">$x oynatım</string>
     <string name="song_name">Şarkı adı</string>
     <string name="videos">Videolar</string>
+
     <string name="songs">Şarkılar</string>
     <string name="song">Şarkı</string>
+
     <string name="artists">Sanatçılar</string>
     <string name="artist">Sanatçı</string>
-    <string name="playlists">Oynatma listeleri</string>
-    <string name="playlist">Çalma Listesi</string>
+
+    <string name="playlists">Çalma listeleri</string>
+    <string name="playlist">Çalma listesi</string>
     <string name="albums">Albümler</string>
     <string name="album">Albüm</string>
     <string name="audiobook">Sesli kitap</string>
     <string name="audiobooks">Sesli kitaplar</string>
     <string name="podcast">Podcast</string>
-    <string name="podcasts">Podcast'ler</string>
+    <string name="podcasts">Podcastler</string>
     <string name="radio">Radyo</string>
-    <string name="radios">Telsizler</string>
+    <string name="radios">Radyolar</string>
+
     <string name="system_language">Sistem dili</string>
-    <string name="edit_$x_title_dialog_title">$x başlığı düzenle</string>
-    <string name="new_playlist_title">Yeni oynatma listesi</string>
-    <string name="playlist_empty">Oynatma listesi boş</string>
+
+    <string name="edit_$x_title_dialog_title">$x başlığını düzenle</string>
+
+    <string name="new_playlist_title">Yeni çalma listesi</string>
+    <string name="playlist_empty">Çalma listesi boş</string>
     <string name="song_add_to_playlist">Çalma listesine ekle</string>
-    <string name="song_remove_from_playlist">Oynatma listesinden kaldır</string>
+    <string name="song_remove_from_playlist">Çalma listesinden çıkar</string>
     <string name="playlist_create">Çalma listesi oluştur</string>
     <string name="playlist_delete">Çalma listesini sil</string>
     <string name="toast_playlist_added">Çalma listesine eklendi</string>
-    <string name="playlist_select_image">Oynatma listesi resmini seçin</string>
-    <string name="playlist_image_url_field_label">Resim bağlantısı</string>
+    <string name="playlist_select_image">Çalma listesi resmi seç</string>
+    <string name="playlist_image_url_field_label">Resim URL'si</string>
     <string name="playlist_info_local">Yerel çalma listesi</string>
-    <string name="playlist_info_account">Hesap oynatma listesi</string>
+    <string name="playlist_info_account">Hesap çalma listesi</string>
+
     <string name="feed_row_artists">Önerilen sanatçılar</string>
-    <string name="feed_row_playlists">Oynatma listeleri</string>
+    <string name="feed_row_playlists">Çalma listeleri</string>
+
     <string name="action_close">Kapat</string>
     <string name="action_cancel">İptal</string>
     <string name="action_share">Paylaş</string>
+    <string name="action_select">Seç</string>
     <string name="action_confirm_action">Evet</string>
     <string name="action_deny_action">Hayır</string>
-    <string name="action_warning_accept">Kabul Et</string>
+    <string name="action_warning_accept">Kabul et</string>
     <string name="action_load_retry">Tekrar dene</string>
     <string name="action_save">Kaydet</string>
-    <string name="action_open_documentation">Açık belgeler</string>
+    <string name="action_open_documentation">Dokümantasyonu aç</string>
     <string name="prompt_confirm_action">Lütfen onaylayın</string>
-    <string name="prompt_confirm_settings_page_reset">Bu sayfadaki tüm değerler sıfırlansın mı?</string>
-    <string name="prompt_hide_feed_rows_with_$title">'$title 'başlıklı yayın satırları gizlensin mi?</string>
+    <string name="prompt_confirm_settings_page_reset">Bu sayfadaki tüm değerleri sıfırlamak istiyor musunuz?</string>
+    <string name="prompt_hide_feed_rows_with_$title">Başlığı '$title' olan besleme satırlarını gizle?</string>
+
     <string name="action_download_start">İndir</string>
     <string name="action_download_pause">Duraklat</string>
     <string name="action_download_resume">Devam et</string>
-    <string name="player_overlay_menu_action_open_main_menu">Ana bindirme menüsünü aç</string>
-    <string name="player_overlay_menu_action_open_theming">Temaları açın</string>
-    <string name="player_overlay_menu_action_pick_theme_colour">Resimden vurgu rengi seç</string>
-    <string name="player_overlay_menu_action_adjust_notification_image_offset">Bildirim görüntüsü ofsetini ayarla</string>
+
+    <string name="player_overlay_menu_action_open_main_menu">Ana kaplama menüsünü aç</string>
+    <string name="player_overlay_menu_action_open_theming">Tema ayarlarını aç</string>
+    <string name="player_overlay_menu_action_pick_theme_colour">Resimden vurgu rengini seç</string>
+    <string name="player_overlay_menu_action_adjust_notification_image_offset">Bildirim resmi ofsetini ayarla</string>
     <string name="player_overlay_menu_action_open_lyrics">Şarkı sözlerini aç</string>
-    <string name="player_overlay_menu_action_open_related">İlişkili aç</string>
+    <string name="player_overlay_menu_action_open_related">İlgili içerikleri aç</string>
     <string name="player_overlay_menu_action_download">İndir</string>
+
     <string name="song_theme_menu_corner_radius">Köşe yarıçapı</string>
     <string name="song_theme_menu_gradient_depth">Gradyan derinliği</string>
+    <string name="song_theme_menu_background_image_opacity">Arka plan içeriği opaklığı</string>
+    <string name="song_theme_menu_video_position">Video konumu</string>
+    <string name="song_theme_menu_queue_opacity">Kuyruk opaklığı</string>
     <string name="song_theme_menu_image_shadow_radius">Gölge yarıçapı</string>
     <string name="song_theme_menu_wave_speed">Dalga hızı</string>
     <string name="song_theme_menu_wave_opacity">Dalga opaklığı</string>
+
     <string name="song_notif_image_menu_open">Bildirim resmini ayarla</string>
-    <string name="song_notif_image_menu_adjust_offset">Görüntü ofsetini değiştir</string>
+    <string name="song_notif_image_menu_adjust_offset">Resim ofsetini değiştir</string>
     <string name="song_notif_image_menu_adjust_offset_desc">Değişiklikler şarkı değiştikten sonra uygulanacaktır</string>
+
     <string name="theme_title_default">Varsayılan tema</string>
     <string name="theme_title_new">Yeni tema</string>
     <string name="theme_title_system">Sistem teması</string>
+
     <string name="queue_shuffle">Karıştır</string>
     <string name="queue_clear">Temizle</string>
+
     <string name="playlist_upload_to_account">Hesaba yükle</string>
-    <string name="sort_type_playlist">Oynatma listesi sırası</string>
-    <string name="sort_type_alphabet">Adı</string>
+
+    <string name="sort_type_playlist">Çalma listesi sırası</string>
+    <string name="sort_type_alphabet">İsim</string>
     <string name="sort_type_duration">Süre</string>
-    <string name="sort_type_playcount">Dinleme sayısı</string>
+    <string name="sort_type_playcount">Dinlenme sayısı</string>
     <string name="sort_type_artist">Sanatçı</string>
+
     <string name="playlist_chip_play">Oynat</string>
     <string name="playlist_chip_shuffle">Karıştır</string>
     <string name="playlist_chip_radio">Radyo</string>
     <string name="playlist_chip_details">Detaylar</string>
-    <string name="playlist_chip_open">Açık</string>
+    <string name="playlist_chip_open">Aç</string>
     <string name="playlist_x_songs">$x şarkı</string>
+
     <string name="artist_chip_play">Oynat</string>
     <string name="artist_chip_shuffle">Karıştır</string>
     <string name="artist_chip_radio">Radyo</string>
     <string name="artist_chip_details">Detaylar</string>
-    <string name="artist_chip_open">Açık</string>
+    <string name="artist_chip_open">Aç</string>
     <string name="artist_info_label">Sanatçı bilgisi</string>
+
     <string name="artist_x_subscribers">$x abone</string>
-    <string name="loading_feed">İçerik yükleniyor</string>
+
+    <string name="loading_feed">Besleme yükleniyor</string>
+
     <string name="media_pause">Duraklat</string>
     <string name="media_play">Oynat</string>
-    <string name="player_service_name">Oynatıcı Hizmeti</string>
-    <string name="download_service_name">İndirme Hizmeti</string>
-    <string name="download_service_error_name">İndirme Hizmeti hataları</string>
-    <string name="downloading_song_$title">$title indiriliyor</string>
+
+    <string name="player_service_name">Oynatıcı Servisi</string>
+    <string name="download_service_name">İndirme Servisi</string>
+    <string name="download_service_error_name">İndirme Servisi hataları</string>
+
+    <string name="downloading_song_$title">İndiriliyor: $title</string>
     <string name="downloading_$x_songs">$x şarkı indiriliyor</string>
-    <string name="download_just_started">Yeni başladım</string>
-    <string name="download_started_$x_minutes_ago">$x dk. önce başladı</string>
-    <string name="download_method_select_title">İndirme yöntemini seçin</string>
+    <string name="download_just_started">Yeni başladı</string>
+    <string name="download_started_$x_minutes_ago">$x dakika önce başladı</string>
+
+    <string name="download_method_select_title">İndirme yöntemini seç</string>
     <string name="download_method_title_library">Kütüphane</string>
     <string name="download_method_desc_library">SpMp'nin kütüphane klasörüne indir</string>
     <string name="download_method_title_custom">Özel</string>
-    <string name="download_method_desc_custom">Kullanıcı tarafından belirlenen bir konuma indirin</string>
+    <string name="download_method_desc_custom">Kullanıcı tarafından belirlenen bir konuma indir</string>
+
     <string name="search_filter_all">Tümü</string>
     <string name="search_filter_videos">Videolar</string>
     <string name="search_entry_field_hint">Ara</string>
     <string name="search_results_loading">Yükleniyor</string>
-    <string name="search_suggested_correction_$x">$x mi demek istediniz?</string>
+    <string name="search_suggested_correction_$x">$x demek istediniz mi?</string>
+
     <string name="lyrics_none_found">Şarkı sözü bulunamadı</string>
-    <string name="lyrics_no_more_results">Başka sonuç yok</string>
-    <string name="lyrics_search_on_$source">$source üzerinde şarkı sözü ara</string>
+    <string name="lyrics_no_more_results">Daha fazla sonuç yok</string>
+    <string name="lyrics_search_on_$source">$source'da şarkı sözü ara</string>
     <string name="lyrics_loading">Şarkı sözleri yükleniyor</string>
-    <string name="lyrics_source_cannot_search">Kaynak aramayı desteklemiyor</string>
-    <string name="lyrics_sync_long_press_line">Senkronize etmek için satıra uzun basın</string>
+    <string name="lyrics_source_cannot_search">Kaynak arama desteklemiyor</string>
+    <string name="lyrics_sync_long_press_line">Satıra uzun basarak senkronize et</string>
     <string name="lyrics_sync_press_button_when_line_begins">Bu satır başladığında düğmeye basın</string>
-    <string name="lyrics_no_lyrics_set_confirmation_title">Bu şarkının sözleri devre dışı bırakılsın mı?</string>
-    <string name="lyrics_no_lyrics_set_for_song">Şarkı sözleri bu şarkı için manuel olarak devre dışı bırakıldı</string>
+    <string name="lyrics_no_lyrics_set_confirmation_title">Bu şarkı için şarkı sözlerini devre dışı bırakmak istiyor musunuz?</string>
+    <string name="lyrics_no_lyrics_set_for_song">Bu şarkı için şarkı sözleri manuel olarak devre dışı bırakıldı</string>
+
     <string name="lyrics_info_key_source">Kaynak</string>
     <string name="lyrics_info_key_id">ID</string>
     <string name="lyrics_info_key_sync_type">Senkronizasyon türü</string>
@@ -186,71 +240,87 @@
     <string name="lyrics_source_petit">PetitLyrics</string>
     <string name="lyrics_source_kugou">KuGou</string>
     <string name="lyrics_source_ytm">YouTube Müzik</string>
+
     <string name="lyrics_sync_none">Senkronizasyon yok</string>
     <string name="lyrics_sync_line">Satır senkronizasyonu</string>
     <string name="lyrics_sync_word">Kelime senkronizasyonu</string>
-    <string name="video_format_endpoint_piped">Borulu API</string>
-    <string name="video_format_endpoint_youtubei">Youtube</string>
+
+    <string name="video_format_endpoint_piped">Piped API</string>
+    <string name="video_format_endpoint_youtubei">Youtubei</string>
     <string name="video_format_endpoint_newpipe">NewPipe</string>
+
     <string name="error_message_generic">Bir hata oluştu</string>
-    <string name="error_yt_feed_parse_failed">YouTube özet akışı ayrıştırılamadı</string>
-    <string name="error_player_service_not_connected">Oynatıcı hizmeti bağlanmıyor. Bir hata oluşmuş olabilir</string>
-    <string name="error_on_server_command_execution">Sunucu komutu çağrılırken bir hata oluştu</string>
-    <string name="loading_splash_connecting_to_server_at_$x">$x konumundaki sunucuya bağlanılıyor</string>
-    <string name="loading_splash_setting_initial_state">Başlangıç durumunu ayarlama</string>
+    <string name="error_yt_feed_parse_failed">YouTube besleme ayrıştırma hatası</string>
+    <string name="error_player_service_not_connected">Oynatıcı servisi bağlanamıyor&#xA;Bir hata oluşmuş olabilir</string>
+    <string name="error_while_connecting_to_server_at_$x">$x adresindeki sunucuya bağlanırken bir hata oluştu</string>
+    <string name="error_on_server_command_execution">Sunucu komutu çalıştırılırken bir hata oluştu</string>
+
+    <string name="loading_splash_connecting_to_server_at_$x">$x adresindeki sunucuya bağlanılıyor</string>
+    <string name="loading_splash_setting_initial_state">Başlangıç durumu ayarlanıyor</string>
     <string name="loading_splash_button_configure_connection">Bağlantıyı yapılandır</string>
     <string name="loading_splash_title_configure_server_connection">Sunucu bağlantısını yapılandır</string>
     <string name="loading_splash_button_start_local_server">Yerel sunucuyu başlat</string>
     <string name="loading_splash_button_stop_local_server">İşlemi durdur</string>
-    <string name="loading_splash_process_running_with_command_$x">Bu komutla çalışan işlem: $x</string>
-    <string name="loading_splash_local_server_command_not_set">Yerel sunucu komutu ayarlanmadı</string>
-    <string name="throw_error">Gönder</string>
-    <string name="report_error">Rapor</string>
-    <string name="wrap_text_switch_label">Metni kaydır</string>
+    <string name="loading_splash_button_local_server_unavailable">Yerel sunucu kullanılamıyor</string>
+    <string name="loading_splash_process_running_with_command_$x">Bu komutla işlem çalışıyor:&#xA;$x</string>
+    <string name="loading_splash_local_server_command_not_set">Yerel sunucu komutu ayarlanmamış</string>
+    <string name="loading_splash_button_launch_without_server">Sunucu olmadan oturumu başlat</string>
+
+    <string name="throw_error">Hata oluştur</string>
+    <string name="report_error">Hata bildir</string>
+    <string name="wrap_text_switch_label">Metni sar</string>
     <string name="upload_to_paste_dot_ee">Paste.ee'ye yükle</string>
-    <string name="lpm_action_radio">Radyoyu başlat</string>
+
+    <string name="lpm_action_radio">Radyo başlat</string>
     <string name="lpm_action_play">Oynat</string>
     <string name="lpm_action_shuffle_playlist">Karıştır</string>
-    <string name="lpm_action_play_after_1_song">Sonraki şarkıdan sonra çal</string>
+    <string name="lpm_action_play_after_1_song">Bir sonraki şarkıdan sonra çal</string>
     <string name="lpm_action_play_after_x_songs">$x şarkıdan sonra çal</string>
     <string name="lpm_action_download">İndir</string>
     <string name="lpm_action_delete_local_song_file">Yerel dosyayı sil</string>
     <string name="lpm_action_go_to_artist">Sanatçıya git</string>
     <string name="lpm_action_go_to_album">Albümü aç</string>
     <string name="lpm_action_song_related">İlgili içeriği göster</string>
-    <string name="lpm_action_print_info">Yazdırma bilgisi</string>
+    <string name="lpm_action_print_info">Bilgileri yazdır</string>
     <string name="lpm_action_share">Paylaş</string>
-    <string name="lpm_action_open_artist">Açık</string>
-    <string name="lpm_action_open_playlist">Açık</string>
-    <string name="lpm_action_open_external">Harici olarak aç</string>
+    <string name="lpm_action_open_artist">Aç</string>
+    <string name="lpm_action_open_playlist">Aç</string>
+    <string name="lpm_action_open_external">Dışarıda aç</string>
     <string name="lpm_action_hide">Gizle</string>
+
     <string name="lpm_long_press_actions">Uzun basma eylemleri</string>
-    <string name="lpm_action_radio_at_song_pos">Kuyruktaki şarkı konumunda radyoyu başlat</string>
-    <string name="lpm_action_radio_after_x_songs">X şarkıdan sonra radyoyu başlat</string>
-    <string name="lpm_action_play_shuffled_after_x_songs">X şarkıdan sonra karışık çal</string>
-    <string name="lpm_song_now_playing">Şimdi oynatılıyor</string>
-    <string name="lpm_song_played_$x_ago">$x önce oynandı</string>
-    <string name="lpm_song_playing_in_$x">$x'de oynanıyor</string>
-    <string name="lpm_info_queue_index">Kuyruk dizini: $index</string>
+    <string name="lpm_action_radio_at_song_pos">Şarkı sırasındaki pozisyonda radyo başlat</string>
+    <string name="lpm_action_radio_after_x_songs">$x şarkıdan sonra radyo başlat</string>
+    <string name="lpm_action_play_shuffled_after_x_songs">$x şarkıdan sonra karışık oynat</string>
+    <string name="lpm_song_now_playing">Şu anda çalıyor</string>
+    <string name="lpm_song_played_$x_ago">$x önce çalındı</string>
+    <string name="lpm_song_playing_in_$x">$x içinde çalıyor</string>
+
+    <string name="lpm_info_queue_index">Kuyruk sırası: $index</string>
     <string name="lpm_info_id">ID: $id</string>
+
     <string name="song_related_group_other">Diğer</string>
+
     <string name="multiselect_x_items_selected">$x öğe seçildi</string>
-    <string name="multiselect_begin">Çoklu seçime başla</string>
-    <string name="multiselect_end">Çoklu seçimi sonlandır</string>
-    <string name="topbar_mode_unavailable">(Mevcut değil)</string>
+    <string name="multiselect_begin">Çoklu seçim başlat</string>
+    <string name="multiselect_end">Çoklu seçimi bitir</string>
+
+    <string name="topbar_mode_unavailable">(Kullanılamıyor)</string>
+
     <string name="notif_download_finished">İndirme tamamlandı</string>
-    <string name="notif_download_already_finished">Zaten indirilmiş</string>
+    <string name="notif_download_already_finished">Zaten indirildi</string>
     <string name="notif_download_cancelled">İndirme iptal edildi</string>
     <string name="notif_download_already_downloading">Zaten indiriliyor</string>
     <string name="notif_copied_to_clipboard">Panoya kopyalandı</string>
     <string name="notif_copied_x_to_clipboard">$x panoya kopyalandı</string>
+
     <string name="radio_builder_title">Radyo oluştur</string>
-    <string name="radio_builder_no_songs_match_criteria">Kriterlere uyan şarkı yok</string>
+    <string name="radio_builder_no_songs_match_criteria">Kriterlere uygun şarkı yok</string>
     <string name="radio_builder_next_button">Sonraki</string>
-    <string name="radio_builder_play_last_button">Son radyoyu çal</string>
+    <string name="radio_builder_play_last_button">Son radyoyu oynat</string>
     <string name="radio_builder_recent_button">Son radyolar</string>
     <string name="radio_builder_artists_title">Sanatçıları seç</string>
-    <string name="radio_builder_modifiers_title">Tercihleri seçin</string>
+    <string name="radio_builder_modifiers_title">Tercihleri seç</string>
     <string name="radio_builder_modifier_selection_type">Şarkı seçim türü</string>
     <string name="radio_builder_modifier_selection_type_familiar">Tanıdık</string>
     <string name="radio_builder_modifier_selection_type_blend">Karışım</string>
@@ -263,230 +333,325 @@
     <string name="radio_builder_modifier_filter_a_popular">Popüler</string>
     <string name="radio_builder_modifier_filter_a_hidden">Gizli</string>
     <string name="radio_builder_modifier_filter_a_new">Yeni</string>
-    <string name="radio_builder_modifier_filter_b">Tarz</string>
-    <string name="radio_builder_modifier_filter_pump_up">Pompala</string>
-    <string name="radio_builder_modifier_filter_chill">Üşüme</string>
+    <string name="radio_builder_modifier_filter_b">Tür</string>
+    <string name="radio_builder_modifier_filter_pump_up">Hareketli</string>
+    <string name="radio_builder_modifier_filter_chill">Rahatlatıcı</string>
     <string name="radio_builder_modifier_filter_upbeat">Neşeli</string>
-    <string name="radio_builder_modifier_filter_downbeat">Downbeat</string>
-    <string name="radio_builder_modifier_filter_focus">Odak</string>
+    <string name="radio_builder_modifier_filter_downbeat">Düşük tempolu</string>
+    <string name="radio_builder_modifier_filter_focus">Odaklanma</string>
     <string name="radio_filter_all">Tümü</string>
-    <string name="radio_title_of_$artists">$sanatçılarının radyosu</string>
+
+    <string name="radio_title_of_$artists">$artists radyosu</string>
     <string name="radio_title_artists_splitter">, </string>
     <string name="radio_title_overflow">…</string>
-    <string name="settings_string_set_item_empty">Hiçbir öğe eklenmedi</string>
-    <string name="settings_string_set_item_already_added">Öğe zaten eklenmiş</string>
-    <string name="settings_value_out_of_$range">Aralık dışı ($range)</string>
+
+    <string name="settings_string_set_item_empty">Öğe eklenmedi</string>
+    <string name="settings_string_set_item_already_added">Öğe zaten eklendi</string>
+    <string name="settings_value_out_of_$range">Aralık dışında ($range)</string>
     <string name="settings_value_not_int">Tam sayı değil</string>
-    <string name="settings_value_not_float">Şamandıra değil</string>
-    <string name="settings_value_not_port">Geçerli bir bağlantı noktası değil</string>
+    <string name="settings_value_not_float">Ondalık sayı değil</string>
+    <string name="settings_value_not_ipv4_or_domain">Geçerli bir IPv4 adresi veya alan adı değil</string>
+    <string name="settings_value_not_port">Geçerli bir port değil</string>
+
     <string name="s_page_preferences">Ayarlar</string>
+
     <string name="s_key_interface_lang">Arayüz dili</string>
     <string name="s_sub_interface_lang">Arayüz metni için kullanılan dil</string>
     <string name="s_key_data_lang">Veri dili</string>
-    <string name="s_sub_data_lang">Şarkı ve sanatçı başlıkları vb. için kullanılan dil</string>
-    <string name="language_change_restart_notice">Dil ve yazı tipi değişikliklerinin etkili olması için uygulamanın yeniden başlatılması gerekir</string>
+    <string name="s_sub_data_lang">Şarkı ve sanatçı başlıkları için kullanılan dil, vb.</string>
+    <string name="language_change_restart_notice">Dil ve yazı tipi değişikliklerinin etkili olması için uygulamanın yeniden başlatılması gerekiyor</string>
     <string name="s_group_long_press_menu">Uzun basma menüsü</string>
     <string name="s_key_lpm_close_on_action">Eylemde menüyü kapat</string>
-    <string name="s_key_lpm_increment_play_after">Kullanımda 'Oynat' eylemini artırın</string>
-    <string name="s_key_desktop_lpm_keep_on_background_scroll">Kaydırırken menüyü koru</string>
+    <string name="s_key_lpm_increment_play_after">'Sonra oynat' eylemini kullanıldığında artır</string>
+    <string name="s_key_desktop_lpm_keep_on_background_scroll">Kaydırırken menüyü açık tut</string>
     <string name="s_sub_desktop_lpm_keep_on_background_scroll">Menünün arkasındaki görünümü kaydırırken, menü gizlenmek yerine bir köşeye taşınır</string>
+
     <string name="s_key_filter_enable">Öğe filtresini etkinleştir</string>
-    <string name="s_key_filter_title_keywords">Başlık filtresi anahtar kelimeleri</string>
-    <string name="s_sub_filter_title_keywords">Bir öğenin başlığı bu anahtar kelimelerden herhangi birini içeriyorsa gizlenir</string>
-    <string name="s_key_filter_apply_to_playlist_items">Oynatma listesi öğelerine filtre uygula</string>
+    <string name="s_key_filter_title_keywords">Başlık filtre anahtar kelimeleri</string>
+    <string name="s_sub_filter_title_keywords">Bir öğenin başlığı bu anahtar kelimelerden herhangi birini içeriyorsa, gizlenecek</string>
+    <string name="s_key_filter_apply_to_playlist_items">Filtreyi oynatma listesi öğelerine uygula</string>
     <string name="s_key_filter_apply_to_artists">Filtreyi sanatçılara uygula</string>
-    <string name="s_key_filter_apply_to_artist_items">Sanatçı öğelerine filtre uygula</string>
+    <string name="s_key_filter_apply_to_artist_items">Filtreyi sanatçı öğelerine uygula</string>
     <string name="s_filter_title_keywords_dialog_title">Anahtar kelime ekle</string>
+
     <string name="s_key_hp_show_visualiser">Müzik görselleştiriciyi göster</string>
-    <string name="s_sub_hp_show_visualiser">Oynatma sırasında üst çubukta görüntülenir</string>
+    <string name="s_sub_hp_show_visualiser">Oynatma sırasında üst barda gösterilecek</string>
     <string name="s_key_hp_show_timed_lyrics">Zamanlanmış şarkı sözlerini göster</string>
-    <string name="s_sub_hp_show_timed_lyrics">Süreli şarkı sözleri varsa üst çubukta görünecektir</string>
+    <string name="s_sub_hp_show_timed_lyrics">Zamanlanmış şarkı sözleri mevcutsa üst barda görünecek</string>
+
     <string name="s_key_feed_show_song_download_indicators">Şarkı indirme göstergelerini göster</string>
-    <string name="s_key_feed_initial_rows">İlk içerik satırları</string>
+    <string name="s_key_feed_show_artists_row">Sanatçılar satırını göster</string>
+    <string name="s_key_feed_initial_rows">Başlangıç besleme satırları</string>
     <string name="s_key_feed_square_preview_text_lines">Kare öğe maksimum metin satırları</string>
     <string name="s_key_feed_grid_row_count">Varsayılan ızgara satır sayısı</string>
     <string name="s_key_feed_grid_row_count_expanded">Genişletilmiş ızgara satır sayısı</string>
-    <string name="s_key_feed_alt_grid_row_count">Varsayılan alt ızgara satır sayısı</string>
-    <string name="s_key_feed_alt_grid_row_count_expanded">Genişletilmiş alt ızgara satır sayısı</string>
-    <string name="s_sub_feed_initial_rows">Otomatik olarak yüklenecek minimum içerik satırı miktarı</string>
-    <string name="s_key_feed_show_radios">Akıştaki radyo öğelerini göster</string>
+    <string name="s_key_feed_alt_grid_row_count">Varsayılan alternatif ızgara satır sayısı</string>
+    <string name="s_key_feed_alt_grid_row_count_expanded">Genişletilmiş alternatif ızgara satır sayısı</string>
+    <string name="s_sub_feed_initial_rows">Otomatik olarak yüklenecek minimum besleme satır sayısı</string>
+    <string name="s_key_feed_show_radios">Beslemede radyo öğelerini göster</string>
     <string name="s_key_hidden_feed_rows">Gizli satırlar</string>
-    <string name="s_sub_hidden_feed_rows">Satırlar, başlıklarına uzun süre basarak da gizlenebilir</string>
-    <string name="s_hidden_feed_rows_dialog_title">Satırı başlığa göre gizle</string>
-    <string name="s_key_open_np_on_song_played">Şarkı tıklandığında oynatıcıyı aç</string>
-    <string name="s_sub_open_np_on_song_played">Bir şarkıyı tıklayıp çalarken şu anda oynatılan menü otomatik olarak açılacaktır</string>
+    <string name="s_sub_hidden_feed_rows">Satırlar, başlıklarına uzun basarak da gizlenebilir</string>
+    <string name="s_hidden_feed_rows_dialog_title">Başlığa göre satırı gizle</string>
+
+    <string name="s_key_open_np_on_song_played">Şarkıya tıklayınca oynatıcıyı aç</string>
+    <string name="s_sub_open_np_on_song_played">Şarkıya tıklayıp oynattığınızda şu an çalıyor menüsü otomatik olarak açılacak</string>
+
     <string name="s_key_multiselect_cancel_on_action">Eylemden sonra çoklu seçimi iptal et</string>
-    <string name="s_sub_multiselect_cancel_on_action">Bir eylem gerçekleştirildikten sonra medya öğesi çoklu seçim durumlarını devre dışı bırak</string>
+    <string name="s_sub_multiselect_cancel_on_action">Bir eylem gerçekleştirildiğinde medya öğesi çoklu seçim durumlarını devre dışı bırak</string>
+
     <string name="s_key_multiselect_cancel_on_none_selected">Hiçbir şey seçilmediğinde çoklu seçimi iptal et</string>
-    <string name="s_key_start_radio_on_song_press">Şarkı basınında radyoyu başlat</string>
-    <string name="s_sub_start_radio_on_song_press">Kuyruğa sadece şarkıyı çalmak yerine YouTube radyosu eklenecek</string>
+
+    <string name="s_key_start_radio_on_song_press">Şarkıya basıldığında radyoyu başlat</string>
+    <string name="s_sub_start_radio_on_song_press">Yalnızca şarkıyı çalmak yerine, YouTube radyosu kuyruğa eklenecek</string>
+
     <string name="s_key_persistent_queue">Kalıcı şarkı kuyruğu</string>
-    <string name="s_sub_persistent_queue">Uygulamayı kapatırken bile şarkı kuyruğu devam edecek</string>
-    <string name="s_key_add_songs_to_history">YT geçmişine şarkı ekle</string>
+    <string name="s_sub_persistent_queue">Uygulama kapatılsa bile şarkı kuyruğu kalacak</string>
+
+    <string name="s_key_add_songs_to_history">Şarkıları YT geçmişine ekle</string>
     <string name="s_sub_add_songs_to_history">Dinlenen şarkılar YouTube'a gönderilecek ve hesap geçmişine eklenecek</string>
-    <string name="s_key_treat_singles_as_song">Bekarlara bir şarkı gibi davranın</string>
-    <string name="s_sub_treat_singles_as_song">Bir sanatçının sayfasındaki "Bekarlar" sekmesinde yer alan çalma listeleri, yalnızca bir tane varsa, içerilen şarkı olarak kabul edilir</string>
-    <string name="s_key_treat_any_single_item_playlist_as_single">Tek öğelik tüm çalma listelerini tekli olarak ele alın</string>
+
+    <string name="s_key_treat_singles_as_song">Teklileri şarkı olarak değerlendir</string>
+    <string name="s_sub_treat_singles_as_song">Bir sanatçının sayfasındaki 'Tekliler' sekmesinde yer alan çalma listeleri, yalnızca bir şarkı varsa o şarkı olarak değerlendirilecek</string>
+
+    <string name="s_key_treat_any_single_item_playlist_as_single">Tüm tek öğe çalma listelerini tekli olarak değerlendir</string>
+
     <string name="s_key_font">Yazı tipi</string>
     <string name="s_key_ui_scale">UI ölçeği</string>
-    <string name="s_key_stop_player_on_app_close">Uygulama kapatıldığında oynatıcıyı durdur</string>
-    <string name="s_sub_stop_player_on_app_close">Uygulama son gelenlerden temizlenirse müzik çalar durdurulur</string>
-    <string name="s_key_mini_player_show_prev_button">Mini oynatıcıda önceki düğmeyi göster</string>
-    <string name="s_key_mini_player_overscroll_clear_enabled">Sırayı temizlemek için mini oynatıcıyı aşağı kaydırın</string>
-    <string name="s_key_mini_player_overscroll_clear_time">Kaydırma temizleme tutma süresi</string>
-    <string name="s_key_mini_player_overscroll_clear_mode">Temizlerken</string>
+
+    <string name="s_key_stop_player_on_app_close">Uygulama kapandığında oynatıcıyı durdur</string>
+    <string name="s_sub_stop_player_on_app_close">Müzik oynatıcı, uygulama son uygulamalardan temizlendiğinde durdurulacak</string>
+
+    <string name="s_key_player_expand_swipe_sensitivity">Oynatıcı genişletme kaydırma hareketi hassasiyeti</string>
+
+    <string name="s_key_mini_player_show_prev_button">Mini oynatıcıda önceki düğmesini göster</string>
+    <string name="s_key_mini_player_overscroll_clear_enabled">Mini oynatıcıyı aşağı kaydırarak kuyruğu temizle</string>
+    <string name="s_key_mini_player_overscroll_clear_time">Kaydırma temizleme bekletme süresi</string>
+    <string name="s_key_mini_player_overscroll_clear_mode">Temizleme sırasında</string>
     <string name="s_option_mini_player_overscroll_clear_mode_always_hide">Oynatıcıyı her zaman gizle</string>
     <string name="s_option_mini_player_overscroll_clear_mode_hide_if_queue_empty">Kuyruk boşsa oynatıcıyı gizle</string>
-    <string name="s_option_mini_player_overscroll_clear_mode_none_if_queue_empty">Sadece kuyruğu temizle</string>
-    <string name="s_key_player_show_repeat_shuffle_buttons">Oynatıcıda tekrarla ve karıştır düğmelerini göster</string>
+    <string name="s_option_mini_player_overscroll_clear_mode_none_if_queue_empty">Yalnızca kuyruğu temizle</string>
+
+    <string name="s_key_player_show_repeat_shuffle_buttons">Oynatıcıda tekrarlama ve karıştırma düğmelerini göster</string>
     <string name="s_sub_player_show_repeat_shuffle_buttons">Bu seçenekten bağımsız olarak kuyrukta gösterilecekler</string>
-    <string name="s_key_player_show_progress_bar_gradient">Gradyanı arama çubuğunda göster</string>
+
+    <string name="s_key_player_show_progress_bar_gradient">İlerleme çubuğunda gradyan göster</string>
+
+    <string name="s_key_player_landscape_swap_controls_and_image">Manzara modunda kontrol ve şarkı resmini değiştir</string>
+
     <string name="s_key_player_overlay_menu_custom_action">Kaplama menüsü özel eylemi</string>
-    <string name="s_sub_player_overlay_menu_custom_action">Varsayılan olarak, uzun basışta tetiklenir</string>
-    <string name="s_key_player_overlay_menu_swap_long_short_press_actions">Bindirme menüsünü değiştir uzun ve kısa basma eylemleri</string>
+    <string name="s_sub_player_overlay_menu_custom_action">Varsayılan olarak uzun basıldığında tetiklenir</string>
+    <string name="s_key_player_overlay_menu_swap_long_short_press_actions">Kaplama menüsü uzun ve kısa basma eylemlerini değiştir</string>
+
     <string name="s_key_np_queue_item_swipe_sensitivity">Kuyruk öğesi kaydırma hassasiyeti</string>
-    <string name="s_sub_np_queue_item_swipe_sensitivity">Kuyruktaki öğeler kazara kolayca kaldırılırsa azaltın</string>
-    <string name="s_key_np_queue_extra_side_padding">Kuyruk kenarlarına dolgu ekleyin</string>
-    <string name="s_sub_np_queue_extra_side_padding">Reddetme kaydırması için alanı artırmak için kullanın</string>
-    <string name="s_key_np_queue_wave_border_mode">Kuyruk dalga kenarlığı modu</string>
-    <string name="s_sub_np_queue_wave_border_mode">Kuyruktaki şarkılar ve seçenek düğmeleri arasındaki dalga kenarlığının animasyon modu</string>
-    <string name="s_option_wave_border_mode_time">Zaman içinde canlandır</string>
-    <string name="s_option_wave_border_mode_time_sync">Oynarken zaman içinde canlandır</string>
-    <string name="s_option_wave_border_mode_scroll">Kuyruk kaydırmasında canlandır</string>
+    <string name="s_sub_np_queue_item_swipe_sensitivity">Kuyruk öğeleri kazayla kolayca kaldırılıyorsa azalt</string>
+
+    <string name="s_key_np_queue_extra_side_padding">Kuyruk yanlarına dolgu ekle</string>
+    <string name="s_sub_np_queue_extra_side_padding">Kaldırma kaydırma alanını artırmak için kullan</string>
+
+    <string name="s_key_np_queue_wave_border_mode">Kuyruk dalga sınır modu</string>
+    <string name="s_sub_np_queue_wave_border_mode">Kuyruklanan şarkılar ve seçenek düğmeleri arasındaki dalga sınırının animasyon modu</string>
+    <string name="s_option_wave_border_mode_time">Zamanla animasyon</string>
+    <string name="s_option_wave_border_mode_time_sync">Çalarken zamanla senkronize animasyon</string>
+    <string name="s_option_wave_border_mode_scroll">Kuyruk kaydırmada animasyon</string>
     <string name="s_option_wave_border_mode_none">Animasyon yok</string>
-    <string name="s_option_wave_border_mode_line">Çizgi kenarlığı</string>
+    <string name="s_option_wave_border_mode_line">Çizgi sınır</string>
+
     <string name="s_key_np_queue_radio_info_position">Kuyruk radyo bilgi konumu</string>
-    <string name="s_option_np_queue_radio_info_top_bar">Buton çubuğu</string>
+    <string name="s_option_np_queue_radio_info_top_bar">Düğme çubuğu</string>
     <string name="s_option_np_queue_radio_info_above_items">Kuyruk öğelerinin üstünde</string>
+
     <string name="s_key_resume_on_bt_connect">Bluetooth cihazı bağlandığında devam et</string>
-    <string name="s_sub_resume_on_bt_connect">Cihaz bağlantısının kesilmesi nedeniyle oynatma duraklatıldıysa, bir Bluetooth ses cihazı bağlandığında oynatma devam eder</string>
+    <string name="s_sub_resume_on_bt_connect">Çalma, cihaz bağlantısı kesildiğinde duraklatıldıysa, bir Bluetooth ses cihazı bağlandığında çalma devam edecek</string>
     <string name="s_key_pause_on_bt_disconnect">Bluetooth cihazı bağlantısı kesildiğinde duraklat</string>
     <string name="s_key_resume_on_wired_connect">Kablolu cihaz bağlandığında devam et</string>
-    <string name="s_sub_resume_on_wired_connect">Cihaz bağlantısının kesilmesi nedeniyle oynatma duraklatıldıysa, kablolu bir ses cihazı bağlandığında oynatma devam eder</string>
+    <string name="s_sub_resume_on_wired_connect">Çalma, cihaz bağlantısı kesildiğinde duraklatıldıysa, bir kablolu ses cihazı bağlandığında çalma devam edecek</string>
     <string name="s_key_pause_on_wired_disconnect">Kablolu cihaz bağlantısı kesildiğinde duraklat</string>
+
     <string name="s_key_library_path">Kütüphane depolama yolu</string>
-    <string name="s_sub_library_path">Yerel çalma listelerini ve şarkıları depolamak için kullanılacak konum</string>
-    <string name="s_key_show_likes_playlist">Beğenilenler çalma listesini göster</string>
+    <string name="s_sub_library_path">Yerel çalma listeleri ve şarkıları depolamak için kullanılacak konum</string>
+    <string name="s_key_show_likes_playlist">Beğenilen çalma listesini göster</string>
+
     <string name="s_key_current_theme">Mevcut tema</string>
-    <string name="s_theme_editor_title">Temayı düzenle</string>
-    <string name="s_theme_editor_field_name">Adı</string>
+    <string name="s_theme_editor_title">Tema düzenle</string>
+    <string name="s_theme_editor_field_name">Ad</string>
     <string name="s_theme_editor_field_background">Arka plan</string>
-    <string name="s_theme_editor_field_on_background">Arka planda</string>
+    <string name="s_theme_editor_field_on_background">Arka plan üzerinde</string>
     <string name="s_theme_editor_field_card">Kart</string>
     <string name="s_theme_editor_field_accent">Vurgu</string>
-    <string name="s_theme_editor_button_preview">Ön izleme</string>
+    <string name="s_theme_editor_button_preview">Önizleme</string>
+
     <string name="s_key_accent_source">Vurgu rengi</string>
     <string name="s_option_accent_theme">Temadan</string>
     <string name="s_option_accent_thumbnail">Küçük resimden</string>
-    <string name="s_key_np_theme_mode">Şimdi tema modu oynatılıyor</string>
-    <string name="s_option_np_accent_background">Vurgulu renkli arka plan</string>
-    <string name="s_option_np_accent_elements">Vurgulu renk öğeleri</string>
-    <string name="s_option_np_accent_none">Vurgu rengi kullanmayın</string>
-    <string name="s_key_np_default_gradient_depth">Varsayılan gradyan derinliği</string>
-    <string name="s_key_np_default_background_image_video_opacity">Varsayılan peyzaj arka zemin görüntü opaklığı</string>
+
+    <string name="s_key_np_theme_mode">Şu an çalan tema modu</string>
+    <string name="s_option_np_accent_background">Arka planı vurgu rengi ile renklendir</string>
+    <string name="s_option_np_accent_elements">Öğeleri vurgu rengi ile renklendir</string>
+    <string name="s_option_np_accent_none">Vurgu rengini kullanma</string>
+
+    <string name="s_key_np_default_gradient_depth">Varsayılan degrade derinliği</string>
+    <string name="s_key_np_default_background_image_video_opacity">Varsayılan manzara arka plan resim/video opaklığı</string>
+    <string name="s_key_np_default_video_position">Video konumu</string>
+    <string name="s_key_np_default_video_position_none">Gizli</string>
+    <string name="s_key_np_default_video_position_background">Oynatıcı arka planı</string>
+    <string name="s_key_np_default_video_position_thumbnail">Oynatıcı küçük resmi</string>
+    <string name="s_key_np_default_landscape_queue_opacity">Varsayılan manzara kuyruğu opaklığı</string>
     <string name="s_key_np_default_shadow_radius">Varsayılan gölge boyutu</string>
-    <string name="s_key_np_default_image_corner_rounding">Varsayılan görüntü köşesi yuvarlama</string>
+    <string name="s_key_np_default_image_corner_rounding">Varsayılan resim köşe yuvarlama</string>
     <string name="s_key_np_default_wave_speed">Varsayılan dalga hızı</string>
     <string name="s_key_np_default_wave_opacity">Varsayılan dalga opaklığı</string>
-    <string name="s_key_show_expanded_player_wave">Genişletilmiş oynatıcıda dalgayı göster</string>
-    <string name="s_group_theming_desktop">Yalnızca masaüstü seçenekleri</string>
-    <string name="s_key_enable_window_transparency">Pencere saydamlığını etkinleştir</string>
-    <string name="s_sub_enable_window_transparency">Değişikliğin uygulanması için yeniden başlatma gerekir</string>
-    <string name="s_key_window_background_opacity">Pencere arka plan opaklığı</string>
-    <string name="s_sub_window_background_opacity">Bunun etkili olması için pencere şeffaflığı etkinleştirilmelidir</string>
+
+    <string name="s_key_show_expanded_player_wave">Genişletilmiş oynatıcıda dalga göster</string>
+
+    <string name="s_group_theming_desktop">Sadece masaüstü seçenekleri</string>
+
+    <string name="s_key_enable_window_transparency">Pencere şeffaflığını etkinleştir</string>
+    <string name="s_sub_enable_window_transparency">Değişikliklerin uygulanması için yeniden başlatma gereklidir</string>
+    <string name="s_key_window_background_opacity">Pencere arka planı opaklığı</string>
+    <string name="s_sub_window_background_opacity">Bu etkinin gerçekleşmesi için pencere şeffaflığı etkinleştirilmelidir</string>
+
     <string name="s_key_lyrics_default_source">Varsayılan şarkı sözleri kaynağı</string>
+
     <string name="s_key_lyrics_follow_enabled">Geçerli satırı takip et</string>
-    <string name="s_sub_lyrics_follow_enabled">Zamanlanmış şarkı sözlerini görüntülerken, geçerli satıra otomatik olarak kaydırın</string>
-    <string name="s_key_lyrics_follow_offset">Takip edilen çizgi konumu</string>
-    <string name="s_sub_lyrics_follow_offset">Geçerli satıra kaydırırken, satırı yerleştirmek için görünüm içinde konumlandırın</string>
+    <string name="s_sub_lyrics_follow_enabled">Zamanlanmış şarkı sözlerini görüntülerken, geçerli satıra otomatik olarak kaydır</string>
+
+    <string name="s_key_lyrics_follow_offset">Takip edilen satır konumu</string>
+    <string name="s_sub_lyrics_follow_offset">Geçerli satıra kaydırıldığında, satırın yerleştirileceği görünüm içindeki konum</string>
     <string name="s_option_lyrics_follow_offset_top">Üst</string>
     <string name="s_option_lyrics_follow_offset_bottom">Alt</string>
-    <string name="s_key_lyrics_default_furigana">Furigana'yı varsayılan olarak göster</string>
-    <string name="s_key_lyrics_text_alignment">Metin hizalama</string>
-    <string name="s_option_lyrics_text_alignment_start">Sol</string>
+
+    <string name="s_key_lyrics_romanise_furigana">Furigana (okuma) romanize et</string>
+    <string name="s_key_lyrics_default_furigana">Varsayılan olarak furigana göster</string>
+
+    <string name="s_key_lyrics_text_alignment">Metin hizalaması</string>
+    <string name="s_option_lyrics_text_alignment_start">Başlangıç</string>
     <string name="s_option_lyrics_text_alignment_center">Merkez</string>
-    <string name="s_option_lyrics_text_alignment_end">Sağ</string>
+    <string name="s_option_lyrics_text_alignment_end">Son</string>
+
     <string name="s_key_lyrics_extra_padding">Ekstra dolgu</string>
-    <string name="s_sub_lyrics_extra_padding">Kaydırma aralığını artırmak için şarkı sözlerinin üstüne ve altına ekstra dolgu ekleyin</string>
+    <string name="s_sub_lyrics_extra_padding">Daha fazla kaydırma alanı için şarkı sözlerinin üstüne ve altına ekstra dolgu ekle</string>
+
     <string name="s_key_lyrics_enable_word_sync">Kelime senkronizasyonunu etkinleştir</string>
-    <string name="s_sub_lyrics_enable_word_sync">Kullanılabilir olduğunda, şarkı sözleri senkronizasyonu satır başına yerine kelime başına görüntülenecektir</string>
+    <string name="s_sub_lyrics_enable_word_sync">Mevcut olduğunda, şarkı sözleri senkronizasyonu satır başına değil, kelime başına görüntülenecektir</string>
+
     <string name="s_key_lyrics_font_size">Yazı tipi boyutu</string>
+
     <string name="s_key_lyrics_sync_delay">Şarkı sözleri senkronizasyon gecikmesi</string>
-    <string name="s_sub_lyrics_sync_delay">Şarkı sözleri senkronizasyonuna uygulanan saniye cinsinden bir gecikme</string>
+    <string name="s_sub_lyrics_sync_delay">Şarkı sözleri senkronizasyonuna uygulanan saniye cinsinden gecikme</string>
     <string name="s_key_lyrics_sync_delay_topbar">Üst çubuk şarkı sözleri senkronizasyon gecikmesi</string>
-    <string name="s_sub_lyrics_sync_delay_topbar">Yalnızca üst çubuktaki şarkı sözlerine uygulanan ek bir gecikme</string>
+    <string name="s_sub_lyrics_sync_delay_topbar">Sadece üst çubuktaki şarkı sözlerine uygulanan ek gecikme</string>
     <string name="s_key_lyrics_sync_delay_bluetooth">Bluetooth şarkı sözleri senkronizasyon gecikmesi</string>
-    <string name="s_sub_lyrics_sync_delay_bluetooth">Yalnızca Bluetooth ses ile dinlerken uygulanan ek bir gecikme</string>
+    <string name="s_sub_lyrics_sync_delay_bluetooth">Sadece Bluetooth ses ile dinlerken uygulanan ek gecikme</string>
+
     <string name="s_key_stream_audio_quality">Akış ses kalitesi</string>
-    <string name="s_sub_stream_audio_quality">Müzik akışı yaparken ses kalitesini hedefleyin</string>
-    <string name="s_key_download_audio_quality">Ses kalitesini indir</string>
+    <string name="s_sub_stream_audio_quality">Müzik akışı yaparken hedeflenen ses kalitesi</string>
+    <string name="s_key_download_audio_quality">İndirilen ses kalitesi</string>
     <string name="s_sub_download_audio_quality">Müzik indirirken varsayılan ses kalitesi</string>
+
     <string name="s_option_audio_quality_high">Yüksek</string>
     <string name="s_option_audio_quality_medium">Orta</string>
     <string name="s_option_audio_quality_low">Düşük</string>
-    <string name="s_key_video_formats_endpoint">Şarkı akışı/indirme yöntemi</string>
-    <string name="s_key_auto_download_enabled">Şarkıyı otomatik indirmeyi etkinleştir</string>
+
+    <string name="s_key_video_formats_endpoint">Şarkı akış/indirme yöntemi</string>
+
+    <string name="s_key_auto_download_enabled">Şarkı otomatik indirmeyi etkinleştir</string>
     <string name="s_key_auto_download_threshold">Otomatik indirme eşiği</string>
     <string name="s_sub_auto_download_threshold">En az bu kadar dinlediğiniz şarkılar otomatik olarak indirilecektir</string>
     <string name="s_key_auto_download_quality">Otomatik indirme kalitesi</string>
     <string name="s_sub_auto_download_quality">Otomatik indirilen şarkıların ses kalitesi</string>
-    <string name="s_key_auto_download_on_metered">Ölçülü bir bağlantıdayken otomatik indirme</string>
-    <string name="s_cat_stats">İstatistikleri dinle</string>
+    <string name="s_key_auto_download_on_metered">Ölçülü bağlantıdayken otomatik indir</string>
+
+    <string name="s_cat_stats">Dinleme istatistikleri</string>
+
     <string name="s_key_enable_stats">Dinleme istatistiklerini etkinleştir</string>
-    <string name="s_sub_enable_stats">Devre dışı bırakılırsa, dinleme istatistikleri kaydedilmez</string>
+    <string name="s_sub_enable_stats">Devre dışı bırakılırsa, dinleme istatistikleri kaydedilmeyecektir</string>
     <string name="s_key_listen_count_threshold">Saymak için minimum dinleme süresi</string>
-    <string name="s_sub_listen_count_threshold">Şarkı dinleme sayısı yalnızca en azından bu kadar uzun süre dinlendiğinde artacaktır</string>
+    <string name="s_sub_listen_count_threshold">Şarkı dinleme sayısı, en az bu kadar dinlendiğinde artırılacaktır</string>
     <string name="s_key_listen_count_type">Minimum dinleme süresi türü</string>
     <string name="s_option_listen_count_threshold_type_absolute">Mutlak</string>
     <string name="s_option_listen_count_threshold_type_percent">Yüzde</string>
     <string name="s_button_reset_stats">Dinleme istatistiklerini sıfırla</string>
-    <string name="s_confirm_reset_stats">Kaydedilen tüm istatistikler silinecek</string>
+    <string name="s_confirm_reset_stats">Tüm kaydedilen istatistikler silinecektir</string>
+
     <string name="s_key_search_show_suggestions">Arama önerilerini göster</string>
-    <string name="s_key_navbar_height_multiplier">Gezinme çubuğu yükseklik çarpanı</string>
-    <string name="s_sub_navbar_height_multiplier">Sisteminiz navbar yüksekliğini doğru bildirmiyorsa kullanın (uygulamanın yeniden başlatılmasını gerektirir)</string>
-    <string name="s_key_enable_audio_normalisation">Ses normalleştirmeyi etkinleştir</string>
-    <string name="s_sub_enable_audio_normalisation">Ses yüksekliği verileri YouTube tarafından sağlandığından, kullanılabilirlik belirli videolarla sınırlı olabilir</string>
-    <string name="s_key_enable_silence_skipping">Sessiz atlamayı etkinleştir</string>
+    <string name="s_key_navbar_height_multiplier">Gezinme çubuğu yüksekliği çarpanı</string>
+    <string name="s_sub_navbar_height_multiplier">Sisteminiz gezinme çubuğu yüksekliğini doğru bildirmiyorsa kullanın (uygulama yeniden başlatılması gerekir)</string>
+
+    <string name="s_key_enable_audio_normalisation">Ses normalizasyonunu etkinleştir</string>
+    <string name="s_sub_enable_audio_normalisation">Kullanılabilirlik YouTube tarafından sağlanan ses yüksekliği verileriyle sınırlı olabilir</string>
+
+    <string name="s_key_enable_silence_skipping">Sessizlik atlamayı etkinleştir</string>
+
     <string name="s_key_download_method">İndirme yöntemi</string>
     <string name="s_sub_download_method">Bir şarkıyı manuel olarak indirirken kullanılacak yöntem</string>
     <string name="s_key_skip_download_method_confirmation">İndirme yöntemi onayını atla</string>
-    <string name="s_sub_skip_download_method_confirmation">Doğruysa, bir indirme başlatılırken varsayılan indirme yöntemi hemen kullanılacaktır</string>
-    <string name="s_key_status_webhook_url">Durum web kancası bağlantısı</string>
-    <string name="s_sub_status_webhook_url">Çalınan şarkı değiştiğinde, bu bağlantıya şu biçimde bir JSON yayınlama isteği gönderilecektir: `{"youtube_video_id": "&lt;Video Kimliği&gt;"}`</string>
-    <string name="s_key_status_webhook_payload">Durum web kancası yükü</string>
-    <string name="s_sub_status_webhook_payload">Durum web kancasına gönderilecek ek JSON verileri</string>
+    <string name="s_sub_skip_download_method_confirmation">Evet ise, indirme başlatıldığında varsayılan indirme yöntemi hemen kullanılacaktır</string>
+
+    # XML Dosyasının Türkçe Çevirisi
+
+    ```xml
+    <string name="s_key_status_webhook_url">Durum webhook URL'si</string>
+    <string name="s_sub_status_webhook_url">Çalan şarkı değiştiğinde, bu URL'ye aşağıdaki formatta bir JSON post isteği gönderilecektir: `{"youtube_video_id": "<Video ID>"}`</string>
+
+    <string name="s_key_status_webhook_payload">Durum webhook yükü</string>
+    <string name="s_sub_status_webhook_payload">Durum webhook'una gönderilecek ek JSON verisi</string>
+
     <string name="s_group_caching">Önbellekleme</string>
     <string name="s_key_enable_thumbnail_cache">Küçük resim önbelleğini etkinleştir</string>
-    <string name="s_discord_status_enabled">Discord durumu etkin</string>
-    <string name="s_discord_status_disabled">Discord durumu devre dışı</string>
+
+    <string name="s_discord_status_enabled">Discord durumu etkinleştirildi</string>
+    <string name="s_discord_status_disabled">Discord durumu devre dışı bırakıldı</string>
     <string name="s_discord_status_enable">Etkinleştir</string>
-    <string name="s_discord_status_disable">Devre Dışı Bırak</string>
+    <string name="s_discord_status_disable">Devre dışı bırak</string>
+
     <string name="s_group_desktop_system">Sistem</string>
-    <string name="s_key_startup_command">Başlatma komutu</string>
-    <string name="s_sub_startup_command">Program başlangıcında çalıştırılacak komut</string>
+
+    <string name="s_key_startup_command">Başlangıç komutu</string>
+    <string name="s_sub_startup_command">Program başlatılırken çalıştırılacak komut</string>
+
+    <string name="s_key_force_software_renderer">Yazılım renderlamayı zorla</string>
+    <string name="s_sub_force_software_renderer">Değişikliğin uygulanması için yeniden başlatma gerekiyor</string>
+
     <string name="s_group_server">Sunucu</string>
-    <string name="s_info_server">SpMp sunucu bileşeni (SpMs) belirtilen bağlantı noktası IP adresinde ve bağlantı noktasında çalışmalıdır. https://github.com/toasterofbread/spmp-server</string>
-    <string name="s_key_server_ip">Sunucu IP adresi</string>
+    <string name="s_info_server">SpMp sunucu bileşeni (SpMs) belirtilen port IP adresi ve portunda çalışıyor olmalıdır. https://github.com/toasterofbread/spmp-server</string>
+
+    <string name="s_key_enable_external_server_mode">Harici sunucu modunu etkinleştir</string>
+    <string name="s_sub_enable_external_server_mode">Kendi iç sunucusunu çalıştırmak yerine, SpMp aşağıda tanımlanan sunucuya bağlanacak</string>
+
+    <string name="s_key_external_server_mode_ui_only">Harici sunucu modunda sadece UI</string>
+    <string name="s_sub_external_server_mode_ui_only">Etkinleştirilirse ve harici bir sunucuya bağlanılıyorsa, bu uygulama ses çalmayacaktır</string>
+
+    <string name="s_key_server_ip">Harici sunucu IP adresi</string>
     <string name="s_key_server_port">Sunucu portu</string>
     <string name="s_key_local_server_command">Sunucu komutu</string>
-    <string name="s_sub_local_server_command">Sunucuyu SpMp içinden manuel olarak başlatırken çalıştırılacak komut '$@' öğesinin ilk oluşumu sunucu bağımsız değişkenleriyle değiştirilecektir, aksi takdirde komuta ekleneceklerdir</string>
-    <string name="s_key_server_local_start_automatically">Yerel sunucuyu otomatik olarak başlat</string>
-    <string name="s_sub_server_local_start_automatically">Başlangıçta, bir sunucu hemen bulunamazsa, belirtilen komut kullanılarak bir sunucu otomatik olarak başlatılır</string>
+    <string name="s_sub_local_server_command">SpMp içinden sunucu manuel olarak başlatıldığında çalıştırılacak komut
+    '$@'nin ilk oluşumu sunucu argümanlarıyla değiştirilecek, aksi takdirde bunlar komutun sonuna eklenecektir</string>
+    <string name="s_key_server_local_start_automatically">Yerel sunucuyu otomatik başlat</string>
+    <string name="s_sub_server_local_start_automatically">Başlangıçta, eğer bir sunucu hemen bulunamazsa, belirtilen komutu kullanarak otomatik olarak bir sunucu başlatılacak</string>
+
     <string name="s_cat_development">Geliştirme</string>
+
     <string name="s_subpage_ui_debug_info">UI hata ayıklama bilgisi</string>
+
     <string name="s_group_localisation">Yerelleştirme</string>
     <string name="s_key_unlocalised_strings">Yerelleştirilmemiş dizeler</string>
     <string name="s_sub_unlocalised_strings">Mevcut dil için yerelleştirilmemiş dizeler</string>
-    <string name="s_group_discord_status_disable_when">Şu durumlarda durumu devre dışı bırak:</string>
+
+    <string name="s_key_search_search_for_non_music">Müzik dışı öğeler için arama yap</string>
+    <string name="s_sub_search_search_for_non_music">Aramaları music.youtube.com yerine www.youtube.com kullanarak gerçekleştir</string>
+
+    <string name="s_group_discord_status_disable_when">Durumu şu durumlarda devre dışı bırak</string>
     <string name="s_key_discord_status_disable_when_invisible">Görünmez</string>
     <string name="s_key_discord_status_disable_when_dnd">Rahatsız etmeyin</string>
     <string name="s_key_discord_status_disable_when_idle">Boşta</string>
     <string name="s_key_discord_status_disable_when_offline">Çevrimdışı</string>
     <string name="s_key_discord_status_disable_when_online">Çevrimiçi</string>
+
     <string name="s_group_discord_status_content">Durum içeriği</string>
     <string name="s_discord_status_text_info">Mevcut şarkı hakkında bilgi görüntülemek için aşağıdaki dizeleri kullanın:
-  - $şarkı
-  -$sanatçı</string>
+    - $song
+    - $artist</string>
+
     <string name="s_key_discord_status_name">Durum başlığı</string>
     <string name="s_sub_discord_status_name">'Dinliyor' ifadesinden sonra görüntülenen metin</string>
     <string name="s_key_discord_status_text_a">Birincil durum metni</string>
@@ -494,109 +659,363 @@
     <string name="s_key_discord_status_text_b">İkincil durum metni</string>
     <string name="s_sub_discord_status_text_b"></string>
     <string name="s_key_discord_status_text_c">Üçüncül durum metni</string>
-    <string name="s_sub_discord_status_text_c">Ayrıca resim vurgulu metni için de kullanılır</string>
-    <string name="s_key_discord_status_show_button_song">Şarkı aç düğmesini göster</string>
-    <string name="s_sub_discord_status_show_button_song">YouTube Müzik'te mevcut şarkıyı açar</string>
-    <string name="s_key_discord_status_button_song_text">Şarkı düğme metnini aç</string>
+    <string name="s_sub_discord_status_text_c">Ayrıca resim üzerine gelindiğinde görünen metin için kullanılır</string>
+
+    <string name="s_key_discord_status_show_button_song">Şarkıyı aç düğmesini göster</string>
+    <string name="s_sub_discord_status_show_button_song">Mevcut şarkıyı YouTube Music'te açar</string>
+    <string name="s_key_discord_status_button_song_text">Şarkıyı aç düğmesi metni</string>
+
     <string name="s_key_discord_status_show_button_project">Proje sayfası düğmesini göster</string>
-    <string name="s_sub_discord_status_show_button_project">Proje deposunu GitHub'da açar</string>
-    <string name="s_key_discord_status_button_project_text">Proje sayfası düğme metni</string>
+    <string name="s_sub_discord_status_show_button_project">GitHub'da proje deposunu açar</string>
+    <string name="s_key_discord_status_button_project_text">Proje sayfası düğmesi metni</string>
+
+    <string name="s_key_configured_shortcuts">Yapılandırılmış kısayollar</string>
+    <string name="s_key_navigate_song_with_numbers">Sayı tuşlarıyla şarkı içinde gezin</string>
+
     <string name="s_cat_general">Genel</string>
-    <string name="s_cat_desc_general">Dil ve diğer seçenekler</string>
+    <string name="s_cat_desc_general">Dil, yazı tipi ve diğer seçenekler</string>
+
     <string name="s_cat_behaviour">Davranış</string>
-    <string name="s_cat_desc_behaviour">Çeşitli ekran ve aksiyon düzenlemeleri</string>
+    <string name="s_cat_desc_behaviour">Çeşitli görüntüleme ve eylem ayarları</string>
+
+    <string name="s_cat_layout">Düzen</string>
+    <string name="s_cat_desc_layout">Düzen düzenlemesini ve içeriğini özelleştirin</string>
+
     <string name="s_cat_player">Oynatıcı</string>
-    <string name="s_cat_desc_player">Müzik çalar görünümünü ayarla</string>
-    <string name="s_cat_feed">Şarkı içeriği</string>
-    <string name="s_cat_desc_feed">Cherry - pick şarkı önerileri</string>
+    <string name="s_cat_desc_player">Müzik çalar görünümünü ayarlayın</string>
+
+    <string name="s_cat_feed">Şarkı akışı</string>
+    <string name="s_cat_desc_feed">Şarkı önerilerini seçin</string>
+
     <string name="s_cat_theme">Tema</string>
     <string name="s_cat_desc_theme">Uygulama renklerini özelleştirin ve vurgu kaynağını değiştirin</string>
-    <string name="s_cat_lyrics">Şarkı Sözleri</string>
-    <string name="s_cat_desc_lyrics">Şarkı sözleri görünüm ve davranış</string>
+
+    <string name="s_cat_lyrics">Şarkı sözleri</string>
+    <string name="s_cat_desc_lyrics">Şarkı sözleri görünümü ve davranışı</string>
+
     <string name="s_cat_discord_status">Discord durumu</string>
     <string name="s_cat_desc_discord_status">Discord hesabını yönetin ve durum görünümünü özelleştirin</string>
+
     <string name="s_cat_filter">Filtre</string>
-    <string name="s_cat_desc_filter">Şarkıları ve çalma listelerini anahtar kelimeye göre gizle</string>
+    <string name="s_cat_desc_filter">Anahtar kelimeye göre şarkıları ve çalma listelerini gizleyin</string>
+
     <string name="s_cat_streaming">Oynatma</string>
     <string name="s_cat_desc_streaming">Ses kalitesi ve oynatma ayarları</string>
+
+    <string name="s_cat_shortcut">Kısayollar</string>
+    <string name="s_cat_desc_shortcut">Uygulama içi eylemlere tuş veya fare düğmesi atayın</string>
+
+    <string name="s_cat_android">Android</string>
+    <string name="s_cat_desc_android">Platforma özgü yapılandırma</string>
+
     <string name="s_cat_desktop">Masaüstü</string>
-    <string name="s_cat_desc_desktop">Platforma özel yapılandırma</string>
+    <string name="s_cat_desc_desktop">Platforma özgü yapılandırma</string>
+
     <string name="s_cat_misc">Diğer</string>
     <string name="s_cat_desc_misc">Önbellek ve diğer çeşitli seçenekler</string>
+
+    <string name="s_cat_dependencies">Bağımlılıklar</string>
+    <string name="s_cat_desc_dependencies">SpMp tarafından kullanılan yazılım kütüphanelerini görüntüleyin</string>
+
+    <string name="s_cat_search">Arama</string>
     <string name="s_cat_youtube_auth">YouTube kimlik bilgileri</string>
     <string name="s_cat_discord_auth">Discord kimlik bilgileri</string>
+
     <string name="song_related_page_no_content">Şarkının ilgili içeriği yok</string>
     <string name="song_related_page_empty_row">İçerik yok</string>
-    <string name="discord_status_default_name">$sanatçı</string>
-    <string name="discord_status_default_text_a">$şarkı</string>
-    <string name="discord_status_default_text_b">$sanatçı</string>
-    <string name="discord_status_default_text_c">SpMp'de Dinle</string>
+
+    <string name="discord_status_default_name">$artist</string>
+    <string name="discord_status_default_text_a">$song</string>
+    <string name="discord_status_default_text_b">$artist</string>
+    <string name="discord_status_default_text_c">SpMp'de dinliyor</string>
     <string name="discord_status_default_button_song">Şarkıyı YouTube'da aç</string>
-    <string name="discord_status_default_button_project">Proje sayfasını ziyaret edin</string>
-    <string name="discord_status_unknown_artist_replacement">Bilinmiyor</string>
+    <string name="discord_status_default_button_project">Proje sayfasını ziyaret et</string>
+    <string name="discord_status_unknown_artist_replacement">Bilinmeyen</string>
+
     <string name="control_panel_downloads_label">İndirmeler</string>
     <string name="control_panel_downloads_title">Mevcut indirmeler</string>
-    <string name="control_panel_downloads_in_progress">Devam ediyor</string>
-    <string name="control_panel_downloads_completed">Tamamlandı</string>
+    <string name="control_panel_downloads_in_progress">Devam eden</string>
+    <string name="control_panel_downloads_completed">Tamamlanan</string>
+
     <string name="control_panel_server_label">Sunucu</string>
     <string name="control_panel_server_title">Sunucu durumu</string>
     <string name="control_panel_server_connected_to_server">Sunucuya bağlandı</string>
     <string name="control_panel_server_ip_address_$x">IP adresi: $x</string>
-    <string name="control_panel_server_port_$x">Bağlantı noktası: $x</string>
-    <string name="control_panel_server_name_$x">Adı: $x</string>
+    <string name="control_panel_server_port_$x">Port: $x</string>
+    <string name="control_panel_server_name_$x">Ad: $x</string>
     <string name="control_panel_server_device_name_$x">Ana cihaz: $x</string>
     <string name="control_panel_server_spms_api_version_$x">SpMs API sürümü: $x</string>
     <string name="control_panel_server_connected_clients">Diğer bağlı istemciler</string>
     <string name="control_panel_server_connected_clients_loading">Yükleniyor</string>
     <string name="control_panel_server_this_client">Bu istemci</string>
     <string name="control_panel_server_client_more_info">Daha fazla bilgi</string>
-    <string name="control_panel_server_client_player_port_$x">Oynatıcı bağlantı noktası: $x</string>
+    <string name="control_panel_server_client_player_port_$x">Oynatıcı portu: $x</string>
     <string name="control_panel_server_same_machine">Aynı cihaz</string>
+
     <string name="action_login_manually">Manuel olarak giriş yap</string>
-    <string name="auth_not_signed_in">Oturum açılmadı</string>
-    <string name="auth_sign_in">Oturum aç</string>
+    <string name="auth_not_signed_in">Giriş yapılmadı</string>
+    <string name="auth_sign_in">Giriş yap</string>
     <string name="auth_sign_out">Çıkış yap</string>
-    <string name="warning_ytm_login">Oturum açtıktan sonra, oturum çereziniz ayıklanır, saklanır ve yalnızca önerilen özet akışınızı almak ve sanatçılara abone olmak gibi YouTube Müzik'e yapılan API istekleri için kullanılır.Devam edilsin mi?</string>
-    <string name="info_ytm_login">Oturum açtıktan sonra, oturum çereziniz ayıklanır, saklanır ve yalnızca önerilen özet akışınızı almak ve sanatçılara abone olmak gibi YouTube Müzik'e yapılan API istekleri için kullanılır.</string>
-    <string name="warning_discord_login">Discord'da oturum açmak için uygulama içi bir web görünümüne yönlendirileceksiniz.Giriş yaptıktan sonra, hesap jetonunuz çıkarılacak, depolanacak ve yalnızca mevcut durumunuzu ayarlamak için Discord'a ağ geçidi bağlantıları için kullanılacaktır. Daha fazla bilgi için bkz. https://github.com/dead8309/Kizzy. Devam edilsin mi?</string>
-    <string name="info_discord_login">Discord'da oturum açmak için uygulama içi bir web görünümüne yönlendirileceksiniz. Giriş yaptıktan sonra, hesap jetonunuz çıkarılacak, depolanacak ve yalnızca mevcut durumunuzu ayarlamak için Discord'a ağ geçidi bağlantıları için kullanılacaktır. Daha fazla bilgi için bkz. https://github.com/dead8309/Kizzy.</string>
-    <string name="warning_discord_kizzy">SpMp, Discord hesabınızın durumunu ayarlamak için KizzyRPC kütüphanesini kullanır. Bu, Discord'un Hizmet Şartlarının ihlali olarak kabul edilebilecek Discord Ağ Geçidi bağlantısını kullanmayı içerir. Ancak, bu nedenle kullanıcı hesaplarının askıya alındığı bilinen bir durum yoktur. Riski size ait olmak üzere kullanın. Daha fazla bilgi için bkz. https://github.com/dead8309/Kizzy.</string>
-    <string name="warning_spms_api_version_mismatch">SpMs API sürümü eşleşmiyor</string>
-    <string name="warning_spms_api_version_mismatch_$theirs_$ours">Bağlı sunucunun API sürümü ($theirs), bu SpMp derlemesinin tasarlandığı API sürümüyle ($ our) eşleşmiyor. Bu, beklenmedik davranışlara veya çökmelere neden olabilir.</string>
-    <string name="youtube_manual_login_title">YouTube manuel oturum açma</string>
+
+    <string name="warning_ytm_login">Giriş yaptıktan sonra, oturum çereziniz çıkarılacak, saklanacak ve yalnızca önerilen akışınızı almak ve sanatçılara abone olmak gibi YouTube Music'e API istekleri için kullanılacaktır. Devam etmek istiyor musunuz?</string>
+    <string name="info_ytm_login">Giriş yaptıktan sonra, oturum çereziniz çıkarılacak, saklanacak ve yalnızca önerilen akışınızı almak ve sanatçılara abone olmak gibi YouTube Music'e API istekleri için kullanılacaktır.</string>
+    <string name="warning_discord_login">Discord'a giriş yapmak için uygulama içi bir web görünümüne yönlendirileceksiniz. Giriş yaptıktan sonra, hesap jetonunuz çıkarılacak, saklanacak ve yalnızca mevcut durumunuzu ayarlamak için Discord'a ağ geçidi bağlantıları için kullanılacaktır. Daha fazla bilgi için https://github.com/dead8309/Kizzy adresine bakın. Devam etmek istiyor musunuz?</string>
+    <string name="info_discord_login">Discord'a giriş yapmak için uygulama içi bir web görünümüne yönlendirileceksiniz. Giriş yaptıktan sonra, hesap jetonunuz çıkarılacak, saklanacak ve yalnızca mevcut durumunuzu ayarlamak için Discord'a ağ geçidi bağlantıları için kullanılacaktır. Daha fazla bilgi için https://github.com/dead8309/Kizzy adresine bakın.</string>
+    <string name="warning_discord_kizzy">SpMp, Discord hesabınızın durumunu ayarlamak için KizzyRPC kütüphanesini kullanır. Bu, Discord'un Hizmet Şartları'nın ihlali olarak değerlendirilebilecek Discord Gateway bağlantısını içerir. Ancak, bu nedenle kullanıcı hesaplarının askıya alındığına dair bilinen bir vaka yoktur. Kendi sorumluluğunuzda kullanın. Daha fazla bilgi için https://github.com/dead8309/Kizzy adresine bakın.</string>
+    <string name="info_flatpak_discord_$url">SpMp'nin Flatpak versiyonu, Discord durumunu kullanmak için ek kurulum gerektirebilir. Sorun yaşarsanız $url adresine bakın.</string>
+
+    <string name="webview_runtime_downloading">Çalışma zamanı indiriliyor...</string>
+    <string name="webview_restart_required">Devam etmek için lütfen uygulamayı yeniden başlatın</string>
+
+    <string name="warning_spms_api_version_mismatch">SpMs API sürüm uyuşmazlığı</string>
+    <string name="warning_spms_api_version_mismatch_$theirs_$ours">Bağlı sunucunun API sürümü ($theirs), bu SpMp sürümünün tasarlandığı API sürümüyle ($ours) eşleşmiyor. Bu, beklenmeyen davranışlara veya çökmelere neden olabilir.</string>
+
+    <string name="warning_server_unavailable">Aşağıdaki dosyalar eksik olduğu için yerel sunucu kullanılamıyor: </string>
+    <string name="warning_server_unavailable_title">Yerel sunucu başlatılamıyor</string>
+    <string name="server_missing_files_splitter">, </string>
+
+    <string name="youtube_manual_login_title">YouTube manuel giriş</string>
     <string-array name="youtube_manual_login_steps">
         <item>Yeni bir tarayıcı sekmesi açın</item>
         <item>Geliştirici konsolunu açın (çoğu tarayıcıda ctrl+shift+I)</item>
         <item>Ağ sekmesine gidin</item>
-        <item>Https://music.youtube.com/ adresine gidin</item>
-        <item>/browse veya /account_menu gibi herhangi bir GÖNDERİ isteğini https://music.youtube.com/youtubei/v1/ adresinde bulun</item>
-        <item>İsteğe sağ tıklayın ve 'Kopyala'yı (veya 'Değeri kopyala') seçin ve ardından istek başlıklarını kopyalamak için 'cURL olarak kopyala'yı seçin ve ardından bunları aşağıya yapıştırın</item>
+        <item>https://music.youtube.com/ adresine gidin</item>
+        <item>https://music.youtube.com/youtubei/v1/... adresine yapılan herhangi bir POST isteğini bulun, örneğin /browse veya /account_menu</item>
+        <item>İsteğe sağ tıklayın ve 'Kopyala' (veya 'Değeri kopyala') ardından 'cURL olarak kopyala (Bash)' seçeneğini seçerek istek başlıklarını kopyalayın, ardından aşağıya yapıştırın</item>
     </string-array>
     <string name="youtube_manual_login_suffix"></string>
     <string name="youtube_manual_login_field">Başlıklar</string>
+
     <string name="youtube_login_load_message">Giriş sayfası yükleniyor</string>
-    <string name="youtube_account_selection_title">Hesap seç</string>
+    <string name="youtube_account_selection_title">Hesap seçin</string>
+
     <string name="manual_login_error_missing_following_headers">Aşağıdaki başlıklar eksik:</string>
-    <string name="manual_login_desktop_browser_may_be_needed">Bu adımları tamamlamak için bir masaüstü tarayıcısı kullanmanız gerekebilir</string>
-    <string name="discord_manual_login_title">Discord manuel oturum açma</string>
+    <string name="manual_login_desktop_browser_may_be_needed">Bu adımları tamamlamak için masaüstü tarayıcı kullanmanız gerekebilir</string>
+
+    <string name="discord_manual_login_title">Discord manuel giriş</string>
     <string-array name="discord_manual_login_steps">
         <item>Yeni bir tarayıcı sekmesi açın</item>
         <item>Geliştirici konsolunu açın (çoğu tarayıcıda ctrl+shift+I)</item>
         <item>Ağ sekmesine gidin</item>
-        <item>Https://discord.com/app adresine gidin</item>
-        <item>Https://discord.com/api/v9/ adresine/survey veya /player gibi bir GÖNDERİ isteği bulun</item>
-        <item>İstek başlıkları bölümünden 'Yetkilendirme' başlığını kopyalayın ve aşağıya girin</item>
+        <item>https://discord.com/app adresine gidin</item>
+        <item>https://discord.com/api/v9/... adresine yapılan, /survey veya /player gibi bir POST isteği bulun</item>
+        <item>İstek başlıkları bölümünden 'Authorization' başlığını kopyalayın ve aşağıya girin</item>
     </string-array>
     <string name="discord_manual_login_suffix"></string>
-    <string name="discord_manual_login_field">Yetki</string>
+    <string name="discord_manual_login_field">Yetkilendirme</string>
+
     <string name="err_root_not_granted">Kök ayrıcalıkları alınamadı</string>
-    <string name="err_secure_settings_grant_failed">Güvenli ayarlara izin verilemedi</string>
-    <string name="settings_export_filename_$date">SpMp_settings_ $date</string>
-    <string name="settings_import_prep_title">Ayarları içe aktarma</string>
+    <string name="err_secure_settings_grant_failed">Güvenli ayarlar izni verme başarısız oldu</string>
+
+    <string name="settings_export_filename_$date">SpMp_ayarlar_$date</string>
+
+    <string name="settings_import_prep_title">Ayarlar içe aktarılıyor</string>
     <string name="settings_import_category_selection_subtitle">İçe aktarılacak kategorileri seçin</string>
     <string name="settings_import_button_import">İçe Aktar</string>
-    <string name="settings_import_error_title">İçe aktarılamadı</string>
+    <string name="settings_import_error_title">İçe aktarma başarısız</string>
     <string name="settings_import_result_title">İçe aktarma başarılı</string>
-    <string name="settings_import_result_$x_from_file">Dosyadan içe aktarılan $x değer(ler)</string>
-    <string name="settings_import_result_$x_from_default">Varsayılanlardan geri yüklenen $x değer(ler)</string>
+    <string name="settings_import_result_$x_from_file">Dosyadan $x değer(ler) içe aktarıldı</string>
+    <string name="settings_import_result_$x_from_default">$x değer(ler) varsayılanlardan geri yüklendi</string>
+
+    <string name="content_bar_selection">İçerik çubuğunu seçin</string>
+    <string name="content_bar_selection_list_built_in">Yerleşik</string>
+    <string name="content_bar_selection_list_custom">Özel</string>
+    <string name="content_bar_selection_create_new">Oluştur</string>
+    <string name="content_bar_selection_warn_no_primary">Birincil çubuk görünür değil</string>
+    <string name="content_bar_selection_warn_no_secondary">İkincil çubuk görünür değil</string>
+    <string name="content_bar_selection_exit_warning_title">Önemli çubuklar ayarlanmadı</string>
+    <string name="content_bar_selection_exit_warning_text">Çıkmak istediğinizden emin misiniz?</string>
+
+    <string name="content_bar_empty">Boş</string>
+    <string name="content_bar_primary">Birincil</string>
+    <string name="content_bar_desc_primary">Birincil sayfa-özel içerik</string>
+    <string name="content_bar_secondary">İkincil</string>
+    <string name="content_bar_desc_secondary">İkincil sayfa-özel içerik</string>
+
+    <string name="content_bar_custom_no_$x">Özel çubuk #$x</string>
+    <string name="content_bar_custom_invalid">Geçersiz özel çubuk</string>
+
+    <string name="content_bar_editor_bar_name">Çubuk adı</string>
+    <string name="content_bar_editor_bar_size">Çubuk boyutu</string>
+    <string name="content_bar_editor_add_element">Öğe ekle</string>
+    <string name="content_bar_editor_move_element">Öğeyi taşı</string>
+    <string name="content_bar_editor_configure_element_$x">Öğeyi yapılandır</string>
+    <string name="content_bar_editor_no_elements_added">Öğe eklenmedi</string>
+    <string name="content_bar_editor_pick_template">Şablon seç</string>
+
+    <string name="content_bar_editor_template_dialog_title">Şablon seç</string>
+
+    <string name="content_bar_template_navigation">Gezinme</string>
+    <string name="content_bar_template_desc_navigation">Uygulama sayfaları arasında gezinme kontrolleri</string>
+    <string name="content_bar_template_lyrics">Şarkı sözleri</string>
+    <string name="content_bar_template_desc_lyrics">Mevcut şarkı için senkronize edilmiş şarkı sözleri</string>
+    <string name="content_bar_template_song_actions">Şarkı eylemleri</string>
+    <string name="content_bar_template_desc_song_actions">Çalan şarkıyla etkileşim için eylemler</string>
+    <string name="content_bar_template_default_portrait_top_upper">Dikey üst üst çubuk</string>
+    <string name="content_bar_template_default_portrait_top_lower">Dikey alt üst çubuk</string>
+
+    <string name="content_bar_element_type_button">Düğme</string>
+    <string name="content_bar_element_type_spacer">Ayırıcı</string>
+    <string name="content_bar_element_type_lyrics">Şarkı sözleri</string>
+    <string name="content_bar_element_type_visualiser">Görselleştirici</string>
+    <string name="content_bar_element_type_pinned_items">Sabitlenmiş öğeler</string>
+    <string name="content_bar_element_type_content_bar">İçerik çubuğu</string>
+
+    <string name="content_bar_element_builtin_config_size_mode">Boyut modu</string>
+    <string name="content_bar_element_builtin_config_size_mode_fill">Doldur</string>
+    <string name="content_bar_element_builtin_config_size_mode_static">Sabit</string>
+    <string name="content_bar_element_builtin_config_size_mode_percentage">Yüzde</string>
+    <string name="content_bar_element_builtin_config_size">Boyut</string>
+    <string name="content_bar_element_builtin_config_hide_bar_when_empty">Boşken çubuğu gizle</string>
+
+    <string name="content_bar_element_button_config_type">Eylem türü</string>
+    <string name="content_bar_element_button_config_become_close_while_target_open">Sayfa açıkken kapat düğmesini göster</string>
+
+    <string name="content_bar_element_lyrics_config_alignment">Hizalama</string>
+    <string name="content_bar_element_lyrics_config_linger">Bekle</string>
+    <string name="content_bar_element_lyrics_config_show_furigana">Furigana göster</string>
+    <string name="content_bar_element_lyrics_config_max_lines">Maksimum satır</string>
+    <string name="content_bar_element_lyrics_config_preallocate_max_space">Maksimum satırlar için alan ayır</string>
+
+    <string name="content_bar_element_content_bar_config_bar">Çubuk</string>
+
+    <string name="content_bar_element_builtin_lyrics">Şarkı sözleri</string>
+    <string name="content_bar_element_builtin_visualiser">Müzik görselleştirici</string>
+    <string name="content_bar_element_builtin_unsupported_on_platform_suffix"> (Bu platformda desteklenmiyor)</string>
+
+    <string name="layout_editor_preview_options">Önizleme seçenekleri</string>
+    <string name="layout_editor_preview_option_show_bar_content">Çubuk içeriğini göster</string>
+    <string name="layout_editor_preview_option_hide_player">Oynatıcıyı gizle</string>
+    <string name="layout_editor_preview_option_portrait_mode">Dikey mod</string>
+
+    <string name="layout_slot_portrait_upper_top_bar">Üst üst çubuk</string>
+    <string name="layout_slot_portrait_lower_top_bar">Alt üst çubuk</string>
+    <string name="layout_slot_portrait_above_player">Mini oynatıcının üstünde</string>
+    <string name="layout_slot_portrait_below_player">Mini oynatıcının altında</string>
+    <string name="layout_slot_portrait_player_top">Oynatıcı üstü</string>
+
+    <string name="layout_slot_config_portrait_player_top_show_in_queue">Sırada göster</string>
+    <string name="layout_slot_config_below_player_show_in_player">Oynatıcıda göster</string>
+    <string name="layout_slot_config_below_player_show_in_queue">Sırada göster</string>
+
+    <string name="layout_slot_landscape_outer_side_left">Dış sol kenar çubuğu</string>
+    <string name="layout_slot_landscape_inner_side_left">İç sol kenar çubuğu</string>
+    <string name="layout_slot_landscape_outer_side_right">Dış sağ kenar çubuğu</string>
+    <string name="layout_slot_landscape_inner_side_right">İç sağ kenar çubuğu</string>
+    <string name="layout_slot_landscape_upper_top_bar">Üst üst çubuk</string>
+    <string name="layout_slot_landscape_lower_top_bar">Alt üst çubuk</string>
+    <string name="layout_slot_landscape_above_player">Oynatıcının üstünde</string>
+    <string name="layout_slot_landscape_below_player">Oynatıcının altında</string>
+    <string name="layout_slot_landscape_player_bottom_start">Alt çubuk başlangıcı</string>
+    <string name="layout_slot_landscape_player_bottom_end">Alt çubuk sonu</string>
+
+    <string name="colour_selector_dialog_title">Renk seç</string>
+    <string name="colour_selector_dialog_select_theme">Temadan</string>
+    <string name="colour_selector_dialog_select_custom">Özel</string>
+    <string name="colour_selector_dialog_player_background">Oynatıcı arka planı</string>
+    <string name="colour_selector_dialog_transparent">Şeffaf</string>
+
+    <string name="theme_colour_background">Arka plan</string>
+    <string name="theme_colour_accent">Vurgu</string>
+    <string name="theme_colour_vibrant_accent">Canlı vurgu</string>
+    <string name="theme_colour_card">Kart</string>
+
+    <string name="shortcut_trigger_none">Yok</string>
+    <string name="shortcut_trigger_keyboard">Klavye</string>
+    <string name="shortcut_trigger_mouse_button">Fare düğmesi</string>
+
+    <string name="shortcut_key_config_selected_key">Seçilen tuş</string>
+    <string name="shortcut_key_config_none_selected">Hiçbiri</string>
+    <string name="shortcut_key_config_detecting_key">Tuş algılanıyor...</string>
+    <string name="shortcut_key_modifier_ctrl">Ctrl değiştirici</string>
+    <string name="shortcut_key_modifier_alt">Alt değiştirici</string>
+    <string name="shortcut_key_modifier_shift">Shift değiştirici</string>
+
+    <string name="shortcut_button_config_selected_button">Düğme</string>
+    <string name="shortcut_button_config_detecting_button">Düğme algılanıyor...</string>
+    <string name="shortcut_button_config_none_selected">Hiçbiri</string>
+
+    <string name="shortcut_editor_trigger_label">Tetikleyici:</string>
+    <string name="shortcut_editor_trigger">Tetikleyici</string>
+    <string name="shortcut_editor_empty_trigger">Ayarlanmamış</string>
+
+    <string name="appaction_navigation">Gezinme</string>
+    <string name="appaction_song">Şarkı eylemi</string>
+    <string name="appaction_playback">Oynatma</string>
+    <string name="appaction_other">Diğer</string>
+    <string name="appaction_modify_setting">Ayar</string>
+
+    <string name="appaction_config_navigation_action">Eylem</string>
+    <string name="appaction_config_navigation_settings_group">Ayarlar kategorisi</string>
+    <string name="appaction_config_navigation_settings_group_none">Hiçbiri</string>
+    <string name="appaction_config_song_action">Eylem</string>
+    <string name="appaction_config_other_action">Eylem</string>
+    <string name="appaction_config_playback_action_type">Eylem türü</string>
+    <string name="appaction_config_playback_seek_to_time_seek_ms">İlerleme miktarı (ms)</string>
+
+    <string name="appaction_navigation_toggle_player">Oynatıcıyı aç/kapat</string>
+    <string name="appaction_navigation_jump_to_lyrics">Şarkı sözlerine git</string>
+    <string name="appaction_navigation_open_page_feed">Akışı aç</string>
+    <string name="appaction_navigation_open_page_library">Kütüphaneyi aç</string>
+    <string name="appaction_navigation_open_page_search">Aramayı aç</string>
+    <string name="appaction_navigation_open_page_radiobuilder">Radyo oluşturucuyu aç</string>
+
+    <string name="appaction_navigation_open_page_control">Kontrol sayfasını aç</string>
+    <string name="appaction_navigation_open_page_settings">Ayarları aç</string>
+    <string name="appaction_navigation_open_page_profile">Profili aç</string>
+
+    <string name="appaction_song_action_toggle_like">Beğeniyi aç/kapat</string>
+    <string name="appaction_song_action_toggle_pin">Sabitlemeyi aç/kapat</string>
+    <string name="appaction_song_action_hide">Gizle</string>
+    <string name="appaction_song_action_start_radio">Radyoyu başlat</string>
+    <string name="appaction_song_action_download">İndir</string>
+    <string name="appaction_song_action_open_album">Albümü aç</string>
+    <string name="appaction_song_action_open_related">İlgili içeriği aç</string>
+    <string name="appaction_song_action_remove_from_queue">Kuyruktan kaldır</string>
+    <string name="appaction_song_action_share">Paylaş</string>
+    <string name="appaction_song_action_open_externally">Harici olarak aç</string>
+    <string name="appaction_song_action_copy_url">URL'yi kopyala</string>
+
+    <string name="appaction_playback_action_pause">Duraklat</string>
+    <string name="appaction_playback_action_play">Oynat</string>
+    <string name="appaction_playback_action_toggle_play">Oynatmayı aç/kapat</string>
+    <string name="appaction_playback_action_seek_by_time">Zamana göre ilerle</string>
+    <string name="appaction_playback_action_shuffle_queue">Kuyruğu karıştır</string>
+    <string name="appaction_playback_action_clear_queue">Kuyruğu temizle</string>
+    <string name="appaction_playback_action_seek_next">Sonrakine geç</string>
+    <string name="appaction_playback_action_seek_previous">Öncekine geç</string>
+    <string name="appaction_playback_action_seek_random">Rastgele bir yere geç</string>
+    <string name="appaction_playback_action_undo_seek">Şarkı ilerlemesini geri al</string>
+
+    <string name="appaction_other_action_navigate_back">Geri git</string>
+    <string name="appaction_other_action_toggle_fullscreen">Tam ekranı aç/kapat</string>
+    <string name="appaction_other_action_reload_page">Sayfayı yenile</string>
+    <string name="appaction_other_action_increase_ui_scale">Arayüz ölçeğini artır</string>
+    <string name="appaction_other_action_decrease_ui_scale">Arayüz ölçeğini azalt</string>
+
+    <string name="dependency_list_title">SpMp aşağıdaki kütüphaneler sayesinde mümkün olmuştur:</string>
+    <string name="dependency_list_dep_using_fork">Fork kullanılıyor</string>
+    <string name="dependency_list_dep_$author">Yazar: $author</string>
+    <string name="dependency_list_dep_$license">Lisans: $license</string>
+    <string name="dependency_list_dep_view_source">Kaynağı görüntüle</string>
+
+    <string name="project_info_dialog_title">Bilgi</string>
+    <string name="project_info_dialog_section_project">Proje</string>
+    <string name="project_info_dialog_section_gestures">Hareketler</string>
+
+    <string name="project_info_dialog_gesture_player_swipes">Oynatıcı kaydırma</string>
+    <string name="project_info_dialog_gesture_player_swipe_player">Mini oynatıcıyı kaydırarak tam oynatıcıya genişlet</string>
+    <string name="project_info_dialog_gesture_player_swipe_queue">Oynatıcıyı kaydırarak kuyruğa genişlet</string>
+
+    <string name="project_info_dialog_gesture_item_long_presses">Medya öğesi uzun basma</string>
+    <string name="project_info_dialog_gesture_item_long_press_normal">Eylem menüsünü açmak için uzun bas</string>
+    <string name="project_info_dialog_gesture_item_long_press_long">Çoklu seçim başlatmak için ekstra uzun bas</string>
+
+    <string name="project_info_dialog_gesture_dislike">Bir şarkıyı beğenmemek için beğen düğmesine uzun bas</string>
+
+    <string name="project_info_dialog_project_$license">Lisans: $license</string>
+    <string name="project_info_dialog_project_$author">Yazar: $author</string>
+    <string name="project_info_dialog_project_source_button">Kaynak kodunu görüntüle</string>
+    <string name="project_info_dialog_project_donate_button">Bana bir sıcak çikolata ısmarla</string>
+    <string name="project_info_dialog_dependencies_button">Bağımlılıkları göster</string>
 </resources>

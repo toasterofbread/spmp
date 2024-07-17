@@ -3,12 +3,12 @@ package com.toasterofbread.spmp.resources
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getUiLanguage
 import kotlinx.coroutines.runBlocking
-import org.kobjects.ktxml.api.EventType
-import org.kobjects.ktxml.mini.MiniXmlPullParser
+import kotlinx.serialization.Serializable
 import java.io.InputStream
 import java.util.*
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.concurrent.withLock
+import nl.adaptivity.xmlutil.serialization.XML
 
 private var _strings: Map<String, String>? = null
 private var _string_arrays: Map<String, List<String>>? = null
@@ -48,45 +48,46 @@ fun initResources(language: String, context: AppContext) {
                 val string: String = stream.reader().readText()
                 stream.close()
 
-                val parser: MiniXmlPullParser = MiniXmlPullParser(string.iterator())
+                val strings = XML.decodeFromString(Strings.serializer(), string)
+                TODO(strings.toString())
 
-                while (parser.eventType != EventType.END_DOCUMENT) {
-                    try {
-                        if (parser.eventType != EventType.START_TAG) {
-                            parser.next()
-                            continue
-                        }
+                // val parser: MiniXmlPullParser = MiniXmlPullParser(string.iterator())
 
-                        val key: String? = parser.getAttributeValue("", "name")
-                        if (key != null) {
-                            when (parser.name) {
-                                "string" -> {
-                                    strs[key] = formatText(parser.nextText())
-                                }
-                                "string-array" -> {
-                                    val array = mutableListOf<String>()
+                // while (parser.eventType != EventType.END_DOCUMENT) {
+                //     try {
+                //         if (parser.eventType != EventType.START_TAG) {
+                //             parser.next()
+                //             continue
+                //         }
 
-                                    parser.nextTag()
-                                    while (parser.name == "item") {
-                                        array.add(formatText(parser.nextText()))
-                                        parser.nextTag()
-                                    }
+                //         val key: String? = parser.getAttributeValue("", "name")
+                //         if (key != null) {
+                //             when (parser.name) {
+                //                 "string" -> {
+                //                     strs[key] = formatText(parser.nextText())
+                //                 }
+                //                 "string-array" -> {
+                //                     val array = mutableListOf<String>()
 
-                                    str_arrays[key] = array
-                                }
-                                "resources" -> {}
-                                else -> throw NotImplementedError(parser.name)
-                            }
-                        }
+                //                     parser.nextTag()
+                //                     while (parser.name == "item") {
+                //                         array.add(formatText(parser.nextText()))
+                //                         parser.nextTag()
+                //                     }
 
-                        parser.next()
-                    }
-                    catch (e: Throwable) {
-                        throw RuntimeException("Error occurred while processing line ${parser.lineNumber} of $path", e)
-                    }
-                }
+                //                     str_arrays[key] = array
+                //                 }
+                //                 "resources" -> {}
+                //                 else -> throw NotImplementedError(parser.name)
+                //             }
+                //         }
 
-                stream.close()
+                //         parser.next()
+                //     }
+                //     catch (e: Throwable) {
+                //         throw RuntimeException("Error occurred while processing line ${parser.lineNumber} of $path", e)
+                //     }
+                // }
             }
 
             var language_best_match: String? = null
@@ -119,6 +120,15 @@ fun initResources(language: String, context: AppContext) {
         }
     }
 }
+
+@Serializable
+private data class Strings(val string: List<StringItem>, val string_array: List<StringArray>)
+
+@Serializable
+private data class StringItem(val name: String, val content: String)
+
+@Serializable
+private data class StringArray(val name: String, val item: List<String>)
 
 fun getString(key: String): String = strings[key] ?: throw NotImplementedError(key)
 fun getStringOrNull(key: String): String? = _strings?.get(key)

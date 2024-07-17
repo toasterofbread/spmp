@@ -1,8 +1,6 @@
 package com.toasterofbread.spmp.resources
 
 import com.toasterofbread.spmp.platform.AppContext
-import org.kobjects.ktxml.api.EventType
-import org.kobjects.ktxml.mini.MiniXmlPullParser
 import java.io.InputStream
 import java.util.MissingResourceException
 
@@ -15,38 +13,32 @@ object Languages {
         val languages: MutableList<LanguageInfo> = mutableListOf()
 
         iterateValuesDirectories(context) { language, path ->
-            val stream: InputStream = try {
-                context.openResourceFile("$path/strings.xml")
-            }
-            catch (e: Throwable) {
-                if (e.javaClass != MissingResourceException::class.java) {
-                    throw e
+            val stream: InputStream =
+                try {
+                    context.openResourceFile("$path/strings.xml")
                 }
-                return@iterateValuesDirectories false
-            }
-
-            val string = stream.reader().readText()
-            stream.close()
-
-            val parser = MiniXmlPullParser(string.iterator())
-
-            while (parser.eventType != EventType.END_DOCUMENT) {
-                if (parser.eventType != EventType.START_TAG) {
-                    parser.next()
-                    continue
+                catch (e: Throwable) {
+                    if (e.javaClass != MissingResourceException::class.java) {
+                        throw e
+                    }
+                    return@iterateValuesDirectories false
                 }
 
-                val key = parser.getAttributeValue("", "name")
-                if (parser.name == "string" && key == "language_name") {
-                    languages.add(LanguageInfo(language ?: DEFAULT_LANGUAGE, parser.nextText()))
+            stream.reader().useLines { lines ->
+                for (line in lines) {
+                    val trimmed: String = line.trim()
+                    if (!trimmed.startsWith("<string name=\"language_name\">")) {
+                        continue
+                    }
+
+                    val file_language: String = trimmed.substring(29, trimmed.length - 9)
+                    languages.add(LanguageInfo(language ?: DEFAULT_LANGUAGE, file_language))
+
                     break
                 }
-
-                parser.next()
             }
 
-            stream.close()
-            false
+            return@iterateValuesDirectories false
         }
 
         return languages

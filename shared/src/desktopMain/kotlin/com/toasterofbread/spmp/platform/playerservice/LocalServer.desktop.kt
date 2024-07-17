@@ -7,12 +7,18 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import dev.toastbits.spms.server.SpMs
+import dev.toastbits.spms.getMachineId
 
 private const val POLL_INTERVAL: Long = 100
 private const val CLIENT_REPLY_ATTEMPTS: Int = 10
 
 actual object LocalServer {
-    private fun createServer(): SpMs = SpMs(headless = false, enable_gui = false)
+    private fun createServer(): SpMs =
+        SpMs(
+            headless = false,
+            enable_gui = false,
+            machine_id = getMachineId()!!
+        )
 
     actual fun getLocalServerUnavailabilityReason(): String? {
         val server: SpMs =
@@ -34,7 +40,12 @@ actual object LocalServer {
         context: AppContext,
         port: Int
     ): Job {
-        val server: SpMs = SpMs(headless = false, enable_gui = false)
+        val server: SpMs =
+            SpMs(
+                headless = false,
+                enable_gui = false,
+                machine_id = getMachineId()!!
+            )
 
         server.bind(port)
 

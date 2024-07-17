@@ -195,7 +195,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/Kamel-Media/Kamel/blob/6eb1dd7fea43beb2e30d8e5d162b2b5e212e5950/LICENSE"
             ),
             "io.ktor" to DependencyInfo(
-                version = "3.0.0-beta-2-eap-972",
+                version = "3.0.0-beta-2",
                 name = "Ktor",
                 author = "JetBrains",
                 url = "https://github.com/ktorio/ktor",

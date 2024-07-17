@@ -1,6 +1,7 @@
 import plugin.spmp.SpMpDeps
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
+import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockStoreTask
 
 plugins {
     id("generate-build-config")
@@ -14,6 +15,23 @@ plugins {
 }
 
 val buildConfigDir: Provider<Directory> get() = project.layout.buildDirectory.dir("generated/buildconfig")
+
+
+afterEvaluate {
+    rootProject.tasks.apply {
+        getByName("kotlinNodeJsSetup") {
+            enabled = false
+        }
+
+        getByName("kotlinNpmInstall") {
+            enabled = false
+        }
+
+        getByName<YarnLockStoreTask>("kotlinStoreYarnLock") {
+            inputFile.asFile.get().createNewFile()
+        }
+    }
+}
 
 kotlin {
     androidTarget()
@@ -38,6 +56,8 @@ kotlin {
         }
         binaries.executable()
     }
+
+    applyDefaultHierarchyTemplate()
 
     sourceSets {
         val deps: SpMpDeps = SpMpDeps(extra.properties)
@@ -81,18 +101,28 @@ kotlin {
                 implementation(deps.get("com.github.catppuccin:java"))
                 implementation(deps.get("com.github.paramsen:noise"))
                 implementation(deps.get("io.github.pdvrieze.xmlutil:core", "io.github.pdvrieze.xmlutil"))
+                implementation(deps.get("io.github.pdvrieze.xmlutil:serialization", "io.github.pdvrieze.xmlutil"))
                 implementation(deps.get("org.bitbucket.ijabz:jaudiotagger"))
                 implementation(deps.get("com.github.teamnewpipe:NewPipeExtractor"))
                 implementation(deps.get("org.zeromq:jeromq"))
                 implementation(deps.get("media.kamel:kamel-image"))
                 implementation(deps.get("io.ktor:ktor-client-core", "io.ktor"))
-                implementation(deps.get("io.ktor:ktor-client-cio", "io.ktor"))
                 implementation(deps.get("io.ktor:ktor-client-content-negotiation", "io.ktor"))
                 implementation(deps.get("io.ktor:ktor-serialization-kotlinx-json", "io.ktor"))
             }
         }
 
+        val jvmMain by creating {
+            dependsOn(commonMain.get())
+
+            dependencies {
+                implementation(deps.get("io.ktor:ktor-client-cio", "io.ktor"))
+            }
+        }
+
         val androidMain by getting {
+            dependsOn(jvmMain)
+
             dependencies {
                 api("androidx.activity:activity-compose:1.8.1")
                 api("androidx.core:core-ktx:1.12.0")
@@ -121,6 +151,8 @@ kotlin {
         }
 
         val desktopMain by getting {
+            dependsOn(jvmMain)
+
             dependencies {
                 implementation(compose.desktop.common)
 
@@ -132,6 +164,12 @@ kotlin {
                 implementation(deps.get("com.github.caoimhebyrne:KDiscordIPC"))
                 implementation(deps.get("org.bytedeco:ffmpeg-platform"))
                 implementation(deps.get("dev.toastbits.compose-webview-multiplatform:compose-webview-multiplatform-desktop"))
+            }
+        }
+
+        val wasmJsMain by getting {
+            dependencies {
+                implementation(deps.get("io.ktor:ktor-client-js", "io.ktor"))
             }
         }
     }

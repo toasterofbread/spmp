@@ -228,9 +228,14 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
         discord_status.release()
     }
 
-    fun updateActiveQueueIndex(delta: Int = 0) {
+    fun updateActiveQueueIndex(delta: Int = 0, to_end: Boolean = false) {
         if (delta != 0) {
-            setActiveQueueIndex(active_queue_index + delta)
+            if (to_end) {
+                setActiveQueueIndex(if (delta > 0) Int.MAX_VALUE else Int.MIN_VALUE)
+            }
+            else {
+                setActiveQueueIndex(active_queue_index + delta)
+            }
         }
         else if (active_queue_index >= service.song_count) {
             active_queue_index = service.current_song_index

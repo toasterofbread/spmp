@@ -323,6 +323,7 @@ internal fun CustomBarsContentBarList(
                 IconButton(
                     {
                         state.onCustomBarEditRequested(state.custom_bars[index])
+                        player.switchNowPlayingPage(0)
                         onDismissed()
                     }
                 ) {

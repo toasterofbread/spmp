@@ -46,7 +46,9 @@ fun main(args: Array<String>) {
         System.setProperty("skiko.renderApi", "SOFTWARE")
     }
 
-    val arguments: ProgramArguments = ProgramArguments.parse(args) ?: return
+    val arguments: ProgramArguments =
+        runBlocking { ProgramArguments.parse(args) }
+        ?: return
 
     SpMp.onStart()
 

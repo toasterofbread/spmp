@@ -29,7 +29,7 @@ enum class OS {
 }
 
 val local_properties_path: String = "local.properties"
-val strings_file: File = rootProject.file("shared/src/commonMain/resources/assets/values/strings.xml")
+val strings_file: File = rootProject.file("shared/src/commonMain/composeResources/values/strings.xml")
 
 fun getString(key: String): String {
     val reader = strings_file.reader()

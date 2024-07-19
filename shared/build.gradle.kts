@@ -1,4 +1,7 @@
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalWasmDsl::class)
+
 import plugin.spmp.SpMpDeps
+import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
 import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockStoreTask
@@ -15,30 +18,15 @@ plugins {
     id("app.cash.sqldelight")
 }
 
+val DATABASE_VERSION: Int = 6 // post-v0.3.1
+
 val buildConfigDir: Provider<Directory> get() = project.layout.buildDirectory.dir("generated/buildconfig")
-
-afterEvaluate {
-    rootProject.tasks.apply {
-        getByName("kotlinNodeJsSetup") {
-            enabled = false
-        }
-
-        getByName("kotlinNpmInstall") {
-            enabled = false
-        }
-
-        getByName<YarnLockStoreTask>("kotlinStoreYarnLock") {
-            inputFile.asFile.get().createNewFile()
-        }
-    }
-}
 
 kotlin {
     androidTarget()
 
     jvm("desktop")
 
-    @OptIn(ExperimentalWasmDsl::class)
     wasmJs {
         moduleName = project.parent!!.name
         browser {
@@ -57,7 +45,15 @@ kotlin {
         binaries.executable()
     }
 
-    applyDefaultHierarchyTemplate()
+    applyDefaultHierarchyTemplate {
+        common {
+            group("jvm") {
+                withAndroidTarget()
+                withJvm()
+            }
+            withWasmJs()
+        }
+    }
 
     sourceSets {
         val deps: SpMpDeps = SpMpDeps(extra.properties)
@@ -94,7 +90,7 @@ kotlin {
                 implementation(deps.get("dev.toastbits.ytmkt:ytmkt"))
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
 
                 implementation(deps.get("org.apache.commons:commons-text"))
@@ -117,25 +113,21 @@ kotlin {
             }
         }
 
-        val jvmMain by creating {
-            dependsOn(commonMain.get())
-
+        val jvmMain by getting {
             dependencies {
                 implementation(deps.get("io.ktor:ktor-client-cio", "io.ktor"))
             }
         }
 
         val androidMain by getting {
-            dependsOn(jvmMain)
-
             dependencies {
-                api("androidx.activity:activity-compose:1.8.1")
-                api("androidx.core:core-ktx:1.12.0")
-                api("androidx.appcompat:appcompat:1.6.1")
+                api("androidx.activity:activity-compose:1.9.0")
+                api("androidx.core:core-ktx:1.13.1")
+                api("androidx.appcompat:appcompat:1.7.0")
 
                 implementation("androidx.palette:palette:1.0.0")
                 implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.6.0")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.7.1")
                 implementation(deps.get("androidx.media3:media3-exoplayer", "androidx.media3"))
                 implementation(deps.get("androidx.media3:media3-ui", "androidx.media3"))
                 implementation(deps.get("androidx.media3:media3-session", "androidx.media3"))
@@ -153,8 +145,6 @@ kotlin {
         }
 
         val desktopMain by getting {
-            dependsOn(jvmMain)
-
             dependencies {
                 implementation(compose.desktop.common)
 
@@ -172,6 +162,12 @@ kotlin {
                 implementation(deps.get("io.ktor:ktor-client-js", "io.ktor"))
             }
         }
+    }
+}
+
+compose {
+    resources {
+        publicResClass = true
     }
 }
 
@@ -193,13 +189,10 @@ android {
     }
 }
 
-val DATABASE_VERSION: Int = 6 // post-v0.3.1
-
 sqldelight {
     databases {
         create("Database") {
             packageName.set("com.toasterofbread.${project.parent!!.name}.db")
-
             // Version specification kept for backwards-compatibility
             version = DATABASE_VERSION
         }
@@ -230,8 +223,22 @@ val fixDatabaseVersion = tasks.register("fixDatabaseVersion") {
     }
 }
 
-tasks.all {
-    if (name == "generateCommonMainDatabaseInterface") {
+afterEvaluate {
+    tasks.getByName("generateCommonMainDatabaseInterface") {
         finalizedBy(fixDatabaseVersion)
+    }
+
+    rootProject.tasks.apply {
+        getByName("kotlinNodeJsSetup") {
+            enabled = false
+        }
+
+        getByName("kotlinNpmInstall") {
+            enabled = false
+        }
+
+        getByName<YarnLockStoreTask>("kotlinStoreYarnLock") {
+            inputFile.asFile.get().createNewFile()
+        }
     }
 }

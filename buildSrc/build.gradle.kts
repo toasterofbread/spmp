@@ -7,7 +7,7 @@ repositories {
 }
 
 dependencies {
-    implementation("com.github.gmazzo.buildconfig:plugin:5.3.5")
+    implementation("com.github.gmazzo.buildconfig:plugin:5.4.0")
 }
 
 tasks.withType(JavaCompile::class) {

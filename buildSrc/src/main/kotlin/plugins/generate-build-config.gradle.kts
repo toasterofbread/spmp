@@ -1,4 +1,4 @@
-import org.gradle.api.file.Directory
+import com.github.gmazzo.buildconfig.BuildConfigClassSpec
 import plugin.shared.Command
 import plugin.spmp.ProjectConfigValues
 import java.util.Properties
@@ -8,6 +8,18 @@ plugins {
     id("com.github.gmazzo.buildconfig")
 }
 
+val release_source_sets: List<String> =
+    listOf(
+        "androidRelease",
+        "desktopMain",
+        "wasmJsMain"
+    )
+
+val debug_source_sets: List<String> =
+    listOf(
+        "androidDebug"
+    )
+
 buildConfig {
     className = "ProjectBuildConfig"
     packageName = "com.toasterofbread.${project.parent!!.name}"
@@ -15,16 +27,24 @@ buildConfig {
     useKotlinOutput {
         internalVisibility = false
     }
+
+    sourceSets.all {
+        for ((source_set, debug) in release_source_sets.map { it to false } + debug_source_sets.map { it to true }) {
+            if (name == source_set) {
+                buildConfig(debug_mode = debug)
+            }
+        }
+    }
 }
 
-fun loadKeys(
+private fun BuildConfigClassSpec.loadKeys(
     file: File,
     getType: (key: String) -> String,
     key_names: Collection<String>,
     include_values: Boolean = true
 ) {
     fun addBuildConfigField(key: String, value: String?) {
-        buildConfig.buildConfigField(key) {
+        buildConfigField(key) {
             type(getType(key))
             expression(value ?: null.toString())
         }
@@ -65,7 +85,7 @@ fun loadKeys(
     }
 }
 
-fun Task.buildConfig(debug_mode: Boolean) {
+private fun BuildConfigClassSpec.buildConfig(debug_mode: Boolean) {
     loadKeys(
         rootProject.file("buildSrc/project.properties"),
         { key ->
@@ -84,43 +104,7 @@ fun Task.buildConfig(debug_mode: Boolean) {
         include_values = debug_mode
     )
 
-    buildConfig {
-        buildConfigField("GIT_COMMIT_HASH", Command.getCurrentGitCommitHash())
-        buildConfigField("GIT_TAG", Command.getCurrentGitTag())
-        buildConfigField("IS_DEBUG", debug_mode)
-    }
-}
-
-val buildConfigDebug = tasks.register("buildConfigDebug") {
-    outputs.upToDateWhen { false }
-    doFirst {
-        buildConfig(debug_mode = true)
-    }
-}
-val buildConfigRelease = tasks.register("buildConfigRelease") {
-    outputs.upToDateWhen { false }
-    doFirst {
-        buildConfig(debug_mode = false)
-    }
-}
-val buildConfigDesktop = tasks.register("buildConfigDesktop") {
-    outputs.upToDateWhen { false }
-    doFirst {
-        var debug: Boolean = gradle.taskGraph.getAllTasks().none { task ->
-            task.name.startsWith("packageRelease") || task.name == "runRelease"
-        }
-
-        println("buildConfigDesktop will be configured with debug_mode=$debug")
-        buildConfig(debug_mode = debug)
-    }
-}
-
-afterEvaluate {
-    tasks.all {
-        when (name) {
-            "compileDebugKotlinAndroid" -> dependsOn(buildConfigDebug)
-            "compileReleaseKotlinAndroid" -> dependsOn(buildConfigRelease)
-            "compileKotlinDesktop" -> dependsOn(buildConfigDesktop)
-        }
-    }
+    buildConfigField("GIT_COMMIT_HASH", Command.getCurrentGitCommitHash())
+    buildConfigField("GIT_TAG", Command.getCurrentGitTag())
+    buildConfigField("IS_DEBUG", debug_mode)
 }

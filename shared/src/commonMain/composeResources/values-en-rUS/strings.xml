@@ -14,7 +14,6 @@
     <string name="s_option_np_accent_elements">Color elements with accent</string>
     <string name="s_option_np_accent_none">Don\'t use accent color</string>
     <string name="s_cat_behaviour">Behavior</string>
-    <string name="s_cat_desc_theme">Customise app colors and change accent source</string>
     <string name="s_cat_desc_lyrics">Lyrics appearance and behavior</string>
     <string name="colour_selector_dialog_title">Select color</string>
 

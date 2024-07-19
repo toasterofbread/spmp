@@ -10,6 +10,9 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 import kotlinx.serialization.json.encodeToJsonElement
+import PlatformIO
+import okio.buffer
+import okio.use
 
 object SettingsImportExport {
     @Serializable
@@ -43,9 +46,9 @@ object SettingsImportExport {
     }
 
     suspend fun loadSettingsFile(file: PlatformFile): SettingsExportData =
-        withContext(Dispatchers.IO) {
-            return@withContext file.inputStream().use { stream ->
-                Json.decodeFromStream(stream)
+        withContext(Dispatchers.PlatformIO) {
+            return@withContext file.inputStream().buffer().use { stream ->
+                Json.decodeFromString(stream.readUtf8())
             }
         }
 

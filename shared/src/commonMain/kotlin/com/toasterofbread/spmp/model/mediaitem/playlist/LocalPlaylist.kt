@@ -18,14 +18,15 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.sa
 import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import PlatformIO
 
 sealed interface LocalPlaylist: Playlist {
-    fun getLocalPlaylistFile(context: AppContext): PlatformFile =
+    fun getLocalPlaylistFile(context: AppContext): PlatformFile? =
         MediaItemLibrary.getLocalPlaylistFile(this, context)
 
     override fun getType(): MediaItemType = MediaItemType.PLAYLIST_LOC
     override fun getURL(context: AppContext): String =
-        "file://" + getLocalPlaylistFile(context).absolute_path
+        "file://" + getLocalPlaylistFile(context)?.absolute_path.orEmpty()
     override fun getEmptyData(): LocalPlaylistData = LocalPlaylistData(id)
 
     override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean, save: Boolean): Result<LocalPlaylistData>
@@ -34,8 +35,10 @@ sealed interface LocalPlaylist: Playlist {
         val data: LocalPlaylistData = loadData(context).getOrNull() ?: return
         data.name = value
 
-        val file = MediaItemLibrary.getLocalPlaylistFile(this, context)
-        data.saveToFile(file, context)
+        val file: PlatformFile? = MediaItemLibrary.getLocalPlaylistFile(this, context)
+        if (file != null) {
+            data.saveToFile(file, context)
+        }
     }
 
     override suspend fun setSortType(sort_type: MediaItemSortType?, context: AppContext): Result<Unit> {
@@ -45,12 +48,15 @@ sealed interface LocalPlaylist: Playlist {
         )
         data.sort_type = sort_type
 
-        val file = MediaItemLibrary.getLocalPlaylistFile(this, context)
+        val file: PlatformFile =
+            MediaItemLibrary.getLocalPlaylistFile(this, context)
+            ?: return Result.success(Unit)
+
         return data.saveToFile(file, context)
     }
 }
 
-suspend fun Playlist.downloadAsLocalPlaylist(context: AppContext, replace: Boolean = false): Result<LocalPlaylistData> = withContext(Dispatchers.IO) {
+suspend fun Playlist.downloadAsLocalPlaylist(context: AppContext, replace: Boolean = false): Result<LocalPlaylistData> = withContext(Dispatchers.PlatformIO) {
     val playlist_data: PlaylistData = loadData(context).fold(
         { it },
         { return@withContext Result.failure(it) }

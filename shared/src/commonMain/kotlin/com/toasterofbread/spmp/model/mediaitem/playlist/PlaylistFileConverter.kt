@@ -11,7 +11,10 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.OutputStreamWriter
+import PlatformIO
+import okio.BufferedSink
+import okio.buffer
+import okio.use
 
 // Reads and writes M3U files based on https://en.wikipedia.org/wiki/M3U
 object PlaylistFileConverter {
@@ -19,8 +22,8 @@ object PlaylistFileConverter {
         "${playlist.id}.${getFileExtension()}"
     fun getFileExtension(): String = "m3u"
 
-    private fun OutputStreamWriter.writeFileHeaders(playlist: PlaylistData, context: AppContext) {
-        write(
+    private fun BufferedSink.writeFileHeaders(playlist: PlaylistData, context: AppContext) {
+        writeUtf8(
             buildString {
                 appendLine("#EXTM3U")
 
@@ -52,39 +55,39 @@ object PlaylistFileConverter {
         )
     }
 
-    suspend fun PlaylistData.saveToFile(file: PlatformFile, context: AppContext): Result<Unit> = withContext(Dispatchers.IO) {
+    suspend fun PlaylistData.saveToFile(file: PlatformFile, context: AppContext): Result<Unit> = withContext(Dispatchers.PlatformIO) {
+        val playlists_dir: PlatformFile =
+            MediaItemLibrary.getLocalPlaylistsDir(context)
+            ?: throw RuntimeException("Local playlists dir not available")
+
         val temp_file: PlatformFile = file.getSibling("${file.name}.tmp")
 
         val result: Result<Unit> = runCatching {
-            temp_file.outputStream().use { stream ->
-                with(stream.writer()) {
-                    writeFileHeaders(this@saveToFile, context)
+            temp_file.outputStream().buffer().use { stream ->
+                stream.writeFileHeaders(this@saveToFile, context)
 
-                    val playlists_dir: PlatformFile = MediaItemLibrary.getLocalPlaylistsDir(context)
+                for (song in items ?: emptyList()) {
+                    val song_path: String
 
-                    for (song in items ?: emptyList()) {
-                        val song_path: String
+                    val local_file: PlatformFile? = MediaItemLibrary.getLocalSong(song, context)?.file
 
-                        val local_file: PlatformFile? = MediaItemLibrary.getLocalSong(song, context)?.file
-
-                        if (local_file != null) {
-                            local_file.path
-                            song_path = local_file.getRelativePath(playlists_dir)
-                        }
-                        else {
-                            song_path = "spmp://${song.id}"
-                        }
-
-                        val song_title: String? = song.getActiveTitle(context.database)
-                        if (song_title != null) {
-                            write("\n#EXTINF:-1,$song_title")
-                        }
-
-                        write("\n$song_path\n")
+                    if (local_file != null) {
+                        local_file.path
+                        song_path = local_file.getRelativePath(playlists_dir)
+                    }
+                    else {
+                        song_path = "spmp://${song.id}"
                     }
 
-                    flush()
+                    val song_title: String? = song.getActiveTitle(context.database)
+                    if (song_title != null) {
+                        stream.writeUtf8("\n#EXTINF:-1,$song_title")
+                    }
+
+                    stream.writeUtf8("\n$song_path\n")
                 }
+
+                stream.flush()
             }
 
             check(file.delete()) { "Deleting existing file failed ($file)" }
@@ -94,7 +97,7 @@ object PlaylistFileConverter {
         return@withContext result
     }
 
-    suspend fun loadFromFile(file: PlatformFile, context: AppContext, save: Boolean = true): LocalPlaylistData? = withContext(Dispatchers.IO) {
+    suspend fun loadFromFile(file: PlatformFile, context: AppContext, save: Boolean = true): LocalPlaylistData? = withContext(Dispatchers.PlatformIO) {
         val required_suffix: String = ".${getFileExtension()}"
         if (!file.name.endsWith(required_suffix)) {
             return@withContext null
@@ -109,15 +112,16 @@ object PlaylistFileConverter {
 
         var i: Int = 0
         var enable_ext: Boolean = false
-        file.inputStream().use { stream ->
-            stream.reader().forEachLine { line ->
+        file.inputStream().buffer().use { stream ->
+            while (true) {
+                val line: String = stream.readUtf8Line() ?: break
                 if (i++ == 0 && line == "#EXTM3U") {
                     enable_ext = true
-                    return@forEachLine
+                    continue
                 }
 
                 if (line.isBlank()) {
-                    return@forEachLine
+                    continue
                 }
 
                 try {
@@ -132,7 +136,7 @@ object PlaylistFileConverter {
                             "#IMAGEWIDTH" -> playlist.image_width = line_split[1].toFloat()
                             "#EXTINF" -> {
                                 if (!enable_ext) {
-                                    return@forEachLine
+                                    continue
                                 }
 
                                 val split: List<String> = line_split[1].split(',', limit = 2)
@@ -158,7 +162,7 @@ object PlaylistFileConverter {
                     }
                 }
                 catch (e: Throwable) {
-                    SpMp.Log.warning("Failed to parse line ${i + 1} of playlist file at ${file.absolute_path}\nLine: $line\nError: $e")
+                    println("WARNING: Failed to parse line ${i + 1} of playlist file at ${file.absolute_path}\nLine: $line\nError: $e")
                 }
             }
         }

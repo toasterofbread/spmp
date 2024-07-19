@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.model.mediaitem.enums
 
 import com.toasterofbread.spmp.resources.getString
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
-import java.lang.reflect.Type
 
 enum class PlaylistType {
     PLAYLIST, LOCAL, ALBUM, AUDIOBOOK, PODCAST, RADIO;

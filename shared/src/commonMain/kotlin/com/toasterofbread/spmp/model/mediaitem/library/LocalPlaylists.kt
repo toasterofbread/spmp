@@ -16,7 +16,9 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.IOException
+import kotlinx.coroutines.*
+import PlatformIO
+import dev.toastbits.composekit.platform.PlatformFile
 
 @Composable
 fun MediaItemLibrary.rememberLocalPlaylists(context: AppContext): List<LocalPlaylistData>? {
@@ -36,7 +38,7 @@ fun MediaItemLibrary.rememberLocalPlaylists(context: AppContext): List<LocalPlay
             override fun onPlaylistRemoved(playlist: Playlist) {
                 playlists = playlists?.let { list ->
                     val mutable = list.toMutableList()
-                    mutable.removeIf { it.id == playlist.id }
+                    mutable.removeAll { it.id == playlist.id }
                     mutable
                 }
             }
@@ -52,9 +54,9 @@ fun MediaItemLibrary.rememberLocalPlaylists(context: AppContext): List<LocalPlay
     return playlists
 }
 
-suspend fun MediaItemLibrary.loadLocalPlaylists(context: AppContext): List<LocalPlaylistData>? = withContext(Dispatchers.IO) {
-    val playlists_dir = getLocalPlaylistsDir(context)
-    if (!playlists_dir.is_directory) {
+suspend fun MediaItemLibrary.loadLocalPlaylists(context: AppContext): List<LocalPlaylistData>? = withContext(Dispatchers.PlatformIO) {
+    val playlists_dir: PlatformFile? = getLocalPlaylistsDir(context)
+    if (playlists_dir?.is_directory != true) {
         return@withContext null
     }
 
@@ -64,9 +66,11 @@ suspend fun MediaItemLibrary.loadLocalPlaylists(context: AppContext): List<Local
     return@withContext playlists
 }
 
-suspend fun MediaItemLibrary.createLocalPlaylist(context: AppContext, base_data: PlaylistData? = null): Result<LocalPlaylistData> = withContext(Dispatchers.IO) {
-    val playlists_dir = getLocalPlaylistsDir(context)
+suspend fun MediaItemLibrary.createLocalPlaylist(context: AppContext, base_data: PlaylistData? = null): Result<LocalPlaylistData> = withContext(Dispatchers.PlatformIO) {
     var largest_existing_id: Int = -1
+    val playlists_dir: PlatformFile =
+        getLocalPlaylistsDir(context)
+        ?: return@withContext Result.failure(RuntimeException("Local playlists dir unavailable"))
 
     if (playlists_dir.is_directory) {
         for (file in playlists_dir.listFiles() ?: emptyList()) {
@@ -81,7 +85,7 @@ suspend fun MediaItemLibrary.createLocalPlaylist(context: AppContext, base_data:
         }
     }
     else if (playlists_dir.is_file) {
-        return@withContext Result.failure(IOException("Playlists directory path is occupied by a file ${playlists_dir.absolute_path}"))
+        return@withContext Result.failure(RuntimeException("Playlists directory path is occupied by a file ${playlists_dir.absolute_path}"))
     }
     else {
         playlists_dir.mkdirs()
@@ -100,9 +104,11 @@ suspend fun MediaItemLibrary.createLocalPlaylist(context: AppContext, base_data:
     }
     playlist.loaded = true
 
-    val file = getLocalPlaylistFile(playlist, context)
-    playlist.saveToFile(file, context).onFailure {
-        return@withContext Result.failure(it)
+    val file: PlatformFile? = getLocalPlaylistFile(playlist, context)
+    if (file != null) {
+        playlist.saveToFile(file, context).onFailure {
+            return@withContext Result.failure(it)
+        }
     }
 
     onPlaylistCreated(playlist)

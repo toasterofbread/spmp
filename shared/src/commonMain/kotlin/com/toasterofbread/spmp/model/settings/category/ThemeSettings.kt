@@ -63,6 +63,7 @@ class ThemeSettings(val context: AppContext): SettingsGroup("THEME", context.get
             when (Platform.current) {
                 Platform.ANDROID -> 0.05f
                 Platform.DESKTOP -> 0f
+                Platform.WEB -> 0.05f
             }
         }
     )

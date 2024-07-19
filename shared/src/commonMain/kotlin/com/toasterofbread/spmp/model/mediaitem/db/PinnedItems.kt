@@ -25,6 +25,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import PlatformIO
 
 fun Database.getPinnedItems(): List<MediaItem> {
     return pinnedItemQueries.getAll().executeAsList().map { item ->
@@ -60,13 +61,16 @@ fun rememberPinnedItems(): List<MediaItem>? {
 
         for ((i, item) in items.withIndex()) {
             if (item is LocalPlaylistRef) {
-                jobs.add(launch(Dispatchers.IO) {
+                jobs.add(launch(Dispatchers.PlatformIO) {
                     val existing: MediaItem? = previous_loaded?.firstOrNull { it is LocalPlaylistData && it.id == item.id }
                     if (existing != null) {
                         items[i] = existing
                     }
                     else {
-                        val data: LocalPlaylistData? = PlaylistFileConverter.loadFromFile(item.getLocalPlaylistFile(player.context), player.context)
+                        val data: LocalPlaylistData? =
+                            item.getLocalPlaylistFile(player.context)?.let { file ->
+                                PlaylistFileConverter.loadFromFile(file, player.context)
+                            }
                         items[i] = data
                     }
                 })

@@ -36,7 +36,7 @@ fun VerticalFuriganaText(
     val display_vertically: Boolean = remember(terms) {
         terms.any { term ->
             term.subterms.any { subterm ->
-                subterm.text.any { it.isJP() }
+                subterm.text.any { it.isJa() }
             }
         }
     }

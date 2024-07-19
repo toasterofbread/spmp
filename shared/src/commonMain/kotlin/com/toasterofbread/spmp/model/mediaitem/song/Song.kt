@@ -29,10 +29,9 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
-import java.io.InputStream
-import java.net.URL
-import java.net.URLConnection
 import kotlin.math.roundToInt
+import PlatformIO
+import io.ktor.client.HttpClient
 
 private const val STATIC_LYRICS_SYNC_OFFSET: Long = 1000
 
@@ -62,9 +61,9 @@ interface Song: MediaItem.WithArtists {
         return super.loadData(context, populate_data, force, save) as Result<SongData>
     }
 
-    override suspend fun downloadThumbnailData(url: String): Result<ImageBitmap> = withContext(Dispatchers.IO) {
+    override suspend fun downloadThumbnailData(url: String, client: HttpClient): Result<ImageBitmap> = withContext(Dispatchers.PlatformIO) {
         return@withContext kotlin.runCatching {
-            val image: ImageBitmap = super.downloadThumbnailData(url).getOrThrow()
+            val image: ImageBitmap = super.downloadThumbnailData(url, client).getOrThrow()
             if (image.width == image.height) {
                 return@runCatching image
             }

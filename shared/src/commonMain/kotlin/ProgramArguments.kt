@@ -2,8 +2,6 @@ import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.resources.getString
 import dev.toastbits.spms.socketapi.shared.SPMS_API_VERSION
 import dev.toastbits.composekit.platform.PlatformContext
-import dev.toastbits.composekit.platform.PlatformFile
-import java.io.File
 
 data class ProgramArguments(
     val no_auto_server: Boolean = false,

@@ -14,6 +14,7 @@ import kotlinx.coroutines.withContext
 import kotlinx.coroutines.runBlocking
 import java.net.URI
 import io.ktor.http.Headers
+import PlatformIO
 
 @Composable
 internal fun YoutubeMusicWebviewLogin(
@@ -34,7 +35,7 @@ internal fun YoutubeMusicWebviewLogin(
         shouldShowPage = { !it.startsWith(api.api_url) },
         onClosed = { onFinished(null) }
     ) { request, openUrl, getCookies ->
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.PlatformIO) {
             synchronized(lock) {
                 if (finished) {
                     return@withContext

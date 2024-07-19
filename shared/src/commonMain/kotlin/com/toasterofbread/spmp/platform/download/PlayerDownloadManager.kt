@@ -13,6 +13,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.platform.synchronized
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -137,7 +138,6 @@ expect class PlayerDownloadManager(context: AppContext) {
     suspend fun getDownload(song: Song): DownloadStatus?
     suspend fun getDownloads(): List<DownloadStatus>
 
-    @Synchronized
     fun startDownload(
         song: Song,
         silent: Boolean = false,

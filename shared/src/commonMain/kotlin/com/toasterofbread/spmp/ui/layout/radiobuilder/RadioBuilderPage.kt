@@ -38,6 +38,7 @@ import dev.toastbits.ytmkt.endpoint.RadioBuilderArtist
 import dev.toastbits.ytmkt.endpoint.RadioBuilderEndpoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import PlatformIO
 
 const val RADIO_BUILDER_ICON_WIDTH_DP = 37f
 
@@ -55,7 +56,7 @@ fun RadioBuilderPage(
     check(builder_endpoint.isImplemented())
 
     LaunchedEffect(Unit) {
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.PlatformIO) {
             artists_result = builder_endpoint.getRadioBuilderArtists { thumbnails ->
                 thumbnails.maxBy { it.width * it.height }
             }

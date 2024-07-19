@@ -1,8 +1,6 @@
 package com.toasterofbread.spmp.resources
 
 import com.toasterofbread.spmp.platform.AppContext
-import java.io.InputStream
-import java.util.MissingResourceException
 
 const val DEFAULT_LANGUAGE = "en-GB"
 

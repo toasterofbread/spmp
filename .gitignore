@@ -12,6 +12,7 @@ local.properties
 .vscode
 *.log
 /.kotlin
+/kotlin-js-store
 
 app/debug/
 app/release/

@@ -1,5 +1,7 @@
 package com.toasterofbread.spmp.platform
 
+import kotlin.reflect.KClass
+
 actual open class PlatformServiceImpl: PlatformService {
     private class ServiceConnection(val service: PlatformServiceImpl)
     private val connections: MutableList<ServiceConnection> = mutableListOf()
@@ -26,11 +28,11 @@ actual open class PlatformServiceImpl: PlatformService {
     actual override fun onBind(): PlatformBinder? = null
 
     companion object {
-        private val service_instances: MutableMap<Class<out PlatformServiceImpl>, PlatformServiceImpl> = mutableMapOf()
+        private val service_instances: MutableMap<KClass<out PlatformServiceImpl>, PlatformServiceImpl> = mutableMapOf()
 
         internal fun startService(
             context: AppContext,
-            cls: Class<out PlatformServiceImpl>,
+            cls: KClass<out PlatformServiceImpl>,
             onConnected: ((binder: PlatformBinder?) -> Unit)?,
             onDisconnected: (() -> Unit)?
         ): Any {
@@ -74,7 +76,7 @@ actual open class PlatformServiceImpl: PlatformService {
 
 actual fun startPlatformService(
     context: AppContext,
-    cls: Class<out PlatformServiceImpl>,
+    cls: KClass<out PlatformServiceImpl>,
     onConnected: ((binder: PlatformBinder?) -> Unit)?,
     onDisconnected: (() -> Unit)?,
 ): Any {

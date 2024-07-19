@@ -10,6 +10,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.text.intl.Locale
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PlatformContext
 import dev.toastbits.composekit.platform.PlatformPreferences
@@ -24,7 +25,6 @@ import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.ytmkt.model.YtmApi
-import java.util.*
 
 expect class AppContext: PlatformContext {
     val database: Database

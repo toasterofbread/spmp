@@ -13,6 +13,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import dev.toastbits.ytmkt.endpoint.RadioBuilderModifier
 import dev.toastbits.ytmkt.radio.RadioContinuation
 import kotlinx.coroutines.*
+import PlatformIO
 
 internal typealias RadioFilter = List<RadioBuilderModifier>
 
@@ -87,7 +88,7 @@ abstract class RadioInstance(val context: AppContext) {
         is_loading = true
         load_error = null
 
-        coroutine_scope.launchSingle(Dispatchers.IO) {
+        coroutine_scope.launchSingle(Dispatchers.PlatformIO) {
             val load_result: Result<RadioLoadResult?> = current_state.loadContinuation(context)
 
             val processed_songs: List<Song>? =

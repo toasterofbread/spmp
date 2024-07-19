@@ -27,12 +27,13 @@ import com.toasterofbread.spmp.youtubeapi.SpMpYoutubeiApi
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
 import dev.toastbits.ytmkt.radio.RadioContinuation
-import java.util.concurrent.locks.ReentrantLock
+import dev.toastbits.composekit.platform.PlatformFile
+import kotlinx.atomicfu.locks.ReentrantLock
 
 internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
-    private val song_lock = ReentrantLock()
-    private val artist_lock = ReentrantLock()
-    private val playlist_lock = ReentrantLock()
+    private val song_lock: ReentrantLock = ReentrantLock()
+    private val artist_lock: ReentrantLock = ReentrantLock()
+    private val playlist_lock: ReentrantLock = ReentrantLock()
 
     private val loading_songs: MutableMap<String, LoadJob<Result<SongData>>> = mutableMapOf()
     private val loading_artists: MutableMap<String, LoadJob<Result<ArtistData>>> = mutableMapOf()
@@ -153,7 +154,9 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
                     }
                 }
                 is LocalPlaylistData -> {
-                    val file = MediaItemLibrary.getLocalPlaylistFile(item, context)
+                    val file: PlatformFile =
+                        MediaItemLibrary.getLocalPlaylistFile(item, context)
+                        ?: throw RuntimeException("Local playlist file not available")
                     return@runCatching PlaylistFileConverter.loadFromFile(file, context, save = save) as ItemType
                 }
                 else -> throw NotImplementedError(item::class.toString())

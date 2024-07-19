@@ -49,6 +49,7 @@ import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import PlatformIO
 
 @Composable
 fun FilterSelectionPage(
@@ -116,7 +117,7 @@ fun FilterSelectionPage(
                         else {
                             val playlist_data: RemotePlaylistData = playlist.toRemotePlaylistData()
 
-                            withContext(Dispatchers.IO) {
+                            withContext(Dispatchers.PlatformIO) {
                                 setRadioMetadata(playlist_data, artists, selected_artists)
                                 playlist_data.saveToDatabase(player.database)
                             }

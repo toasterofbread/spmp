@@ -2,8 +2,10 @@ package com.toasterofbread.spmp.platform.playerservice
 
 import com.toasterofbread.spmp.resources.getString
 import dev.toastbits.spms.socketapi.shared.SpMsClientType
+import dev.toastbits.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.platform.AppContext
-import java.io.File
+import okio.buffer
+import okio.use
 
 fun SpMsClientType.getName(): String =
     when (this) {
@@ -36,13 +38,15 @@ fun SpMsClientType.getInfoUrl(): String =
 
 expect fun getSpMsMachineId(context: AppContext): String
 
-internal fun getSpMsMachineIdFromFile(id_file: File): String {
-    if (id_file.exists()) {
-        return id_file.readText()
+internal fun getSpMsMachineIdFromFile(id_file: PlatformFile): String {
+    if (id_file.exists) {
+        return id_file.inputStream().buffer().use { stream ->
+            stream.readUtf8()
+        }
     }
 
-    if (!id_file.parentFile.exists()) {
-        id_file.parentFile.mkdirs()
+    if (!id_file.parent_file.exists) {
+        check(id_file.parent_file.mkdirs()) { id_file }
     }
 
     val id_length: Int = 8
@@ -50,7 +54,9 @@ internal fun getSpMsMachineIdFromFile(id_file: File): String {
 
     val new_id: String = (1..id_length).map { allowed_chars.random() }.joinToString("")
 
-    id_file.writeText(new_id)
+    id_file.outputStream().use { stream->
+        stream.buffer().writeUtf8(new_id)
+    }
 
     return new_id
 }

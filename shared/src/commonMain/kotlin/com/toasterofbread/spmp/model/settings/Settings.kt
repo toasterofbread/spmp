@@ -6,7 +6,6 @@ import dev.toastbits.composekit.platform.PlatformPreferences
 import com.toasterofbread.spmp.model.settings.category.*
 import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.serialization.json.Json
-import java.util.*
 
 class Settings(context: AppContext) {
     val youtube_auth: YoutubeAuthSettings = YoutubeAuthSettings(context)

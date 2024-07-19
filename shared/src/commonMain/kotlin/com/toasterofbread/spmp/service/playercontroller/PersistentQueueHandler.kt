@@ -20,6 +20,7 @@ import kotlinx.coroutines.withContext
 import java.io.BufferedReader
 import java.io.FileNotFoundException
 import java.io.IOException
+import PlatformIO
 
 private const val PERSISTENT_QUEUE_FILENAME: String = "persistent_queue"
 
@@ -33,7 +34,7 @@ private data class PersistentQueueMetadata(val song_index: Int, val position_ms:
     }
 }
 
-private suspend fun getSavedQueue(context: AppContext): Pair<List<SongData>, PersistentQueueMetadata> = withContext(Dispatchers.IO) {
+private suspend fun getSavedQueue(context: AppContext): Pair<List<SongData>, PersistentQueueMetadata> = withContext(Dispatchers.PlatformIO) {
     val reader: BufferedReader = context.openFileInput(PERSISTENT_QUEUE_FILENAME).bufferedReader()
     reader.use {
         val songs: MutableList<SongData> = mutableListOf()
@@ -77,7 +78,7 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
             metadata = getPersistentQueueMetadata()
         }
 
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.PlatformIO) {
             queue_lock.withLock {
                 context.openFileOutput(PERSISTENT_QUEUE_FILENAME).bufferedWriter().use { writer ->
                     writer.write(metadata.serialise())
@@ -114,7 +115,7 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
             return
         }
 
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.PlatformIO) {
             if (!context.settings.system.PERSISTENT_QUEUE.get()) {
                 SpMp.Log.info("loadPersistentQueue: Skipping, feature disabled")
                 context.deleteFile(PERSISTENT_QUEUE_FILENAME)

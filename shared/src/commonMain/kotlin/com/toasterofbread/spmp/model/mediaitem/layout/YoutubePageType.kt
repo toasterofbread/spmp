@@ -74,7 +74,7 @@ data class LambdaYoutubePage(
     val action: (player: PlayerState, title: UiString?) -> Unit
 ): YoutubePage {
     override fun getBrowseParamsData(): YoutubePage.BrowseParamsData =
-        throw IllegalAccessError()
+        throw IllegalStateException()
 }
 
 fun YoutubePage.open(player: PlayerState, title: UiString?) {

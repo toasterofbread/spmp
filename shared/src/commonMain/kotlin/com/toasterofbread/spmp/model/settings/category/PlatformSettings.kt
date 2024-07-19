@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.model.settings.category
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.DesktopWindows
 import androidx.compose.material.icons.outlined.Android
+import androidx.compose.material.icons.outlined.Web
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.platform.PlatformPreferences
@@ -59,12 +60,14 @@ class PlatformSettings(val context: AppContext): SettingsGroup("DESKTOP", contex
                 when (Platform.current) {
                     Platform.ANDROID -> getString("s_cat_android")
                     Platform.DESKTOP -> getString("s_cat_desktop")
+                    Platform.WEB -> getString("s_cat_web")
                 }
             },
             {
                 when (Platform.current) {
                     Platform.ANDROID -> getString("s_cat_desc_android")
                     Platform.DESKTOP -> getString("s_cat_desc_desktop")
+                    Platform.WEB -> getString("s_cat_desc_web")
                 }
             },
             { getPlatformCategoryItems(context) },
@@ -72,6 +75,7 @@ class PlatformSettings(val context: AppContext): SettingsGroup("DESKTOP", contex
                 when (Platform.current) {
                     Platform.ANDROID -> Icons.Outlined.Android
                     Platform.DESKTOP -> Icons.Outlined.DesktopWindows
+                    Platform.WEB -> Icons.Outlined.Web
                 }
             }
         )

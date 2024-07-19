@@ -41,7 +41,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import dev.toastbits.spms.socketapi.shared.SPMS_API_VERSION
-import java.util.logging.Logger
 import org.jetbrains.compose.resources.FontResource
 import org.jetbrains.compose.resources.Font
 import ProgramArguments
@@ -56,7 +55,6 @@ object LocalNowPlayingExpansion {
 
 object SpMp {
     fun isDebugBuild(): Boolean = ProjectBuildConfig.IS_DEBUG
-    val Log: Logger = Logger.getLogger(SpMp::class.java.name)
 
     private lateinit var context: AppContext
 
@@ -142,7 +140,8 @@ object SpMp {
                         Platform.ANDROID ->
                             if (!player_state.service_connected && player_state.settings.platform.ENABLE_EXTERNAL_SERVER_MODE.get()) SplashMode.SPLASH
                             else null
-                        Platform.DESKTOP ->
+                        Platform.DESKTOP,
+                        Platform.WEB ->
                             if (!player_state.service_connected) SplashMode.SPLASH
                             else null
                     }

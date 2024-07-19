@@ -33,9 +33,12 @@ import dev.toastbits.ytmkt.model.external.mediaitem.YtmArtist
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.net.URL
+import kotlinx.coroutines.*
+import io.ktor.client.HttpClient
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import PlatformIO
 
 private const val DEFAULT_CONNECT_TIMEOUT: Int = 10000
 val MEDIA_ITEM_RELATED_CONTENT_ICON: ImageVector get() = Icons.Default.GridView
@@ -64,7 +67,7 @@ interface MediaItem: MediaItemHolder, YtmMediaItem {
             }
     }
 
-    suspend fun setActiveTitle(value: String?, context: AppContext) = withContext(Dispatchers.IO) {
+    suspend fun setActiveTitle(value: String?, context: AppContext) = withContext(Dispatchers.PlatformIO) {
         CustomTitle.set(value, context.database)
     }
 
@@ -98,15 +101,10 @@ interface MediaItem: MediaItemHolder, YtmMediaItem {
         return MediaItemLoader.loadUnknown(data, context, save = save)
     }
 
-    suspend fun downloadThumbnailData(url: String): Result<ImageBitmap> = withContext(Dispatchers.IO) {
+    suspend fun downloadThumbnailData(url: String, client: HttpClient): Result<ImageBitmap> = withContext(Dispatchers.PlatformIO) {
         return@withContext runCatching {
-            val connection = URL(url).openConnection()
-            connection.connectTimeout = DEFAULT_CONNECT_TIMEOUT
-
-            val stream = connection.getInputStream()
-            val bytes = stream.readBytes()
-            stream.close()
-
+            val response: HttpResponse = client.get(url)
+            val bytes: ByteArray = response.body()
             return@runCatching bytes.toImageBitmap()
         }
     }

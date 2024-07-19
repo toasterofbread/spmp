@@ -5,7 +5,7 @@ import com.atilika.kuromoji.ipadic.Token
 import com.atilika.kuromoji.ipadic.Tokenizer
 import dev.toastbits.composekit.utils.common.hasKanjiAndHiraganaOrKatakana
 import dev.toastbits.composekit.utils.common.isHiragana
-import dev.toastbits.composekit.utils.common.isJP
+import dev.toastbits.composekit.utils.common.isJa
 import dev.toastbits.composekit.utils.common.isKanji
 import dev.toastbits.composekit.utils.common.isKatakana
 import dev.toastbits.composekit.utils.common.toHiragana
@@ -28,7 +28,7 @@ private class LyricsFuriganaTokeniserImpl(val tokeniser: Tokenizer, val romanise
 
         for (term in terms) {
             val text: String = term.subterms.single().text
-            if (text.any { it.isJP() }) {
+            if (text.any { it.isJa() }) {
                 terms_to_process.add(term)
             }
             else {

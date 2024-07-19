@@ -60,6 +60,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
+import PlatformIO
 
 private const val MUSIC_LOGIN_URL: String =
     "https://accounts.google.com/v3/signin/identifier?dsh=S1527412391%3A1678373417598386&continue=https%3A%2F%2Fwww.youtube.com%2Fsignin%3Faction_handle_signin%3Dtrue%26app%3Ddesktop%26hl%3Den-GB%26next%3Dhttps%253A%252F%252Fmusic.youtube.com%252F%253Fcbrd%253D1%26feature%3D__FEATURE__&hl=en-GB&ifkv=AWnogHfK4OXI8X1zVlVjzzjybvICXS4ojnbvzpE4Gn_Pfddw7fs3ERdfk-q3tRimJuoXjfofz6wuzg&ltmpl=music&passive=true&service=youtube&uilel=3&flowName=GlifWebSignIn&flowEntry=ServiceLogin"
@@ -141,7 +142,7 @@ class YoutubeMusicLoginPage(val api: YoutubeiApi): LoginPage() {
                     state,
                     Modifier.fillMaxWidth().padding(content_padding)
                 ) { account ->
-                    coroutine_scope.launch(Dispatchers.IO) {
+                    coroutine_scope.launch(Dispatchers.PlatformIO) {
                         account_selection_data = null
                         onFinished(YTMLogin.completeLoginWithAccount(player.context, state.headers, account, api))
                     }

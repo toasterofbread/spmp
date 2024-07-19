@@ -8,6 +8,8 @@ import app.cash.sqldelight.Query
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
+import dev.toastbits.composekit.platform.synchronized
+import dev.toastbits.composekit.platform.assert
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
@@ -24,7 +26,6 @@ import com.toasterofbread.spmp.service.playercontroller.RadioHandler
 import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.model.radio.RadioState
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -35,21 +36,23 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.encodeToString
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
-import java.io.IOException
-import java.util.Timer
-import java.util.TimerTask
 import kotlin.random.Random
 import kotlin.random.nextInt
+import kotlin.time.Duration
+import PlatformIO
 
-private const val UPDATE_INTERVAL: Long = 30000 // ms
+private val UPDATE_INTERVAL: Duration = with (Duration) { 30.seconds }
 //private const val VOL_NOTIF_SHOW_DURATION: Long = 1000
-private const val SONG_MARK_WATCHED_POSITION = 1000 // ms
+private val SONG_MARK_WATCHED_POSITION: Duration = with (Duration) { 1.seconds }
 
 @Suppress("LeakingThis")
 abstract class PlayerServicePlayer(internal val service: PlayerService) {
@@ -60,7 +63,7 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
     private val persistent_queue: PersistentQueueHandler = PersistentQueueHandler(this, context)
     private val discord_status: DiscordStatusHandler = DiscordStatusHandler(this, context)
     private val undo_handler: UndoHandler = UndoHandler(this, service)
-    private var update_timer: Timer? = null
+    private var update_timer: Job? = null
 
     private var tracking_song_index = 0
     private var song_marked_as_watched: Boolean = false
@@ -165,13 +168,13 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
             payload["youtube_video_id"] = JsonPrimitive(song?.id)
 
             val response: HttpResponse =
-                HttpClient(CIO).post(webhook_url) {
+                HttpClient().post(webhook_url) {
                     contentType(ContentType.Application.Json)
                     setBody(Json.encodeToString(payload))
                 }
 
             if (response.status.value !in 200 .. 299) {
-                throw IOException("${response.status.value}: ${response.bodyAsText()}")
+                throw RuntimeException("${response.status.value}: ${response.bodyAsText()}")
             }
         }
 
@@ -517,46 +520,36 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
         }
     }
 
-    private fun createUpdateTimer(): Timer {
-        return Timer().apply {
-            scheduleAtFixedRate(
-                object : TimerTask() {
-                    override fun run() {
-                        coroutine_scope.launch(Dispatchers.Main) {
-                            savePersistentQueue()
-                            markWatched()
-                        }
-                    }
+    private fun createUpdateTimer(): Job =
+        coroutine_scope.launch(Dispatchers.PlatformIO) {
+            while (true) {
+                savePersistentQueue()
 
-                    suspend fun markWatched() = withContext(Dispatchers.Main) {
-                        if (
-                            !song_marked_as_watched
-                            && is_playing
-                            && current_position_ms >= SONG_MARK_WATCHED_POSITION
-                        ) {
-                            song_marked_as_watched = true
+                if (
+                    !song_marked_as_watched
+                    && is_playing
+                    && with (Duration) { current_position_ms.milliseconds } >= SONG_MARK_WATCHED_POSITION
+                ) {
+                    song_marked_as_watched = true
 
-                            val song: Song = getSong() ?: return@withContext
+                    val song: Song = getSong() ?: continue
 
-                            withContext(Dispatchers.IO) {
-                                song.incrementPlayCount(context)
+                    withContext(Dispatchers.PlatformIO) {
+                        song.incrementPlayCount(context)
 
-                                val mark_endpoint = context.ytapi.user_auth_state?.MarkSongAsWatched
-                                if (mark_endpoint?.isImplemented() == true && context.settings.system.ADD_SONGS_TO_HISTORY.get()) {
-                                    val result = mark_endpoint.markSongAsWatched(song.id)
-                                    result.onFailure {
-                                        context.sendNotification(it)
-                                    }
-                                }
+                        val mark_endpoint = context.ytapi.user_auth_state?.MarkSongAsWatched
+                        if (mark_endpoint?.isImplemented() == true && context.settings.system.ADD_SONGS_TO_HISTORY.get()) {
+                            val result = mark_endpoint.markSongAsWatched(song.id)
+                            result.onFailure {
+                                context.sendNotification(it)
                             }
                         }
                     }
-                },
-                0,
-                UPDATE_INTERVAL
-            )
+                }
+
+                delay(UPDATE_INTERVAL)
+            }
         }
-    }
 
     // --- UndoHandler ---
 

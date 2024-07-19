@@ -67,6 +67,7 @@ import com.toasterofbread.spmp.db.Database
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import PlatformIO
 
 private const val LYRICS_SEARCH_RETRY_COUNT = 3
 
@@ -123,7 +124,7 @@ fun LyricsSearchMenu(
     OnChangedEffect(search_state) {
         keyboard_controller?.hide()
 
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.PlatformIO) {
             synchronized(load_lock) {
                 check(!loading)
                 loading = true

@@ -1,5 +1,7 @@
 package com.toasterofbread.spmp.platform
 
+import kotlin.reflect.KClass
+
 expect abstract class PlatformBinder()
 
 interface PlatformService {
@@ -34,7 +36,7 @@ expect open class PlatformServiceImpl(): PlatformService {
 
 expect fun startPlatformService(
     context: AppContext,
-    cls: Class<out PlatformServiceImpl>,
+    cls: KClass<out PlatformServiceImpl>,
     onConnected: ((binder: PlatformBinder?) -> Unit)? = null,
     onDisconnected: (() -> Unit)? = null
 ): Any // Service connection

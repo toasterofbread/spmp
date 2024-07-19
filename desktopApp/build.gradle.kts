@@ -68,7 +68,7 @@ kotlin {
                 implementation(compose.desktop.currentOs)
                 implementation(project(":shared"))
 
-                implementation(deps.get("dev.toastbits.composekit:library-desktop"))
+                implementation(deps.get("dev.toastbits.composekit:library"))
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.4")
 

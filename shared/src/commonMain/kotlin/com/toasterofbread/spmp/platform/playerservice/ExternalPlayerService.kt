@@ -129,7 +129,7 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
             if (!_is_playing) {
                 return current_song_time
             }
-            return System.currentTimeMillis() - current_song_time
+            return playback_start_mark.elapsedNow().inWholeMilliseconds
         }
     override val duration_ms: Long
         get() = _duration_ms

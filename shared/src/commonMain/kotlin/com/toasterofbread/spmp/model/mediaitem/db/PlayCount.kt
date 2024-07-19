@@ -16,11 +16,19 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.time.LocalDate
+import dev.toastbits.composekit.platform.PlatformFile
+import kotlinx.coroutines.*
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.LocalDate
+import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.Instant
+import kotlin.time.days
+import kotlin.time.Duration
+import PlatformIO
 
-suspend fun MediaItem.incrementPlayCount(context: AppContext, by: Int = 1): Result<Unit> = withContext(Dispatchers.IO) {
+suspend fun MediaItem.incrementPlayCount(context: AppContext, by: Int = 1): Result<Unit> = withContext(Dispatchers.PlatformIO) {
     require(by >= 1)
 
     try {
@@ -31,20 +39,24 @@ suspend fun MediaItem.incrementPlayCount(context: AppContext, by: Int = 1): Resu
             )
             data.play_count += by
 
-            val file = MediaItemLibrary.getLocalPlaylistFile(this@incrementPlayCount, context)
+            val file: PlatformFile =
+                MediaItemLibrary.getLocalPlaylistFile(this@incrementPlayCount, context)
+                ?: return@withContext Result.success(Unit)
+
             return@withContext data.saveToFile(file, context)
         }
 
         context.database.mediaItemPlayCountQueries.transaction {
-            val day = LocalDate.now().toEpochDay()
-            context.database.mediaItemPlayCountQueries.insertOrIgnore(day, id)
-            context.database.mediaItemPlayCountQueries.increment(by.toLong(), id, day)
+            val day: Int = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.toEpochDays()
+            context.database.mediaItemPlayCountQueries.insertOrIgnore(day.toLong(), id)
+            context.database.mediaItemPlayCountQueries.increment(by.toLong(), id, day.toLong())
         }
 
         return@withContext Result.success(Unit)
     }
     catch (e: Throwable) {
-        throw RuntimeException("Incrementing play count of ${this@incrementPlayCount} by $by failed", e)
+        val item: MediaItem = this@incrementPlayCount
+        throw RuntimeException("Incrementing play count of $item by $by failed", e)
     }
 }
 
@@ -54,9 +66,10 @@ fun YtmMediaItem.getPlayCount(db: Database, range_days: Long? = null): Int {
     }
 
     val entries = if (range_days != null) {
-        val since_day = LocalDate.now().minusDays(range_days).toEpochDay()
+        val time = Clock.System.now()
+        val since_day: Int = with (Duration) { time - range_days.days }.date.toEpochDays()
         db.mediaItemPlayCountQueries.byItemIdSince(
-            id, since_day,
+            id, since_day.toLong(),
             { _, play_count -> play_count }
         ).executeAsList()
     }
@@ -77,7 +90,7 @@ fun MediaItem.observePlayCount(context: AppContext, range_days: Long? = null): I
 
     LaunchedEffect(id, range_days) {
         play_count_state = null
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.PlatformIO) {
             play_count_state = getPlayCount(db, range_days)
         }
     }
@@ -87,7 +100,7 @@ fun MediaItem.observePlayCount(context: AppContext, range_days: Long? = null): I
             if (range_days != null)
                 db.mediaItemPlayCountQueries.byItemIdSince(
                     id,
-                    LocalDate.now().minusDays(range_days).toEpochDay(),
+                    (Clock.System.now() - with (Duration) { range_days.days }).date.toEpochDays().toLong(),
                     { _, play_count -> play_count }
                 )
             else
@@ -108,3 +121,6 @@ fun MediaItem.observePlayCount(context: AppContext, range_days: Long? = null): I
 
     return play_count_state
 }
+
+private val Instant.date: LocalDate
+    get() = toLocalDateTime(TimeZone.currentSystemDefault()).date

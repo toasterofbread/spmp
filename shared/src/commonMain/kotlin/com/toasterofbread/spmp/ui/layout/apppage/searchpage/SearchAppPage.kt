@@ -24,6 +24,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.platform.composable.*
 import dev.toastbits.composekit.utils.common.*
+import dev.toastbits.composekit.utils.common.launchSingle
 import dev.toastbits.composekit.utils.composable.*
 import dev.toastbits.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder

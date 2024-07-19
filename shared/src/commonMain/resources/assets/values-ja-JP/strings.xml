@@ -697,6 +697,9 @@
     <string name="s_cat_desktop">デスクトップ</string>
     <string name="s_cat_desc_desktop">SpMpのデスクトップ版のみの設定</string>
 
+    <string name="s_cat_web">ウェブ</string>
+    <string name="s_cat_desc_web">SpMpのデスクトップ版のみの設定</string>
+
     <string name="s_cat_misc">その他</string>
     <string name="s_cat_desc_misc">キャッシュなどの設定</string>
 

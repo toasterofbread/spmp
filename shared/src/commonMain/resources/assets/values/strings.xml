@@ -720,6 +720,9 @@
     <string name="s_cat_desktop">Desktop</string>
     <string name="s_cat_desc_desktop">Platform-specific configuration</string>
 
+    <string name="s_cat_web">Web</string>
+    <string name="s_cat_desc_web">Platform-specific configuration</string>
+
     <string name="s_cat_misc">Other</string>
     <string name="s_cat_desc_misc">Cache and other miscellaneous options</string>
 

@@ -9,6 +9,7 @@ import android.os.IBinder
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlin.reflect.KClass
 
 actual abstract class PlatformBinder: Binder()
 
@@ -43,13 +44,13 @@ actual open class PlatformServiceImpl: Service(), PlatformService {
 
 actual fun startPlatformService(
     context: AppContext,
-    cls: Class<out PlatformServiceImpl>,
+    cls: KClass<out PlatformServiceImpl>,
     onConnected: ((binder: PlatformBinder?) -> Unit)?,
     onDisconnected: (() -> Unit)?
 ): Any {
     val ctx = context.ctx
 
-    val service_intent = Intent(ctx, cls)
+    val service_intent = Intent(ctx, cls.java)
     val service_connection = object : ServiceConnection {
         override fun onServiceConnected(name: ComponentName, binder: IBinder?) {
             onConnected?.invoke(binder as PlatformBinder?)

@@ -88,6 +88,7 @@ import java.text.SimpleDateFormat
 import java.util.Date
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.*
+import PlatformIO
 
 @Composable
 internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(), top_padding: Dp = 0.dp) {
@@ -450,7 +451,7 @@ private fun peformExport(context: AppContext, groups: List<SettingsGroup>) {
             return@promptUserForFileCreation
         }
 
-        GlobalScope.launch(Dispatchers.IO) {
+        GlobalScope.launch(Dispatchers.PlatformIO) {
             val settings_data: SettingsImportExport.SettingsExportData =
                 SettingsImportExport.exportSettingsData(
                     prefs = context.getPrefs(),

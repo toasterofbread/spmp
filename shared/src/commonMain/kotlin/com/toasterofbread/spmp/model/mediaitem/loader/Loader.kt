@@ -13,8 +13,9 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
+import kotlinx.atomicfu.locks.ReentrantLock
+import kotlinx.atomicfu.locks.withLock
+import dev.toastbits.composekit.platform.synchronized
 
 internal abstract class ListenerLoader<K, V>: BasicLoader<K, V>() {
     protected abstract val listeners: MutableList<Listener<K, V>>
@@ -94,7 +95,7 @@ internal abstract class ItemStateLoader<K, V>: ListenerLoader<K, V>() {
 }
 
 internal abstract class Loader<V> {
-    protected val lock = ReentrantLock()
+    protected val lock: ReentrantLock = ReentrantLock()
 
     abstract class LoadJob<V> {
         private var awaiting_count: Int = 0

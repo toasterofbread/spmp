@@ -72,6 +72,7 @@ import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 import LocalPlayerState
+import PlatformIO
 
 private enum class LoadType {
     AUTO, REFRESH, CONTINUE
@@ -180,7 +181,7 @@ class PlaylistAppPage(
         edit_in_progress = true
     }
 
-    fun finishEdit() = coroutine_scope.launch(Dispatchers.IO) {
+    fun finishEdit() = coroutine_scope.launch(Dispatchers.PlatformIO) {
         edit_in_progress = false
 
         var changes_made: Boolean = false

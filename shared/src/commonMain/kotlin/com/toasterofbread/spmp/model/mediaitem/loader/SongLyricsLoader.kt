@@ -8,25 +8,24 @@ import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.lyrics.*
-import java.lang.ref.WeakReference
 import kotlinx.coroutines.*
 
 internal object SongLyricsLoader: Loader<SongLyrics>() {
-    private val loaded_by_reference: MutableMap<LyricsReference, WeakReference<SongLyrics>> = mutableStateMapOf()
-    private val loaded_by_song: MutableMap<String, WeakReference<SongLyrics>> = mutableStateMapOf()
+    private val loaded_by_reference: MutableMap<LyricsReference, SongLyrics> = mutableStateMapOf()
+    private val loaded_by_song: MutableMap<String, SongLyrics> = mutableStateMapOf()
 
     private val loading_by_id: MutableMap<String, LoadJob<Result<SongLyrics>>> = mutableStateMapOf()
     private val loading_by_reference: MutableMap<LyricsReference, LoadJob<Result<SongLyrics>>> = mutableStateMapOf()
 
     fun getLoadedByLyrics(reference: LyricsReference?): SongLyrics? {
-        return loaded_by_reference[reference]?.get()
+        return loaded_by_reference[reference]
     }
 
     suspend fun loadBySong(
         song: Song,
         context: AppContext
     ): Result<SongLyrics>? {
-        loaded_by_song[song.id]?.get()?.also {
+        loaded_by_song[song.id]?.also {
             return Result.success(it)
         }
 
@@ -34,7 +33,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
         if (local_file != null) {
             val lyrics: SongLyrics? = LyricsFileConverter.loadFromFile(local_file, context)?.second
             if (lyrics != null) {
-                val ref = WeakReference(lyrics)
+                val ref = lyrics
                 loaded_by_song[song.id] = ref
                 loaded_by_reference[lyrics.reference] = ref
                 return Result.success(lyrics)
@@ -55,7 +54,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
         ) {
             val result: Result<SongLyrics> = LyricsSource.searchSongLyricsByPriority(song, context)
             result.onSuccess { lyrics ->
-                loaded_by_reference[lyrics.reference] = WeakReference(lyrics)
+                loaded_by_reference[lyrics.reference] = lyrics
                 song.Lyrics.set(lyrics.reference, context.database)
             }
         }
@@ -64,7 +63,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
     suspend fun loadByLyrics(lyrics_reference: LyricsReference, context: AppContext): Result<SongLyrics> {
         require(!lyrics_reference.isNone())
 
-        val loaded: SongLyrics? = withContext(Dispatchers.Main) { loaded_by_reference[lyrics_reference]?.get() }
+        val loaded: SongLyrics? = withContext(Dispatchers.Main) { loaded_by_reference[lyrics_reference] }
         if (loaded != null) {
             return Result.success(loaded)
         }
@@ -76,7 +75,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
         ) {
             val result: Result<SongLyrics> = loadLyrics(lyrics_reference, context)
             result.onSuccess { lyrics ->
-                loaded_by_reference[lyrics_reference] = WeakReference(lyrics)
+                loaded_by_reference[lyrics_reference] = lyrics
             }
         }
     }
@@ -97,7 +96,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
                 override val lyrics: SongLyrics?
                     get() =
                         try {
-                            loaded_by_song[song_id]?.get() ?: loaded_by_reference[song_lyrics_reference]?.get()
+                            loaded_by_song[song_id] ?: loaded_by_reference[song_lyrics_reference]
                         }
                         catch (_: IllegalStateException) { null }
                 override val loading: Boolean

@@ -4,7 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
-import java.lang.ref.WeakReference
+import dev.toastbits.composekit.platform.assert
 
 class PlaylistHolder(initial_playlist: Playlist): MediaItemHolder {
     override val item: Playlist? get() = current_playlist
@@ -34,13 +34,13 @@ class PlaylistHolder(initial_playlist: Playlist): MediaItemHolder {
     }
 
     companion object {
-        private val replacement_listeners: MutableList<WeakReference<Listener>> = mutableListOf()
+        private val replacement_listeners: MutableList<Listener> = mutableListOf()
         private fun addReplacementListener(listener: Listener) {
-            replacement_listeners.add(WeakReference(listener))
+            replacement_listeners.add(listener)
         }
 
         fun onPlaylistDeleted(deleted: Playlist) {
-            replacement_listeners.iterateAndRemoveFreed { listener ->
+            for (listener in replacement_listeners) {
                 listener.onPlaylistDeleted(deleted)
             }
         }
@@ -48,22 +48,9 @@ class PlaylistHolder(initial_playlist: Playlist): MediaItemHolder {
         fun onPlaylistReplaced(from: Playlist, to: Playlist) {
             assert(from.id != to.id)
 
-            replacement_listeners.iterateAndRemoveFreed { listener ->
+            for (listener in replacement_listeners) {
                 listener.onPlaylistReplaced(from, to)
             }
-        }
-    }
-}
-
-inline fun <T> MutableCollection<WeakReference<T>>.iterateAndRemoveFreed(action: (T) -> Unit) {
-    val i = iterator()
-    while (i.hasNext()) {
-        val value = i.next().get()
-        if (value == null) {
-            i.remove()
-        }
-        else {
-            action(value)
         }
     }
 }

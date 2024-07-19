@@ -18,6 +18,7 @@ pluginManagement {
         kotlin("multiplatform").version(kotlin_version)
         kotlin("plugin.serialization").version(kotlin_version)
         kotlin("android").version(kotlin_version)
+        id("org.jetbrains.kotlinx.atomicfu").version("0.25.0")
 
         val agp_version: String = extra["agp.version"] as String
         id("com.android.application").version(agp_version)
@@ -40,5 +41,8 @@ dependencyResolutionManagement {
 
         // https://github.com/KevinnZou/compose-webview-multiplatform
         maven("https://jogamp.org/deployment/maven")
+
+        // https://github.com/d1snin/catppuccin-kotlin
+        maven("https://maven.d1s.dev/snapshots")
     }
 }

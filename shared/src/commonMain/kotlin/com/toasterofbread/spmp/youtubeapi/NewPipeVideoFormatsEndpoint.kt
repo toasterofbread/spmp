@@ -17,6 +17,7 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
+import io.ktor.client.request.headers
 import io.ktor.http.HttpMethod
 import io.ktor.http.takeFrom
 import io.ktor.http.HttpStatusCode
@@ -24,13 +25,14 @@ import io.ktor.util.toMap
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
+import PlatformIO
 
 class NewPipeVideoFormatsEndpoint(override val api: YtmApi): VideoFormatsEndpoint() {
     override suspend fun getVideoFormats(
         id: String,
         include_non_default: Boolean,
         filter: ((YoutubeVideoFormat) -> Boolean)?
-    ): Result<List<YoutubeVideoFormat>> = withContext(Dispatchers.IO) {
+    ): Result<List<YoutubeVideoFormat>> = withContext(Dispatchers.PlatformIO) {
         runCatching {
             init(api)
 

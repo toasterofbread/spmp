@@ -27,7 +27,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.utils.common.getValue
-import dev.toastbits.composekit.utils.common.isJP
+import dev.toastbits.composekit.utils.common.isJa
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -81,7 +81,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabNarrow(page_height: Dp, top_
         val active_title: String? by song?.observeActiveTitle()
         active_title?.also { title ->
             for (segment in title.split(' ')) {
-                if (vertical && segment.all { it.isJP() }) {
+                if (vertical && segment.all { it.isJa() }) {
                     var offset: Dp = 0.dp
                     for (c in segment) {
                         Text(

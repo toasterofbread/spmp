@@ -587,9 +587,6 @@
     <string name="s_key_skip_download_method_confirmation">İndirme yöntemi onayını atla</string>
     <string name="s_sub_skip_download_method_confirmation">Evet ise, indirme başlatıldığında varsayılan indirme yöntemi hemen kullanılacaktır</string>
 
-    # XML Dosyasının Türkçe Çevirisi
-
-    ```xml
     <string name="s_key_status_webhook_url">Durum webhook URL'si</string>
     <string name="s_sub_status_webhook_url">Çalan şarkı değiştiğinde, bu URL'ye aşağıdaki formatta bir JSON post isteği gönderilecektir: `{"youtube_video_id": "<Video ID>"}`</string>
 

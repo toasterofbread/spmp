@@ -10,7 +10,7 @@ import PlatformIO
 internal suspend fun SpMsPlayerService.applyServerState(
     state: SpMsServerState,
     coroutine_scope: CoroutineScope,
-    onProgress: (String?) -> Unit = {}
+    onProgress: suspend (String?) -> Unit = {}
 ) = withContext(Dispatchers.Default) {
     onProgress(null)
 

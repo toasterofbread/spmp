@@ -13,7 +13,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Switch
 import dev.toastbits.composekit.settings.ui.Theme
 import dev.toastbits.composekit.utils.composable.RowOrColumn
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.platform.AppContext
@@ -26,10 +25,16 @@ import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.Serializable
 import dev.toastbits.composekit.utils.composable.RowOrColumnScope
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.layout_slot_config_below_player_show_in_player
+import spmp.shared.generated.resources.layout_slot_config_below_player_show_in_queue
 
 @Serializable
 sealed interface LayoutSlot {
     fun getKey(): String
+
+    @Composable
     fun getName(): String
 
     fun getDefaultContentBar(): ContentBar?
@@ -70,7 +75,7 @@ fun LayoutSlot.observeContentBar(): State<ContentBar?> {
         if (!slots.contains(getKey())) {
             return@derivedStateOf getDefaultContentBar()
         }
-        return@derivedStateOf slots[getKey()]?.getBar(player.context, custom_bars)
+        return@derivedStateOf slots[getKey()]?.getBar(custom_bars)
     } }
 }
 
@@ -138,7 +143,7 @@ internal fun BelowPlayerConfigurationItems(
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.SpaceBetween
     ) {
-        Text(getString("layout_slot_config_below_player_show_in_player"))
+        Text(stringResource(Res.string.layout_slot_config_below_player_show_in_player))
 
         Switch(
             config.show_in_player,
@@ -154,7 +159,7 @@ internal fun BelowPlayerConfigurationItems(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(getString("layout_slot_config_below_player_show_in_queue"))
+            Text(stringResource(Res.string.layout_slot_config_below_player_show_in_queue))
 
             Switch(
                 config.show_in_queue,

@@ -37,35 +37,46 @@ import dev.toastbits.ytmkt.endpoint.SearchResults
 import dev.toastbits.ytmkt.radio.RadioContinuation
 import dev.toastbits.ytmkt.uistrings.UiString
 import androidx.compose.runtime.*
+import com.toasterofbread.spmp.resources.Language
+import kotlinx.coroutines.launch
 
 internal class SpMpYoutubeiApi(
     val context: AppContext,
     api_url: String
 ): YoutubeiApi(
-    data_language = context.getDataLanguage(),
     api_url = api_url,
     item_cache = SpMpItemCache(context.database)
 ) {
+    private var _data_language: String = Language.getSystem().identifier
     override val data_language: String
-        get() = context.getDataLanguage()
+        get() = _data_language
 
+    private var _VideoFormats: VideoFormatsEndpoint = VideoFormatsEndpointType.DEFAULT.instantiate(this)
     override val VideoFormats: VideoFormatsEndpoint
-        get() = context.settings.streaming.VIDEO_FORMATS_METHOD.get().instantiate(this)
+        get() = _VideoFormats
 
-    override var user_auth_state: YoutubeiAuthenticationState? by mutableStateOf(getCurrentUserAuthState())
+    override var user_auth_state: YoutubeiAuthenticationState? by mutableStateOf(null)
 
-    private val prefs_listener =
+    private val prefs_listener: PlatformPreferencesListener =
         PlatformPreferencesListener { _, key ->
             when (key) {
-                context.settings.youtube_auth.YTM_AUTH.key -> user_auth_state = getCurrentUserAuthState()
+                context.settings.youtube_auth.YTM_AUTH.key -> context.coroutine_scope.launch { user_auth_state = getCurrentUserAuthState() }
+                context.settings.system.LANG_DATA.key -> context.coroutine_scope.launch { _data_language = context.getDataLanguage() }
             }
         }
 
     init {
         context.getPrefs().addListener(prefs_listener)
+
+        context.coroutine_scope.launch {
+            user_auth_state = getCurrentUserAuthState()
+        }
+        context.coroutine_scope.launch {
+            _VideoFormats = context.settings.streaming.VIDEO_FORMATS_METHOD.get().instantiate(this@SpMpYoutubeiApi)
+        }
     }
 
-    private fun getCurrentUserAuthState() =
+    private suspend fun getCurrentUserAuthState() =
         ApiAuthenticationState.unpackSetData(context.settings.youtube_auth.YTM_AUTH.get(), context).let { data ->
             SpMpYoutubeiAuthenticationState(context.database, this, data.first, data.second)
         }

@@ -10,12 +10,23 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.settings.category.SettingsGroup
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.SettingsAppPage
 import kotlinx.serialization.Serializable
 import LocalPlayerState
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.appaction_config_navigation_settings_group_none
+import spmp.shared.generated.resources.appaction_config_navigation_settings_group
+import spmp.shared.generated.resources.appaction_config_navigation_settings_group_none
+import spmp.shared.generated.resources.appaction_navigation_open_page_feed
+import spmp.shared.generated.resources.appaction_navigation_open_page_library
+import spmp.shared.generated.resources.appaction_navigation_open_page_search
+import spmp.shared.generated.resources.appaction_navigation_open_page_radiobuilder
+import spmp.shared.generated.resources.appaction_navigation_open_page_control
+import spmp.shared.generated.resources.appaction_navigation_open_page_settings
+import spmp.shared.generated.resources.appaction_navigation_open_page_profile
 
 @Serializable
 data class AppPageNavigationAction(
@@ -45,7 +56,7 @@ data class AppPageNavigationAction(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Icon(page.getIcon(), null)
-            Text(page.getName(), softWrap = false)
+            Text(page.getNavigationName(), softWrap = false)
         }
     }
 
@@ -64,7 +75,7 @@ data class AppPageNavigationAction(
             } ?: 0,
             itemContent = {
                 if (it == 0) {
-                    Text(getString("appaction_config_navigation_settings_group_none"))
+                    Text(stringResource(Res.string.appaction_config_navigation_settings_group_none))
                 }
                 else {
                     Text(settings_pages[it - 1].getTitle())
@@ -88,14 +99,14 @@ data class AppPageNavigationAction(
         ) {
             FlowRow(horizontalArrangement = Arrangement.SpaceBetween) {
                 Text(
-                    getString("appaction_config_navigation_settings_group"),
+                    stringResource(Res.string.appaction_config_navigation_settings_group),
                     Modifier.align(Alignment.CenterVertically),
                     softWrap = false
                 )
 
                 Button({ show_settings_group_selector = !show_settings_group_selector }) {
                     if (settings_group == null) {
-                        Text(getString("appaction_config_navigation_settings_group_none"))
+                        Text(stringResource(Res.string.appaction_config_navigation_settings_group_none))
                     }
                     else {
                         Text(settings_pages.first { it.group.group_key == settings_group }.getTitle())
@@ -106,13 +117,14 @@ data class AppPageNavigationAction(
     }
 }
 
-fun AppPage.Type.getName(): String =
+@Composable
+private fun AppPage.Type.getNavigationName(): String =
     when (this) {
-        AppPage.Type.SONG_FEED -> getString("appaction_navigation_open_page_feed")
-        AppPage.Type.LIBRARY -> getString("appaction_navigation_open_page_library")
-        AppPage.Type.SEARCH -> getString("appaction_navigation_open_page_search")
-        AppPage.Type.RADIO_BUILDER -> getString("appaction_navigation_open_page_radiobuilder")
-        AppPage.Type.CONTROL_PANEL -> getString("appaction_navigation_open_page_control")
-        AppPage.Type.SETTINGS -> getString("appaction_navigation_open_page_settings")
-        AppPage.Type.PROFILE -> getString("appaction_navigation_open_page_profile")
+        AppPage.Type.SONG_FEED -> stringResource(Res.string.appaction_navigation_open_page_feed)
+        AppPage.Type.LIBRARY -> stringResource(Res.string.appaction_navigation_open_page_library)
+        AppPage.Type.SEARCH -> stringResource(Res.string.appaction_navigation_open_page_search)
+        AppPage.Type.RADIO_BUILDER -> stringResource(Res.string.appaction_navigation_open_page_radiobuilder)
+        AppPage.Type.CONTROL_PANEL -> stringResource(Res.string.appaction_navigation_open_page_control)
+        AppPage.Type.SETTINGS -> stringResource(Res.string.appaction_navigation_open_page_settings)
+        AppPage.Type.PROFILE -> stringResource(Res.string.appaction_navigation_open_page_profile)
     }

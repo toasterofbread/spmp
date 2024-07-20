@@ -1,19 +1,27 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import LocalPlayerState
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
 import dev.toastbits.composekit.platform.PreferencesProperty
 import com.toasterofbread.spmp.model.deserialise
 import com.toasterofbread.spmp.model.getString
 import com.toasterofbread.spmp.model.serialise
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppStringSetItem
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.composekit.utils.common.toCustomResource
 import dev.toastbits.ytmkt.uistrings.RawUiString
 import dev.toastbits.ytmkt.uistrings.UiString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.s_hidden_feed_rows_dialog_title
 
 internal fun getFeedCategoryItems(context: AppContext): List<SettingsItem> {
     return listOf(
@@ -27,44 +35,44 @@ internal fun getFeedCategoryItems(context: AppContext): List<SettingsItem> {
 
         AppSliderItem(
             context.settings.feed.INITIAL_ROWS,
-            "1",
-            "10",
+            "1".toCustomResource(),
+            "10".toCustomResource(),
             range = 1f..10f,
             steps = 10
         ),
 
         AppSliderItem(
             context.settings.feed.SQUARE_PREVIEW_TEXT_LINES,
-            "1",
-            "5",
+            "1".toCustomResource(),
+            "5".toCustomResource(),
             range = 1f..5f
         ),
 
         AppSliderItem(
             context.settings.feed.GRID_ROW_COUNT,
-            "1",
-            "10",
+            "1".toCustomResource(),
+            "10".toCustomResource(),
             range = 1f..10f
         ),
 
         AppSliderItem(
             context.settings.feed.GRID_ROW_COUNT_EXPANDED,
-            "1",
-            "10",
+            "1".toCustomResource(),
+            "10".toCustomResource(),
             range = 1f..10f
         ),
 
         AppSliderItem(
             context.settings.feed.LANDSCAPE_GRID_ROW_COUNT,
-            "1",
-            "10",
+            "1".toCustomResource(),
+            "10".toCustomResource(),
             range = 1f..10f
         ),
 
         AppSliderItem(
             context.settings.feed.LANDSCAPE_GRID_ROW_COUNT_EXPANDED,
-            "1",
-            "10",
+            "1".toCustomResource(),
+            "10".toCustomResource(),
             range = 1f..10f
         ),
 
@@ -74,12 +82,16 @@ internal fun getFeedCategoryItems(context: AppContext): List<SettingsItem> {
 
         AppStringSetItem(
             context.settings.feed.HIDDEN_ROWS,
-            getString("s_hidden_feed_rows_dialog_title"),
+            Res.string.s_hidden_feed_rows_dialog_title,
             itemToText = {
-                val player = LocalPlayerState.current
-                remember(it) {
-                    UiString.deserialise(it).getString(player.context)
+                val player: PlayerState = LocalPlayerState.current
+                var text: String by remember { mutableStateOf("") }
+
+                LaunchedEffect(it) {
+                    text = UiString.deserialise(it).getString(player.context)
                 }
+
+                return@AppStringSetItem text
             },
             textToItem = {
                 RawUiString(it).serialise()

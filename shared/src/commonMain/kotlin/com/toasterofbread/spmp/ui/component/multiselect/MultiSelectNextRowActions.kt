@@ -4,6 +4,8 @@ import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.tween
+import androidx.compose.foundation.LocalIndication
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -62,38 +64,42 @@ internal fun ColumnScope.MultiSelectNextRowActions(multiselect_context: MediaIte
                 .align(Alignment.CenterVertically)
 
             Surface(
-                button_modifier.combinedClickable(
-                    remember { MutableInteractionSource() },
-                    rememberRipple(),
-                    onClick = {
-                        player.controller?.service_player?.updateActiveQueueIndex(-1)
-                    },
-                    onLongClick = {
-                        player.context.vibrateShort()
-                        player.withPlayer {
-                            active_queue_index = current_song_index
+                button_modifier
+                    .combinedClickable(
+                        remember { MutableInteractionSource() },
+                        LocalIndication.current,
+                        onClick = {
+                            player.controller?.service_player?.updateActiveQueueIndex(-1)
+                        },
+                        onLongClick = {
+                            player.context.vibrateShort()
+                            player.withPlayer {
+                                active_queue_index = current_song_index
+                            }
                         }
-                    }
-                ).clip(CircleShape),
+                    )
+                    .clip(CircleShape),
                 shape = CircleShape
             ) {
                 Icon(Icons.Default.Remove, null)
             }
 
             Surface(
-                button_modifier.combinedClickable(
-                    remember { MutableInteractionSource() },
-                    rememberRipple(),
-                    onClick = {
-                        player.controller?.service_player?.updateActiveQueueIndex(1)
-                    },
-                    onLongClick = {
-                        player.context.vibrateShort()
-                        player.withPlayer {
-                            active_queue_index = song_count - 1
+                button_modifier
+                    .combinedClickable(
+                        remember { MutableInteractionSource() },
+                        LocalIndication.current,
+                        onClick = {
+                            player.controller?.service_player?.updateActiveQueueIndex(1)
+                        },
+                        onLongClick = {
+                            player.context.vibrateShort()
+                            player.withPlayer {
+                                active_queue_index = song_count - 1
+                            }
                         }
-                    }
-                ).clip(CircleShape),
+                    )
+                    .clip(CircleShape),
                 shape = CircleShape
             ) {
                 Icon(Icons.Filled.Add, null)

@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.model.mediaitem
 import LocalPlayerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.graphics.Color
@@ -39,6 +38,11 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import PlatformIO
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 
 private const val DEFAULT_CONNECT_TIMEOUT: Int = 10000
 val MEDIA_ITEM_RELATED_CONTENT_ICON: ImageVector get() = Icons.Default.GridView
@@ -50,7 +54,7 @@ interface MediaItem: MediaItemHolder, YtmMediaItem {
     override fun toString(): String
     fun getHolder(): MediaItemHolder = this
     fun getType(): MediaItemType
-    fun getURL(context: AppContext): String
+    suspend fun getUrl(context: AppContext): String
     fun getReference(): MediaItemRef
 
     @Composable
@@ -221,4 +225,14 @@ private fun formatActiveTitle(active_title: String): String {
         return active_title.replace('ㅤ', '\u200b')
     }
     return active_title
+}
+
+@Composable
+fun MediaItem.observeUrl(): String {
+    val player: PlayerState = LocalPlayerState.current
+    var url: String by remember { mutableStateOf("") }
+    LaunchedEffect(this) {
+        url = getUrl(player.context)
+    }
+    return url
 }

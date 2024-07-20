@@ -4,11 +4,22 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import dev.toastbits.composekit.settings.ui.Theme
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.composekit.platform.PreferencesProperty
 import kotlinx.serialization.json.*
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.layout_slot_landscape_outer_side_left
+import spmp.shared.generated.resources.layout_slot_landscape_inner_side_left
+import spmp.shared.generated.resources.layout_slot_landscape_outer_side_right
+import spmp.shared.generated.resources.layout_slot_landscape_inner_side_right
+import spmp.shared.generated.resources.layout_slot_landscape_upper_top_bar
+import spmp.shared.generated.resources.layout_slot_landscape_lower_top_bar
+import spmp.shared.generated.resources.layout_slot_landscape_above_player
+import spmp.shared.generated.resources.layout_slot_landscape_below_player
+import spmp.shared.generated.resources.layout_slot_landscape_player_bottom_start
+import spmp.shared.generated.resources.layout_slot_landscape_player_bottom_end
 
 enum class LandscapeLayoutSlot: LayoutSlot {
     OUTER_SIDE_LEFT,
@@ -50,18 +61,19 @@ enum class LandscapeLayoutSlot: LayoutSlot {
 
     override fun getKey(): String = name
 
+    @Composable
     override fun getName(): String =
         when (this) {
-            OUTER_SIDE_LEFT -> getString("layout_slot_landscape_outer_side_left")
-            INNER_SIDE_LEFT -> getString("layout_slot_landscape_inner_side_left")
-            OUTER_SIDE_RIGHT -> getString("layout_slot_landscape_outer_side_right")
-            INNER_SIDE_RIGHT -> getString("layout_slot_landscape_inner_side_right")
-            UPPER_TOP_BAR -> getString("layout_slot_landscape_upper_top_bar")
-            LOWER_TOP_BAR -> getString("layout_slot_landscape_lower_top_bar")
-            ABOVE_PLAYER -> getString("layout_slot_landscape_above_player")
-            BELOW_PLAYER -> getString("layout_slot_landscape_below_player")
-            PLAYER_BOTTOM_START -> getString("layout_slot_landscape_player_bottom_start")
-            PLAYER_BOTTOM_END -> getString("layout_slot_landscape_player_bottom_end")
+            OUTER_SIDE_LEFT -> stringResource(Res.string.layout_slot_landscape_outer_side_left)
+            INNER_SIDE_LEFT -> stringResource(Res.string.layout_slot_landscape_inner_side_left)
+            OUTER_SIDE_RIGHT -> stringResource(Res.string.layout_slot_landscape_outer_side_right)
+            INNER_SIDE_RIGHT -> stringResource(Res.string.layout_slot_landscape_inner_side_right)
+            UPPER_TOP_BAR -> stringResource(Res.string.layout_slot_landscape_upper_top_bar)
+            LOWER_TOP_BAR -> stringResource(Res.string.layout_slot_landscape_lower_top_bar)
+            ABOVE_PLAYER -> stringResource(Res.string.layout_slot_landscape_above_player)
+            BELOW_PLAYER -> stringResource(Res.string.layout_slot_landscape_below_player)
+            PLAYER_BOTTOM_START -> stringResource(Res.string.layout_slot_landscape_player_bottom_start)
+            PLAYER_BOTTOM_END -> stringResource(Res.string.layout_slot_landscape_player_bottom_end)
         }
 
     override fun getDefaultContentBar(): ContentBar? =

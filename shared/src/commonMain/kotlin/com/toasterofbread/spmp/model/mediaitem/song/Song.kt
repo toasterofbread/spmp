@@ -37,7 +37,7 @@ private const val STATIC_LYRICS_SYNC_OFFSET: Long = 1000
 
 interface Song: MediaItem.WithArtists {
     override fun getType(): MediaItemType = MediaItemType.SONG
-    override fun getURL(context: AppContext): String = "https://music.youtube.com/watch?v=$id"
+    override suspend fun getUrl(context: AppContext): String = "https://music.youtube.com/watch?v=$id"
     override fun getReference(): SongRef
 
     override fun createDbEntry(db: Database) {

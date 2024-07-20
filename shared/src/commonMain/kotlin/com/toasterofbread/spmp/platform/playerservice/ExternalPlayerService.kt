@@ -29,7 +29,6 @@ import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -47,6 +46,17 @@ import dev.toastbits.composekit.platform.PlatformPreferences
 import io.ktor.client.request.get
 import LocalPlayerState
 import LocalProgramArguments
+import ProgramArguments
+import androidx.compose.runtime.rememberCoroutineScope
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.loading_splash_local_server_command_not_set
+import spmp.shared.generated.resources.action_close
+import spmp.shared.generated.resources.warning_server_unavailable_title
+import spmp.shared.generated.resources.loading_splash_button_start_local_server
+import spmp.shared.generated.resources.loading_splash_button_stop_local_server
+import spmp.shared.generated.resources.loading_splash_button_local_server_unavailable
 
 open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_audio = plays_audio), PlayerService {
     override val load_state: PlayerServiceLoadState get() =
@@ -58,9 +68,9 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
     private var local_server_error: Throwable? by mutableStateOf(null)
     private var local_server_process: Job? by mutableStateOf(null)
 
-    override fun getIpAddress(): String =
+    override suspend fun getIpAddress(): String =
         if (local_server_process != null) "127.0.0.1" else context.settings.platform.SERVER_IP_ADDRESS.get()
-    override fun getPort(): Int =
+    override suspend fun getPort(): Int =
         context.settings.platform.SERVER_PORT.get()
 
     internal lateinit var _context: AppContext
@@ -234,6 +244,7 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
     @Composable
     override fun LoadScreenExtraContent(item_modifier: Modifier, requestServiceChange: (PlayerServiceCompanion) -> Unit) {
         val player: PlayerState = LocalPlayerState.current
+        val coroutine_scope: CoroutineScope = rememberCoroutineScope()
         val launch_arguments: ProgramArguments = LocalProgramArguments.current
 
         LaunchedEffect(Unit) {
@@ -241,9 +252,7 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
             local_server_process = null
         }
 
-        val external_server_mode: Boolean by player.settings.platform.ENABLE_EXTERNAL_SERVER_MODE.observe()
-
-        fun startServer(stop_if_running: Boolean, automatic: Boolean) {
+        suspend fun startServer(stop_if_running: Boolean, automatic: Boolean) {
             if (automatic && launch_arguments.no_auto_server) {
                 return
             }
@@ -264,7 +273,7 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
                     )
 
                 if (!automatic && local_server_process == null) {
-                    local_server_error = RuntimeException(getString("loading_splash_local_server_command_not_set"))
+                    local_server_error = RuntimeException(getString(Res.string.loading_splash_local_server_command_not_set))
                 }
             }
             catch (e: Throwable) {
@@ -273,19 +282,19 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
             }
         }
 
-        val server_unavailability_reason: String? = remember { LocalServer.getLocalServerUnavailabilityReason() }
+        val server_unavailability_reason: String? = LocalServer.getLocalServerUnavailabilityReason()
         var show_unavailability_dialog: Boolean by remember { mutableStateOf(false) }
 
         if (show_unavailability_dialog) {
             AlertDialog(
-                onDismissRequest = { show_unavailability_dialog },
+                onDismissRequest = { show_unavailability_dialog = false },
                 confirmButton = {
                     Button({ show_unavailability_dialog = false }) {
-                        Text(getString("action_close"))
+                        Text(stringResource(Res.string.action_close))
                     }
                 },
                 title = {
-                    Text(getString("warning_server_unavailable_title"))
+                    Text(stringResource(Res.string.warning_server_unavailable_title))
                 },
                 text = {
                     Text(server_unavailability_reason ?: "")
@@ -295,7 +304,11 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
 
         if (server_unavailability_reason == null || local_server_process != null) {
             Button(
-                { startServer(stop_if_running = true, automatic = false) },
+                {
+                    coroutine_scope.launch {
+                        startServer(stop_if_running = true, automatic = false)
+                    }
+                },
                 colors =
                     ButtonDefaults.buttonColors(
                         containerColor = player.theme.accent,
@@ -305,10 +318,10 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
             ) {
                 Crossfade(local_server_process) { process ->
                     if (process == null) {
-                        Text(getString("loading_splash_button_start_local_server"))
+                        Text(stringResource(Res.string.loading_splash_button_start_local_server))
                     }
                     else {
-                        Text(getString("loading_splash_button_stop_local_server"))
+                        Text(stringResource(Res.string.loading_splash_button_stop_local_server))
                     }
                 }
             }
@@ -324,7 +337,7 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     Icon(Icons.Default.Info, null)
-                    Text(getString("loading_splash_button_local_server_unavailable"))
+                    Text(stringResource(Res.string.loading_splash_button_local_server_unavailable))
                 }
             }
         }
@@ -337,7 +350,7 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
         //             verticalArrangement = Arrangement.spacedBy(10.dp)
         //         ) {
         //             if (state is Throwable) {
-        //                 Text(getString("error_on_server_command_execution"))
+        //                 Text(stringResource(Res.string.error_on_server_command_execution))
         //                 ErrorInfoDisplay(
         //                     state,
         //                     show_throw_button = true,
@@ -345,7 +358,7 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
         //                 )
         //             }
         //             else if (state is LocalServerProcess) {
-        //                 Text(getString("loading_splash_process_running_with_command_\$x").replace("\$x", state.launch_command))
+        //                 Text(stringResource(Res.string.loading_splash_process_running_with_command_\$x).replace("\$x", state.launch_command))
         //             }
         //         }
         //     }

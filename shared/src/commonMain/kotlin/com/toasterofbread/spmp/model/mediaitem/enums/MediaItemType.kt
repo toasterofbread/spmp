@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.PlaylistPlay
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
@@ -15,7 +16,15 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.resources.getString
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.artist
+import spmp.shared.generated.resources.artists
+import spmp.shared.generated.resources.playlist
+import spmp.shared.generated.resources.playlists
+import spmp.shared.generated.resources.song
+import spmp.shared.generated.resources.songs
 
 enum class MediaItemType {
     SONG, ARTIST, PLAYLIST_REM, PLAYLIST_LOC;
@@ -33,15 +42,12 @@ enum class MediaItemType {
         }
     }
 
-    fun getReadable(plural: Boolean = false): String {
-        return getString(
-            when (this) {
-                SONG -> if (plural) "songs" else "song"
-                ARTIST -> if (plural) "artists" else "artist"
-                PLAYLIST_REM, PLAYLIST_LOC -> if (plural) "playlists" else "playlist"
-            }
-        )
-    }
+    fun getReadable(plural: Boolean = false): StringResource =
+        when (this) {
+            SONG -> if (plural) Res.string.songs else Res.string.song
+            ARTIST -> if (plural) Res.string.artists else Res.string.artist
+            PLAYLIST_REM, PLAYLIST_LOC -> if (plural) Res.string.playlists else Res.string.playlist
+        }
 
     fun referenceFromId(id: String): MediaItem = when (this) {
         SONG -> SongRef(id)
@@ -49,7 +55,7 @@ enum class MediaItemType {
         PLAYLIST_REM -> RemotePlaylistRef(id)
         PLAYLIST_LOC -> LocalPlaylistRef(id)
     }
-    
+
     fun dataFromId(id: String): MediaItemData = when (this) {
         SONG -> SongData(id)
         ARTIST -> ArtistData(id)

@@ -66,6 +66,7 @@ kotlin {
         val jvmMain by getting  {
             dependencies {
                 implementation(compose.desktop.currentOs)
+                implementation(compose.components.resources)
                 implementation(project(":shared"))
 
                 implementation(deps.get("dev.toastbits.composekit:library"))

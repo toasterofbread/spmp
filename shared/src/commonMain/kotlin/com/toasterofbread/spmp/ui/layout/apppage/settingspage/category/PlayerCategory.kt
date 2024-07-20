@@ -8,12 +8,19 @@ import dev.toastbits.composekit.platform.PreferencesProperty
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueRadioInfoPosition
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.model.settings.category.OverscrollClearMode
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.composekit.utils.common.toCustomResource
 import kotlin.enums.enumEntries
 import kotlin.math.roundToInt
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.s_option_wave_border_mode_time
+import spmp.shared.generated.resources.s_option_wave_border_mode_time_sync
+import spmp.shared.generated.resources.s_option_wave_border_mode_scroll
+import spmp.shared.generated.resources.s_option_wave_border_mode_none
+import spmp.shared.generated.resources.s_option_wave_border_mode_line
 
 internal fun getPlayerCategoryItems(context: AppContext): List<SettingsItem> {
     return listOf(
@@ -79,8 +86,8 @@ internal fun getPlayerCategoryItems(context: AppContext): List<SettingsItem> {
         AppSliderItem(
             context.settings.player.QUEUE_EXTRA_SIDE_PADDING,
             range = 0f .. 1f,
-            min_label = "0%",
-            max_label = "100%",
+            min_label = "0%".toCustomResource(),
+            max_label = "100%".toCustomResource(),
             getValueText = {
                 (it as Float * 100).roundToInt().toString() + "%"
             }
@@ -90,11 +97,11 @@ internal fun getPlayerCategoryItems(context: AppContext): List<SettingsItem> {
             context.settings.player.QUEUE_WAVE_BORDER_MODE,
         ) { mode ->
             when (mode) {
-                NowPlayingQueueWaveBorderMode.TIME -> getString("s_option_wave_border_mode_time")
-                NowPlayingQueueWaveBorderMode.TIME_SYNC -> getString("s_option_wave_border_mode_time_sync")
-                NowPlayingQueueWaveBorderMode.SCROLL -> getString("s_option_wave_border_mode_scroll")
-                NowPlayingQueueWaveBorderMode.NONE -> getString("s_option_wave_border_mode_none")
-                NowPlayingQueueWaveBorderMode.LINE -> getString("s_option_wave_border_mode_line")
+                NowPlayingQueueWaveBorderMode.TIME -> stringResource(Res.string.s_option_wave_border_mode_time)
+                NowPlayingQueueWaveBorderMode.TIME_SYNC -> stringResource(Res.string.s_option_wave_border_mode_time_sync)
+                NowPlayingQueueWaveBorderMode.SCROLL -> stringResource(Res.string.s_option_wave_border_mode_scroll)
+                NowPlayingQueueWaveBorderMode.NONE -> stringResource(Res.string.s_option_wave_border_mode_none)
+                NowPlayingQueueWaveBorderMode.LINE -> stringResource(Res.string.s_option_wave_border_mode_line)
             }
         },
 

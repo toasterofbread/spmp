@@ -151,7 +151,7 @@ internal fun ArtistAppPage.SFFArtistPage(
                         val layout_id: YoutubeUILocalisation.StringID? = (layout.title as? YoutubeUiString)?.getYoutubeStringId()
 
                         val is_singles: Boolean =
-                            player.settings.behaviour.TREAT_SINGLES_AS_SONG.get()
+                            player.settings.behaviour.TREAT_SINGLES_AS_SONG.observe().value
                             && layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
 
                         val is_artist_row: Boolean =

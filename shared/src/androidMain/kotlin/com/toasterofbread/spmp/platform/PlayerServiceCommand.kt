@@ -7,6 +7,10 @@ import dev.toastbits.ytmkt.model.external.SongLikedStatus
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.data
+import spmp.shared.generated.resources.data
 
 sealed class PlayerServiceCommand {
     fun getSessionCommand(): SessionCommand =
@@ -31,7 +35,7 @@ sealed class PlayerServiceCommand {
             }
 
         fun fromSessionCommand(command: SessionCommand, args: Bundle): PlayerServiceCommand? {
-            val data = args.getString("data") ?: command.customExtras.getString("data") ?: "{}"
+            val data = args.stringResource(Res.string.data) ?: command.customExtras.stringResource(Res.string.data) ?: "{}"
 
             return when (command.customAction.substring(24)) {
                 "SetLiked" -> Json.decodeFromString<SetLiked>(data)

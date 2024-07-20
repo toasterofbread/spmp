@@ -23,8 +23,16 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
-import com.toasterofbread.spmp.resources.getString
 import dev.toastbits.composekit.utils.composable.ScrollBarLazyRowOrColumn
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.app_page_song_feed
+import spmp.shared.generated.resources.app_page_library
+import spmp.shared.generated.resources.app_page_search
+import spmp.shared.generated.resources.app_page_radio_builder
+import spmp.shared.generated.resources.app_page_control_panel
+import spmp.shared.generated.resources.app_page_settings
+import spmp.shared.generated.resources.app_page_profile
 
 abstract class AppPageWithItem : AppPage() {
     abstract val item: MediaItemHolder
@@ -89,15 +97,16 @@ abstract class AppPage {
             val DEFAULT: Type = SONG_FEED
         }
 
+        @Composable
         fun getName(): String =
             when (this) {
-                SONG_FEED -> getString("app_page_song_feed")
-                LIBRARY -> getString("app_page_library")
-                SEARCH -> getString("app_page_search")
-                RADIO_BUILDER -> getString("app_page_radio_builder")
-                CONTROL_PANEL -> getString("app_page_control_panel")
-                SETTINGS -> getString("app_page_settings")
-                PROFILE -> getString("app_page_profile")
+                SONG_FEED -> stringResource(Res.string.app_page_song_feed)
+                LIBRARY -> stringResource(Res.string.app_page_library)
+                SEARCH -> stringResource(Res.string.app_page_search)
+                RADIO_BUILDER -> stringResource(Res.string.app_page_radio_builder)
+                CONTROL_PANEL -> stringResource(Res.string.app_page_control_panel)
+                SETTINGS -> stringResource(Res.string.app_page_settings)
+                PROFILE -> stringResource(Res.string.app_page_profile)
             }
 
         fun getIcon(): ImageVector =

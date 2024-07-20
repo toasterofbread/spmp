@@ -22,12 +22,14 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.ytmkt.radio.RadioContinuation
 import kotlinx.coroutines.launch
 import LocalPlayerState
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.playlist_empty
 
 @Composable
 fun PlaylistAppPage.PlaylistFooter(
@@ -66,7 +68,7 @@ fun PlaylistAppPage.PlaylistFooter(
             }
             false -> {
                 Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.Center) {
-                    Text(getString("playlist_empty"))
+                    Text(stringResource(Res.string.playlist_empty))
                 }
             }
             is RadioContinuation, true -> {

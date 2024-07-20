@@ -25,7 +25,6 @@ import dev.toastbits.composekit.settings.ui.item.LargeToggleSettingsItem
 import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.DiscordAccountPreview
 import com.toasterofbread.spmp.ui.layout.DiscordLoginConfirmation
 import com.toasterofbread.spmp.platform.DiscordStatus
@@ -34,6 +33,14 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.JsonPrimitive
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.auth_not_signed_in
+import spmp.shared.generated.resources.s_discord_status_disabled
+import spmp.shared.generated.resources.auth_sign_in
+import spmp.shared.generated.resources.s_discord_status_enable
+import spmp.shared.generated.resources.auth_sign_out
+import spmp.shared.generated.resources.s_discord_status_disable
 
 fun getDiscordAuthItem(
     context: AppContext,
@@ -51,11 +58,13 @@ fun getDiscordAuthItem(
 
     return LargeToggleSettingsItem(
         object : PreferencesProperty<Boolean> {
-            override val key: String get() = throw IllegalAccessException()
-            override val name: String = ""
-            override val description: String = ""
+            override val key: String get() = throw IllegalStateException()
+            @Composable
+            override fun getName(): String = ""
+            @Composable
+            override fun getDescription(): String = ""
 
-            override fun get(): Boolean = discord_auth.get().isNotEmpty()
+            override suspend fun get(): Boolean = discord_auth.get().isNotEmpty()
 
             override fun set(value: Boolean, editor: PlatformPreferences.Editor?) {
                 if (!value) {
@@ -72,8 +81,12 @@ fun getDiscordAuthItem(
 
             override fun reset() = discord_auth.reset()
 
-            override fun getDefaultValue(): Boolean =
+            override suspend fun getDefaultValue(): Boolean =
                 discord_auth.getDefaultValue().isNotEmpty()
+
+            @Composable
+            override fun getDefaultValueComposable(): Boolean =
+                discord_auth.getDefaultValueComposable().isNotEmpty()
 
             @Composable
             override fun observe(): MutableState<Boolean> {
@@ -95,23 +108,26 @@ fun getDiscordAuthItem(
             ) {
                 StartIcon?.invoke()
 
-                var account_token: String by mutableStateOf(discord_auth.get())
+                val auth: String by discord_auth.observe()
+                var current_account_token: String by remember { mutableStateOf(auth) }
 
-                val auth: String = discord_auth.get()
-                if (auth.isNotEmpty()) {
-                    account_token = auth
+                LaunchedEffect(auth) {
+                    if (auth.isNotEmpty()) {
+                        current_account_token = auth
+                    }
                 }
-                if (account_token.isNotEmpty()) {
-                    DiscordAccountPreview(account_token)
+
+                if (current_account_token.isNotEmpty()) {
+                    DiscordAccountPreview(current_account_token)
                 }
             }
         },
         disabledContent = {
             StartIcon?.invoke()
         },
-        disabled_text = if (login_required) getString("auth_not_signed_in") else getString("s_discord_status_disabled"),
-        enable_button = if (login_required) getString("auth_sign_in") else getString("s_discord_status_enable"),
-        disable_button = if (login_required) getString("auth_sign_out") else getString("s_discord_status_disable"),
+        disabled_text = if (login_required) Res.string.auth_not_signed_in else Res.string.s_discord_status_disabled,
+        enable_button = if (login_required) Res.string.auth_sign_in else Res.string.s_discord_status_enable,
+        disable_button = if (login_required) Res.string.auth_sign_out else Res.string.s_discord_status_disable,
         warningDialog =
             if (login_required) {{ dismiss, openPage ->
                 DiscordLoginConfirmation { manual ->

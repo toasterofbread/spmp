@@ -16,21 +16,24 @@ import dev.toastbits.composekit.utils.common.copy
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.control_panel_downloads_in_progress
+import spmp.shared.generated.resources.control_panel_downloads_completed
 
 @Composable
 fun ControlPanelDownloadsPage(modifier: Modifier, multiselect_context: MediaItemMultiSelectContext? = null, content_padding: PaddingValues = PaddingValues()) {
     val downloads: List<DownloadStatus> by rememberSongDownloads()
-    
+
     Row(
         modifier.padding(content_padding.copy(bottom = 0.dp)),
         horizontalArrangement = Arrangement.spacedBy(20.dp)
     ) {
         val bottom_padding: Dp = content_padding.calculateBottomPadding()
-        DownloadList(getString("control_panel_downloads_in_progress"), downloads.filter { !it.isCompleted() }, Modifier.fillMaxWidth(0.5f), multiselect_context, bottom_padding)
-        DownloadList(getString("control_panel_downloads_completed"), downloads.filter { it.isCompleted() }, Modifier.fillMaxWidth(), multiselect_context, bottom_padding)
+        DownloadList(stringResource(Res.string.control_panel_downloads_in_progress), downloads.filter { !it.isCompleted() }, Modifier.fillMaxWidth(0.5f), multiselect_context, bottom_padding)
+        DownloadList(stringResource(Res.string.control_panel_downloads_completed), downloads.filter { it.isCompleted() }, Modifier.fillMaxWidth(), multiselect_context, bottom_padding)
     }
 }
 
@@ -48,17 +51,17 @@ private fun DownloadList(
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
             Text(title, style = MaterialTheme.typography.titleLarge)
-            
+
             Spacer(Modifier.fillMaxWidth().weight(1f))
-            
+
             Text(downloads.size.toString(), style = MaterialTheme.typography.titleMedium)
-            
+
             if (multiselect_context != null) {
                 val songs: List<Song> = remember(downloads) { downloads.map { it.song } }
                 multiselect_context.CollectionToggleButton(songs)
             }
         }
-        
+
         ScrollBarLazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp), contentPadding = PaddingValues(bottom = bottom_padding)) {
             items(downloads) { download ->
                 DownloadStatusDisplay(download, multiselect_context)

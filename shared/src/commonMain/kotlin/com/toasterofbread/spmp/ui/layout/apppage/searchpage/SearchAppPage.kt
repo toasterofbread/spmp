@@ -33,7 +33,6 @@ import com.toasterofbread.spmp.model.mediaitem.layout.*
 import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.platform.*
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -45,11 +44,16 @@ import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.theme.appHover
 import com.toasterofbread.spmp.ui.component.NotImplementedMessage
+import dev.toastbits.composekit.platform.synchronized
 import dev.toastbits.ytmkt.endpoint.*
 import dev.toastbits.ytmkt.endpoint.SearchFilter
 import dev.toastbits.ytmkt.endpoint.SearchResults
 import dev.toastbits.ytmkt.model.external.ItemLayoutType
 import kotlinx.coroutines.*
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.search_results_loading
+import spmp.shared.generated.resources.`search_suggested_correction_$x`
 
 internal val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
 internal const val SEARCH_SUGGESTIONS_LOAD_DELAY_MS: Long = 200
@@ -254,7 +258,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                             Modifier.fillMaxSize().padding(padding),
                             contentAlignment = Alignment.Center
                         ) {
-                            SubtleLoadingIndicator(getColour = { context.theme.on_background }, message = getString("search_results_loading"))
+                            SubtleLoadingIndicator(getColour = { context.theme.on_background }, message = stringResource(Res.string.search_results_loading))
                         }
                     }
                 }
@@ -371,7 +375,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                getString("search_suggested_correction_\$x").replace("\$x", correction),
+                stringResource(Res.string.`search_suggested_correction_$x`).replace("\$x", correction),
                 Modifier.fillMaxWidth().weight(1f)
             )
 

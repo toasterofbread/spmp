@@ -30,6 +30,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -52,8 +53,11 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.toReadableSubscriberCount
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.`edit_$x_title_dialog_title`
+import spmp.shared.generated.resources.`edit_$x_title_dialog_title`
 
 @Composable
 fun ArtistPageTitleBar(item: MediaItem, modifier: Modifier = Modifier) {
@@ -104,7 +108,7 @@ fun ArtistPageTitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                         onValueChange = { text ->
                             edited_title = text
                         },
-                        label = { Text(getString("edit_\$x_title_dialog_title").replace("\$x", item.getType().getReadable())) },
+                        label = { Text(stringResource(Res.string.`edit_$x_title_dialog_title`).replace("\$x", stringResource(item.getType().getReadable()))) },
                         singleLine = true,
                         trailingIcon = {
                             Icon(Icons.Filled.Close, null, Modifier.clickable { edited_title = "" })
@@ -114,7 +118,7 @@ fun ArtistPageTitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                             player.database.mediaItemQueries.updateTitleById(edited_title, item.id)
                             editing_title = false
                         }),
-                        colors = TextFieldDefaults.outlinedTextFieldColors(
+                        colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = field_colour,
                             focusedLabelColor = field_colour,
                             cursorColor = field_colour
@@ -171,7 +175,7 @@ fun ArtistPageTitleBar(item: MediaItem, modifier: Modifier = Modifier) {
 
                 if (!editing_title) {
                     IconButton({ editing_title = true }) {
-                        Icon(Icons.Default.Edit, getString("edit_\$x_title_dialog_title").replace("\$x", MediaItemType.ARTIST.getReadable()))
+                        Icon(Icons.Default.Edit, stringResource(Res.string.`edit_$x_title_dialog_title`).replace("\$x", stringResource(MediaItemType.ARTIST.getReadable())))
                     }
                 }
 

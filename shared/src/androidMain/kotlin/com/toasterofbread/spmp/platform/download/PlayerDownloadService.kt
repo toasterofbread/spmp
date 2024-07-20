@@ -26,13 +26,19 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlatformBinder
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.getUiLanguage
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.getStringOrNull
-import com.toasterofbread.spmp.resources.initResources
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_download_resume
+import spmp.shared.generated.resources.`downloading_song_\$title`
+import spmp.shared.generated.resources.`downloading_\$x_songs`
+import spmp.shared.generated.resources.download_just_started
+import spmp.shared.generated.resources.`download_started_\$x_minutes_ago`
+import spmp.shared.generated.resources.action_cancel
+import spmp.shared.generated.resources.download_service_name
 
 private const val NOTIFICATION_ID = 1
 private const val NOTIFICATION_CHANNEL_ID = "download_channel"
@@ -58,7 +64,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
 
         override fun onPausedChanged() {
-            pause_resume_action.title = if (paused) getString("action_download_resume") else getString(
+            pause_resume_action.title = if (paused) stringResource(Res.string.action_download_resume) else getString(
                 "action_download_pause"
             )
         }
@@ -133,12 +139,12 @@ class PlayerDownloadService: PlatformServiceImpl() {
                         if (downloads.size == 1) {
                             val song_title = downloads.first().song.getActiveTitle(context.database)
                             if (song_title != null) {
-                                title = getString("downloading_song_\$title").replace("\$title", song_title)
+                                title = stringResource(Res.string.downloading_song_\$title).replace("\$title", song_title)
                             }
                         }
 
                         if (title == null) {
-                            title = getString("downloading_\$x_songs").replace("\$x", downloads.size.toString())
+                            title = stringResource(Res.string.downloading_\$x_songs).replace("\$x", downloads.size.toString())
                         }
 
                         builder.setContentTitle(if (paused) "$title (paused)" else title)
@@ -146,8 +152,8 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
                         val elapsed_minutes = ((System.currentTimeMillis() - start_time_ms) / 60000f).toInt()
                         builder.setSubText(
-                            if (elapsed_minutes == 0) getString("download_just_started")
-                            else getString("download_started_\$x_minutes_ago").replace("\$x", elapsed_minutes.toString())
+                            if (elapsed_minutes == 0) stringResource(Res.string.download_just_started)
+                            else stringResource(Res.string.download_started_\$x_minutes_ago).replace("\$x", elapsed_minutes.toString())
                         )
                     }
 
@@ -362,7 +368,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
             .addAction(
                 NotificationCompat.Action.Builder(
                     IconCompat.createWithResource(this, android.R.drawable.ic_menu_close_clear_cancel),
-                    getString("action_cancel"),
+                    stringResource(Res.string.action_cancel),
                     PendingIntent.getService(
                         this,
                         IntentAction.CANCEL_ALL.ordinal,
@@ -384,7 +390,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
                 NOTIFICATION_CHANNEL_ID,
                 NotificationManager.IMPORTANCE_LOW
             )
-            .setName(getString("download_service_name"))
+            .setName(stringResource(Res.string.download_service_name))
             .setSound(null, null)
             .build()
 

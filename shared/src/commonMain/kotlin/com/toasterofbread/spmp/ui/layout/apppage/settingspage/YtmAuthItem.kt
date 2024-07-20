@@ -29,7 +29,6 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.unpackSetData
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getYoutubeAccountCategory
 import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState
@@ -41,6 +40,11 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.JsonPrimitive
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.auth_not_signed_in
+import spmp.shared.generated.resources.auth_sign_in
+import spmp.shared.generated.resources.auth_sign_out
 
 fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String>>): SettingsItem {
     var own_channel: Artist? by mutableStateOf(null)
@@ -55,10 +59,12 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String
     return LargeToggleSettingsItem(
         object : PreferencesProperty<Boolean> {
             override val key: String = ytm_auth.key
-            override val name: String = ytm_auth.name
-            override val description: String? = ytm_auth.description
+            @Composable
+            override fun getName(): String = ytm_auth.getName()
+            @Composable
+            override fun getDescription(): String? = ytm_auth.getDescription()
 
-            override fun get(): Boolean =
+            override suspend fun get(): Boolean =
                 ytm_auth.get().isNotEmpty()
 
             override fun set(value: Boolean, editor: PlatformPreferences.Editor?) {
@@ -74,8 +80,12 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String
             override fun serialise(value: Any?): JsonElement =
                 JsonPrimitive(value as Boolean?)
 
-            override fun getDefaultValue(): Boolean =
+            override suspend fun getDefaultValue(): Boolean =
                 ytm_auth.getDefaultValue().isNotEmpty()
+
+            @Composable
+            override fun getDefaultValueComposable(): Boolean =
+                ytm_auth.getDefaultValueComposable().isNotEmpty()
 
             @Composable
             override fun observe(): MutableState<Boolean> {
@@ -102,7 +112,8 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String
 //                own_channel = data.first
 //            }
 
-            val data: Pair<String?, Headers> = ApiAuthenticationState.unpackSetData(ytm_auth.get(), context)
+            val auth: Set<String> by ytm_auth.observe()
+            val data: Pair<String?, Headers> = ApiAuthenticationState.unpackSetData(auth, context)
             if (data.first != null) {
                 own_channel = ArtistRef(data.first!!)
             }
@@ -112,9 +123,9 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String
             }
         },
         extra_items = getYoutubeAccountCategory(context),
-        disabled_text = getString("auth_not_signed_in"),
-        enable_button = getString("auth_sign_in"),
-        disable_button = getString("auth_sign_out"),
+        disabled_text = Res.string.auth_not_signed_in,
+        enable_button = Res.string.auth_sign_in,
+        disable_button = Res.string.auth_sign_out,
         warningDialog = { dismiss, openPage ->
             login_page.LoginConfirmationDialog(
                 info_only = false,

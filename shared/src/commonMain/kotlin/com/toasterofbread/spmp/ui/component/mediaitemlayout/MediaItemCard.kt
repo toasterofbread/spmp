@@ -43,19 +43,16 @@ import dev.toastbits.composekit.utils.common.getContrasted
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.model.mediaitem.db.isMediaItemHidden
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.model.mediaitem.layout.TitleBar
 import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
-import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.toMediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.model.mediaitem.db.observeIsMediaItemHidden
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.Thumbnail
@@ -65,7 +62,11 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getThumbShape
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.artist_chip_play
+import spmp.shared.generated.resources.media_play
+import spmp.shared.generated.resources.playlist_chip_play
 
 @Composable
 fun MediaItemCard(
@@ -78,7 +79,9 @@ fun MediaItemCard(
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     val item: MediaItemData = remember(layout) { layout.items.first() }
-    if (apply_filter && isMediaItemHidden(item, player.context)) {
+    val item_hidden: Boolean by observeIsMediaItemHidden(item)
+
+    if (apply_filter && item_hidden) {
         return
     }
 
@@ -116,7 +119,7 @@ fun MediaItemCard(
 
             Text(
                 if (item is RemotePlaylist) playlist_type?.value.getReadable(false)
-                else item.getType().getReadable(false),
+                else stringResource(item.getType().getReadable(false)),
                 fontSize = 15.sp
             )
 
@@ -199,13 +202,11 @@ fun MediaItemCard(
                 )
             ) {
                 Text(
-                    getString(
-                        when (item.getType()) {
-                            MediaItemType.SONG -> "media_play"
-                            MediaItemType.ARTIST -> "artist_chip_play"
-                            MediaItemType.PLAYLIST_REM, MediaItemType.PLAYLIST_LOC -> "playlist_chip_play"
-                        }
-                    )
+                    when (item.getType()) {
+                        MediaItemType.SONG -> stringResource(Res.string.media_play)
+                        MediaItemType.ARTIST -> stringResource(Res.string.artist_chip_play)
+                        MediaItemType.PLAYLIST_REM, MediaItemType.PLAYLIST_LOC -> stringResource(Res.string.playlist_chip_play)
+                    }
                 )
             }
         }

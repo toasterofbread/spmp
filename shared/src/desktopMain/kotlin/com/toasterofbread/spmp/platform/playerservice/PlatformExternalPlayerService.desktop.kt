@@ -5,6 +5,8 @@ import com.toasterofbread.spmp.platform.AppContext
 
 actual class PlatformExternalPlayerService: ExternalPlayerService(plays_audio = false), PlayerService {
     actual companion object: PlayerServiceCompanion {
+        override fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean = true
+
         override fun isServiceRunning(context: AppContext): Boolean = true
 
         override fun disconnect(context: AppContext, connection: Any) {

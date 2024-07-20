@@ -77,7 +77,7 @@ data class LambdaYoutubePage(
         throw IllegalStateException()
 }
 
-fun YoutubePage.open(player: PlayerState, title: UiString?) {
+suspend fun YoutubePage.open(player: PlayerState, title: UiString?) {
     when (this) {
         is LambdaYoutubePage ->  action(player, title)
         is MediaItemYoutubePage ->

@@ -1,19 +1,18 @@
 package com.toasterofbread.spmp.platform.playerservice
 
-import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.ensureActive
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.add
 import dev.toastbits.spms.socketapi.shared.SpMsClientHandshake
-import dev.toastbits.spms.socketapi.shared.SpMsSocketApi
 import dev.toastbits.spms.socketapi.shared.SpMsServerHandshake
 import dev.toastbits.spms.zmq.ZmqSocket
 import kotlin.time.Duration
 import PlatformIO
+import org.jetbrains.compose.resources.getString
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.`loading_splash_connecting_to_server_at_$x`
 
 internal suspend fun ZmqSocket.tryConnectToServer(
     server_url: String,
@@ -22,7 +21,7 @@ internal suspend fun ZmqSocket.tryConnectToServer(
     log: (String) -> Unit = { println(it) },
     setLoadState: ((PlayerServiceLoadState) -> Unit)? = null
 ): SpMsServerHandshake = withContext(Dispatchers.PlatformIO) {
-    val first_loading_message: String = getString("loading_splash_connecting_to_server_at_\$x").replace("\$x", server_url.split("://", limit = 2).last())
+    val first_loading_message: String = getString(Res.string.`loading_splash_connecting_to_server_at_$x`).replace("\$x", server_url.split("://", limit = 2).last())
     setLoadState?.invoke(PlayerServiceLoadState(true, first_loading_message))
 
     log("Connecting to server at $server_url...")

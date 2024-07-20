@@ -27,7 +27,9 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class ContentBar {
+    @Composable
     abstract fun getName(): String
+    @Composable
     abstract fun getDescription(): String?
     abstract fun getIcon(): ImageVector
 
@@ -83,12 +85,12 @@ sealed class ContentBar {
     interface BarSelectionState {
         val built_in_bars: List<ContentBarReference>
         val custom_bars: List<ContentBarReference>
-        fun onBarSelected(slot: LayoutSlot, bar: ContentBarReference?)
+        suspend fun onBarSelected(slot: LayoutSlot, bar: ContentBarReference?)
         fun onColourSelected(slot: LayoutSlot, colour: ColourSource)
         fun onSlotConfigChanged(slot: LayoutSlot, config: JsonElement?)
 
-        fun createCustomBar(): ContentBarReference
-        fun deleteCustomBar(bar: ContentBarReference)
+        suspend fun createCustomBar(): ContentBarReference
+        suspend fun deleteCustomBar(bar: ContentBarReference)
         fun onCustomBarEditRequested(bar: ContentBarReference)
     }
 

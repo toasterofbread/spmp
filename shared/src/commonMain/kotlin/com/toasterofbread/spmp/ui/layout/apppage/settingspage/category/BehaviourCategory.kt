@@ -4,8 +4,10 @@ import dev.toastbits.composekit.settings.ui.item.GroupSettingsItem
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
 import dev.toastbits.composekit.platform.PreferencesProperty
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.platform.AppContext
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.s_group_long_press_menu
 
 internal fun getBehaviourCategoryItems(context: AppContext): List<SettingsItem> {
     return listOf(
@@ -45,7 +47,7 @@ internal fun getBehaviourCategoryItems(context: AppContext): List<SettingsItem> 
             context.settings.behaviour.STOP_PLAYER_ON_APP_CLOSE
         ),
 
-        GroupSettingsItem(getString("s_group_long_press_menu")),
+        GroupSettingsItem(Res.string.s_group_long_press_menu),
 
         ToggleSettingsItem(
             context.settings.behaviour.LPM_CLOSE_ON_ACTION

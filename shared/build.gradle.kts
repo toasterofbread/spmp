@@ -103,7 +103,6 @@ kotlin {
                 implementation(deps.get("com.github.paramsen:noise"))
                 implementation(deps.get("io.github.pdvrieze.xmlutil:core", "io.github.pdvrieze.xmlutil"))
                 implementation(deps.get("io.github.pdvrieze.xmlutil:serialization", "io.github.pdvrieze.xmlutil"))
-                implementation(deps.get("org.bitbucket.ijabz:jaudiotagger"))
                 implementation(deps.get("com.github.teamnewpipe:NewPipeExtractor"))
                 implementation(deps.get("org.zeromq:jeromq"))
                 implementation(deps.get("media.kamel:kamel-image"))
@@ -116,6 +115,8 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(deps.get("io.ktor:ktor-client-cio", "io.ktor"))
+                implementation(deps.get("dev.toastbits.compose-webview-multiplatform:compose-webview-multiplatform"))
+                implementation(deps.get("org.bitbucket.ijabz:jaudiotagger"))
             }
         }
 
@@ -140,7 +141,6 @@ kotlin {
                 implementation(deps.get("com.anggrayudi:storage"))
                 implementation(deps.get("io.github.jan-tennert.supabase:functions-kt"))
                 implementation(deps.get("io.ktor:ktor-client-cio"))
-                implementation(deps.get("dev.toastbits.compose-webview-multiplatform:compose-webview-multiplatform-android"))
             }
         }
 
@@ -153,7 +153,6 @@ kotlin {
                 implementation(deps.get("app.cash.sqldelight:sqlite-driver"))
                 implementation(deps.get("com.github.caoimhebyrne:KDiscordIPC"))
                 implementation(deps.get("org.bytedeco:ffmpeg-platform"))
-                implementation(deps.get("dev.toastbits.compose-webview-multiplatform:compose-webview-multiplatform-desktop"))
             }
         }
 

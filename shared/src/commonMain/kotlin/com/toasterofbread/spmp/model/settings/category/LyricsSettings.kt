@@ -3,77 +3,99 @@ package com.toasterofbread.spmp.model.settings.category
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MusicNote
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getLyricsCategoryItems
 import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PreferencesProperty
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.s_key_lyrics_follow_enabled
+import spmp.shared.generated.resources.s_sub_lyrics_follow_enabled
+import spmp.shared.generated.resources.s_key_lyrics_follow_offset
+import spmp.shared.generated.resources.s_sub_lyrics_follow_offset
+import spmp.shared.generated.resources.s_key_lyrics_romanise_furigana
+import spmp.shared.generated.resources.s_key_lyrics_default_furigana
+import spmp.shared.generated.resources.s_key_lyrics_text_alignment
+import spmp.shared.generated.resources.s_key_lyrics_extra_padding
+import spmp.shared.generated.resources.s_sub_lyrics_extra_padding
+import spmp.shared.generated.resources.s_key_lyrics_enable_word_sync
+import spmp.shared.generated.resources.s_sub_lyrics_enable_word_sync
+import spmp.shared.generated.resources.s_key_lyrics_font_size
+import spmp.shared.generated.resources.s_key_lyrics_default_source
+import spmp.shared.generated.resources.s_key_lyrics_sync_delay
+import spmp.shared.generated.resources.s_sub_lyrics_sync_delay
+import spmp.shared.generated.resources.s_key_lyrics_sync_delay_topbar
+import spmp.shared.generated.resources.s_sub_lyrics_sync_delay_topbar
+import spmp.shared.generated.resources.s_key_lyrics_sync_delay_bluetooth
+import spmp.shared.generated.resources.s_sub_lyrics_sync_delay_bluetooth
+import spmp.shared.generated.resources.s_cat_lyrics
+import spmp.shared.generated.resources.s_cat_desc_lyrics
 
 class LyricsSettings(val context: AppContext): SettingsGroup("LYRICS", context.getPrefs()) {
     val FOLLOW_ENABLED: PreferencesProperty<Boolean> by property(
-        getName = { getString("s_key_lyrics_follow_enabled") },
-        getDescription = { getString("s_sub_lyrics_follow_enabled") },
+        getName = { stringResource(Res.string.s_key_lyrics_follow_enabled) },
+        getDescription = { stringResource(Res.string.s_sub_lyrics_follow_enabled) },
         getDefaultValue = { true }
     )
     val FOLLOW_OFFSET: PreferencesProperty<Float> by property(
-        getName = { getString("s_key_lyrics_follow_offset") },
-        getDescription = { getString("s_sub_lyrics_follow_offset") },
+        getName = { stringResource(Res.string.s_key_lyrics_follow_offset) },
+        getDescription = { stringResource(Res.string.s_sub_lyrics_follow_offset) },
         getDefaultValue = { 0.25f }
     )
     val ROMANISE_FURIGANA: PreferencesProperty<Boolean> by property(
-        getName = { getString("s_key_lyrics_romanise_furigana") },
+        getName = { stringResource(Res.string.s_key_lyrics_romanise_furigana) },
         getDescription = { null },
         getDefaultValue = { false }
     )
     val DEFAULT_FURIGANA: PreferencesProperty<Boolean> by property(
-        getName = { getString("s_key_lyrics_default_furigana") },
+        getName = { stringResource(Res.string.s_key_lyrics_default_furigana) },
         getDescription = { null },
         getDefaultValue = { true }
     )
     val TEXT_ALIGNMENT: PreferencesProperty<Int> by property(
-        getName = { getString("s_key_lyrics_text_alignment") },
+        getName = { stringResource(Res.string.s_key_lyrics_text_alignment) },
         getDescription = { null },
         getDefaultValue = { 0 } // Left, center, right
     )
     val EXTRA_PADDING: PreferencesProperty<Boolean> by property(
-        getName = { getString("s_key_lyrics_extra_padding") },
-        getDescription = { getString("s_sub_lyrics_extra_padding") },
+        getName = { stringResource(Res.string.s_key_lyrics_extra_padding) },
+        getDescription = { stringResource(Res.string.s_sub_lyrics_extra_padding) },
         getDefaultValue = { true }
     )
     val ENABLE_WORD_SYNC: PreferencesProperty<Boolean> by property(
-        getName = { getString("s_key_lyrics_enable_word_sync") },
-        getDescription = { getString("s_sub_lyrics_enable_word_sync") },
+        getName = { stringResource(Res.string.s_key_lyrics_enable_word_sync) },
+        getDescription = { stringResource(Res.string.s_sub_lyrics_enable_word_sync) },
         getDefaultValue = { false }
     )
     val FONT_SIZE: PreferencesProperty<Float> by property(
-        getName = { getString("s_key_lyrics_font_size") },
+        getName = { stringResource(Res.string.s_key_lyrics_font_size) },
         getDescription = { null },
         getDefaultValue = { 0.5f }
     )
     val DEFAULT_SOURCE: PreferencesProperty<Int> by property(
-        getName = { getString("s_key_lyrics_default_source") },
+        getName = { stringResource(Res.string.s_key_lyrics_default_source) },
         getDescription = { null },
         getDefaultValue = { 0 }
     )
     val SYNC_DELAY: PreferencesProperty<Float> by property(
-        getName = { getString("s_key_lyrics_sync_delay") },
-        getDescription = { getString("s_sub_lyrics_sync_delay") },
+        getName = { stringResource(Res.string.s_key_lyrics_sync_delay) },
+        getDescription = { stringResource(Res.string.s_sub_lyrics_sync_delay) },
         getDefaultValue = { 0f }
     )
     val SYNC_DELAY_TOPBAR: PreferencesProperty<Float> by property(
-        getName = { getString("s_key_lyrics_sync_delay_topbar") },
-        getDescription = { getString("s_sub_lyrics_sync_delay_topbar") },
+        getName = { stringResource(Res.string.s_key_lyrics_sync_delay_topbar) },
+        getDescription = { stringResource(Res.string.s_sub_lyrics_sync_delay_topbar) },
         getDefaultValue = { -0.5f }
     )
     val SYNC_DELAY_BLUETOOTH: PreferencesProperty<Float> by property(
-        getName = { getString("s_key_lyrics_sync_delay_bluetooth") },
-        getDescription = { getString("s_sub_lyrics_sync_delay_bluetooth") },
+        getName = { stringResource(Res.string.s_key_lyrics_sync_delay_bluetooth) },
+        getDescription = { stringResource(Res.string.s_sub_lyrics_sync_delay_bluetooth) },
         getDefaultValue = { 0.3f }
     )
 
     override val page: CategoryPage? =
         SimplePage(
-            { getString("s_cat_lyrics") },
-            { getString("s_cat_desc_lyrics") },
+            { stringResource(Res.string.s_cat_lyrics) },
+            { stringResource(Res.string.s_cat_desc_lyrics) },
             { getLyricsCategoryItems(context) },
             { Icons.Outlined.MusicNote }
         )

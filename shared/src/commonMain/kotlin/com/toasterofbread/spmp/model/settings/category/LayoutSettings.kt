@@ -19,7 +19,6 @@ import androidx.compose.ui.graphics.Shape
 import dev.toastbits.composekit.settings.ui.SettingsPage
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
 import dev.toastbits.composekit.utils.common.thenWith
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getLayoutCategoryItems
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
@@ -33,6 +32,11 @@ import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.utils.modifier.disableGestures
 import dev.toastbits.composekit.platform.composable.platformClickable
 import kotlinx.serialization.json.JsonElement
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.s_cat_layout
+import spmp.shared.generated.resources.s_cat_desc_layout
+import spmp.shared.generated.resources.layout_editor_preview_options
 
 class LayoutSettings(val context: AppContext): SettingsGroup("LAYOUT", context.getPrefs()) {
         // // Map of LayoutSlot to ContentBarReference?
@@ -78,8 +82,8 @@ class LayoutSettings(val context: AppContext): SettingsGroup("LAYOUT", context.g
 
     override val page: CategoryPage? =
         SimplePage(
-            { getString("s_cat_layout") },
-            { getString("s_cat_desc_layout") },
+            { stringResource(Res.string.s_cat_layout) },
+            { stringResource(Res.string.s_cat_desc_layout) },
             { getLayoutCategoryItems(context) },
             { Icons.Outlined.VerticalSplit },
             titleBarEndContent = { modifier ->
@@ -106,7 +110,7 @@ class LayoutSettings(val context: AppContext): SettingsGroup("LAYOUT", context.g
                             }
                     ) {
                         Icon(Icons.Default.RemoveRedEye, null, Modifier.padding(end = 10.dp))
-                        Text(getString("layout_editor_preview_options"))
+                        Text(stringResource(Res.string.layout_editor_preview_options))
                     }
 
                     AnimatedVisibility(

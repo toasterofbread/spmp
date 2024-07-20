@@ -5,13 +5,17 @@ import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import PlatformIO
+import androidx.compose.runtime.Composable
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.lyrics_source_ytm
 
 internal class YoutubeMusicLyricsSource(source_idx: Int): LyricsSource(source_idx) {
-    override fun getReadable(): String = getString("lyrics_source_ytm")
+    @Composable
+    override fun getReadable(): String = stringResource(Res.string.lyrics_source_ytm)
     override fun getColour(): Color = Color(0xFE0000)
     override fun getUrlOfId(id: String): String? = "https://music.youtube.com/watch?v=$id"
 

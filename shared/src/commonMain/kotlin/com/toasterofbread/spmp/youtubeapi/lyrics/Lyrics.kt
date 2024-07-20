@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import dev.toastbits.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.db.Database
@@ -32,6 +33,7 @@ sealed class LyricsSource(val source_index: Int) {
         var album_name: String?
     )
 
+    @Composable
     abstract fun getReadable(): String
     abstract fun getColour(): Color
     abstract fun getUrlOfId(id: String): String?
@@ -74,7 +76,7 @@ sealed class LyricsSource(val source_index: Int) {
         suspend fun searchSongLyricsByPriority(
             song: Song,
             context: AppContext,
-            default: Int = context.settings.lyrics.DEFAULT_SOURCE.get()
+            default: Int? = null
         ): Result<SongLyrics> = runCatching {
             val db: Database = context.database
             val (song_title, artist_title) = db.transactionWithResult {
@@ -85,7 +87,7 @@ sealed class LyricsSource(val source_index: Int) {
             }
 
             var fail_exception: Throwable? = null
-            iterateByPriority(default) { source ->
+            iterateByPriority(default ?: context.settings.lyrics.DEFAULT_SOURCE.get()) { source ->
                 var lyrics_reference: LyricsReference? = null
 
                 if (source.supportsLyricsBySong()) {

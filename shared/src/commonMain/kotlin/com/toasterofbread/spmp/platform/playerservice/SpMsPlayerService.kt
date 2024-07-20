@@ -14,7 +14,6 @@ import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.getUiLanguage
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.model.radio.RadioState
 import io.ktor.http.Headers
 import io.ktor.util.flattenEntries
@@ -40,12 +39,17 @@ import dev.toastbits.spms.zmq.ZmqSocketType
 import kotlin.time.*
 import kotlin.time.Duration
 import PlatformIO
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.app_name
+import spmp.shared.generated.resources.loading_splash_setting_initial_state
 
 private val SERVER_REPLY_TIMEOUT: Duration = with (Duration) { 1.seconds }
 
 abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(), ClientServerPlayerService {
-    abstract fun getIpAddress(): String
-    abstract fun getPort(): Int
+    abstract suspend fun getIpAddress(): String
+    abstract suspend fun getPort(): Int
 
     override var connected_server: ClientServerPlayerService.ServerInfo? by mutableStateOf(null)
 
@@ -56,10 +60,10 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
 
     internal abstract fun onRadioCancelRequested()
 
-    private fun getClientName(): String {
+    private suspend fun getClientName(): String {
         val os: String = Platform.getOSName()
-        var host: String = Platform.getHostName()
-        return getString("app_name") + " [$os, $host]"
+        val host: String = Platform.getHostName()
+        return getString(Res.string.app_name) + " [$os, $host]"
     }
 
     private val prefs_listener: PlatformPreferencesListener =
@@ -333,7 +337,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
             socket_load_state =
                 PlayerServiceLoadState(
                     true,
-                    getString("loading_splash_setting_initial_state") + status?.let { " ($it)" }.orEmpty()
+                    getString(Res.string.loading_splash_setting_initial_state) + status?.let { " ($it)" }.orEmpty()
                 )
         }
 

@@ -46,12 +46,16 @@ import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.getMediaNotificationImageMaxOffset
 import com.toasterofbread.spmp.platform.playerservice.getMediaNotificationImageSize
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.song_notif_image_menu_open
+import spmp.shared.generated.resources.song_notif_image_menu_adjust_offset
+import spmp.shared.generated.resources.song_notif_image_menu_adjust_offset_desc
 
-actual fun notifImagePlayerOverlayMenuButtonText(): String? = getString("song_notif_image_menu_open")
+actual fun notifImagePlayerOverlayMenuButtonText(): String? = stringResource(Res.string.song_notif_image_menu_open)
 
 actual class NotifImagePlayerOverlayMenu: PlayerOverlayMenu() {
     @Composable
@@ -109,11 +113,11 @@ actual class NotifImagePlayerOverlayMenu: PlayerOverlayMenu() {
                     val shape = RoundedCornerShape(16.dp)
 
                     Text(
-                        getString("song_notif_image_menu_adjust_offset"),
+                        stringResource(Res.string.song_notif_image_menu_adjust_offset),
                         Modifier.padding(bottom = 10.dp),
                         style = MaterialTheme.typography.titleLarge
                     )
-                    Text(getString("song_notif_image_menu_adjust_offset_desc"))
+                    Text(stringResource(Res.string.song_notif_image_menu_adjust_offset_desc))
 
                     Spacer(Modifier.height(35.dp))
 

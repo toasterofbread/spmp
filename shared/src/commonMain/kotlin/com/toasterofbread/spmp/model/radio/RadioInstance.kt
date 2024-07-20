@@ -179,18 +179,18 @@ abstract class RadioInstance(val context: AppContext) {
         is_loading = false
     }
 
-    private fun processLoadedSongs(songs: List<Song>): List<Song> {
-        val filtered: List<Song> =
-            context.database.transactionWithResult {
-                songs.filter { song ->
-                    if (song is MediaItemData) {
-                        song.saveToDatabase(context.database, subitems_uncertain = true)
-                    }
-                    return@filter !isMediaItemHidden(song, context)
+    private suspend fun processLoadedSongs(songs: List<Song>): List<Song> {
+        context.database.transaction {
+            for (song in songs) {
+                if (song is MediaItemData) {
+                    song.saveToDatabase(context.database, subitems_uncertain = true)
                 }
             }
+        }
 
-        return filtered
+        return songs.filter { song ->
+            !isMediaItemHidden(song, context)
+        }
     }
 
     override fun toString(): String =

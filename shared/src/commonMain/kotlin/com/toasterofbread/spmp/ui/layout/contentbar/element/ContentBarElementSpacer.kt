@@ -13,7 +13,6 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.Alignment
 import dev.toastbits.composekit.utils.common.*
 import dev.toastbits.composekit.utils.composable.RowOrColumnScope
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import kotlin.math.roundToInt

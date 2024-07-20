@@ -1,9 +1,14 @@
 package com.toasterofbread.spmp.model.lyrics
 
+import androidx.compose.runtime.Composable
 import dev.toastbits.composekit.platform.lazyAssert
 import dev.toastbits.composekit.utils.common.toHiragana
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.lyrics_sync_none
+import spmp.shared.generated.resources.lyrics_sync_line
+import spmp.shared.generated.resources.lyrics_sync_word
 
 data class SongLyrics(
     val reference: LyricsReference,
@@ -19,11 +24,12 @@ data class SongLyrics(
         LINE_SYNC,
         WORD_SYNC;
 
+        @Composable
         fun getReadable(): String =
             when (this) {
-                NONE -> getString("lyrics_sync_none")
-                LINE_SYNC -> getString("lyrics_sync_line")
-                WORD_SYNC -> getString("lyrics_sync_word")
+                NONE -> stringResource(Res.string.lyrics_sync_none)
+                LINE_SYNC -> stringResource(Res.string.lyrics_sync_line)
+                WORD_SYNC -> stringResource(Res.string.lyrics_sync_word)
             }
 
         companion object {

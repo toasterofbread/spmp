@@ -34,7 +34,6 @@ import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.generatePalette
 import com.toasterofbread.spmp.platform.isVideoPlaybackSupported
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
@@ -43,6 +42,16 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.Colourp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.roundToInt
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.song_theme_menu_corner_radius
+import spmp.shared.generated.resources.song_theme_menu_gradient_depth
+import spmp.shared.generated.resources.song_theme_menu_wave_speed
+import spmp.shared.generated.resources.song_theme_menu_wave_opacity
+import spmp.shared.generated.resources.song_theme_menu_video_position
+import spmp.shared.generated.resources.song_theme_menu_background_image_opacity
+import spmp.shared.generated.resources.song_theme_menu_queue_opacity
+import spmp.shared.generated.resources.song_theme_menu_image_shadow_radius
 
 val DEFAULT_THUMBNAIL_ROUNDING: Float
     @Composable get() =
@@ -134,26 +143,26 @@ class SongThemePlayerOverlayMenu(
                     ) {
                         ValueSlider(
                             song.ThumbnailRounding.observe(player.database),
-                            player.settings.theme.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING.get(),
-                            getString("song_theme_menu_corner_radius")
+                            player.settings.theme.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING.getDefaultValueComposable(),
+                            stringResource(Res.string.song_theme_menu_corner_radius)
                         )
 
                         ValueSlider(
                             song.PlayerGradientDepth.observe(player.database),
-                            player.settings.theme.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.get(),
-                            getString("song_theme_menu_gradient_depth")
+                            player.settings.theme.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.getDefaultValueComposable(),
+                            stringResource(Res.string.song_theme_menu_gradient_depth)
                         )
 
                         ValueSlider(
                             song.BackgroundWaveSpeed.observe(player.database),
-                            player.settings.theme.NOWPLAYING_DEFAULT_WAVE_SPEED.get(),
-                            getString("song_theme_menu_wave_speed")
+                            player.settings.theme.NOWPLAYING_DEFAULT_WAVE_SPEED.getDefaultValueComposable(),
+                            stringResource(Res.string.song_theme_menu_wave_speed)
                         )
 
                         ValueSlider(
                             song.BackgroundWaveOpacity.observe(player.database),
-                            player.settings.theme.NOWPLAYING_DEFAULT_WAVE_OPACITY.get(),
-                            getString("song_theme_menu_wave_opacity")
+                            player.settings.theme.NOWPLAYING_DEFAULT_WAVE_OPACITY.getDefaultValueComposable(),
+                            stringResource(Res.string.song_theme_menu_wave_opacity)
                         )
 
                         if (isVideoPlaybackSupported()) {
@@ -179,7 +188,7 @@ class SongThemePlayerOverlayMenu(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Text(
-                                    getString("song_theme_menu_video_position"),
+                                    stringResource(Res.string.song_theme_menu_video_position),
                                     fontSize = 15.sp,
                                     modifier = Modifier.align(Alignment.CenterVertically)
                                 )
@@ -192,22 +201,22 @@ class SongThemePlayerOverlayMenu(
 
                         ValueSlider(
                             song.BackgroundImageOpacity.observe(player.database),
-                            player.settings.theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.get(),
-                            getString("song_theme_menu_background_image_opacity")
+                            player.settings.theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.getDefaultValueComposable(),
+                            stringResource(Res.string.song_theme_menu_background_image_opacity)
                         )
 
                         if (player.form_factor == FormFactor.LANDSCAPE) {
                             ValueSlider(
                                 song.LandscapeQueueOpacity.observe(player.database),
-                                player.settings.theme.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.get(),
-                                getString("song_theme_menu_queue_opacity")
+                                player.settings.theme.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.getDefaultValueComposable(),
+                                stringResource(Res.string.song_theme_menu_queue_opacity)
                             )
                         }
 
                         ValueSlider(
                             song.ShadowRadius.observe(player.database),
-                            player.settings.theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS.get(),
-                            getString("song_theme_menu_image_shadow_radius")
+                            player.settings.theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS.getDefaultValueComposable(),
+                            stringResource(Res.string.song_theme_menu_image_shadow_radius)
                         )
 
                         Spacer(Modifier.fillMaxHeight().weight(1f))

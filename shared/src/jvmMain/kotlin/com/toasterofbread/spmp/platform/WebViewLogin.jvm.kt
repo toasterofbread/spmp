@@ -21,7 +21,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
-import com.multiplatform.webview.cookie.Cookie
 import com.multiplatform.webview.request.RequestInterceptor
 import com.multiplatform.webview.request.WebRequest
 import com.multiplatform.webview.request.WebRequestInterceptResult
@@ -29,17 +28,17 @@ import com.multiplatform.webview.web.WebContent
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.WebViewNavigator
 import com.multiplatform.webview.web.WebViewState
-import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
-import com.toasterofbread.spmp.resources.getString
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
-import java.time.LocalDate
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.webview_restart_required
 
 actual fun isWebViewLoginSupported(): Boolean = true
 
@@ -48,10 +47,10 @@ actual fun WebViewLogin(
     initial_url: String,
     onClosed: () -> Unit,
     shouldShowPage: (url: String) -> Boolean,
-    modifier: Modifier = Modifier,
-    loading_message: String? = null,
-    base_cookies: String = "",
-    user_agent: String? = null,
+    modifier: Modifier,
+    loading_message: String?,
+    base_cookies: String,
+    user_agent: String?,
     onRequestIntercepted: suspend (WebViewRequest, openUrl: (String) -> Unit, getCookies: suspend (String) -> List<Pair<String, String>>) -> Unit
 ) {
     val player: PlayerState = LocalPlayerState.current
@@ -108,7 +107,7 @@ actual fun WebViewLogin(
 
     if (restart_required) {
         Box(modifier, contentAlignment = Alignment.Center) {
-            Text(getString("webview_restart_required"))
+            Text(stringResource(Res.string.webview_restart_required))
         }
         return
     }

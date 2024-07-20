@@ -58,8 +58,8 @@ fun CoreLyricsDisplay(
     var current_range: IntRange? by remember { mutableStateOf(null) }
     var tokenised_lines: List<List<SongLyrics.Term>>? by remember { mutableStateOf(null) }
 
-    fun getScrollOffset(follow_offset: Float = player.settings.lyrics.FOLLOW_OFFSET.get()): Int =
-        (padding_height - static_scroll_offset - size_px * follow_offset).toInt()
+    suspend fun getScrollOffset(follow_offset: Float? = null): Int =
+        (padding_height - static_scroll_offset - size_px * (follow_offset ?: player.settings.lyrics.FOLLOW_OFFSET.get())).toInt()
 
     LaunchedEffect(lyrics, romanise_furigana) {
         val tokeniser: LyricsFuriganaTokeniser = createFuriganaTokeniser(romanise_furigana)

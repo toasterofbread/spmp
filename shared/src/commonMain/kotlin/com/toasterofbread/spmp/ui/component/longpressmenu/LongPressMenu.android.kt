@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.ui.component.longpressmenu
 import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.FiniteAnimationSpec
+import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
@@ -109,7 +110,8 @@ internal fun AndroidLongPressMenu(
                     initialValue = 0,
                     positionalThreshold = { it * 0.2f },
                     velocityThreshold = { with (density) { 100.dp.toPx() } },
-                    animationSpec = tween()
+                    snapAnimationSpec = tween(),
+                    decayAnimationSpec = exponentialDecay()
                 )
             }
 
@@ -170,6 +172,8 @@ internal fun AndroidLongPressMenu(
                 }
 
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
+                    val close_on_action: Boolean by player.settings.behaviour.LPM_CLOSE_ON_ACTION.observe()
+
                     LongPressMenuContent(
                         data,
                         RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
@@ -197,7 +201,7 @@ internal fun AndroidLongPressMenu(
                                 )
                             },
                         onAction = {
-                            if (player.settings.behaviour.LPM_CLOSE_ON_ACTION.get()) {
+                            if (close_on_action) {
                                 close()
                             }
                         }

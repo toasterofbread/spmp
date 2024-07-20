@@ -57,7 +57,6 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.getOrNotify
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -73,6 +72,9 @@ import org.burnoutcrew.reorderable.rememberReorderableLazyListState
 import org.burnoutcrew.reorderable.reorderable
 import LocalPlayerState
 import PlatformIO
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.song_remove_from_playlist
 
 private enum class LoadType {
     AUTO, REFRESH, CONTINUE
@@ -143,7 +145,7 @@ class PlaylistAppPage(
             }
         }) {
             Icon(Icons.Default.PlaylistRemove, null)
-            Text(getString("song_remove_from_playlist"))
+            Text(stringResource(Res.string.song_remove_from_playlist))
         }
     }
 

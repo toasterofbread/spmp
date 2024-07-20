@@ -21,11 +21,11 @@ import kotlinx.coroutines.withContext
 import PlatformIO
 
 sealed interface LocalPlaylist: Playlist {
-    fun getLocalPlaylistFile(context: AppContext): PlatformFile? =
+    suspend fun getLocalPlaylistFile(context: AppContext): PlatformFile? =
         MediaItemLibrary.getLocalPlaylistFile(this, context)
 
     override fun getType(): MediaItemType = MediaItemType.PLAYLIST_LOC
-    override fun getURL(context: AppContext): String =
+    override suspend fun getUrl(context: AppContext): String =
         "file://" + getLocalPlaylistFile(context)?.absolute_path.orEmpty()
     override fun getEmptyData(): LocalPlaylistData = LocalPlaylistData(id)
 

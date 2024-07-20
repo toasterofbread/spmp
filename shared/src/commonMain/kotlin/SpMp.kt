@@ -1,9 +1,7 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.background
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Surface
@@ -24,9 +22,6 @@ import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.getStringOrNull
-import com.toasterofbread.spmp.resources.initResources
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.service.playercontroller.openUri
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.RootView
@@ -35,15 +30,20 @@ import com.toasterofbread.spmp.ui.layout.loadingsplash.SplashMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.model.appaction.shortcut.LocalShortcutState
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
+import com.toasterofbread.spmp.platform.observeUiLanguage
+import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import dev.toastbits.spms.socketapi.shared.SPMS_API_VERSION
 import org.jetbrains.compose.resources.FontResource
 import org.jetbrains.compose.resources.Font
-import ProgramArguments
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_close
+import spmp.shared.generated.resources.app_name
+import spmp.shared.generated.resources.warning_spms_api_version_mismatch
+import spmp.shared.generated.resources.`warning_spms_api_version_mismatch_$theirs_$ours`
 
 val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.player_state }
 val LocalProgramArguments: ProvidableCompositionLocal<ProgramArguments> = staticCompositionLocalOf { ProgramArguments() }
@@ -69,14 +69,15 @@ object SpMp {
 
     fun init(context: AppContext) {
         this.context = context
-        initResources(context.getUiLanguage(), context)
     }
 
-    fun initPlayer(
+    suspend fun initPlayer(
         launch_arguments: ProgramArguments,
         composable_coroutine_scope: CoroutineScope
     ): PlayerState {
-        val player: PlayerState = PlayerState(context, launch_arguments, composable_coroutine_scope)
+        val np_theme_mode: ThemeMode = context.settings.theme.NOWPLAYING_THEME_MODE.get()
+        val swipe_sensitivity: Float = context.settings.player.EXPAND_SWIPE_SENSITIVITY.get()
+        val player: PlayerState = PlayerState(context, launch_arguments, composable_coroutine_scope, np_theme_mode, swipe_sensitivity)
         player.onStart()
         _player_state = player
         return player
@@ -137,9 +138,11 @@ object SpMp {
                 ) {
                     var mismatched_server_api_version: Int? by remember { mutableStateOf(null) }
                     val splash_mode: SplashMode? = when (Platform.current) {
-                        Platform.ANDROID ->
-                            if (!player_state.service_connected && player_state.settings.platform.ENABLE_EXTERNAL_SERVER_MODE.get()) SplashMode.SPLASH
+                        Platform.ANDROID -> {
+                            val external_server_mode: Boolean by player_state.settings.platform.ENABLE_EXTERNAL_SERVER_MODE.observe()
+                            if (!player_state.service_connected && external_server_mode) SplashMode.SPLASH
                             else null
+                        }
                         Platform.DESKTOP,
                         Platform.WEB ->
                             if (!player_state.service_connected) SplashMode.SPLASH
@@ -193,15 +196,15 @@ object SpMp {
                             { mismatched_server_api_version = null },
                             confirmButton = {
                                 Button({ mismatched_server_api_version = null }) {
-                                    Text(getString("action_close"))
+                                    Text(stringResource(Res.string.action_close))
                                 }
                             },
                             title = {
-                                Text(getString("warning_spms_api_version_mismatch"))
+                                Text(stringResource(Res.string.warning_spms_api_version_mismatch))
                             },
                             text = {
                                 Text(
-                                    getString("warning_spms_api_version_mismatch_\$theirs_\$ours")
+                                    stringResource(Res.string.`warning_spms_api_version_mismatch_$theirs_$ours`)
                                         .replace("\$theirs", "v$mismatched_server_api_version")
                                         .replace("\$ours", "v$SPMS_API_VERSION")
                                 )
@@ -231,15 +234,16 @@ object SpMp {
 
     @Composable
     private fun getFontFamily(context: AppContext): FontFamily? {
+        val ui_language: String by context.observeUiLanguage()
         val font_mode: FontMode by context.settings.system.FONT.observe()
-        val font_resource: FontResource? = remember(font_mode) {
-            font_mode.getFontResource(context.getUiLanguage())
-        }
+        val font_resource: FontResource? = remember(ui_language, font_mode) { font_mode.getFontResource(ui_language) }
 
         return font_resource?.let { FontFamily(Font(it)) }
     }
 
-    val app_name: String get() = getStringOrNull("app_name") ?: "SpMp"
+    val app_name: String
+        @Composable
+        get() = stringResource(Res.string.app_name)
 }
 
 expect fun isWindowTransparencySupported(): Boolean

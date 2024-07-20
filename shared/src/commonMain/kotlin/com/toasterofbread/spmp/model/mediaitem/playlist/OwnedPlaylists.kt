@@ -6,8 +6,12 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.observeAsState
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import dev.toastbits.ytmkt.endpoint.CreateAccountPlaylistEndpoint
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.new_playlist_title
+import spmp.shared.generated.resources.new_playlist_title
 
 @Composable
 fun rememberOwnedPlaylists(owner_id: String?, context: AppContext): List<RemotePlaylistRef> {
@@ -29,10 +33,10 @@ suspend fun MediaItemLibrary.createOwnedPlaylist(
     auth_state: ApiAuthenticationState,
     create_endpoint: CreateAccountPlaylistEndpoint
 ): Result<RemotePlaylistData> = runCatching {
-    val playlist_id: String = create_endpoint.createAccountPlaylist(getString("new_playlist_title"), "").getOrThrow()
+    val playlist_id: String = create_endpoint.createAccountPlaylist(getString(Res.string.new_playlist_title), "").getOrThrow()
 
     val playlist: RemotePlaylistData = RemotePlaylistData(playlist_id)
-    playlist.name = getString("new_playlist_title")
+    playlist.name = getString(Res.string.new_playlist_title)
 
     val own_channel_id: String? = auth_state.own_channel_id
     if (own_channel_id != null) {

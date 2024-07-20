@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics.petit
 
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
-import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
 import nl.adaptivity.xmlutil.serialization.XML
 import kotlinx.serialization.Serializable

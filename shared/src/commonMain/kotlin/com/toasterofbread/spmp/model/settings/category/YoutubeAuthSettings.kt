@@ -8,12 +8,14 @@ import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.packSetData
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getYtmAuthItem
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.PrefsPageScreen
 import dev.toastbits.composekit.platform.PlatformPreferences
 import io.ktor.http.Headers
 import kotlinx.serialization.json.Json
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.s_cat_youtube_auth
 
 class YoutubeAuthSettings(val context: AppContext): SettingsGroup("YTAUTH", context.getPrefs()) {
     override fun getUnregisteredProperties(): List<PreferencesProperty<*>> =
@@ -44,7 +46,7 @@ class YoutubeAuthSettings(val context: AppContext): SettingsGroup("YTAUTH", cont
     override val page: CategoryPage? =
         object : CategoryPage(
             this,
-            { getString("s_cat_youtube_auth") }
+            { stringResource(Res.string.s_cat_youtube_auth) }
         ) {
             override fun openPageOnInterface(context: AppContext, settings_interface: SettingsInterface) {
                 val manual: Boolean = false

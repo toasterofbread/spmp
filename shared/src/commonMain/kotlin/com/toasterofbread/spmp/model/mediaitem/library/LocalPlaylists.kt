@@ -13,12 +13,15 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.*
 import PlatformIO
 import dev.toastbits.composekit.platform.PlatformFile
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.new_playlist_title
 
 @Composable
 fun MediaItemLibrary.rememberLocalPlaylists(context: AppContext): List<LocalPlaylistData>? {
@@ -100,7 +103,7 @@ suspend fun MediaItemLibrary.createLocalPlaylist(context: AppContext, base_data:
     }
 
     if (playlist.name == null) {
-        playlist.name = getString("new_playlist_title")
+        playlist.name = getString(Res.string.new_playlist_title)
     }
     playlist.loaded = true
 

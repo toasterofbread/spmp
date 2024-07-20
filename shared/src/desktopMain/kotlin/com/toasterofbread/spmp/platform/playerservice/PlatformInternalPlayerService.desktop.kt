@@ -1,26 +1,32 @@
 package com.toasterofbread.spmp.platform.playerservice
 
 import ProgramArguments
+import androidx.compose.runtime.Composable
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlatformBinder
 import dev.toastbits.composekit.platform.PlatformFile
 import dev.toastbits.spms.server.SpMs
+import kotlinx.coroutines.launch
 
 private class PlayerServiceBinder(val service: PlatformInternalPlayerService): PlatformBinder()
 
 actual class PlatformInternalPlayerService: ExternalPlayerService(plays_audio = false) {
     private fun launchLocalServer() {
-        LocalServer.startLocalServer(
-            context,
-            context.settings.platform.SERVER_PORT.get()
-        )
+        context.coroutine_scope.launch {
+            LocalServer.startLocalServer(
+                context,
+                context.settings.platform.SERVER_PORT.get()
+            )
+        }
     }
 
     actual companion object: PlayerServiceCompanion {
         override fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean =
             SpMs.isAvailable(headless = false)
 
-        override fun getUnavailabilityReason(context: AppContext, launch_arguments: ProgramArguments): String? = LocalServer.getLocalServerUnavailabilityReason()
+        @Composable
+        override fun getUnavailabilityReason(context: AppContext, launch_arguments: ProgramArguments): String? =
+            LocalServer.getLocalServerUnavailabilityReason()
 
         override fun isServiceRunning(context: AppContext): Boolean = true
 

@@ -26,10 +26,13 @@ import dev.toastbits.composekit.platform.vibrateShort
 import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.composable.TextOrIconButton
 import dev.toastbits.composekit.utils.modifier.bounceOnClick
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.appHover
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.queue_clear
+import spmp.shared.generated.resources.queue_shuffle
 
 @Composable
 fun QueueButtonsRow(
@@ -56,7 +59,7 @@ fun QueueButtonsRow(
             StopAfterSongButton(getButtonColour, button_modifier.fillMaxHeight())
 
             TextOrIconButton(
-                text = getString("queue_clear"),
+                text = stringResource(Res.string.queue_clear),
                 icon = Icons.Default.Clear,
                 onClick = {
                     player.controller?.service_player?.undoableAction {
@@ -80,7 +83,7 @@ fun QueueButtonsRow(
             )
 
             TextOrIconButton(
-                text = getString("queue_shuffle"),
+                text = stringResource(Res.string.queue_shuffle),
                 icon = Icons.Default.Shuffle,
                 onClick = {
                     player.controller?.service_player?.undoableAction {

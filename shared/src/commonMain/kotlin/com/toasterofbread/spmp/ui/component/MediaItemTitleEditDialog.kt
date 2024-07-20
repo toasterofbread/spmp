@@ -14,8 +14,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import dev.toastbits.composekit.utils.common.launchSingle
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_confirm_action
+import spmp.shared.generated.resources.action_cancel
+import spmp.shared.generated.resources.`edit_$x_title_dialog_title`
 
 @Composable
 fun MediaItemTitleEditDialog(item: MediaItem, modifier: Modifier = Modifier, close: () -> Unit) {
@@ -33,17 +37,17 @@ fun MediaItemTitleEditDialog(item: MediaItem, modifier: Modifier = Modifier, clo
                     close()
                 }
             }) {
-                Text(getString("action_confirm_action"))
+                Text(stringResource(Res.string.action_confirm_action))
             }
         },
         modifier,
         dismissButton = {
             Button(close) {
-                Text(getString("action_cancel"))
+                Text(stringResource(Res.string.action_cancel))
             }
         },
         title = {
-            Text(getString("edit_\$x_title_dialog_title").replace("\$x", item.getType().getReadable()))
+            Text(stringResource(Res.string.`edit_$x_title_dialog_title`).replace("\$x", stringResource(item.getType().getReadable())))
         },
         text = {
             TextField(

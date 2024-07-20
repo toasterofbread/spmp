@@ -1,5 +1,19 @@
 package com.toasterofbread.spmp.model.mediaitem.library
 
+import PlatformIO
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.song.SongRef
+import com.toasterofbread.spmp.platform.download.DownloadStatus
+import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.download.LocalSongMetadataProcessor
+import com.toasterofbread.spmp.platform.download.SongDownloader
+import dev.toastbits.composekit.platform.PlatformFile
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.joinAll
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
 internal actual class LocalSongSyncLoader: SyncLoader<DownloadStatus>() {
     override suspend fun internalPerformSync(context: AppContext): Map<String, DownloadStatus> {
         val downloads: List<DownloadStatus> =
@@ -17,8 +31,8 @@ internal actual class LocalSongSyncLoader: SyncLoader<DownloadStatus>() {
 
 private suspend fun getAllLocalSongFiles(context: AppContext, allow_partial: Boolean = false): List<DownloadStatus> = withContext(Dispatchers.PlatformIO) {
     val files: List<PlatformFile> = (
-        MediaItemLibrary.getLocalSongsDir(context).listFiles().orEmpty()
-        + if (allow_partial) MediaItemLibrary.getSongDownloadsDir(context).listFiles().orEmpty() else emptyList()
+        MediaItemLibrary.getLocalSongsDir(context)?.listFiles().orEmpty()
+        + if (allow_partial) MediaItemLibrary.getSongDownloadsDir(context)?.listFiles().orEmpty() else emptyList()
     )
 
     val results: Array<DownloadStatus?> = arrayOfNulls(files.size)

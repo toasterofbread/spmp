@@ -10,10 +10,26 @@ import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.isVideoPlaybackSupported
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.s_theme_editor_title
+import spmp.shared.generated.resources.s_theme_editor_field_name
+import spmp.shared.generated.resources.s_theme_editor_field_background
+import spmp.shared.generated.resources.s_theme_editor_field_on_background
+import spmp.shared.generated.resources.s_theme_editor_field_card
+import spmp.shared.generated.resources.s_theme_editor_field_accent
+import spmp.shared.generated.resources.s_theme_editor_button_preview
+import spmp.shared.generated.resources.theme_title_new
+import spmp.shared.generated.resources.s_option_accent_theme
+import spmp.shared.generated.resources.s_option_accent_thumbnail
+import spmp.shared.generated.resources.s_option_np_accent_background
+import spmp.shared.generated.resources.s_option_np_accent_elements
+import spmp.shared.generated.resources.s_option_np_accent_none
+import spmp.shared.generated.resources.s_group_theming_desktop
 
 internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
     val theme: Theme = context.theme
@@ -21,19 +37,19 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
     return listOfNotNull(
         ThemeSelectorSettingsItem(
             context.settings.theme.CURRENT_THEME,
-            str_editor_title = getString("s_theme_editor_title"),
-            str_field_name = getString("s_theme_editor_field_name"),
-            str_field_background = getString("s_theme_editor_field_background"),
-            str_field_on_background = getString("s_theme_editor_field_on_background"),
-            str_field_card = getString("s_theme_editor_field_card"),
-            str_field_accent = getString("s_theme_editor_field_accent"),
-            str_button_preview = getString("s_theme_editor_button_preview"),
+            str_editor_title = Res.string.s_theme_editor_title,
+            str_field_name = Res.string.s_theme_editor_field_name,
+            str_field_background = Res.string.s_theme_editor_field_background,
+            str_field_on_background = Res.string.s_theme_editor_field_on_background,
+            str_field_card = Res.string.s_theme_editor_field_card,
+            str_field_accent = Res.string.s_theme_editor_field_accent,
+            str_button_preview = Res.string.s_theme_editor_button_preview,
             { theme.getThemeCount() },
             { theme.getThemes().getOrNull(it) },
             { index: Int, edited_theme: ThemeData ->
                 theme.updateTheme(index, edited_theme)
             },
-            { theme.addTheme(theme.getCurrentTheme().toStaticThemeData(getString("theme_title_new")), it) },
+            { theme.addTheme(theme.getCurrentTheme().toStaticThemeData(getString(Res.string.theme_title_new)), it) },
             { theme.removeTheme(it) },
             getFieldModifier = { Modifier.appTextField() }
         ),
@@ -42,8 +58,8 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
             context.settings.theme.ACCENT_COLOUR_SOURCE
         ) { source ->
             when (source) {
-                AccentColourSource.THEME -> getString("s_option_accent_theme")
-                AccentColourSource.THUMBNAIL -> getString("s_option_accent_thumbnail")
+                AccentColourSource.THEME -> stringResource(Res.string.s_option_accent_theme)
+                AccentColourSource.THUMBNAIL -> stringResource(Res.string.s_option_accent_thumbnail)
             }
         },
 
@@ -51,9 +67,9 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
             context.settings.theme.NOWPLAYING_THEME_MODE
         ) { mode ->
             when (mode) {
-                ThemeMode.BACKGROUND -> getString("s_option_np_accent_background")
-                ThemeMode.ELEMENTS -> getString("s_option_np_accent_elements")
-                ThemeMode.NONE -> getString("s_option_np_accent_none")
+                ThemeMode.BACKGROUND -> stringResource(Res.string.s_option_np_accent_background)
+                ThemeMode.ELEMENTS -> stringResource(Res.string.s_option_np_accent_elements)
+                ThemeMode.NONE -> stringResource(Res.string.s_option_np_accent_none)
             }
         },
 
@@ -104,9 +120,7 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
 
 private fun getDesktopGroupItems(context: AppContext): List<SettingsItem> =
     listOf(
-        GroupSettingsItem(
-            getString("s_group_theming_desktop")
-        )
+        GroupSettingsItem(Res.string.s_group_theming_desktop)
     ) + (
         if (isWindowTransparencySupported()) getWindowTransparencyItems(context)
         else emptyList()

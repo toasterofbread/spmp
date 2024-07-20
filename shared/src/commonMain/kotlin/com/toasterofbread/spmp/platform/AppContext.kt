@@ -4,8 +4,11 @@ import ProgramArguments
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.ColorScheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
@@ -22,9 +25,12 @@ import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.ytmkt.model.YtmApi
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.theme_title_system
 
 expect class AppContext: PlatformContext {
     val database: Database
@@ -36,17 +42,21 @@ expect class AppContext: PlatformContext {
     fun getPrefs(): PlatformPreferences
 }
 
-internal class ThemeImpl(private val context: AppContext): Theme(getString("theme_title_system")) {
+internal class ThemeImpl(private val context: AppContext): Theme(Res.string.theme_title_system) {
     private var accent_colour_source: AccentColourSource? by mutableStateOf(null)
 
     private val prefs_listener: PlatformPreferencesListener =
         PlatformPreferencesListener { _, key ->
             when (key) {
                 context.settings.theme.ACCENT_COLOUR_SOURCE.key -> {
-                    accent_colour_source = context.settings.theme.ACCENT_COLOUR_SOURCE.get()
+                    context.coroutine_scope.launch {
+                        accent_colour_source = context.settings.theme.ACCENT_COLOUR_SOURCE.get()
+                    }
                 }
                 context.settings.theme.CURRENT_THEME.key -> {
-                    setCurrentThemeIdx(context.settings.theme.CURRENT_THEME.get())
+                    context.coroutine_scope.launch {
+                        setCurrentThemeIdx(context.settings.theme.CURRENT_THEME.get())
+                    }
                 }
                 context.settings.theme.THEMES.key -> {
                     reloadThemes()
@@ -57,8 +67,11 @@ internal class ThemeImpl(private val context: AppContext): Theme(getString("them
     init {
         val prefs = context.getPrefs()
         prefs.addListener(prefs_listener)
-        accent_colour_source = context.settings.theme.ACCENT_COLOUR_SOURCE.get()
-        setCurrentThemeIdx(context.settings.theme.CURRENT_THEME.get(), false)
+
+        context.coroutine_scope.launch {
+            accent_colour_source = context.settings.theme.ACCENT_COLOUR_SOURCE.get()
+            setCurrentThemeIdx(context.settings.theme.CURRENT_THEME.get(), false)
+        }
     }
 
     override fun getDarkColorScheme(): ColorScheme =
@@ -95,11 +108,27 @@ fun PlayerState.getDefaultVerticalPadding(): Dp =
 @Composable
 fun PlayerState.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())
 
-fun AppContext.getUiLanguage(): String =
+suspend fun AppContext.getUiLanguage(): String =
     settings.system.LANG_UI.get().ifEmpty { getDefaultLanguage() }
 
-fun AppContext.getDataLanguage(): String =
+@Composable
+fun AppContext.observeUiLanguage(): State<String> {
+    val lang_ui: String by settings.system.LANG_UI.observe()
+    return remember { derivedStateOf {
+        lang_ui.ifEmpty { getDefaultLanguage() }
+    } }
+}
+
+suspend fun AppContext.getDataLanguage(): String =
     settings.system.LANG_DATA.get().ifEmpty { getDefaultLanguage() }
+
+@Composable
+fun AppContext.observeDataLanguage(): State<String> {
+    val lang_data: String by settings.system.LANG_DATA.observe()
+    return remember { derivedStateOf {
+        lang_data.ifEmpty { getDefaultLanguage() }
+    } }
+}
 
 fun AppContext.getDefaultLanguage(): String =
     Locale.getDefault().toLanguageTag()

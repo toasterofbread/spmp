@@ -23,6 +23,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
+import kotlinx.coroutines.launch
 
 typealias MultiSelectItem = Pair<YtmMediaItem, Int?>
 
@@ -65,14 +66,18 @@ open class MediaItemMultiSelectContext {
     }
 
     fun onActionPerformed() {
-        if (context.settings.behaviour.MULTISELECT_CANCEL_ON_ACTION.get()) {
-            setActive(false)
+        context.coroutine_scope.launch {
+            if (context.settings.behaviour.MULTISELECT_CANCEL_ON_ACTION.get()) {
+                setActive(false)
+            }
         }
     }
 
     private fun onSelectedItemsChanged() {
-        if (selected_items.isEmpty() && context.settings.behaviour.MULTISELECT_CANCEL_ON_NONE_SELECTED.get()) {
-            setActive(false)
+        context.coroutine_scope.launch {
+            if (selected_items.isEmpty() && context.settings.behaviour.MULTISELECT_CANCEL_ON_NONE_SELECTED.get()) {
+                setActive(false)
+            }
         }
     }
 
@@ -115,7 +120,7 @@ open class MediaItemMultiSelectContext {
 
             return true
         }
-        else if (selected_items.removeIf { it.first == item.first && it.second == item.second }) {
+        else if (selected_items.removeAll { it.first == item.first && it.second == item.second }) {
             onSelectedItemsChanged()
             return true
         }

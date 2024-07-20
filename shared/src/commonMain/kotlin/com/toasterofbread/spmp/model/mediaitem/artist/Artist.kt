@@ -20,7 +20,7 @@ class ArtistRef(override val id: String): Artist, MediaItemRef() {
 
 sealed interface Artist: MediaItem {
     override fun getType(): MediaItemType = MediaItemType.ARTIST
-    override fun getURL(context: AppContext): String = "https://music.youtube.com/channel/$id"
+    override suspend fun getUrl(context: AppContext): String = "https://music.youtube.com/channel/$id"
     override fun getReference(): ArtistRef
 
     val SubscribeChannelId: Property<String?>

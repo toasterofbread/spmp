@@ -33,7 +33,6 @@ import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.appaction.NavigationAppAction
 import com.toasterofbread.spmp.model.appaction.action.navigation.AppPageNavigationAction
 import com.toasterofbread.spmp.model.appaction.OtherAppAction
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.*
@@ -46,6 +45,10 @@ import kotlinx.serialization.Serializable
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.content_bar_element_button_config_type
+import spmp.shared.generated.resources.content_bar_element_button_config_become_close_while_target_open
 
 @Serializable
 data class ContentBarElementButton(
@@ -163,7 +166,7 @@ data class ContentBarElementButton(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                getString("content_bar_element_button_config_type"),
+                stringResource(Res.string.content_bar_element_button_config_type),
                 Modifier.align(Alignment.CenterVertically),
                 softWrap = false
             )
@@ -178,7 +181,7 @@ data class ContentBarElementButton(
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    getString("content_bar_element_button_config_become_close_while_target_open"),
+                    stringResource(Res.string.content_bar_element_button_config_become_close_while_target_open),
                     Modifier.align(Alignment.CenterVertically),
                     softWrap = false
                 )

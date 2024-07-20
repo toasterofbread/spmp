@@ -23,17 +23,24 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
 import com.toasterofbread.spmp.platform.getOrNotify
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.song_add_to_playlist
+import spmp.shared.generated.resources.lpm_action_download
+import spmp.shared.generated.resources.toast_playlist_added
+import spmp.shared.generated.resources.playlist_create
+import spmp.shared.generated.resources.song_add_to_playlist
 
 @Composable
 internal fun ColumnScope.MultiSelectOverflowActions(
-    multiselect_context: MediaItemMultiSelectContext, 
+    multiselect_context: MediaItemMultiSelectContext,
     additionalSelectedItemActions: (@Composable ColumnScope.(MediaItemMultiSelectContext) -> Unit)?
 ) {
     val player: PlayerState = LocalPlayerState.current
@@ -41,11 +48,11 @@ internal fun ColumnScope.MultiSelectOverflowActions(
 
     val selected_items = multiselect_context.selected_items
     val downloads: List<DownloadStatus> by rememberSongDownloads()
-    
+
     val any_are_songs: Boolean by remember { derivedStateOf {
         selected_items.any { it.first is Song }
     } }
-    
+
     val any_are_downloadable: Boolean by remember { derivedStateOf {
         selected_items.any { item ->
             if (item.first !is Song) {
@@ -68,7 +75,7 @@ internal fun ColumnScope.MultiSelectOverflowActions(
             adding_to_playlist = multiselect_context.getUniqueSelectedItems().filterIsInstance<Song>()
         }) {
             Icon(Icons.Default.PlaylistAdd, null)
-            Text(getString("song_add_to_playlist"))
+            Text(stringResource(Res.string.song_add_to_playlist))
         }
     }
 
@@ -88,7 +95,7 @@ internal fun ColumnScope.MultiSelectOverflowActions(
             }
         ) {
             Icon(Icons.Default.Download, null)
-            Text(getString("lpm_action_download"))
+            Text(stringResource(Res.string.lpm_action_download))
         }
     }
 
@@ -109,7 +116,7 @@ private fun AddToPlaylistDialog(multiselect_context: MediaItemMultiSelectContext
 
     fun onPlaylistsSelected() {
         onFinished()
-        
+
         if (selected_playlists.isNotEmpty()) {
             coroutine_scope.launch(NonCancellable) {
                 for (playlist in selected_playlists) {
@@ -120,7 +127,7 @@ private fun AddToPlaylistDialog(multiselect_context: MediaItemMultiSelectContext
                     editor.applyChanges()
                 }
 
-                player.context.sendToast(getString("toast_playlist_added"))
+                player.context.sendToast(getString(Res.string.toast_playlist_added))
             }
         }
 
@@ -149,7 +156,7 @@ private fun AddToPlaylistDialog(multiselect_context: MediaItemMultiSelectContext
                         contentColor = player.theme.on_accent
                     )
                 ) {
-                    Text(getString("playlist_create"))
+                    Text(stringResource(Res.string.playlist_create))
                 }
 
                 ShapedIconButton(
@@ -162,7 +169,7 @@ private fun AddToPlaylistDialog(multiselect_context: MediaItemMultiSelectContext
             }
         },
         title = {
-            Text(getString("song_add_to_playlist"), style = MaterialTheme.typography.headlineSmall)
+            Text(stringResource(Res.string.song_add_to_playlist), style = MaterialTheme.typography.headlineSmall)
         },
         text = {
 //                CompositionLocalProvider(LocalContentColor provides context.theme.accent) {

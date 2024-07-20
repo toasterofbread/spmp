@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyColumn
 import dev.toastbits.composekit.settings.ui.Theme
-import com.toasterofbread.spmp.resources.getString
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Row
@@ -46,6 +45,18 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.animation.animateContentSize
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.colour_selector_dialog_title
+import spmp.shared.generated.resources.colour_selector_dialog_select_theme
+import spmp.shared.generated.resources.colour_selector_dialog_select_custom
+import spmp.shared.generated.resources.action_cancel
+import spmp.shared.generated.resources.colour_selector_dialog_player_background
+import spmp.shared.generated.resources.colour_selector_dialog_transparent
+import spmp.shared.generated.resources.theme_colour_background
+import spmp.shared.generated.resources.theme_colour_accent
+import spmp.shared.generated.resources.theme_colour_vibrant_accent
+import spmp.shared.generated.resources.theme_colour_card
 
 @Composable
 fun ColourSelectionDialog(
@@ -59,7 +70,7 @@ fun ColourSelectionDialog(
     AlertDialog(
         onDismissed,
         title = {
-            Text(getString("colour_selector_dialog_title"))
+            Text(stringResource(Res.string.colour_selector_dialog_title))
         },
         text = {
             Crossfade(selecting_custom_colour, Modifier.animateContentSize()) {
@@ -84,8 +95,8 @@ fun ColourSelectionDialog(
                         colors = button_colours
                     ) {
                         Text(
-                            if (it) getString("colour_selector_dialog_select_theme")
-                            else getString("colour_selector_dialog_select_custom")
+                            if (it) stringResource(Res.string.colour_selector_dialog_select_theme)
+                            else stringResource(Res.string.colour_selector_dialog_select_custom)
                         )
                     }
                 }
@@ -94,7 +105,7 @@ fun ColourSelectionDialog(
                     onDismissed,
                     colors = button_colours
                 ) {
-                    Text(getString("action_cancel"))
+                    Text(stringResource(Res.string.action_cancel))
                 }
             }
         }
@@ -122,7 +133,7 @@ private fun ThemeColourSelectionList(
         item {
             ColourCard(
                 colour = player.getNPBackground(),
-                name = getString("colour_selector_dialog_player_background"),
+                name = stringResource(Res.string.colour_selector_dialog_player_background),
                 onSelected = {
                     onSelected(PlayerBackgroundColourSource())
                 }
@@ -132,7 +143,7 @@ private fun ThemeColourSelectionList(
         item {
             ColourCard(
                 colour = Color.Transparent,
-                name = getString("colour_selector_dialog_transparent"),
+                name = stringResource(Res.string.colour_selector_dialog_transparent),
                 onSelected = {
                     onSelected(CustomColourSource(Color.Transparent))
                 }
@@ -193,10 +204,11 @@ private fun CustomColourSelector(
     }
 }
 
+@Composable
 fun Theme.Colour.getReadable(): String =
     when (this) {
-        Theme.Colour.BACKGROUND -> getString("theme_colour_background")
-        Theme.Colour.ACCENT -> getString("theme_colour_accent")
-        Theme.Colour.VIBRANT_ACCENT -> getString("theme_colour_vibrant_accent")
-        Theme.Colour.CARD -> getString("theme_colour_card")
+        Theme.Colour.BACKGROUND -> stringResource(Res.string.theme_colour_background)
+        Theme.Colour.ACCENT -> stringResource(Res.string.theme_colour_accent)
+        Theme.Colour.VIBRANT_ACCENT -> stringResource(Res.string.theme_colour_vibrant_accent)
+        Theme.Colour.CARD -> stringResource(Res.string.theme_colour_card)
     }

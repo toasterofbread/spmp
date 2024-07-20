@@ -5,19 +5,15 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.AnnotatedString
-import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.composable.*
 import dev.toastbits.composekit.utils.common.*
 import dev.toastbits.composekit.utils.composable.*
@@ -28,14 +24,17 @@ import com.toasterofbread.spmp.model.mediaitem.db.getPinnedItems
 import com.toasterofbread.spmp.model.mediaitem.layout.*
 import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import com.toasterofbread.spmp.platform.*
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.*
 import com.toasterofbread.spmp.ui.component.NotImplementedMessage
-import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import dev.toastbits.ytmkt.model.external.ItemLayoutType
-import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import dev.toastbits.ytmkt.uistrings.UiString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_confirm_action
+import spmp.shared.generated.resources.action_deny_action
+import spmp.shared.generated.resources.prompt_confirm_action
+import spmp.shared.generated.resources.`prompt_hide_feed_rows_with_$title`
 
 @Composable
 internal fun SongFeedAppPage.LFFSongFeedAppPage(
@@ -60,11 +59,10 @@ internal fun SongFeedAppPage.LFFSongFeedAppPage(
     val form_factor: FormFactor by FormFactor.observe()
 
     val hidden_rows: Set<String> by player.settings.feed.HIDDEN_ROWS.observe()
-    val hidden_row_titles: List<String> = remember(hidden_rows) {
+    val hidden_row_titles: List<String> =
         hidden_rows.map { row_title ->
-            UiString.deserialise(row_title).getString(player.context)
+            UiString.deserialise(row_title).observe()
         }
-    }
 
     val square_item_max_text_rows: Int by player.settings.feed.SQUARE_PREVIEW_TEXT_LINES.observe()
     val show_download_indicators: Boolean by player.settings.feed.SHOW_SONG_DOWNLOAD_INDICATORS.observe()
@@ -122,6 +120,10 @@ internal fun SongFeedAppPage.LFFSongFeedAppPage(
 
                 hiding_layout?.also { layout ->
                     val title: UiString = layout.title ?: return@also
+                    var title_string: String by remember { mutableStateOf("") }
+                    LaunchedEffect(title) {
+                        title_string = title.getString(player.context)
+                    }
 
                     AlertDialog(
                         onDismissRequest = { hiding_layout = null },
@@ -133,24 +135,24 @@ internal fun SongFeedAppPage.LFFSongFeedAppPage(
 
                                 hiding_layout = null
                             }) {
-                                Text(getString("action_confirm_action"))
+                                Text(stringResource(Res.string.action_confirm_action))
                             }
                         },
                         dismissButton = {
                             Button({
                                 hiding_layout = null
                             }) {
-                                Text(getString("action_deny_action"))
+                                Text(stringResource(Res.string.action_deny_action))
                             }
                         },
                         title = {
                             Row(verticalAlignment = Alignment.CenterVertically) {
-                                Text(getString("prompt_confirm_action"))
+                                Text(stringResource(Res.string.prompt_confirm_action))
 
                                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
                                 IconButton({
-                                    clipboard.setText(AnnotatedString(title.getString(player.context)))
+                                    clipboard.setText(AnnotatedString(title_string))
                                 }) {
                                     Icon(Icons.Default.ContentCopy, null)
                                 }
@@ -158,8 +160,8 @@ internal fun SongFeedAppPage.LFFSongFeedAppPage(
                         },
                         text = {
                             Text(
-                                getString("prompt_hide_feed_rows_with_\$title")
-                                    .replace("\$title", title.getString(player.context))
+                                stringResource(Res.string.`prompt_hide_feed_rows_with_$title`)
+                                    .replace("\$title", title_string)
                             )
                         }
                     )
@@ -186,9 +188,9 @@ internal fun SongFeedAppPage.LFFSongFeedAppPage(
                                     return@items
                                 }
 
-                                val is_hidden: Boolean = remember(layout.title, hidden_row_titles) {
-                                    layout.title?.let { layout_title ->
-                                        val title: String = layout_title.getString(player.context)
+                                val layout_title: String? = layout.title?.observe()
+                                val is_hidden: Boolean = remember(layout_title, hidden_row_titles) {
+                                    layout_title?.let { title ->
                                         hidden_row_titles.any { it == title }
                                     } ?: false
                                 }

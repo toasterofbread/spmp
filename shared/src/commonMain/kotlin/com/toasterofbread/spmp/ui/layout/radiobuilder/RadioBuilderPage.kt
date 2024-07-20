@@ -29,7 +29,6 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import dev.toastbits.composekit.platform.composable.BackHandler
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WaveBorder
@@ -39,6 +38,10 @@ import dev.toastbits.ytmkt.endpoint.RadioBuilderEndpoint
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import PlatformIO
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.radio_builder_artists_title
+import spmp.shared.generated.resources.radio_builder_modifiers_title
 
 const val RADIO_BUILDER_ICON_WIDTH_DP = 37f
 
@@ -92,9 +95,9 @@ fun RadioBuilderPage(
                             RadioBuilderIcon()
 
                             Text(
-                                getString(
-                                    if (selected == null) "radio_builder_artists_title"
-                                    else "radio_builder_modifiers_title"
+                                stringResource(
+                                    if (selected == null) Res.string.radio_builder_artists_title
+                                    else Res.string.radio_builder_modifiers_title
                                 ),
                                 style = MaterialTheme.typography.headlineMedium
                             )

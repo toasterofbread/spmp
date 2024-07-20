@@ -13,7 +13,6 @@ import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.settings.ui.Theme
 import dev.toastbits.composekit.utils.common.*
 import dev.toastbits.composekit.utils.composable.*
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
@@ -44,7 +43,9 @@ data class CustomContentBar(
     val size_dp: Float = CUSTOM_CONTENT_BAR_DEFAULT_SIZE_DP,
     val elements: List<ContentBarElement> = emptyList()
 ): ContentBar() {
+    @Composable
     override fun getName(): String = bar_name
+    @Composable
     override fun getDescription(): String? = null
     override fun getIcon(): ImageVector = Icons.Default.Build
 

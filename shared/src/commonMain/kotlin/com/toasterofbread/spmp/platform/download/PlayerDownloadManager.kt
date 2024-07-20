@@ -19,26 +19,36 @@ import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.DownloadRequestCallback
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.download_method_title_library
+import spmp.shared.generated.resources.download_method_title_custom
+import spmp.shared.generated.resources.download_method_desc_library
+import spmp.shared.generated.resources.download_method_desc_custom
 
 enum class DownloadMethod {
     LIBRARY, CUSTOM;
 
     fun isAvailable(): Boolean = true
 
+    @Composable
     fun getTitle(): String =
         when (this) {
-            LIBRARY -> getString("download_method_title_library")
-            CUSTOM -> getString("download_method_title_custom")
-        }
-    fun getDescription(): String =
-        when (this) {
-            LIBRARY -> getString("download_method_desc_library")
-            CUSTOM -> getString("download_method_desc_custom")
+            LIBRARY -> stringResource(Res.string.download_method_title_library)
+            CUSTOM -> stringResource(Res.string.download_method_title_custom)
         }
 
-    fun execute(context: AppContext, songs: List<Song>, callback: DownloadRequestCallback?) =
+    @Composable
+    fun getDescription(): String =
+        when (this) {
+            LIBRARY -> stringResource(Res.string.download_method_desc_library)
+            CUSTOM -> stringResource(Res.string.download_method_desc_custom)
+        }
+
+    suspend fun execute(context: AppContext, songs: List<Song>, callback: DownloadRequestCallback?) =
         when (this) {
             LIBRARY -> {
                 for (song in songs) {
@@ -80,27 +90,29 @@ enum class DownloadMethod {
                             directory.mkdirs()
                         }
 
-                        for (song in songs) {
-                            var file: PlatformFile
-                            val name: String = song.getActiveTitle(context.database) ?: MediaItemType.SONG.getReadable(false)
+                        context.coroutine_scope.launch {
+                            for (song in songs) {
+                                var file: PlatformFile
+                                val name: String = song.getActiveTitle(context.database) ?: getString(MediaItemType.SONG.getReadable(false))
 
-                            var i: Int = 0
-                            do {
-                                // TODO | Remove hardcoded file type
-                                var file_name = name + ".m4a"
-                                if (i++ >= 1) {
-                                    file_name += " (${i + 1})"
+                                var i: Int = 0
+                                do {
+                                    // TODO | Remove hardcoded file type
+                                    var file_name = name + ".m4a"
+                                    if (i++ >= 1) {
+                                        file_name += " (${i + 1})"
+                                    }
+                                    file = directory.resolve(file_name)
                                 }
-                                file = directory.resolve(file_name)
-                            }
-                            while (file.exists)
+                                while (file.exists)
 
-                            Platform.ANDROID.only {
-                                // File must be created at this stage on Android, it will fail if done later
-                                file.createFile()
-                            }
+                                Platform.ANDROID.only {
+                                    // File must be created at this stage on Android, it will fail if done later
+                                    file.createFile()
+                                }
 
-                            context.download_manager.startDownload(song, custom_uri = file.uri, download_lyrics = false, callback = callback)
+                                context.download_manager.startDownload(song, custom_uri = file.uri, download_lyrics = false, callback = callback)
+                            }
                         }
                     }
                 }

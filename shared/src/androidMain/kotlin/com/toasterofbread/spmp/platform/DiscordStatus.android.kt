@@ -9,7 +9,6 @@ import com.my.kizzyrpc.model.Timestamps
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.JsonHttpClient
-import com.toasterofbread.spmp.resources.getString
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import io.github.jan.supabase.functions.Functions
 import io.github.jan.supabase.plugins.standaloneSupabaseModule
@@ -30,6 +29,9 @@ import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.protobuf.ProtoBuf
 import java.io.IOException
 import java.util.Base64
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.warning_discord_kizzy
 
 actual class DiscordStatus actual constructor(
     private val context: AppContext,
@@ -39,7 +41,7 @@ actual class DiscordStatus actual constructor(
     actual companion object {
         actual fun isSupported(): Boolean = true
         actual fun isAccountTokenRequired(): Boolean = true
-        actual fun getWarningText(): String? = getString("warning_discord_kizzy")
+        actual fun getWarningText(): String? = stringResource(Res.string.warning_discord_kizzy)
     }
 
     private val rpc: KizzyRPC

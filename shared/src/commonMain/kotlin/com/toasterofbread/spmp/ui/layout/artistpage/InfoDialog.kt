@@ -20,46 +20,51 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.utils.composable.Marquee
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.observeUrl
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.resources.stringResourceTODO
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_close
+import spmp.shared.generated.resources.notif_copied_x_to_clipboard
 
 @Composable
 fun ArtistInfoDialog(item: MediaItem, close: () -> Unit) {
     val player: PlayerState = LocalPlayerState.current
-    
+
     AlertDialog(
         close,
         confirmButton = {
             FilledTonalButton(
                 close
             ) {
-                Text(getString("action_close"))
+                Text(stringResource(Res.string.action_close))
             }
         },
-        title = { 
+        title = {
             Text(
-                getStringTODO(
+                stringResourceTODO(
                     when (item) {
                         is Artist -> "Artist info"
                         is RemotePlaylist -> "Playlist info"
                         else -> throw NotImplementedError(item.getType().toString())
                     }
                 )
-            ) 
+            )
         },
         text = {
             @Composable
             fun InfoValue(name_key: String, value: String) {
-                val name = getStringTODO(name_key)
-                
+                val name = stringResourceTODO(name_key)
+
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(20.dp), verticalAlignment = Alignment.CenterVertically) {
                     Column(
                         Modifier
@@ -75,10 +80,12 @@ fun ArtistInfoDialog(item: MediaItem, close: () -> Unit) {
                     }
 
                     Row(horizontalArrangement = Arrangement.End) {
-                        val clipboard = LocalClipboardManager.current
+                        val clipboard: ClipboardManager = LocalClipboardManager.current
+                        val notif_copied_x_to_clipboard: String = stringResource(Res.string.notif_copied_x_to_clipboard)
+
                         IconButton({
                             clipboard.setText(AnnotatedString(value))
-                            player.context.sendToast(getString("notif_copied_x_to_clipboard").replace("\$x", name.lowercase()))
+                            player.context.sendToast(notif_copied_x_to_clipboard.replace("\$x", name.lowercase()))
                         }) {
                             Icon(Icons.Filled.ContentCopy, null, Modifier.size(20.dp))
                         }
@@ -98,7 +105,7 @@ fun ArtistInfoDialog(item: MediaItem, close: () -> Unit) {
                 val item_title: String? by item.observeActiveTitle()
                 InfoValue("Name", item_title ?: "")
                 InfoValue("Id", item.id)
-                InfoValue("Url", item.getURL(player.context))
+                InfoValue("Url", item.observeUrl())
             }
         }
     )

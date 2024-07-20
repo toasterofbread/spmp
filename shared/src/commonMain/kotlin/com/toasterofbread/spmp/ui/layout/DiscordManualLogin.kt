@@ -5,10 +5,13 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import dev.toastbits.composekit.utils.common.launchSingle
 import com.toasterofbread.spmp.platform.getDiscordAccountInfo
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.getStringArray
 import androidx.compose.foundation.layout.PaddingValues
 import kotlinx.serialization.json.Json
+import org.jetbrains.compose.resources.stringArrayResource
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.discord_manual_login_suffix
+import spmp.shared.generated.resources.discord_manual_login_field
 
 private data class DiscordErrorMessage(val message: String?)
 
@@ -17,9 +20,9 @@ fun DiscordManualLogin(content_padding: PaddingValues, modifier: Modifier = Modi
     val coroutine_scope = rememberCoroutineScope()
 
     ManualLoginPage(
-        steps = getStringArray("discord_manual_login_steps"),
-        suffix = getString("discord_manual_login_suffix"),
-        entry_label = getString("discord_manual_login_field"),
+        steps = stringArrayResource(Res.string.discord_manual_login_steps),
+        suffix = stringResource(Res.string.discord_manual_login_suffix),
+        entry_label = stringResource(Res.string.discord_manual_login_field),
         modifier,
         content_padding = content_padding
     ) { entry ->

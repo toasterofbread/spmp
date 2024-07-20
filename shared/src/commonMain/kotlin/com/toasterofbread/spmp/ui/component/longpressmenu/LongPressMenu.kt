@@ -28,6 +28,7 @@ fun LongPressMenu(
 ) {
     when (Platform.current) {
         Platform.ANDROID -> AndroidLongPressMenu(showing, onDismissRequest, data)
-        Platform.DESKTOP -> DesktopLongPressMenu(showing, onDismissRequest, data)
+        Platform.DESKTOP,
+        Platform.WEB -> DesktopLongPressMenu(showing, onDismissRequest, data)
     }
 }

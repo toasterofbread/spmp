@@ -47,10 +47,12 @@ fun HorizontalLyricsLineDisplay(
 
     val lyrics_text_style: TextStyle =
         LocalTextStyle.current.copy(
-            fontSize = when (Platform.current) {
-                Platform.ANDROID -> 16.sp
-                Platform.DESKTOP -> 20.sp
-            },
+            fontSize =
+                when (Platform.current) {
+                    Platform.ANDROID -> 16.sp
+                    Platform.DESKTOP,
+                    Platform.WEB -> 20.sp
+                },
             color = text_colour,
             textAlign = text_align
         )
@@ -114,10 +116,12 @@ fun VerticalLyricsLineDisplay(
 
     val lyrics_text_style: TextStyle =
         LocalTextStyle.current.copy(
-            fontSize = when (Platform.current) {
-                Platform.ANDROID -> 16.sp
-                Platform.DESKTOP -> 20.sp
-            },
+            fontSize =
+                when (Platform.current) {
+                    Platform.ANDROID -> 16.sp
+                    Platform.DESKTOP,
+                    Platform.WEB -> 20.sp
+                },
             color = text_colour
         )
 

@@ -12,7 +12,9 @@ import dev.toastbits.composekit.settings.ui.Theme
 data class TemplateCustomContentBar(
     val template: CustomContentBarTemplate
 ): ContentBar() {
+    @Composable
     override fun getName(): String = template.getName()
+    @Composable
     override fun getDescription(): String? = template.getDescription()
     override fun getIcon(): ImageVector = template.getIcon()
 

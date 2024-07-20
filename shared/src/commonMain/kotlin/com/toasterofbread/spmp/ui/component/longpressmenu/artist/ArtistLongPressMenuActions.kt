@@ -7,8 +7,13 @@ import androidx.compose.material.icons.filled.PlayArrow
 import androidx.compose.runtime.Composable
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.lpm_action_play
+import spmp.shared.generated.resources.lpm_action_open_artist
+import spmp.shared.generated.resources.lpm_action_play_after_1_song
+import spmp.shared.generated.resources.lpm_action_play_after_x_songs
 
 @Composable
 fun LongPressMenuActionProvider.ArtistLongPressMenuActions(artist: MediaItem) {
@@ -17,7 +22,7 @@ fun LongPressMenuActionProvider.ArtistLongPressMenuActions(artist: MediaItem) {
 
     ActionButton(
         Icons.Default.PlayArrow,
-        getString("lpm_action_play"),
+        stringResource(Res.string.lpm_action_play),
         onClick = {
             player.playMediaItem(artist)
         },
@@ -28,7 +33,7 @@ fun LongPressMenuActionProvider.ArtistLongPressMenuActions(artist: MediaItem) {
 
     ActiveQueueIndexAction(
         { distance ->
-            getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace("\$x", distance.toString())
+            stringResource(if (distance == 1) Res.string.lpm_action_play_after_1_song else Res.string.lpm_action_play_after_x_songs).replace("\$x", distance.toString())
         },
         onClick = { active_queue_index ->
             player.playMediaItem(artist, at_index = active_queue_index + 1)
@@ -38,7 +43,7 @@ fun LongPressMenuActionProvider.ArtistLongPressMenuActions(artist: MediaItem) {
         }
     )
 
-    ActionButton(Icons.Default.Person, getString("lpm_action_open_artist"), onClick = {
+    ActionButton(Icons.Default.Person, stringResource(Res.string.lpm_action_open_artist), onClick = {
         player.openMediaItem(artist,)
     })
 }

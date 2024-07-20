@@ -8,13 +8,15 @@ import androidx.compose.runtime.setValue
 import com.toasterofbread.spmp.platform.WebViewLogin
 import dev.toastbits.ytmkt.impl.youtubei.YoutubeiApi
 import androidx.compose.ui.Modifier
-import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.runBlocking
 import java.net.URI
 import io.ktor.http.Headers
 import PlatformIO
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.youtube_login_load_message
 
 @Composable
 internal fun YoutubeMusicWebviewLogin(
@@ -29,7 +31,7 @@ internal fun YoutubeMusicWebviewLogin(
     WebViewLogin(
         initial_url = "https://music.youtube.com",
         modifier = modifier,
-        loading_message = getString("youtube_login_load_message"),
+        loading_message = stringResource(Res.string.youtube_login_load_message),
         base_cookies = "SOCS=CAESNQgREitib3FfaWRlbnRpdHlmcm9udGVuZHVpc2VydmVyXzIwMjQwNDE2LjAxX3AyGgJlbiACGgYIgNGWsQY",
         user_agent = "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.6367.54 Mobile Safari/537.36",
         shouldShowPage = { !it.startsWith(api.api_url) },

@@ -9,9 +9,11 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.model.settings.category.DiscordSettings
 import dev.toastbits.composekit.settings.ui.SettingsPage
 import dev.toastbits.composekit.platform.PreferencesProperty
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.DiscordLogin
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.discord_manual_login_title
 
 internal fun getDiscordLoginPage(discord_auth: PreferencesProperty<String>, manual: Boolean = false): SettingsPage {
     return object : SettingsPage() {
@@ -21,7 +23,7 @@ internal fun getDiscordLoginPage(discord_auth: PreferencesProperty<String>, manu
 
         override val title: String?
             @Composable
-            get() = if (manual) getString("discord_manual_login_title") else null
+            get() = if (manual) stringResource(Res.string.discord_manual_login_title) else null
         override val icon: ImageVector?
             @Composable
             get() = if (manual) DiscordSettings.getIcon() else null

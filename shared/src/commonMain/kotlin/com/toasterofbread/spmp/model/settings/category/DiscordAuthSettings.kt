@@ -11,11 +11,13 @@ import dev.toastbits.composekit.settings.ui.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.SettingsInterface
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getDiscordAuthItem
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.PrefsPageScreen
 import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PreferencesProperty
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.s_cat_discord_auth
 
 class DiscordAuthSettings(val context: AppContext): SettingsGroup("DISCORDAUTH", context.getPrefs()) {
     val DISCORD_ACCOUNT_TOKEN: PreferencesProperty<String> by property(
@@ -32,7 +34,7 @@ class DiscordAuthSettings(val context: AppContext): SettingsGroup("DISCORDAUTH",
     override val page: CategoryPage? =
         object : CategoryPage(
             this,
-            { getString("s_cat_discord_auth") }
+            { stringResource(Res.string.s_cat_discord_auth) }
         ) {
             override fun openPageOnInterface(context: AppContext, settings_interface: SettingsInterface) {
                 val manual: Boolean = false

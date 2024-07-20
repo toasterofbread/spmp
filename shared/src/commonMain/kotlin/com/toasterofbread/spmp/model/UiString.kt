@@ -1,16 +1,50 @@
 package com.toasterofbread.spmp.model
 
+import LocalPlayerState
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.getUiLanguage
+import com.toasterofbread.spmp.platform.observeUiLanguage
+import com.toasterofbread.spmp.resources.Language
+import com.toasterofbread.spmp.resources.getResourceEnvironment
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.ytmkt.uistrings.RawUiString
 import dev.toastbits.ytmkt.uistrings.UiString
 import dev.toastbits.ytmkt.uistrings.YoutubeUiString
-import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.getUiLanguage
+import org.jetbrains.compose.resources.ResourceEnvironment
+import org.jetbrains.compose.resources.StringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.allStringResources
 
 data class AppUiString(
     val string_key: String
 ): UiString {
-    override fun getString(language: String): String =
-        com.toasterofbread.spmp.resources.getString(string_key)
+    private var strings: MutableMap<String, String> = mutableMapOf()
+
+    override suspend fun getString(language: String): String =
+        strings.getOrPut(language) {
+            val string: StringResource = Res.allStringResources[string_key] ?: throw RuntimeException("String resource with key '$string_key' not found")
+            val resource_environment: ResourceEnvironment = Language.fromIdentifier(language).getResourceEnvironment()
+            return@getOrPut org.jetbrains.compose.resources.getString(resource_environment, string)
+        }
+}
+
+@Composable
+fun UiString.observe(): String {
+    val player: PlayerState = LocalPlayerState.current
+    var string: String by remember { mutableStateOf("") }
+    val ui_language: String by player.context.observeUiLanguage()
+
+    LaunchedEffect(this, ui_language) {
+        string = getString(ui_language)
+    }
+
+    return string
 }
 
 fun UiString.serialise(): String =
@@ -55,16 +89,5 @@ fun UiString.Companion.deserialise(data: String): UiString {
     }
 }
 
-fun UiString.getString(context: AppContext): String =
+suspend fun UiString.getString(context: AppContext): String =
     getString(context.getUiLanguage())
-
-//    companion object {
-//        fun mediaItemPage(key: String, item_type: MediaItemType, context: AppContext, source_language: String = context.getDataLanguage()): UiString =
-//            when (item_type) {
-//                MediaItemType.ARTIST -> Type.ARTIST_PAGE.createFromKey(key, context)
-//                else -> {
-//                    SpMp.onUnlocalisedStringFound(item_type.toString(), key, source_language)
-//                    RawLocalisedString(key)
-//                }
-//            }
-//    }

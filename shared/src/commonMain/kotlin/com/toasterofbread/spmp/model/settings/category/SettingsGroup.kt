@@ -55,7 +55,7 @@ sealed class SettingsGroup(
 
     abstract class CategoryPage(
         val group: SettingsGroup,
-        val getTitle: () -> String
+        val getTitle: @Composable () -> String
     ) {
         abstract fun getTitleItem(context: AppContext): SettingsItem?
         abstract fun openPageOnInterface(context: AppContext, settings_interface: SettingsInterface)
@@ -63,8 +63,8 @@ sealed class SettingsGroup(
     }
 
     protected open inner class SimplePage(
-        getTitle: () -> String,
-        val getDescription: () -> String,
+        getTitle: @Composable () -> String,
+        val getDescription: @Composable () -> String,
         private val getPageItems: () -> List<SettingsItem>,
         private val getPageIcon: @Composable () -> ImageVector,
         private val titleBarEndContent: @Composable (Modifier) -> Unit = {}

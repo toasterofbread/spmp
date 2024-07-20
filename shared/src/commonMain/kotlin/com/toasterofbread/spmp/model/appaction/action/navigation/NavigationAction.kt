@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.model.appaction.action.navigation
 
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.resources.getString
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
@@ -14,6 +13,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.appaction_navigation_toggle_player
+import spmp.shared.generated.resources.appaction_navigation_jump_to_lyrics
 
 @Serializable
 sealed interface NavigationAction {
@@ -58,11 +61,12 @@ sealed interface NavigationAction {
             }
         }
 
+        @Composable
         fun getName(): String =
             when (this) {
                 APP_PAGE -> throw IllegalStateException()
-                TOGGLE_PLAYER -> getString("appaction_navigation_toggle_player")
-                JUMP_TO_LYRICS -> getString("appaction_navigation_jump_to_lyrics")
+                TOGGLE_PLAYER -> stringResource(Res.string.appaction_navigation_toggle_player)
+                JUMP_TO_LYRICS -> stringResource(Res.string.appaction_navigation_jump_to_lyrics)
             }
 
         fun getIcon(): ImageVector =

@@ -5,7 +5,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PreferencesProperty
 
-class YTApiSettings(val context: AppContext): SettingsGroup("YTAPI", context.getPrefs()) {
+class YTApiSettings(prefs: PlatformPreferences): SettingsGroup("YTAPI", prefs) {
     override val page: CategoryPage? = null // TODO
 
     val API_TYPE: PreferencesProperty<YtmApiType> by enumProperty(

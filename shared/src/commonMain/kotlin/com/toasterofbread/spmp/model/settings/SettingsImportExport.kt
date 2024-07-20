@@ -24,7 +24,7 @@ object SettingsImportExport {
             included_categories?.mapNotNull { context.settings.groupFromKey(it) }
     }
 
-    fun exportSettingsData(
+    suspend fun exportSettingsData(
         prefs: PlatformPreferences,
         groups: List<SettingsGroup>
     ): SettingsExportData {

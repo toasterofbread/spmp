@@ -16,12 +16,23 @@ import dev.toastbits.composekit.platform.composable.platformClickable
 import dev.toastbits.composekit.settings.ui.Theme
 import com.toasterofbread.spmp.model.appaction.*
 import com.toasterofbread.spmp.model.appaction.action.navigation.AppPageNavigationAction
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.theme.appHover
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.content_bar_template_navigation
+import spmp.shared.generated.resources.content_bar_template_lyrics
+import spmp.shared.generated.resources.content_bar_template_song_actions
+import spmp.shared.generated.resources.content_bar_template_default_portrait_top_upper
+import spmp.shared.generated.resources.content_bar_template_default_portrait_top_lower
+import spmp.shared.generated.resources.content_bar_template_desc_navigation
+import spmp.shared.generated.resources.content_bar_template_desc_lyrics
+import spmp.shared.generated.resources.content_bar_template_desc_song_actions
+import spmp.shared.generated.resources.action_cancel
+import spmp.shared.generated.resources.content_bar_editor_template_dialog_title
 
 enum class CustomContentBarTemplate {
     NAVIGATION,
@@ -33,20 +44,22 @@ enum class CustomContentBarTemplate {
     fun getContentBar(): ContentBar =
         TemplateCustomContentBar(this)
 
+    @Composable
     fun getName(): String =
         when (this) {
-            NAVIGATION -> getString("content_bar_template_navigation")
-            LYRICS -> getString("content_bar_template_lyrics")
-            SONG_ACTIONS -> getString("content_bar_template_song_actions")
-            DEFAULT_PORTRAIT_TOP_UPPER -> getString("content_bar_template_default_portrait_top_upper")
-            DEFAULT_PORTRAIT_TOP_LOWER -> getString("content_bar_template_default_portrait_top_lower")
+            NAVIGATION -> stringResource(Res.string.content_bar_template_navigation)
+            LYRICS -> stringResource(Res.string.content_bar_template_lyrics)
+            SONG_ACTIONS -> stringResource(Res.string.content_bar_template_song_actions)
+            DEFAULT_PORTRAIT_TOP_UPPER -> stringResource(Res.string.content_bar_template_default_portrait_top_upper)
+            DEFAULT_PORTRAIT_TOP_LOWER -> stringResource(Res.string.content_bar_template_default_portrait_top_lower)
         }
 
+    @Composable
     fun getDescription(): String? =
         when (this) {
-            NAVIGATION -> getString("content_bar_template_desc_navigation")
-            LYRICS -> getString("content_bar_template_desc_lyrics")
-            SONG_ACTIONS -> getString("content_bar_template_desc_song_actions")
+            NAVIGATION -> stringResource(Res.string.content_bar_template_desc_navigation)
+            LYRICS -> stringResource(Res.string.content_bar_template_desc_lyrics)
+            SONG_ACTIONS -> stringResource(Res.string.content_bar_template_desc_song_actions)
             DEFAULT_PORTRAIT_TOP_UPPER -> null
             DEFAULT_PORTRAIT_TOP_LOWER -> null
         }
@@ -158,11 +171,11 @@ enum class CustomContentBarTemplate {
                         ),
                         modifier = Modifier.appHover(true)
                     ) {
-                        Text(getString("action_cancel"))
+                        Text(stringResource(Res.string.action_cancel))
                     }
                 },
                 title = {
-                    Text(getString("content_bar_editor_template_dialog_title"))
+                    Text(stringResource(Res.string.content_bar_editor_template_dialog_title))
                 },
                 text = {
                     LazyColumn(

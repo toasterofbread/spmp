@@ -10,12 +10,14 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.time.milliseconds
 import okio.buffer
 import okio.BufferedSink
 import okio.use
 import kotlin.time.Duration
 import PlatformIO
+import org.jetbrains.compose.resources.getString
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.app_name
 
 // Reads and writes LRC files based on https://en.wikipedia.org/wiki/LRC_(file_format)
 object LyricsFileConverter {
@@ -23,13 +25,13 @@ object LyricsFileConverter {
         "${song.id}.${getFileExtension()}"
     fun getFileExtension(): String = "lrc"
 
-    private fun BufferedSink.writeFileHeaders(lyrics: SongLyrics) {
+    private suspend fun BufferedSink.writeFileHeaders(lyrics: SongLyrics) {
         writeUtf8(
             buildString {
                 appendLine("[src:${lyrics.reference.source_index}]")
                 appendLine("[id:${lyrics.reference.id}]")
 
-                appendLine("[re:${SpMp.app_name}]")
+                appendLine("[re:${getString(Res.string.app_name)}]")
                 appendLine("[ve:${ProjectBuildConfig.GIT_COMMIT_HASH}]")
             }
         )

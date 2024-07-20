@@ -23,12 +23,13 @@ import PlatformIO
 
 @Suppress("DeferredResultUnused")
 object MediaItemLibrary {
-    fun getLibraryDir(
+    suspend fun getLibraryDir(
         context: AppContext,
-        custom_location_uri: String = context.settings.system.LIBRARY_PATH.get(),
+        custom_location_uri: String? = null
     ): PlatformFile? {
-        if (custom_location_uri.isNotBlank()) {
-            val custom_dir: PlatformFile? = context.getUserDirectoryFile(custom_location_uri)
+        val location_url: String = custom_location_uri ?: context.settings.system.LIBRARY_PATH.get()
+        if (location_url.isNotBlank()) {
+            val custom_dir: PlatformFile? = context.getUserDirectoryFile(location_url)
             if (custom_dir != null) {
                 return custom_dir
             }
@@ -43,19 +44,19 @@ object MediaItemLibrary {
     fun getSongDownloadsDir(context: AppContext): PlatformFile? =
         context.getFilesDir()?.resolve("downloads")
 
-    fun getLocalSongsDir(context: AppContext): PlatformFile? =
+    suspend fun getLocalSongsDir(context: AppContext): PlatformFile? =
         getLibraryDir(context)?.resolve("songs")
 
-    fun getLocalLyricsDir(context: AppContext): PlatformFile? =
+    suspend fun getLocalLyricsDir(context: AppContext): PlatformFile? =
         getLibraryDir(context)?.resolve("lyrics")
 
-    fun getLocalLyricsFile(song: Song, context: AppContext): PlatformFile? =
+    suspend fun getLocalLyricsFile(song: Song, context: AppContext): PlatformFile? =
         getLocalLyricsDir(context)?.resolve(LyricsFileConverter.getSongLyricsFileName(song))
 
-    fun getLocalPlaylistsDir(context: AppContext): PlatformFile? =
+    suspend fun getLocalPlaylistsDir(context: AppContext): PlatformFile? =
         getLibraryDir(context)?.resolve("playlists")
 
-    fun getLocalPlaylistFile(playlist: LocalPlaylist, context: AppContext): PlatformFile? =
+    suspend fun getLocalPlaylistFile(playlist: LocalPlaylist, context: AppContext): PlatformFile? =
         getLocalPlaylistsDir(context)?.resolve(PlaylistFileConverter.getPlaylistFileName(playlist))
 
     interface PlaylistsListener {

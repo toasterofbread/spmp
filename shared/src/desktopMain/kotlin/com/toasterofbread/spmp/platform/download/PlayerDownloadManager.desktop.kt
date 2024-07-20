@@ -10,33 +10,43 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
 
-
 actual class PlayerDownloadManager actual constructor(private val context: AppContext) {
-    private val downloader: SongDownloader = object : SongDownloader(
-        context,
-        Executors.newFixedThreadPool(3)
-    ) {
-        override fun getAudioFileDurationMs(file: PlatformFile): Long? {
-            // TODO
-            return null
-        }
+    private var _downloader: SongDownloader? = null
+    private val listeners: MutableList<DownloadStatusListener> = mutableListOf()
 
-        override fun onDownloadStatusChanged(download: Download, started: Boolean) {
-            synchronized(listeners) {
-                val status: DownloadStatus = download.getStatusObject()
-                for (listener in listeners) {
-                    if (started) {
-                        listener.onDownloadAdded(status)
+    private suspend fun getDownloader(): SongDownloader {
+        if (_downloader == null) {
+            val local_songs_dir: PlatformFile = MediaItemLibrary.getLocalSongsDir(context)!!
+            _downloader =
+                object : SongDownloader(
+                    context,
+                    Executors.newFixedThreadPool(3),
+                    MediaItemLibrary.getSongDownloadsDir(context)!!,
+                    local_songs_dir
+                ) {
+                    override fun getAudioFileDurationMs(file: PlatformFile): Long? {
+                        // TODO
+                        return null
                     }
-                    else {
-                        listener.onDownloadChanged(status)
+
+                    override fun onDownloadStatusChanged(download: Download, started: Boolean) {
+                        synchronized(listeners) {
+                            val status: DownloadStatus = download.getStatusObject()
+                            for (listener in listeners) {
+                                if (started) {
+                                    listener.onDownloadAdded(status)
+                                }
+                                else {
+                                    listener.onDownloadChanged(status)
+                                }
+                            }
+                        }
                     }
                 }
-            }
         }
-    }
 
-    private val listeners: MutableList<DownloadStatusListener> = mutableListOf()
+        return _downloader!!
+    }
 
     actual open class DownloadStatusListener actual constructor() {
         actual open fun onDownloadAdded(status: DownloadStatus) {}
@@ -66,7 +76,7 @@ actual class PlayerDownloadManager actual constructor(private val context: AppCo
         callback: DownloadRequestCallback?,
     ) {
         context.coroutine_scope.launch {
-            downloader.startDownload(song, silent, custom_uri, download_lyrics, direct) { download, result ->
+            getDownloader().startDownload(song, silent, custom_uri, download_lyrics, direct) { download, result ->
                 val status: DownloadStatus = download.getStatusObject()
                 context.coroutine_scope.launch {
                     if (custom_uri == null) {
@@ -85,7 +95,7 @@ actual class PlayerDownloadManager actual constructor(private val context: AppCo
     }
 
     actual suspend fun getDownload(song: Song): DownloadStatus? = withContext(Dispatchers.IO) {
-        val service_status: DownloadStatus? = downloader.getDownloadStatus(song)
+        val service_status: DownloadStatus? = getDownloader().getDownloadStatus(song)
         if (service_status != null) {
             return@withContext service_status
         }
@@ -94,7 +104,7 @@ actual class PlayerDownloadManager actual constructor(private val context: AppCo
     }
 
     actual suspend fun getDownloads(): List<DownloadStatus> =
-        downloader.getAllDownloadsStatus()
+        _downloader?.getAllDownloadsStatus().orEmpty()
 
     actual suspend fun deleteSongLocalAudioFile(song: Song) {
         val download: DownloadStatus = getDownload(song) ?: return

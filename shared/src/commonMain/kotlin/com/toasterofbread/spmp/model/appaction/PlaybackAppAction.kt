@@ -13,8 +13,10 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.model.appaction.action.playback.*
-import com.toasterofbread.spmp.resources.getString
 import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.appaction_config_playback_action_type
 
 @Serializable
 data class PlaybackAppAction(
@@ -54,7 +56,7 @@ data class PlaybackAppAction(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                getString("appaction_config_playback_action_type"),
+                stringResource(Res.string.appaction_config_playback_action_type),
                 Modifier.align(Alignment.CenterVertically),
                 softWrap = false
             )

@@ -62,7 +62,6 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
@@ -73,6 +72,9 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.lpm_long_press_actions
 
 @Composable
 internal fun LongPressMenuContent(
@@ -210,7 +212,7 @@ internal fun LongPressMenuContent(
                         contentAlignment = Alignment.CenterStart
                     ) {
                         AlignableCrossfade(show_info, Modifier.requiredHeight(40.dp), contentAlignment = Alignment.CenterStart) { info ->
-                            val text = if (info) getString("lpm_long_press_actions") else data.getTitle?.invoke()
+                            val text = if (info) stringResource(Res.string.lpm_long_press_actions) else data.getTitle?.invoke()
                             val current = info == show_info
                             if (text != null) {
                                 Text(

@@ -37,7 +37,7 @@ actual open class PlatformServiceImpl: PlatformService {
             onDisconnected: (() -> Unit)?
         ): Any {
             val service: PlatformServiceImpl = service_instances.getOrPut(cls) {
-                cls.getDeclaredConstructor().newInstance().also {
+                cls.java.getDeclaredConstructor().newInstance().also {
                     it.init(context)
                     it.onCreate()
                 }

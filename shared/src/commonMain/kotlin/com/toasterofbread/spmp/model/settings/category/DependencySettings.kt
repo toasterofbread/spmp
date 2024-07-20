@@ -35,14 +35,22 @@ import com.toasterofbread.spmp.SpMpDeps
 import com.toasterofbread.spmp.DependencyInfo
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import LocalPlayerState
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.s_cat_dependencies
+import spmp.shared.generated.resources.s_cat_desc_dependencies
+import spmp.shared.generated.resources.dependency_list_title
+import spmp.shared.generated.resources.dependency_list_dep_using_fork
+import spmp.shared.generated.resources.`dependency_list_dep_$author`
+import spmp.shared.generated.resources.`dependency_list_dep_$license`
+import spmp.shared.generated.resources.dependency_list_dep_view_source
 
 class DependencySettings(val context: AppContext): SettingsGroup("DEPENDENCY", context.getPrefs()) {
     override val page: CategoryPage? =
         SimplePage(
-            { getString("s_cat_dependencies") },
-            { getString("s_cat_desc_dependencies") },
+            { stringResource(Res.string.s_cat_dependencies) },
+            { stringResource(Res.string.s_cat_desc_dependencies) },
             { listOf(
                 ComposableSettingsItem {
                     DependencyList(Modifier.fillMaxSize())
@@ -69,7 +77,7 @@ private fun DependencyList(modifier: Modifier = Modifier) {
     val dependencies: List<DependencyInfo> = remember { SpMpDeps.dependencies.values.sortedBy { it.name } }
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(15.dp)) {
-        Text(getString("dependency_list_title"), style = MaterialTheme.typography.titleSmall)
+        Text(stringResource(Res.string.dependency_list_title), style = MaterialTheme.typography.titleSmall)
 
         for (dependency in dependencies) {
             DependencyInfo(dependency, Modifier.fillMaxWidth())
@@ -101,7 +109,7 @@ private fun DependencyInfo(dependency: DependencyInfo, modifier: Modifier = Modi
             CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.labelSmall) {
                 if (dependency.fork_url != null) {
                     Row(Modifier.align(Alignment.CenterVertically), verticalAlignment = Alignment.CenterVertically) {
-                        Text(getString("dependency_list_dep_using_fork"), Modifier.thenIf(player.context.canOpenUrl()) { offset(x = 10.dp) })
+                        Text(stringResource(Res.string.dependency_list_dep_using_fork), Modifier.thenIf(player.context.canOpenUrl()) { offset(x = 10.dp) })
 
                         if (player.context.canOpenUrl()) {
                             IconButton({ player.context.openUrl(dependency.fork_url) }) {
@@ -119,10 +127,10 @@ private fun DependencyInfo(dependency: DependencyInfo, modifier: Modifier = Modi
 
         CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.labelMedium) {
             FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                Text(getString("dependency_list_dep_\$author").replace("\$author", dependency.author), Modifier.align(Alignment.CenterVertically))
+                Text(stringResource(Res.string.`dependency_list_dep_$author`).replace("\$author", dependency.author), Modifier.align(Alignment.CenterVertically))
 
                 Row(Modifier.align(Alignment.CenterVertically), verticalAlignment = Alignment.CenterVertically) {
-                    Text(getString("dependency_list_dep_\$license").replace("\$license", dependency.license))
+                    Text(stringResource(Res.string.`dependency_list_dep_$license`).replace("\$license", dependency.license))
 
                     if (player.context.canOpenUrl()) {
                         IconButton(
@@ -139,7 +147,7 @@ private fun DependencyInfo(dependency: DependencyInfo, modifier: Modifier = Modi
                         Button({ player.context.openUrl(dependency.url) }) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.Code, null, Modifier.padding(end = 10.dp))
-                                Text(getString("dependency_list_dep_view_source"))
+                                Text(stringResource(Res.string.dependency_list_dep_view_source))
                             }
                         }
                     }

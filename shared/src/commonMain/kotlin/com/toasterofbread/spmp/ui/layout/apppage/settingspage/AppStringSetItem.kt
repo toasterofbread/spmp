@@ -5,13 +5,17 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.settings.ui.item.StringSetSettingsItem
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import dev.toastbits.composekit.platform.PreferencesProperty
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.settings_string_set_item_already_added
+import spmp.shared.generated.resources.settings_string_set_item_empty
 
 fun AppStringSetItem(
     state: PreferencesProperty<Set<String>>,
-    add_dialog_title: String,
+    add_dialog_title: StringResource,
     single_line_content: Boolean = true,
     max_height: Dp = 300.dp,
     itemToText: @Composable (String) -> String = { it },
@@ -20,8 +24,8 @@ fun AppStringSetItem(
     StringSetSettingsItem(
         state = state,
         add_dialog_title = add_dialog_title,
-        msg_item_already_added = getString("settings_string_set_item_already_added"),
-        msg_set_empty = getString("settings_string_set_item_empty"),
+        msg_item_already_added = Res.string.settings_string_set_item_already_added,
+        msg_set_empty = Res.string.settings_string_set_item_empty,
         single_line_content = single_line_content,
         max_height = max_height,
         itemToText = itemToText,

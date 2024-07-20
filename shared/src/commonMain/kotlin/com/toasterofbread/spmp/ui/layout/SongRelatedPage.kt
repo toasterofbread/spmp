@@ -38,7 +38,6 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.toMediaItemData
 import com.toasterofbread.spmp.model.MediaItemLayoutParams
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
@@ -46,6 +45,10 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import dev.toastbits.ytmkt.endpoint.SongRelatedContentEndpoint
 import dev.toastbits.ytmkt.model.external.RelatedGroup
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.song_related_page_no_content
+import spmp.shared.generated.resources.song_related_page_empty_row
 
 @Composable
 fun SongRelatedPage(
@@ -82,7 +85,7 @@ fun SongRelatedPage(
                 ErrorInfoDisplay(result.exceptionOrNull()!!, isDebugBuild(), onDismiss = null, onRetry = { retry = !retry })
             }
             else if (related.isEmpty()) {
-                Text(getString("song_related_page_no_content"))
+                Text(stringResource(Res.string.song_related_page_no_content))
             }
             else {
                 val horizontal_padding: PaddingValues = content_padding.horizontal
@@ -131,7 +134,7 @@ fun SongRelatedPage(
                                     Text(group.description ?: "", Modifier.padding(horizontal_padding), style = description_text_style)
                                 }
                                 else {
-                                    Text(getString("song_related_page_empty_row"), Modifier.padding(horizontal_padding))
+                                    Text(stringResource(Res.string.song_related_page_empty_row), Modifier.padding(horizontal_padding))
                                 }
                             }
                         }

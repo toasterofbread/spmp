@@ -34,13 +34,20 @@ import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.utils.composable.LinkifyText
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.DiscordStatus
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getDiscordAuthItem
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import LocalProgramArguments
 import ProgramArguments
 import LocalPlayerState
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_warning_accept
+import spmp.shared.generated.resources.flatpak_documentation_url
+import spmp.shared.generated.resources.`info_flatpak_discord_$url`
+import spmp.shared.generated.resources.s_group_discord_status_disable_when
+import spmp.shared.generated.resources.s_group_discord_status_content
+import spmp.shared.generated.resources.s_discord_status_text_info
 
 internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
     if (!DiscordStatus.isSupported()) {
@@ -75,7 +82,7 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
                             )
                         ) {
                             Text(
-                                getString("action_warning_accept")
+                                stringResource(Res.string.action_warning_accept)
                             )
                         }
                     }
@@ -90,7 +97,7 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
             if (program_arguments.is_flatpak) {
                 LinkifyText(
                     context,
-                    getString("info_flatpak_discord_\$url").replace("\$url", getString("flatpak_documentation_url") + " "),
+                    stringResource(Res.string.`info_flatpak_discord_$url`).replace("\$url", stringResource(Res.string.flatpak_documentation_url) + " "),
                     player.theme.vibrant_accent
                 )
             }
@@ -98,7 +105,7 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
 
         getDiscordAuthItem(context),
 
-        GroupSettingsItem(getString("s_group_discord_status_disable_when")),
+        GroupSettingsItem(Res.string.s_group_discord_status_disable_when),
 
         ToggleSettingsItem(
             context.settings.discord.STATUS_DISABLE_WHEN_INVISIBLE
@@ -116,9 +123,9 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
             context.settings.discord.STATUS_DISABLE_WHEN_ONLINE
         ),
 
-        GroupSettingsItem(getString("s_group_discord_status_content")),
+        GroupSettingsItem(Res.string.s_group_discord_status_content),
 
-        InfoTextSettingsItem(getString("s_discord_status_text_info")),
+        InfoTextSettingsItem(Res.string.s_discord_status_text_info),
 
         TextFieldSettingsItem(
             context.settings.discord.STATUS_NAME,

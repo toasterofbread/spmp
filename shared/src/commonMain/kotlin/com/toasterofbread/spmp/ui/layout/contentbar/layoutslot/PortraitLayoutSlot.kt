@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.contentbar.layoutslot
 
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.InternalContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBarTemplate
@@ -21,6 +20,14 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.layout_slot_portrait_upper_top_bar
+import spmp.shared.generated.resources.layout_slot_portrait_lower_top_bar
+import spmp.shared.generated.resources.layout_slot_portrait_above_player
+import spmp.shared.generated.resources.layout_slot_portrait_below_player
+import spmp.shared.generated.resources.layout_slot_portrait_player_top
+import spmp.shared.generated.resources.layout_slot_config_portrait_player_top_show_in_queue
 
 enum class PortraitLayoutSlot: LayoutSlot {
     UPPER_TOP_BAR,
@@ -44,13 +51,14 @@ enum class PortraitLayoutSlot: LayoutSlot {
 
     override fun getKey(): String = name
 
+    @Composable
     override fun getName(): String =
         when (this) {
-            UPPER_TOP_BAR -> getString("layout_slot_portrait_upper_top_bar")
-            LOWER_TOP_BAR -> getString("layout_slot_portrait_lower_top_bar")
-            ABOVE_PLAYER -> getString("layout_slot_portrait_above_player")
-            BELOW_PLAYER -> getString("layout_slot_portrait_below_player")
-            PLAYER_TOP -> getString("layout_slot_portrait_player_top")
+            UPPER_TOP_BAR -> stringResource(Res.string.layout_slot_portrait_upper_top_bar)
+            LOWER_TOP_BAR -> stringResource(Res.string.layout_slot_portrait_lower_top_bar)
+            ABOVE_PLAYER -> stringResource(Res.string.layout_slot_portrait_above_player)
+            BELOW_PLAYER -> stringResource(Res.string.layout_slot_portrait_below_player)
+            PLAYER_TOP -> stringResource(Res.string.layout_slot_portrait_player_top)
         }
 
     override fun getDefaultContentBar(): ContentBar? =
@@ -99,7 +107,7 @@ enum class PortraitLayoutSlot: LayoutSlot {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(getString("layout_slot_config_portrait_player_top_show_in_queue"))
+            Text(stringResource(Res.string.layout_slot_config_portrait_player_top_show_in_queue))
 
             Switch(
                 config.show_in_queue,

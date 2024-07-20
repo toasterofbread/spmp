@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.OpenInNew
 import androidx.compose.material.icons.filled.Shuffle
 import androidx.compose.material.icons.outlined.Info
 import androidx.compose.material.icons.outlined.OpenInNew
@@ -45,8 +46,14 @@ import dev.toastbits.composekit.platform.composable.ScrollabilityIndicatorRow
 import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.utils.modifier.vertical
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.model.mediaitem.observeUrl
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.artist_chip_shuffle
+import spmp.shared.generated.resources.action_share
+import spmp.shared.generated.resources.artist_chip_open
+import spmp.shared.generated.resources.artist_chip_details
 
 @Composable
 fun ArtistActionBar(
@@ -100,33 +107,33 @@ fun ArtistActionBar(
             }
 
             if (play_button_size == null && shuffle_playlist_id != null) {
-                Chip(getString("artist_chip_shuffle"), Icons.Outlined.Shuffle) { player.playMediaItem(artist, true) }
+                Chip(stringResource(Res.string.artist_chip_shuffle), Icons.Outlined.Shuffle) { player.playMediaItem(artist, true) }
             }
+
+            val artist_url: String = artist.observeUrl()
 
             if (player.context.canShare()) {
                 Chip(
-                    getString("action_share"),
+                    stringResource(Res.string.action_share),
                     Icons.Outlined.Share
                 ) {
                     player.context.shareText(
-                        artist.getURL(player.context),
+                        artist_url,
                         artist.getActiveTitle(player.database) ?: ""
                     )
                 }
             }
             if (player.context.canOpenUrl()) {
                 Chip(
-                    getString("artist_chip_open"),
-                    Icons.Outlined.OpenInNew
+                    stringResource(Res.string.artist_chip_open),
+                    Icons.AutoMirrored.Outlined.OpenInNew
                 ) {
-                    player.context.openUrl(
-                        artist.getURL(player.context)
-                    )
+                    player.context.openUrl(artist_url)
                 }
             }
 
             Chip(
-                getString("artist_chip_details"),
+                stringResource(Res.string.artist_chip_details),
                 Icons.Outlined.Info
             ) {
                 show_info = !show_info

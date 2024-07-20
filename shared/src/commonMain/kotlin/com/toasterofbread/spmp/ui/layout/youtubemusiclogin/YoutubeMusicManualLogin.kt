@@ -6,14 +6,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import dev.toastbits.composekit.utils.common.indexOfOrNull
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.getStringArray
 import com.toasterofbread.spmp.ui.layout.ManualLoginPage
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState
 import io.ktor.http.Headers
 import io.ktor.http.HeadersBuilder
 import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringArrayResource
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.youtube_manual_login_suffix
+import spmp.shared.generated.resources.youtube_manual_login_field
+import spmp.shared.generated.resources.manual_login_error_missing_following_headers
 
 @Composable
 internal fun YoutubeMusicManualLogin(
@@ -26,9 +31,9 @@ internal fun YoutubeMusicManualLogin(
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     ManualLoginPage(
-        steps = getStringArray("youtube_manual_login_steps"),
-        suffix = getString("youtube_manual_login_suffix"),
-        entry_label = getString("youtube_manual_login_field"),
+        steps = stringArrayResource(Res.string.youtube_manual_login_steps),
+        suffix = stringResource(Res.string.youtube_manual_login_suffix),
+        entry_label = stringResource(Res.string.youtube_manual_login_field),
         modifier = modifier,
         login_url = login_url,
         content_padding = content_padding
@@ -49,14 +54,14 @@ internal fun YoutubeMusicManualLogin(
                         header.replaceFirstChar { it.uppercase() }
                     }
                     return@fold Pair(
-                        getString("manual_login_error_missing_following_headers"),
+                        getString(Res.string.manual_login_error_missing_following_headers),
                         error.keys.joinToString("\n") { header ->
                             header.replaceFirstChar { it.uppercase() }
                         }
                     )
                 }
                 else {
-                    return@fold Pair(error.javaClass.simpleName, error.message ?: "")
+                    return@fold Pair(error::class.toString(), error.message ?: "")
                 }
             }
         )

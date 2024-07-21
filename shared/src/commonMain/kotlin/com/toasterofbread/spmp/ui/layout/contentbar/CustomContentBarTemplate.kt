@@ -13,14 +13,13 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.platform.composable.platformClickable
-import dev.toastbits.composekit.settings.ui.Theme
 import com.toasterofbread.spmp.model.appaction.*
-import com.toasterofbread.spmp.model.appaction.action.navigation.AppPageNavigationAction
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.theme.appHover
-import kotlinx.serialization.Serializable
+import dev.toastbits.composekit.settings.ui.ThemeValues
+import dev.toastbits.composekit.settings.ui.vibrant_accent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.content_bar_template_navigation
@@ -143,7 +142,7 @@ enum class CustomContentBarTemplate {
 
             bar.CustomBarContent(
                 modifier = Modifier.background(player.theme.vibrant_accent, RoundedCornerShape(16.dp)),
-                background_colour = Theme.Colour.VIBRANT_ACCENT,
+                background_colour = ThemeValues.Colour.VIBRANT_ACCENT,
                 vertical = false,
                 always_display = true,
                 content_padding = PaddingValues(5.dp),

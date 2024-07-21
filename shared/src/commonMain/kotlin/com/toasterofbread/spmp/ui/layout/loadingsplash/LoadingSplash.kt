@@ -45,6 +45,7 @@ import com.toasterofbread.spmp.platform.playerservice.PlayerServiceLoadState
 import com.toasterofbread.spmp.platform.playerservice.PlayerServiceCompanion
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.composekit.settings.ui.on_accent
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.*
 import spmp.shared.generated.resources.*

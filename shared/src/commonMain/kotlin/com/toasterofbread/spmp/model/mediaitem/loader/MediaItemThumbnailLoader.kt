@@ -18,7 +18,6 @@ import com.toasterofbread.spmp.platform.toImageBitmap
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.atomicfu.locks.withLock
 import PlatformIO
 import dev.toastbits.composekit.platform.synchronized
 import okio.buffer

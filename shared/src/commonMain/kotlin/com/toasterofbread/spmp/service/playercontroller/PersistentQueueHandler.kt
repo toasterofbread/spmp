@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.service.playercontroller
 
-import SpMp
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -14,51 +13,18 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.Semaphore
-import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
-import java.io.BufferedReader
-import java.io.FileNotFoundException
-import java.io.IOException
 import PlatformIO
-
-private const val PERSISTENT_QUEUE_FILENAME: String = "persistent_queue"
-
-private data class PersistentQueueMetadata(val song_index: Int, val position_ms: Long) {
-    fun serialise(): String = "$song_index,$position_ms"
-    companion object {
-        fun deserialise(data: String): PersistentQueueMetadata {
-            val split = data.split(",")
-            return PersistentQueueMetadata(split[0].toInt(), split[1].toLong())
-        }
-    }
-}
-
-private suspend fun getSavedQueue(context: AppContext): Pair<List<SongData>, PersistentQueueMetadata> = withContext(Dispatchers.PlatformIO) {
-    val reader: BufferedReader = context.openFileInput(PERSISTENT_QUEUE_FILENAME).bufferedReader()
-    reader.use {
-        val songs: MutableList<SongData> = mutableListOf()
-        val metadata: PersistentQueueMetadata = PersistentQueueMetadata.deserialise(
-            reader.readLine() ?: throw IOException("Empty file")
-        )
-
-        var line: String? = reader.readLine()
-        while (line != null) {
-            val song = SongData(line)
-            songs.add(song)
-            line = reader.readLine()
-        }
-
-        return@withContext Pair(songs, metadata)
-    }
-}
+import com.toasterofbread.spmp.db.persistentqueue.PersistentQueueMetadata
+import dev.toastbits.composekit.platform.lazyAssert
 
 internal class PersistentQueueHandler(val player: PlayerServicePlayer, val context: AppContext) {
     private var persistent_queue_loaded: Boolean = false
     private val queue_lock = Mutex()
 
     private fun getPersistentQueueMetadata(): PersistentQueueMetadata =
-        PersistentQueueMetadata(player.current_song_index, player.current_position_ms)
+        PersistentQueueMetadata(0, player.current_song_index.toLong(), player.current_position_ms)
 
     suspend fun savePersistentQueue() {
         if (!persistent_queue_loaded || !context.settings.system.PERSISTENT_QUEUE.get() || ProjectBuildConfig.DISABLE_PERSISTENT_QUEUE == true) {
@@ -70,7 +36,7 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
 
         withContext(Dispatchers.Main) {
             for (i in 0 until player.song_count) {
-                val song = player.getSong(i)
+                val song: Song? = player.getSong(i)
                 if (song != null) {
                     songs.add(song)
                 }
@@ -79,24 +45,22 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
         }
 
         withContext(Dispatchers.PlatformIO) {
-            queue_lock.withLock {
-                context.openFileOutput(PERSISTENT_QUEUE_FILENAME).bufferedWriter().use { writer ->
-                    writer.write(metadata.serialise())
-                    writer.newLine()
+            context.database.transaction {
+                context.database.persistentQueueMetadataQueries.set(
+                    id = metadata.id,
+                    queue_index = metadata.queue_index,
+                    playback_position_ms = metadata.playback_position_ms
+                )
 
-                    if (songs.isNotEmpty()) {
-                        for (song in songs) {
-                            writer.write(song.id)
-                            writer.newLine()
-                        }
-
-                        SpMp.Log.info("savePersistentQueue: Saved ${songs.size} songs with data $metadata")
-                    }
+                context.database.persistentQueueItemQueries.clear()
+                for ((index, song) in songs.withIndex()) {
+                    context.database.persistentQueueItemQueries.insert(index.toLong(), song.id)
                 }
-
-                persistent_queue_loaded = true
             }
         }
+
+        println("savePersistentQueue: Saved ${songs.size} songs with data $metadata")
+        persistent_queue_loaded = true
     }
 
     suspend fun loadPersistentQueue() {
@@ -110,38 +74,38 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
         }
 
         if (player.song_count > 0) {
-            SpMp.Log.info("loadPersistentQueue: Skipping, queue already populated")
+            println("loadPersistentQueue: Skipping, queue already populated")
             persistent_queue_loaded = true
             return
         }
 
         withContext(Dispatchers.PlatformIO) {
             if (!context.settings.system.PERSISTENT_QUEUE.get()) {
-                SpMp.Log.info("loadPersistentQueue: Skipping, feature disabled")
-                context.deleteFile(PERSISTENT_QUEUE_FILENAME)
+                println("loadPersistentQueue: Skipping, feature disabled")
+
                 return@withContext
             }
 
             if (!queue_lock.tryLock()) {
-                SpMp.Log.info("loadPersistentQueue: Skipping, lock already acquired")
+                println("loadPersistentQueue: Skipping, lock already acquired")
                 return@withContext
             }
 
             val songs: List<Song>
-            val metadata: PersistentQueueMetadata
+            val metadata: PersistentQueueMetadata?
 
             try {
                 if (persistent_queue_loaded) {
-                    SpMp.Log.info("loadPersistentQueue: Skipping, queue already loaded")
+                    println("loadPersistentQueue: Skipping, queue already loaded")
                     return@withContext
                 }
 
-                val queue: Pair<List<SongData>, PersistentQueueMetadata> = getSavedQueue(context)
+                val queue: Pair<List<SongData>, PersistentQueueMetadata?> = getSavedQueue(context)
                 songs = queue.first
                 metadata = queue.second
 
                 if (songs.isEmpty()) {
-                    SpMp.Log.info("loadPersistentQueue: Saved queue is empty")
+                    println("loadPersistentQueue: Saved queue is empty")
                     return@withContext
                 }
 
@@ -162,13 +126,8 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
 
                 jobs.joinAll()
             }
-            catch (_: FileNotFoundException) {
-                SpMp.Log.info("loadPersistentQueue: No file found")
-                persistent_queue_loaded = true
-                return@withContext
-            }
             catch (e: Throwable) {
-                SpMp.Log.info("loadPersistentQueue: Failed with $e")
+                println("loadPersistentQueue: Failed with $e")
                 persistent_queue_loaded = true
                 return@withContext
             }
@@ -178,15 +137,18 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
             }
 
             withContext(Dispatchers.Main) {
-                SpMp.Log.info("loadPersistentQueue: Adding ${songs.size} songs to $metadata")
+                println("loadPersistentQueue: Adding ${songs.size} songs to $metadata")
 
                 player.apply {
                     if (player.song_count == 0) {
                         clearQueue(save = false)
                         addMultipleToQueue(songs, 0)
-                        player.seekToSong(metadata.song_index)
-                        player.seekTo(metadata.position_ms)
-                        player.pause()
+
+                        if (metadata != null) {
+                            player.seekToSong(metadata.queue_index.toInt())
+                            player.seekTo(metadata.playback_position_ms)
+                            player.pause()
+                        }
                     }
                 }
             }
@@ -196,12 +158,36 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
     companion object {
         suspend fun isPopulatedQueueSaved(context: AppContext): Boolean {
             try {
-                val queue = getSavedQueue(context)
-                return queue.first.isNotEmpty()
+                val queue: Pair<List<SongData>, PersistentQueueMetadata?> = getSavedQueue(context)
+                return queue.second != null
             }
             catch (_: Throwable) {
                 return false
             }
         }
+    }
+}
+
+private suspend fun getSavedQueue(context: AppContext): Pair<List<SongData>, PersistentQueueMetadata?> = withContext(Dispatchers.PlatformIO) {
+    val metadata: PersistentQueueMetadata? = context.database.persistentQueueMetadataQueries.get().executeAsOneOrNull()
+
+    val items: List<SongData> =
+        context.database.persistentQueueItemQueries
+            .get()
+            .executeAsList()
+            .also {
+                lazyAssert { it.sortedBy { item -> item.item_index } == it }
+            }
+            .map { item ->
+                SongData(item.id)
+            }
+
+    return@withContext Pair(items, metadata)
+}
+
+private suspend fun clearSavedQueue(context: AppContext) = withContext(Dispatchers.PlatformIO) {
+    context.database.transaction {
+        context.database.persistentQueueMetadataQueries.clear()
+        context.database.persistentQueueItemQueries.clear()
     }
 }

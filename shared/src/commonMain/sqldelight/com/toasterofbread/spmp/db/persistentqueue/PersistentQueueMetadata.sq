@@ -1,0 +1,16 @@
+CREATE TABLE PersistentQueueMetadata (
+    id INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+    queue_index INTEGER NOT NULL,
+    playback_position_ms INTEGER NOT NULL
+);
+
+set {
+    DELETE FROM PersistentQueueMetadata;
+    INSERT INTO PersistentQueueMetadata(id, queue_index, playback_position_ms) VALUES(:id, :queue_index, :playback_position_ms);
+}
+
+get:
+SELECT * FROM PersistentQueueMetadata;
+
+clear:
+DELETE FROM PersistentQueueMetadata;

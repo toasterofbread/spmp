@@ -9,8 +9,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.PaddingValues
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
-import dev.toastbits.composekit.settings.ui.Theme
 import LocalPlayerState
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -43,7 +43,7 @@ private class PrimaryInternalContentBar(index: Int): InternalContentBar(index) {
     @Composable
     override fun BarContent(
         slot: LayoutSlot,
-        background_colour: Theme.Colour?,
+        background_colour: ThemeValues.Colour?,
         content_padding: PaddingValues,
         distance_to_page: Dp,
         lazy: Boolean,
@@ -75,7 +75,7 @@ private class SecondaryInternalContentBar(index: Int): InternalContentBar(index)
     @Composable
     override fun BarContent(
         slot: LayoutSlot,
-        background_colour: Theme.Colour?,
+        background_colour: ThemeValues.Colour?,
         content_padding: PaddingValues,
         distance_to_page: Dp,
         lazy: Boolean,

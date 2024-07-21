@@ -48,6 +48,7 @@ import LocalPlayerState
 import LocalProgramArguments
 import ProgramArguments
 import androidx.compose.runtime.rememberCoroutineScope
+import dev.toastbits.composekit.settings.ui.on_accent
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res

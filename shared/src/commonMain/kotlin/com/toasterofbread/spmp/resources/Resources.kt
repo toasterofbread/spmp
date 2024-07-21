@@ -5,6 +5,7 @@ package com.toasterofbread.spmp.resources
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import androidx.compose.ui.text.intl.Locale
 import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.LanguageQualifier
 import org.jetbrains.compose.resources.RegionQualifier
@@ -30,14 +31,19 @@ data class Language(
         suspend fun fromIdentifier(identifier: String): Language =
             getAvailableLanguages().getBestMatch(identifier) ?: DEFAULT
 
-        fun getSystem(): Language = TODO()
+        suspend fun getSystem(): Language =
+            fromIdentifier(Locale.current.toLanguageTag())
 
         val DEFAULT: Language = Language("en", "GB", "English (GB)")
     }
 }
 
 suspend fun getAvailableLanguages(): List<Language> =
-    Res.string.language_name.items.map { language ->
+    Res.string.language_name.items.mapNotNull { language ->
+        if (language.qualifiers.isEmpty()) {
+            return@mapNotNull null
+        }
+
         var family: String? = null
         var locale: String? = null
 
@@ -55,7 +61,7 @@ suspend fun getAvailableLanguages(): List<Language> =
         checkNotNull(family)
 
         val readable_name: String = getString(getResourceEnvironment(family, locale), Res.string.language_name)
-        return@map Language(family, locale, readable_name)
+        return@mapNotNull Language(family, locale, readable_name)
     }
 
 private fun List<Language>.getBestMatch(identifier: String): Language? {

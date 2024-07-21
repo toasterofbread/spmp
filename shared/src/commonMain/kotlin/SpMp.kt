@@ -106,8 +106,10 @@ object SpMp {
         open_uri: String? = null,
         window_fullscreen_toggler: (() -> Unit)? = null
     ) {
-        context.theme.Update()
         shortcut_state.ObserveState()
+        if (!context.theme.Update()) {
+            return
+        }
 
         val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 

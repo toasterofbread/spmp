@@ -24,7 +24,6 @@ import androidx.compose.ui.input.pointer.pointerHoverIcon
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.settings.ui.Theme
 import dev.toastbits.composekit.utils.common.amplifyPercent
 import dev.toastbits.composekit.utils.common.blendWith
 import dev.toastbits.composekit.utils.common.contrastAgainst
@@ -33,9 +32,12 @@ import dev.toastbits.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.platform.AppContext
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.core.AnimationSpec
+import dev.toastbits.composekit.settings.ui.ThemeValues
+import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.settings.ui.vibrant_accent
 
 @Composable
-fun Theme.ApplicationTheme(
+fun ThemeValues.ApplicationTheme(
     context: AppContext,
     font_family: FontFamily = FontFamily.Default,
     content: @Composable () -> Unit

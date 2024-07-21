@@ -31,6 +31,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.AppThemeManager
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.download.DownloadMethodSelectionDialog
 import com.toasterofbread.spmp.platform.download.DownloadStatus
@@ -65,7 +66,8 @@ import com.toasterofbread.spmp.ui.layout.playlistpage.PlaylistAppPage
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.composekit.platform.composable.BackHandler
 import dev.toastbits.composekit.platform.synchronized
-import dev.toastbits.composekit.settings.ui.Theme
+import dev.toastbits.composekit.settings.ui.ThemeValues
+import dev.toastbits.composekit.settings.ui.on_accent
 import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import dev.toastbits.composekit.utils.composable.getEnd
 import dev.toastbits.composekit.utils.composable.getStart
@@ -89,7 +91,7 @@ class PlayerState(
 ) {
     val database: Database get() = context.database
     val settings: Settings get() = context.settings
-    val theme: Theme get() = context.theme
+    val theme: AppThemeManager get() = context.theme
     val app_page: AppPage get() = app_page_state.current_page
 
     private var _player: PlayerService? by mutableStateOf(null)
@@ -728,8 +730,9 @@ class PlayerState(
             }
 
             service_connecting = false
-            connectService(service_companion, onConnected = null)
         }
+
+        connectService(service_companion, onConnected = null)
     }
 
     val status: PlayerStatus = PlayerStatus()

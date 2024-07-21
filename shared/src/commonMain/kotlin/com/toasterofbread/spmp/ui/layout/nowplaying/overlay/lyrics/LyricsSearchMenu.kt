@@ -67,8 +67,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import PlatformIO
 import androidx.compose.ui.graphics.Color
+import dev.toastbits.composekit.platform.ReentrantLock
 import dev.toastbits.composekit.platform.synchronized
-import kotlinx.atomicfu.locks.ReentrantLock
+import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.settings.ui.vibrant_accent
 import kotlinx.io.IOException
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource

@@ -25,6 +25,7 @@ import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
 import LocalProgramArguments
 import ProgramArguments
+import dev.toastbits.composekit.settings.ui.on_accent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.loading_splash_button_configure_connection

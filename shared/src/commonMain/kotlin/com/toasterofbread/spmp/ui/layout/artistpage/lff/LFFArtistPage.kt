@@ -29,6 +29,9 @@ import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
+import dev.toastbits.composekit.platform.assert
+import dev.toastbits.composekit.settings.ui.makeVibrant
+import dev.toastbits.composekit.settings.ui.vibrant_accent
 import dev.toastbits.ytmkt.endpoint.ArtistWithParamsEndpoint
 import dev.toastbits.ytmkt.endpoint.ArtistWithParamsRow
 import kotlinx.coroutines.CoroutineScope

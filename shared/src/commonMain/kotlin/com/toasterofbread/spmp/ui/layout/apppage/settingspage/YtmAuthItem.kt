@@ -35,6 +35,8 @@ import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.ui.component.NotImplementedMessage
 import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.LoginPage
+import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.settings.ui.vibrant_accent
 import io.ktor.http.Headers
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonPrimitive

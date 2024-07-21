@@ -31,6 +31,7 @@ import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.utils.modifier.disableGestures
 import dev.toastbits.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.settings.ui.vibrant_accent
 import kotlinx.serialization.json.JsonElement
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res

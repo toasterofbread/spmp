@@ -14,11 +14,10 @@ plugins {
     kotlin("plugin.serialization")
     id("com.android.library")
     id("org.jetbrains.compose")
-    id("org.jetbrains.kotlinx.atomicfu")
     id("app.cash.sqldelight")
 }
 
-val DATABASE_VERSION: Int = 6 // post-v0.3.1
+val DATABASE_VERSION: Int = 7 // post-v0.3.2
 
 val buildConfigDir: Provider<Directory> get() = project.layout.buildDirectory.dir("generated/buildconfig")
 

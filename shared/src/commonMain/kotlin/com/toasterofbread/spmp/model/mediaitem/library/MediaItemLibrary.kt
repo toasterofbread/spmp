@@ -17,9 +17,8 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
 import kotlinx.coroutines.*
-import kotlinx.atomicfu.locks.ReentrantLock
-import kotlinx.atomicfu.locks.withLock
 import PlatformIO
+import dev.toastbits.composekit.platform.ReentrantLock
 
 @Suppress("DeferredResultUnused")
 object MediaItemLibrary {

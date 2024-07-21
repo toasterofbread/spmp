@@ -3,10 +3,10 @@ package com.toasterofbread.spmp.ui.layout.contentbar.layoutslot
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
-import dev.toastbits.composekit.settings.ui.Theme
 import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import kotlinx.serialization.json.*
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -93,18 +93,18 @@ enum class LandscapeLayoutSlot: LayoutSlot {
             PLAYER_BOTTOM_END -> CustomContentBarTemplate.LYRICS.getContentBar()
         }
 
-    override fun getDefaultBackgroundColour(theme: Theme): ColourSource =
+    override fun getDefaultBackgroundColour(theme: ThemeValues): ColourSource =
         when (this) {
-            OUTER_SIDE_LEFT -> ThemeColourSource(Theme.Colour.CARD)
-            INNER_SIDE_LEFT -> ThemeColourSource(Theme.Colour.CARD)
-            OUTER_SIDE_RIGHT -> ThemeColourSource(Theme.Colour.CARD)
-            INNER_SIDE_RIGHT -> ThemeColourSource(Theme.Colour.CARD)
+            OUTER_SIDE_LEFT -> ThemeColourSource(ThemeValues.Colour.CARD)
+            INNER_SIDE_LEFT -> ThemeColourSource(ThemeValues.Colour.CARD)
+            OUTER_SIDE_RIGHT -> ThemeColourSource(ThemeValues.Colour.CARD)
+            INNER_SIDE_RIGHT -> ThemeColourSource(ThemeValues.Colour.CARD)
 
-            UPPER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
-            LOWER_TOP_BAR -> ThemeColourSource(Theme.Colour.CARD)
+            UPPER_TOP_BAR -> ThemeColourSource(ThemeValues.Colour.CARD)
+            LOWER_TOP_BAR -> ThemeColourSource(ThemeValues.Colour.CARD)
 
             ABOVE_PLAYER -> CustomColourSource(Color.Transparent)
-            BELOW_PLAYER -> ThemeColourSource(Theme.Colour.CARD)
+            BELOW_PLAYER -> ThemeColourSource(ThemeValues.Colour.CARD)
 
             PLAYER_BOTTOM_START -> CustomColourSource(Color.Transparent)
             PLAYER_BOTTOM_END -> CustomColourSource(Color.Transparent)

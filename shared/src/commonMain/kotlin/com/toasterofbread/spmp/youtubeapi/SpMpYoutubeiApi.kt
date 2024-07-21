@@ -42,12 +42,13 @@ import kotlinx.coroutines.launch
 
 internal class SpMpYoutubeiApi(
     val context: AppContext,
-    api_url: String
+    api_url: String,
+    data_language: Language
 ): YoutubeiApi(
     api_url = api_url,
     item_cache = SpMpItemCache(context.database)
 ) {
-    private var _data_language: String = Language.getSystem().identifier
+    private var _data_language: String = data_language.identifier
     override val data_language: String
         get() = _data_language
 

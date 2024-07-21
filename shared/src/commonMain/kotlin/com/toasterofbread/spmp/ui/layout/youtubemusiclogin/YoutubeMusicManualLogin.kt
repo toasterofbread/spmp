@@ -19,6 +19,7 @@ import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.youtube_manual_login_suffix
 import spmp.shared.generated.resources.youtube_manual_login_field
 import spmp.shared.generated.resources.manual_login_error_missing_following_headers
+import spmp.shared.generated.resources.youtube_manual_login_steps
 
 @Composable
 internal fun YoutubeMusicManualLogin(
@@ -31,7 +32,7 @@ internal fun YoutubeMusicManualLogin(
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     ManualLoginPage(
-        steps = stringArrayResource(Res.string.youtube_manual_login_steps),
+        steps = stringArrayResource(Res.array.youtube_manual_login_steps),
         suffix = stringResource(Res.string.youtube_manual_login_suffix),
         entry_label = stringResource(Res.string.youtube_manual_login_field),
         modifier = modifier,

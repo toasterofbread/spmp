@@ -7,8 +7,9 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getThemeC
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.NamedTheme
+import dev.toastbits.composekit.settings.ui.getDefaultCatppuccinThemes
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_key_current_theme
@@ -38,12 +39,12 @@ class ThemeSettings(val context: AppContext): SettingsGroup("THEME", context.get
     val CURRENT_THEME: PreferencesProperty<Int> by property(
         getName = { stringResource(Res.string.s_key_current_theme) },
         getDescription = { null },
-        getDefaultValue = { 0 }
+        getDefaultValue = { -1 }
     )
-    val THEMES: PreferencesProperty<List<String>> by serialisableProperty(
+    val THEMES: PreferencesProperty<List<NamedTheme>> by serialisableProperty(
         getName = { stringResource(Res.string.s_theme_editor_title) },
         getDescription = { null },
-        getDefaultValue = { emptyList() }
+        getDefaultValue = { getDefaultCatppuccinThemes() }
     )
     val ACCENT_COLOUR_SOURCE: PreferencesProperty<AccentColourSource> by enumProperty(
         getName = { stringResource(Res.string.s_key_accent_source) },

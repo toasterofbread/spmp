@@ -37,6 +37,12 @@ actual object LocalServer {
 
                 return stringResource(Res.string.warning_server_unavailable) + missing_files.joinToString(stringResource(Res.string.server_missing_files_splitter))
             }
+            catch (e: UnsatisfiedLinkError) {
+                val message: String = e.message ?: "NO MESSAGE"
+                val end_index: Int = message.indexOf("in java.library.path")
+                val missing_files: List<String> = listOf(message.substring(3, end_index))
+                return stringResource(Res.string.warning_server_unavailable) + missing_files.joinToString(stringResource(Res.string.server_missing_files_splitter))
+            }
 
         server.release()
         return null

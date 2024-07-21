@@ -83,16 +83,14 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
-import java.text.SimpleDateFormat
-import java.util.Date
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.*
 import PlatformIO
+import dev.toastbits.composekit.settings.ui.on_accent
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.format
-import kotlinx.datetime.format.DateTimeFormatBuilder
 import kotlinx.datetime.format.FormatStringsInDatetimeFormats
 import kotlinx.datetime.format.byUnicodePattern
 import kotlinx.datetime.toLocalDateTime
@@ -100,11 +98,9 @@ import okio.buffer
 import okio.use
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
-import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_page_preferences
 import spmp.shared.generated.resources.action_close
 import spmp.shared.generated.resources.settings_import_error_title
-import spmp.shared.generated.resources.action_close
 import spmp.shared.generated.resources.settings_import_result_title
 import spmp.shared.generated.resources.`settings_import_result_$x_from_file`
 import spmp.shared.generated.resources.`settings_import_result_$x_from_default`
@@ -115,8 +111,6 @@ import spmp.shared.generated.resources.settings_import_category_selection_subtit
 import spmp.shared.generated.resources.project_url
 import spmp.shared.generated.resources.notif_copied_x_to_clipboard
 import spmp.shared.generated.resources.project_url_name
-import spmp.shared.generated.resources.project_url
-import spmp.shared.generated.resources.`settings_export_filename_\$date`
 
 @Composable
 internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(), top_padding: Dp = 0.dp) {

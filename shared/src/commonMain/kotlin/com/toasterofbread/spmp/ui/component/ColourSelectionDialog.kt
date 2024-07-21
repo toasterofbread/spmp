@@ -5,12 +5,10 @@ import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.lazy.LazyColumn
-import dev.toastbits.composekit.settings.ui.Theme
 import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.background
-import androidx.compose.foundation.lazy.items
 import LocalPlayerState
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import androidx.compose.foundation.layout.padding
@@ -26,8 +24,6 @@ import androidx.compose.material3.Button
 import dev.toastbits.composekit.platform.composable.platformClickable
 import dev.toastbits.composekit.utils.composable.ColourPicker
 import androidx.compose.material.icons.filled.Done
-import androidx.compose.ui.Alignment
-import androidx.compose.material3.IconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.IconButtonDefaults
@@ -45,6 +41,8 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.lazy.items
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.colour_selector_dialog_title
@@ -120,7 +118,7 @@ private fun ThemeColourSelectionList(
     val player: PlayerState = LocalPlayerState.current
 
     LazyColumn(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        items(Theme.Colour.entries) { colour ->
+        items(ThemeValues.Colour.entries) { colour ->
             ColourCard(
                 colour = colour.get(player.theme),
                 name = colour.getReadable(),
@@ -205,10 +203,11 @@ private fun CustomColourSelector(
 }
 
 @Composable
-fun Theme.Colour.getReadable(): String =
+fun ThemeValues.Colour.getReadable(): String =
     when (this) {
-        Theme.Colour.BACKGROUND -> stringResource(Res.string.theme_colour_background)
-        Theme.Colour.ACCENT -> stringResource(Res.string.theme_colour_accent)
-        Theme.Colour.VIBRANT_ACCENT -> stringResource(Res.string.theme_colour_vibrant_accent)
-        Theme.Colour.CARD -> stringResource(Res.string.theme_colour_card)
+        ThemeValues.Colour.BACKGROUND -> stringResource(Res.string.theme_colour_background)
+        ThemeValues.Colour.ACCENT -> stringResource(Res.string.theme_colour_accent)
+        ThemeValues.Colour.VIBRANT_ACCENT -> stringResource(Res.string.theme_colour_vibrant_accent)
+        ThemeValues.Colour.CARD -> stringResource(Res.string.theme_colour_card)
+        else -> throw NotImplementedError(this.toString())
     }

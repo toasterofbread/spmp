@@ -12,6 +12,7 @@ import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.discord_manual_login_suffix
 import spmp.shared.generated.resources.discord_manual_login_field
+import spmp.shared.generated.resources.discord_manual_login_steps
 
 private data class DiscordErrorMessage(val message: String?)
 
@@ -20,7 +21,7 @@ fun DiscordManualLogin(content_padding: PaddingValues, modifier: Modifier = Modi
     val coroutine_scope = rememberCoroutineScope()
 
     ManualLoginPage(
-        steps = stringArrayResource(Res.string.discord_manual_login_steps),
+        steps = stringArrayResource(Res.array.discord_manual_login_steps),
         suffix = stringResource(Res.string.discord_manual_login_suffix),
         entry_label = stringResource(Res.string.discord_manual_login_field),
         modifier,

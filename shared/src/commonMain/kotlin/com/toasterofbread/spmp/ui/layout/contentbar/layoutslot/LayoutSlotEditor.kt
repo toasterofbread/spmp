@@ -30,6 +30,7 @@ import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBarTemplate
 import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElementContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElement
 import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.vibrant_accent
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement

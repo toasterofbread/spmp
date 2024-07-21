@@ -28,7 +28,7 @@ import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
 import dev.toastbits.ytmkt.radio.RadioContinuation
 import dev.toastbits.composekit.platform.PlatformFile
-import kotlinx.atomicfu.locks.ReentrantLock
+import dev.toastbits.composekit.platform.ReentrantLock
 
 internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
     private val song_lock: ReentrantLock = ReentrantLock()

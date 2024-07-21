@@ -22,6 +22,7 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.LargeFilterList
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
+import dev.toastbits.composekit.settings.ui.vibrant_accent
 
 @Composable
 internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(

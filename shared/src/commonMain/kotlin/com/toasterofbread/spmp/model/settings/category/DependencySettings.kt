@@ -36,6 +36,7 @@ import com.toasterofbread.spmp.DependencyInfo
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.platform.AppContext
 import LocalPlayerState
+import dev.toastbits.composekit.settings.ui.vibrant_accent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_cat_dependencies

@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.model
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.DirectionsRun
 import androidx.compose.material.icons.outlined.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import dev.toastbits.ytmkt.uistrings.YoutubeUILocalisation
@@ -14,7 +15,7 @@ fun SongFeedFilterChip.getIcon(): ImageVector? =
     when (getId()) {
         YoutubeUILocalisation.StringID.SONG_FEED_RELAX -> Icons.Outlined.Weekend
         YoutubeUILocalisation.StringID.SONG_FEED_ENERGISE -> Icons.Outlined.ElectricBolt
-        YoutubeUILocalisation.StringID.SONG_FEED_WORKOUT -> Icons.Outlined.DirectionsRun
+        YoutubeUILocalisation.StringID.SONG_FEED_WORKOUT -> Icons.AutoMirrored.Outlined.DirectionsRun
         YoutubeUILocalisation.StringID.SONG_FEED_COMMUTE -> Icons.Outlined.Train
         YoutubeUILocalisation.StringID.SONG_FEED_FOCUS -> Icons.Outlined.Keyboard
         YoutubeUILocalisation.StringID.SONG_FEED_PODCASTS -> Icons.Outlined.Podcasts

@@ -7,7 +7,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElement
-import dev.toastbits.composekit.settings.ui.Theme
+import dev.toastbits.composekit.settings.ui.ThemeValues
 
 data class TemplateCustomContentBar(
     val template: CustomContentBarTemplate
@@ -27,7 +27,7 @@ data class TemplateCustomContentBar(
     @Composable
     override fun BarContent(
         slot: LayoutSlot,
-        background_colour: Theme.Colour?,
+        background_colour: ThemeValues.Colour?,
         content_padding: PaddingValues,
         distance_to_page: Dp,
         lazy: Boolean,

@@ -19,6 +19,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import PlatformIO
+import dev.toastbits.composekit.settings.ui.on_accent
 
 sealed interface LocalPlaylist: Playlist {
     suspend fun getLocalPlaylistFile(context: AppContext): PlatformFile? =
@@ -77,7 +78,7 @@ suspend fun Playlist.downloadAsLocalPlaylist(context: AppContext, replace: Boole
 @Composable
 fun LocalPlaylist.LocalPlaylistDefaultThumbnail(modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
-    Box(modifier.background({ player.theme.accent }), contentAlignment = Alignment.Center) {
+    Box(modifier.background { player.theme.accent }, contentAlignment = Alignment.Center) {
         Icon(Icons.Default.PlaylistPlay, null, tint = player.theme.on_accent)
     }
 }

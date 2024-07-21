@@ -30,6 +30,7 @@ import dev.toastbits.composekit.platform.composable.BackHandler
 import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import dev.toastbits.composekit.utils.modifier.background
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import dev.toastbits.composekit.settings.ui.on_accent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.lyrics_sync_long_press_line

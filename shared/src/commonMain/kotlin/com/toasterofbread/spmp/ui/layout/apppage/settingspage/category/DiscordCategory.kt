@@ -40,6 +40,8 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import LocalProgramArguments
 import ProgramArguments
 import LocalPlayerState
+import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.settings.ui.vibrant_accent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_warning_accept

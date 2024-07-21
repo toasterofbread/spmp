@@ -11,7 +11,6 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.Alignment
 import androidx.compose.material3.Text
 import androidx.compose.material3.Switch
-import dev.toastbits.composekit.settings.ui.Theme
 import dev.toastbits.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
@@ -19,6 +18,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBar
 import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -38,7 +38,7 @@ sealed interface LayoutSlot {
     fun getName(): String
 
     fun getDefaultContentBar(): ContentBar?
-    fun getDefaultBackgroundColour(theme: Theme): ColourSource
+    fun getDefaultBackgroundColour(theme: ThemeValues): ColourSource
 
     fun hasConfig(): Boolean = false
     @Composable

@@ -1,18 +1,20 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.setValue
 import isWindowTransparencySupported
 import androidx.compose.ui.Modifier
 import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.settings.ui.Theme
-import dev.toastbits.composekit.settings.ui.ThemeData
 import dev.toastbits.composekit.settings.ui.item.*
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
-import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.isVideoPlaybackSupported
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
+import dev.toastbits.composekit.settings.ui.NamedTheme
+import dev.toastbits.composekit.settings.ui.ThemeValues
+import dev.toastbits.composekit.settings.ui.ThemeValuesData
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -31,12 +33,11 @@ import spmp.shared.generated.resources.s_option_np_accent_elements
 import spmp.shared.generated.resources.s_option_np_accent_none
 import spmp.shared.generated.resources.s_group_theming_desktop
 
-internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
-    val theme: Theme = context.theme
-
-    return listOfNotNull(
+internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> =
+    listOfNotNull(
         ThemeSelectorSettingsItem(
             context.settings.theme.CURRENT_THEME,
+            context.theme.manager,
             str_editor_title = Res.string.s_theme_editor_title,
             str_field_name = Res.string.s_theme_editor_field_name,
             str_field_background = Res.string.s_theme_editor_field_background,
@@ -44,14 +45,33 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
             str_field_card = Res.string.s_theme_editor_field_card,
             str_field_accent = Res.string.s_theme_editor_field_accent,
             str_button_preview = Res.string.s_theme_editor_button_preview,
-            { theme.getThemeCount() },
-            { theme.getThemes().getOrNull(it) },
-            { index: Int, edited_theme: ThemeData ->
-                theme.updateTheme(index, edited_theme)
+            getThemeProvider = {
+                var themes: List<NamedTheme> by context.settings.theme.THEMES.observe()
+
+                object : ThemeSelectorThemeProvider {
+                    override fun getTheme(index: Int): NamedTheme? = themes.getOrNull(index)
+                    override fun getThemeCount(): Int = themes.size
+                    override fun isThemeEditable(index: Int): Boolean = themes.indices.contains(index)
+
+                    override suspend fun createTheme(index: Int) {
+                        themes = themes.toMutableList().apply {
+                            add(index, NamedTheme(getString(Res.string.theme_title_new), ThemeValuesData.of(context.theme.manager.current_theme)))
+                        }
+                    }
+
+                    override suspend fun removeTheme(index: Int) {
+                        themes = themes.toMutableList().apply { removeAt(index) }
+                    }
+
+                    override fun onThemeEdited(index: Int, theme: ThemeValues, theme_name: String) {
+                        themes = themes.toMutableList().apply { set(index, NamedTheme(theme_name, ThemeValuesData.of(theme))) }
+                    }
+                }
             },
-            { theme.addTheme(theme.getCurrentTheme().toStaticThemeData(getString(Res.string.theme_title_new)), it) },
-            { theme.removeTheme(it) },
-            getFieldModifier = { Modifier.appTextField() }
+            getFieldModifier = { Modifier.appTextField() },
+            resetThemes = {
+                context.settings.theme.THEMES.reset()
+            }
         ),
 
         MultipleChoiceSettingsItem(
@@ -116,7 +136,6 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
         Platform.DESKTOP -> getDesktopGroupItems(context)
         else -> emptyList()
     }
-}
 
 private fun getDesktopGroupItems(context: AppContext): List<SettingsItem> =
     listOf(

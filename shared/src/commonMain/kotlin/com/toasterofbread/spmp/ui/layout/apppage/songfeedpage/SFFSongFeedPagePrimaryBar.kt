@@ -19,6 +19,7 @@ import LocalPlayerState
 import com.toasterofbread.spmp.model.getString
 import com.toasterofbread.spmp.model.observe
 import dev.toastbits.composekit.platform.composable.ScrollBarLazyRow
+import dev.toastbits.composekit.settings.ui.on_accent
 import dev.toastbits.composekit.utils.composable.ScrollableRowOrColumn
 
 @Composable

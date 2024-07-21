@@ -21,8 +21,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.requiredWidth
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.selection.SelectionContainer
@@ -66,9 +64,7 @@ import dev.toastbits.composekit.utils.modifier.disableParentScroll
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.model.JsonHttpClient
-import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.headers
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -80,6 +76,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
 import SpMp.isDebugBuild
+import dev.toastbits.composekit.settings.ui.on_accent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_load_retry
@@ -153,7 +150,7 @@ fun ErrorInfoDisplay(
                 }
 
                 WidthShrinkText(
-                    message ?: pair_error?.first ?: error!!::class.java.simpleName,
+                    message ?: pair_error?.first ?: error!!::class.simpleName ?: error!!::class.toString(),
                     modifier = Modifier.fillMaxWidth().weight(1f),
                     style = LocalTextStyle.current.copy(color = player.theme.on_accent),
                     max_lines = 2

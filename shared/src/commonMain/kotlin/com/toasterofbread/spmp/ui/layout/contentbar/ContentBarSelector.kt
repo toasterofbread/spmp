@@ -24,6 +24,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.sp
 import dev.toastbits.composekit.platform.composable.*
 import dev.toastbits.composekit.utils.common.*
 import dev.toastbits.composekit.utils.common.getContrasted
@@ -112,7 +113,7 @@ internal fun ContentBarSelector(
                 ) {
                     val rotate_modifier: Modifier = Modifier.thenIf(slot.is_vertical) { rotate(90f) }
 
-                    Text(slot.getName())
+                    // Text(slot.getName())
 
                     val colour_button_background_colour: Color = slot_colour_source.get(player)
 
@@ -127,7 +128,7 @@ internal fun ContentBarSelector(
                         Icon(Icons.Default.Palette, null, rotate_modifier)
 
                         slot_colour_source.theme_colour?.also {
-                            Text(it.getReadable())
+                            Text(it.getReadable(), lineHeight = 10.sp)
                         }
                     }
 
@@ -215,7 +216,7 @@ private fun ContentBarSelectorMainRow(
             val bar: ContentBar? = content_bar
             if (bar != null) {
                 Icon(bar.getIcon(), null)
-                Text(bar.getName())
+                Text(bar.getName(), lineHeight = 10.sp)
             }
             else {
                 Text(stringResource(Res.string.content_bar_empty))
@@ -341,6 +342,7 @@ internal fun CustomBarsContentBarList(
                 IconButton(
                     {
                         state.onCustomBarEditRequested(state.custom_bars[index])
+                        player.switchNowPlayingPage(0)
                         onDismissed()
                     }
                 ) {

@@ -95,7 +95,13 @@ enum class CustomContentBarTemplate {
                 ContentBarElementButton.ofAppPage(AppPage.Type.SETTINGS)
             )
             LYRICS -> listOf(
-                ContentBarElementLyrics(config = ContentBarElementConfig(size_mode = ContentBarElement.SizeMode.FILL))
+                ContentBarElementCrossfade(
+                    ContentBarElementConfig(size_mode = ContentBarElement.SizeMode.FILL),
+                    elements = listOf(
+                        ContentBarElementLyrics(),
+                        ContentBarElementVisualiser()
+                    )
+                )
             )
             SONG_ACTIONS -> listOf(
                 ContentBarElementButton(SongAppAction(SongAppAction.Action.OPEN_EXTERNALLY)),
@@ -106,7 +112,13 @@ enum class CustomContentBarTemplate {
             )
             DEFAULT_PORTRAIT_TOP_UPPER -> listOf(
                 ContentBarElementButton.ofAppPage(AppPage.Type.SETTINGS),
-                ContentBarElementVisualiser(config = ContentBarElementConfig(size_mode = ContentBarElement.SizeMode.FILL)),
+                ContentBarElementCrossfade(
+                    ContentBarElementConfig(size_mode = ContentBarElement.SizeMode.FILL),
+                    elements = listOf(
+                        ContentBarElementLyrics(),
+                        ContentBarElementVisualiser()
+                    )
+                ),
                 ContentBarElementButton.ofAppPage(AppPage.Type.LIBRARY)
             )
             DEFAULT_PORTRAIT_TOP_LOWER -> listOf(

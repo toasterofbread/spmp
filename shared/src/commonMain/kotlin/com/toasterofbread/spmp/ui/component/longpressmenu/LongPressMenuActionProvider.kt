@@ -92,7 +92,7 @@ class LongPressMenuActionProvider(
                                 },
                                 onAltClick = {
                                     player.context.vibrateShort()
-                                    service.service_player.updateActiveQueueIndex(Int.MIN_VALUE)
+                                    service.service_player.updateActiveQueueIndex(-1, to_end = true)
                                 }
                             ),
                             color = getAccentColour(),
@@ -108,7 +108,7 @@ class LongPressMenuActionProvider(
                                 },
                                 onAltClick = {
                                     player.context.vibrateShort()
-                                    service.service_player.updateActiveQueueIndex(Int.MAX_VALUE)
+                                    service.service_player.updateActiveQueueIndex(1, to_end = true)
                                 }
                             ),
                             color = getAccentColour(),

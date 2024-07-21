@@ -137,14 +137,6 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license = "CC BY 2.5",
                 license_url = "https://creativecommons.org/licenses/by/2.5/"
             ),
-            "com.github.catppuccin:java" to DependencyInfo(
-                version = "v1.0.0",
-                name = "Catppuccin Java",
-                author = "Catppuccin",
-                url = "https://github.com/catppuccin/java",
-                license = "MIT",
-                license_url = "https://github.com/catppuccin/java/blob/0b034e33c90585812d5287196bdfe930ab306914/LICENSE"
-            ),
             "com.github.paramsen:noise" to DependencyInfo(
                 version = "2.0.0",
                 name = "Noise",

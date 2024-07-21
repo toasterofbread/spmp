@@ -98,7 +98,6 @@ kotlin {
                 implementation(deps.get("org.jsoup:jsoup"))
                 implementation(deps.get("com.github.toasterofbread.ComposeReorderable:reorderable"))
                 implementation(deps.get("com.github.SvenWoltmann:color-thief-java"))
-                implementation(deps.get("com.github.catppuccin:java"))
                 implementation(deps.get("com.github.paramsen:noise"))
                 implementation(deps.get("io.github.pdvrieze.xmlutil:core", "io.github.pdvrieze.xmlutil"))
                 implementation(deps.get("io.github.pdvrieze.xmlutil:serialization", "io.github.pdvrieze.xmlutil"))

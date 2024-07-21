@@ -272,7 +272,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                             //println("LOOP 5")
                         }
                         else if (last_heartbeat.elapsedNow() > CLIENT_HEARTBEAT_TARGET_PERIOD) {
-                            message.add("")
+                            message.add(" ")
                             //println("LOOP 6")
                         }
                         else {
@@ -294,7 +294,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                             return@synchronized
                         }
 
-                        var results: List<String>? = recvStringMultipart(SERVER_REPLY_TIMEOUT)
+                        val results: List<String>? = recvStringMultipart(SERVER_REPLY_TIMEOUT)
                         if (results == null) {
                             // println("NO RESULTS")
                             onSocketConnectionLost(1, SERVER_REPLY_TIMEOUT)

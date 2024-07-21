@@ -49,28 +49,32 @@ class AppThemeManager(
     private val context: AppContext
 ): ThemeValues {
     override val accent: Color
-        get() = manager.values.accent
+        get() = manager.accent
     override val background: Color
-        get() = manager.values.background
+        get() = manager.background
     override val card: Color
-        get() = manager.values.card
+        get() = manager.card
     override val on_background: Color
-        get() = manager.values.on_background
+        get() = manager.on_background
 
     private var accent_colour_source: AccentColourSource? by mutableStateOf(null)
-    lateinit var manager: ThemeManager
-        private set
+
+    private var _manager: ThemeManager? by mutableStateOf(null)
+    val manager: ThemeManager get() = _manager!!
 
     @Composable
     fun Update(): Boolean {
         val current_theme: Int by context.settings.theme.CURRENT_THEME.observe()
         val themes: List<NamedTheme> by context.settings.theme.THEMES.observe()
         val system_theme: NamedTheme = rememberSystemTheme(stringResource(Res.string.theme_title_system), context)
-        val coroutine_scope: CoroutineScope = rememberCoroutineScope()
+        val composable_coroutine_scope: CoroutineScope = rememberCoroutineScope()
         var initialised: Boolean by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
-            manager = object : ThemeManager(ThemeValuesData.fromColourScheme(context.getDarkColorScheme()), coroutine_scope) {
+            _manager = object : ThemeManager(
+                ThemeValuesData.fromColourScheme(context.getDarkColorScheme()),
+                composable_coroutine_scope
+            ) {
                 override fun selectAccentColour(values: ThemeValues, thumbnail_colour: Color?): Color =
                     when(accent_colour_source ?: AccentColourSource.THEME) {
                         AccentColourSource.THEME -> values.accent
@@ -81,14 +85,14 @@ class AppThemeManager(
             initialised = true
         }
 
-        LaunchedEffect(current_theme, system_theme, initialised) {
+        val theme: NamedTheme =
+            themes.getOrNull(current_theme)
+            ?: system_theme
+
+        LaunchedEffect(theme, initialised) {
             if (!initialised) {
                 return@LaunchedEffect
             }
-
-            val theme: NamedTheme =
-                themes.getOrNull(current_theme)
-                ?: system_theme
 
             manager.setTheme(theme.theme)
         }

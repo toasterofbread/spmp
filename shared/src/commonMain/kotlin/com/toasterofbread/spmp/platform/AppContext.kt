@@ -86,7 +86,7 @@ class AppThemeManager(
         }
 
         val theme: NamedTheme =
-            themes.getOrNull(current_theme)
+            themes.getOrNull(current_theme - 1)
             ?: system_theme
 
         LaunchedEffect(theme, initialised) {

@@ -15,6 +15,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import dev.toastbits.composekit.settings.ui.NamedTheme
 import dev.toastbits.composekit.settings.ui.ThemeValues
 import dev.toastbits.composekit.settings.ui.ThemeValuesData
+import dev.toastbits.composekit.settings.ui.rememberSystemTheme
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -32,6 +33,7 @@ import spmp.shared.generated.resources.s_option_np_accent_background
 import spmp.shared.generated.resources.s_option_np_accent_elements
 import spmp.shared.generated.resources.s_option_np_accent_none
 import spmp.shared.generated.resources.s_group_theming_desktop
+import spmp.shared.generated.resources.theme_title_system
 
 internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> =
     listOfNotNull(
@@ -46,25 +48,31 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> =
             str_field_accent = Res.string.s_theme_editor_field_accent,
             str_button_preview = Res.string.s_theme_editor_button_preview,
             getThemeProvider = {
+                val system_theme: NamedTheme = rememberSystemTheme(stringResource(Res.string.theme_title_system), context)
                 var themes: List<NamedTheme> by context.settings.theme.THEMES.observe()
 
-                object : ThemeSelectorThemeProvider {
-                    override fun getTheme(index: Int): NamedTheme? = themes.getOrNull(index)
-                    override fun getThemeCount(): Int = themes.size
-                    override fun isThemeEditable(index: Int): Boolean = themes.indices.contains(index)
+                return@ThemeSelectorSettingsItem object : ThemeSelectorThemeProvider {
+                    override fun getTheme(index: Int): NamedTheme? =
+                        if (index <= 0) system_theme else themes.getOrNull(index - 1)
+
+                    override fun getThemeCount(): Int =
+                        themes.size + 1
+
+                    override fun isThemeEditable(index: Int): Boolean =
+                        themes.indices.contains(index - 1)
 
                     override suspend fun createTheme(index: Int) {
                         themes = themes.toMutableList().apply {
-                            add(index, NamedTheme(getString(Res.string.theme_title_new), ThemeValuesData.of(context.theme.manager.current_theme)))
+                            add(index - 1, NamedTheme(getString(Res.string.theme_title_new), ThemeValuesData.of(context.theme.manager.current_theme)))
                         }
                     }
 
                     override suspend fun removeTheme(index: Int) {
-                        themes = themes.toMutableList().apply { removeAt(index) }
+                        themes = themes.toMutableList().apply { removeAt(index - 1) }
                     }
 
                     override fun onThemeEdited(index: Int, theme: ThemeValues, theme_name: String) {
-                        themes = themes.toMutableList().apply { set(index, NamedTheme(theme_name, ThemeValuesData.of(theme))) }
+                        themes = themes.toMutableList().apply { set(index - 1, NamedTheme(theme_name, ThemeValuesData.of(theme))) }
                     }
                 }
             },

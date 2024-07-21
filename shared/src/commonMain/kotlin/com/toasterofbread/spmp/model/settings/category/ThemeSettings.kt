@@ -39,7 +39,7 @@ class ThemeSettings(val context: AppContext): SettingsGroup("THEME", context.get
     val CURRENT_THEME: PreferencesProperty<Int> by property(
         getName = { stringResource(Res.string.s_key_current_theme) },
         getDescription = { null },
-        getDefaultValue = { -1 }
+        getDefaultValue = { 0 }
     )
     val THEMES: PreferencesProperty<List<NamedTheme>> by serialisableProperty(
         getName = { stringResource(Res.string.s_theme_editor_title) },

@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.platform
 
-import com.toasterofbread.spmp.platform.AppContext
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 

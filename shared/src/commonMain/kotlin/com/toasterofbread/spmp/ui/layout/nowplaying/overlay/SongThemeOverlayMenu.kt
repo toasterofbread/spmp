@@ -32,7 +32,7 @@ import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.platform.generatePalette
+import com.toasterofbread.spmp.platform.createImageBitmapUtil
 import com.toasterofbread.spmp.platform.isVideoPlaybackSupported
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
@@ -86,7 +86,14 @@ class SongThemePlayerOverlayMenu(
 
         LaunchedEffect(thumb_image) {
             palette_colours = null
-            palette_colours = thumb_image?.generatePalette(8)
+
+            if (thumb_image == null) {
+                return@LaunchedEffect
+            }
+
+            createImageBitmapUtil()?.apply {
+                palette_colours = generatePalette(thumb_image, 8)
+            }
         }
 
         AnimatedVisibility(

@@ -9,7 +9,7 @@ plugins {
 }
 
 fun Task.generateDependencyList() {
-    val output_directory: File = project.layout.buildDirectory.dir("generated/sources/buildConfig/main/com/toasterofbread/spmp").get().asFile
+    val output_directory: File = project.layout.buildDirectory.dir(SpMpDeps.OUTPUT_DIR).get().asFile
     output_directory.mkdirs()
 
     val dependency_info_file_content: String =

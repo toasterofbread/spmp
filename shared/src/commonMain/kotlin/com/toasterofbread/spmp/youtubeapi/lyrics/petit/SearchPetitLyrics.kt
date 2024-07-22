@@ -1,13 +1,14 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics.petit
 
+import com.mohamedrejeb.ksoup.entities.KsoupEntities
+import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlHandler
+import com.mohamedrejeb.ksoup.html.parser.KsoupHtmlParser
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource.SearchResult
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
-import org.jsoup.Jsoup
 
 private const val SEARCH_RESULT_START = "<a href=\"/lyrics/"
 private const val SEARCH_RESULT_END = "</a>"
@@ -18,7 +19,7 @@ internal suspend fun searchPetitLyrics(
     artist: String? = null
 ): Result<List<SearchResult>> = runCatching {
     val response: HttpResponse =
-        HttpClient(CIO).get("https://petitlyrics.com/search_lyrics") {
+        HttpClient().get("https://petitlyrics.com/search_lyrics") {
             url {
                 parameters.append("title", title)
                 if (artist != null) {
@@ -73,17 +74,17 @@ internal suspend fun searchPetitLyrics(
             }
 
             r_id = result_id
-            r_name = Jsoup.parse(line.substring(0, end + SEARCH_RESULT_END.length)).body().text()
+            r_name = line.substring(0, end + SEARCH_RESULT_END.length).getHtmlBody()
         }
         else {
-            val split = href.split('/')
+            val split: List<String> = href.split('/')
 
             when (split[0]) {
                 "artist" -> {
-                    r_artist_name = Jsoup.parse(line.substring(0, end + SEARCH_RESULT_END.length)).body().text()
+                    r_artist_name = line.substring(0, end + SEARCH_RESULT_END.length).getHtmlBody()
                 }
                 "album" -> {
-                    r_album_name = Jsoup.parse(line.substring(0, end + SEARCH_RESULT_END.length)).body().text()
+                    r_album_name = line.substring(0, end + SEARCH_RESULT_END.length).getHtmlBody()
                 }
             }
         }
@@ -102,4 +103,18 @@ internal suspend fun searchPetitLyrics(
     }
 
     return@runCatching ret
+}
+
+private fun String.getHtmlBody(): String {
+    var ret: String? = null
+    val handler: KsoupHtmlHandler =
+        KsoupHtmlHandler.Builder()
+            .onText { ret = it }
+            .build()
+
+    val parser: KsoupHtmlParser = KsoupHtmlParser(handler)
+    parser.write(this)
+    parser.end()
+
+    return ret?.let { KsoupEntities.decodeHtml(it) } ?: throw RuntimeException("HTML body not found in string '$this'")
 }

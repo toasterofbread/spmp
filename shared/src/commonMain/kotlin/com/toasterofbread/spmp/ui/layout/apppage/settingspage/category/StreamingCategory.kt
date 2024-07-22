@@ -1,6 +1,8 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
+import com.toasterofbread.spmp.model.settings.category.VideoFormatsEndpointType
+import com.toasterofbread.spmp.model.settings.category.isAvailable
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import dev.toastbits.composekit.settings.ui.item.DropdownSettingsItem
@@ -15,12 +17,18 @@ import spmp.shared.generated.resources.s_option_audio_quality_low
 import spmp.shared.generated.resources.s_option_audio_quality_medium
 
 internal fun getStreamingCategoryItems(context: AppContext): List<SettingsItem> {
+    val available_video_formats: List<VideoFormatsEndpointType> =
+        VideoFormatsEndpointType.entries.filter { it.isAvailable() }
+
     return listOf(
         DropdownSettingsItem(
-            context.settings.streaming.VIDEO_FORMATS_METHOD
-        ) { type ->
-            type.getReadable()
-        },
+            context.settings.streaming.VIDEO_FORMATS_METHOD.getConvertedProperty(
+                fromProperty = { it.ordinal },
+                toProperty = { available_video_formats[it] }
+            ),
+            item_count = available_video_formats.size,
+            getItem = { available_video_formats[it].getReadable() }
+        ),
 
         ToggleSettingsItem(
             context.settings.streaming.AUTO_DOWNLOAD_ENABLED

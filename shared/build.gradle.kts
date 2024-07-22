@@ -11,6 +11,7 @@ plugins {
     id("generate-dependency-list")
 
     kotlin("multiplatform")
+    kotlin("plugin.compose")
     kotlin("plugin.serialization")
     id("com.android.library")
     id("org.jetbrains.compose")
@@ -18,8 +19,6 @@ plugins {
 }
 
 val DATABASE_VERSION: Int = 7 // post-v0.3.2
-
-val buildConfigDir: Provider<Directory> get() = project.layout.buildDirectory.dir("generated/buildconfig")
 
 kotlin {
     androidTarget()
@@ -46,11 +45,18 @@ kotlin {
 
     applyDefaultHierarchyTemplate {
         common {
+            withAndroidTarget()
+            withJvm()
+            withWasmJs()
+
             group("jvm") {
                 withAndroidTarget()
                 withJvm()
             }
-            withWasmJs()
+            group("notAndroid") {
+                withJvm()
+                withWasmJs()
+            }
         }
     }
 
@@ -72,7 +78,7 @@ kotlin {
 
         commonMain {
             kotlin {
-                srcDir(buildConfigDir)
+                srcDir(project.layout.buildDirectory.dir(SpMpDeps.OUTPUT_DIR))
             }
 
             dependencies {
@@ -87,6 +93,7 @@ kotlin {
                 implementation(deps.get("dev.toastbits:spms"))
                 implementation(deps.get("dev.toastbits.composekit:library"))
                 implementation(deps.get("dev.toastbits.ytmkt:ytmkt"))
+                implementation(deps.get("dev.toastbits.kanakt:kanakt"))
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
@@ -95,7 +102,8 @@ kotlin {
                 implementation(deps.get("org.apache.commons:commons-text"))
                 implementation(deps.get("com.atilika.kuromoji:kuromoji-ipadic"))
                 implementation(deps.get("com.andree-surya:moji4j"))
-                implementation(deps.get("org.jsoup:jsoup"))
+                implementation(deps.get("com.mohamedrejeb.ksoup:ksoup-html"))
+                implementation(deps.get("com.mohamedrejeb.ksoup:ksoup-entities"))
                 implementation(deps.get("com.github.toasterofbread.ComposeReorderable:reorderable"))
                 implementation(deps.get("com.github.SvenWoltmann:color-thief-java"))
                 implementation(deps.get("com.github.paramsen:noise"))
@@ -107,6 +115,9 @@ kotlin {
                 implementation(deps.get("io.ktor:ktor-client-core", "io.ktor"))
                 implementation(deps.get("io.ktor:ktor-client-content-negotiation", "io.ktor"))
                 implementation(deps.get("io.ktor:ktor-serialization-kotlinx-json", "io.ktor"))
+
+                // TEMP
+                implementation("com.github.wanasit.kotori:kotori:1.0.0-TEST")
             }
         }
 
@@ -115,6 +126,9 @@ kotlin {
                 implementation(deps.get("io.ktor:ktor-client-cio", "io.ktor"))
                 implementation(deps.get("dev.toastbits.compose-webview-multiplatform:compose-webview-multiplatform"))
                 implementation(deps.get("org.bitbucket.ijabz:jaudiotagger"))
+
+                // TEMP
+                implementation("com.github.wanasit.kotori:kotori-jvm:1.0.0-TEST")
             }
         }
 
@@ -157,6 +171,10 @@ kotlin {
         val wasmJsMain by getting {
             dependencies {
                 implementation(deps.get("io.ktor:ktor-client-js", "io.ktor"))
+                implementation(deps.get("app.cash.sqldelight:web-worker-driver-wasm-js"))
+
+                // TEMP
+                implementation("com.github.wanasit.kotori:kotori-wasm-js:1.0.0-TEST")
             }
         }
     }
@@ -235,7 +253,10 @@ afterEvaluate {
         }
 
         getByName<YarnLockStoreTask>("kotlinStoreYarnLock") {
-            inputFile.asFile.get().createNewFile()
+            inputFile.asFile.get().apply {
+                parentFile.mkdirs()
+                createNewFile()
+            }
         }
     }
 }

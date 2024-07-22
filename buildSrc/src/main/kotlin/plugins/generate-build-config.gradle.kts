@@ -28,13 +28,15 @@ buildConfig {
         internalVisibility = false
     }
 
-    sourceSets.all {
-        for ((source_set, debug) in release_source_sets.map { it to false } + debug_source_sets.map { it to true }) {
-            if (name == source_set) {
-                buildConfig(debug_mode = debug)
-            }
-        }
-    }
+    // TODO
+    buildConfig(debug_mode = false)
+
+    // sourceSets.all {
+    //     for ((source_set, debug) in release_source_sets.map { it to false } + debug_source_sets.map { it to true }) {
+    //         if (name == source_set) {
+    //         }
+    //     }
+    // }
 }
 
 private fun BuildConfigClassSpec.loadKeys(

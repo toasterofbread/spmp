@@ -123,6 +123,8 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
     actual suspend fun getDownloads(): List<DownloadStatus> =
         service?.downloader?.getAllDownloadsStatus() ?: emptyList()
 
+    actual fun canStartDownload(): Boolean = true
+
     @Synchronized
     actual fun startDownload(
         song: Song,

@@ -3,6 +3,10 @@ package plugin.spmp
 import org.gradle.language.ComponentDependencies
 
 class SpMpDeps(extra: Map<String, Any>) {
+    companion object {
+        const val OUTPUT_DIR: String = "generated/sources/dependencyList/main/com/toasterofbread/spmp"
+    }
+
     fun get(artifact: String, dependency_id: String = artifact): String {
         return artifact + ":" + getVersion(dependency_id)
     }
@@ -54,6 +58,14 @@ class SpMpDeps(extra: Map<String, Any>) {
                 url = "https://github.com/toasterofbread/mediasession-kt",
                 license = "Apache-2.0",
                 license_url = "https://github.com/toasterofbread/mediasession-kt/blob/fd4c5e876e2782dbe856b886f5b8dc083c26293c/LICENSE"
+            ),
+            "dev.toastbits.kanakt" to DependencyInfo(
+                version = "0.0.1",
+                name = "kana-kt",
+                author = "toasterofbread",
+                url = "https://github.com/toasterofbread/kana-kt",
+                license = "Apache-2.0",
+                license_url = "https://github.com/toasterofbread/kana-kt/blob/2f8dc077096f3d344649fe91caa6b079194e6718/LICENSE"
             ),
 
             "org.ketbrains.kotlin" to DependencyInfo(
@@ -112,13 +124,13 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license = "Apache-2.0",
                 license_url = "https://github.com/andree-surya/moji4j/blob/ea0168f125da8791e951eab7cdf18b06a7db705b/README.md"
             ),
-            "org.jsoup:jsoup" to DependencyInfo(
-                version = "1.16.1",
-                name = "jsoup",
-                author = "jhy",
-                url = "https://github.com/jhy/jsoup",
-                license = "MIT",
-                license_url = "https://github.com/jhy/jsoup/blob/1f1f72d1e89821c630dcfc35e1a0a7f653cc877b/LICENSE"
+            "com.mohamedrejeb.ksoup" to DependencyInfo(
+                version = "0.4.0",
+                name = "Ksoup",
+                author = "MohamedRejeb",
+                url = "https://github.com/MohamedRejeb/Ksoup",
+                license = "Apache-2.0",
+                license_url = "https://github.com/MohamedRejeb/Ksoup/blob/5f07e799c95e518d80caf70fc586ddcc649e1315/LICENSE"
             ),
             "com.github.toasterofbread.ComposeReorderable" to DependencyInfo(
                 version = "434c321a8f",

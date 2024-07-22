@@ -1,7 +1,5 @@
 package com.toasterofbread.spmp.platform
 
-import kotlin.reflect.KClass
-
 expect abstract class PlatformBinder()
 
 interface PlatformService {
@@ -34,11 +32,11 @@ expect open class PlatformServiceImpl(): PlatformService {
     override fun removeMessageReceiver(receiver: (Any?) -> Unit)
 }
 
-expect fun startPlatformService(
+expect inline fun <reified T: PlatformServiceImpl> startPlatformService(
     context: AppContext,
-    cls: KClass<out PlatformServiceImpl>,
-    onConnected: ((binder: PlatformBinder?) -> Unit)? = null,
-    onDisconnected: (() -> Unit)? = null
+    createInstance: () -> T,
+    crossinline onConnected: (binder: PlatformBinder?) -> Unit = {},
+    crossinline onDisconnected: () -> Unit = {}
 ): Any // Service connection
 
 expect fun unbindPlatformService(context: AppContext, connection: Any)

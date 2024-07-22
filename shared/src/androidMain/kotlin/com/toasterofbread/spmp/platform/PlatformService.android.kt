@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.platform
 
 import android.app.Service
 import android.content.ComponentName
+import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Binder
@@ -16,7 +17,7 @@ actual abstract class PlatformBinder: Binder()
 actual open class PlatformServiceImpl: Service(), PlatformService {
     private val coroutine_scope = CoroutineScope(Job())
 
-    actual override val context: AppContext by lazy { AppContext(this, coroutine_scope) }
+    actual override val context: AppContext by lazy { AppContext.create(this, coroutine_scope) }
     actual override fun onCreate() {
         super.onCreate()
     }
@@ -42,24 +43,25 @@ actual open class PlatformServiceImpl: Service(), PlatformService {
     }
 }
 
-actual fun startPlatformService(
+actual inline fun <reified T: PlatformServiceImpl> startPlatformService(
     context: AppContext,
-    cls: KClass<out PlatformServiceImpl>,
-    onConnected: ((binder: PlatformBinder?) -> Unit)?,
-    onDisconnected: (() -> Unit)?
+    createInstance: () -> T,
+    crossinline onConnected: (binder: PlatformBinder?) -> Unit,
+    crossinline onDisconnected: () -> Unit
 ): Any {
-    val ctx = context.ctx
+    val ctx: Context = context.ctx
 
-    val service_intent = Intent(ctx, cls.java)
-    val service_connection = object : ServiceConnection {
-        override fun onServiceConnected(name: ComponentName, binder: IBinder?) {
-            onConnected?.invoke(binder as PlatformBinder?)
-        }
+    val service_intent: Intent = Intent(ctx, T::class.java)
+    val service_connection: ServiceConnection =
+        object : ServiceConnection {
+            override fun onServiceConnected(name: ComponentName, binder: IBinder?) {
+                onConnected(binder as PlatformBinder?)
+            }
 
-        override fun onServiceDisconnected(arg0: ComponentName) {
-            onDisconnected?.invoke()
+            override fun onServiceDisconnected(arg0: ComponentName) {
+                onDisconnected()
+            }
         }
-    }
 
     ctx.startService(service_intent)
     ctx.bindService(service_intent, service_connection, 0)

@@ -231,6 +231,7 @@ object SpMp {
 
     fun reportActionError(exception: Throwable?) {
         // TODO add option to disable
+        exception?.printStackTrace()
         context.sendToast(exception.toString())
     }
 

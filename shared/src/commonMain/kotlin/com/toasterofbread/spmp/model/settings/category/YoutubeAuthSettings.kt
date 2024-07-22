@@ -28,11 +28,12 @@ class YoutubeAuthSettings(val context: AppContext): SettingsGroup("YTAUTH", cont
         getDescription = { null },
         getDefaultValue = {
             with(ProjectBuildConfig) {
-                if (YTM_CHANNEL_ID != null && YTM_HEADERS != null)
+                val headers: String? = YTM_HEADERS
+                if (YTM_CHANNEL_ID != null && headers != null)
                     ApiAuthenticationState.packSetData(
                         YTM_CHANNEL_ID,
                         Headers.build {
-                            val headers: Map<String, String> = Json.decodeFromString(YTM_HEADERS)
+                            val headers: Map<String, String> = Json.decodeFromString(headers)
                             for ((key, value) in headers) {
                                 append(key, value)
                             }

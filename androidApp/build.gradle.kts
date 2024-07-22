@@ -9,6 +9,7 @@ import plugin.spmp.SpMpDeps
 
 plugins {
     kotlin("multiplatform")
+    kotlin("plugin.compose")
     id("com.android.application")
     id("org.jetbrains.compose")
 }

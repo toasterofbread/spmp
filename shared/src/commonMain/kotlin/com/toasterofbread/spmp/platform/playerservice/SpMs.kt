@@ -69,14 +69,16 @@ internal fun getSpMsMachineIdFromFile(id_file: PlatformFile): String {
         check(id_file.parent_file.mkdirs()) { id_file }
     }
 
-    val id_length: Int = 8
-    val allowed_chars: List<Char> = ('A'..'Z') + ('a'..'z') + ('0'..'9')
-
-    val new_id: String = (1..id_length).map { allowed_chars.random() }.joinToString("")
-
+    val new_id: String = generateNewSpMsMachineId()
     id_file.outputStream().use { stream->
         stream.buffer().writeUtf8(new_id)
     }
 
     return new_id
+}
+
+internal fun generateNewSpMsMachineId(): String {
+    val id_length: Int = 8
+    val allowed_chars: List<Char> = ('A'..'Z') + ('a'..'z') + ('0'..'9')
+    return (1..id_length).map { allowed_chars.random() }.joinToString("")
 }

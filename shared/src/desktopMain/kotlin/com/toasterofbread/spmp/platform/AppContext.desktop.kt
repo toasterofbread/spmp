@@ -12,7 +12,6 @@ import com.toasterofbread.spmp.resources.Language
 import com.toasterofbread.spmp.resources.getAvailableLanguages
 import com.toasterofbread.spmp.youtubeapi.YtmApiType
 import dev.toastbits.composekit.platform.getDesktopFilesDir
-import dev.toastbits.composekit.settings.ui.ThemeManager
 import dev.toastbits.ytmkt.model.YtmApi
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.compose.resources.getString
@@ -22,6 +21,7 @@ import spmp.shared.generated.resources.app_name
 actual class AppContext private constructor(
     app_name: String,
     coroutine_scope: CoroutineScope,
+    prefs: PlatformPreferences,
     api_type: YtmApiType,
     api_url: String,
     data_language: Language,
@@ -36,6 +36,7 @@ actual class AppContext private constructor(
             return AppContext(
                 app_name,
                 coroutine_scope,
+                prefs,
                 settings.API_TYPE.get(),
                 settings.API_URL.get(),
                 Language.getSystem(),
@@ -47,7 +48,7 @@ actual class AppContext private constructor(
     override suspend fun getIconImageData(): ByteArray? =
         Res.readBytes("drawable/ic_spmp.png")
 
-    private val _prefs: PlatformPreferences = PlatformPreferencesImpl.getInstance { getFilesDir()!!.file.resolve("preferences.json") }
+    private val _prefs: PlatformPreferences = prefs
     actual fun getPrefs(): PlatformPreferences = _prefs
 
     actual val database: Database = createDatabase()

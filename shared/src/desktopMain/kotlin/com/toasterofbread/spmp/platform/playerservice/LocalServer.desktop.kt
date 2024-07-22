@@ -25,6 +25,9 @@ actual object LocalServer {
             machine_id = getMachineId()!!
         )
 
+    actual fun isAvailable(): Boolean =
+        SpMs.isAvailable(headless = false)
+
     @Composable
     actual fun getLocalServerUnavailabilityReason(): String? {
         val server: SpMs =

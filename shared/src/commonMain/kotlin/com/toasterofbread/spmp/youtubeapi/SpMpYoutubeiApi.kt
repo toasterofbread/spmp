@@ -37,6 +37,7 @@ import dev.toastbits.ytmkt.endpoint.SearchResults
 import dev.toastbits.ytmkt.radio.RadioContinuation
 import dev.toastbits.ytmkt.uistrings.UiString
 import androidx.compose.runtime.*
+import com.toasterofbread.spmp.model.settings.category.instantiate
 import com.toasterofbread.spmp.resources.Language
 import kotlinx.coroutines.launch
 

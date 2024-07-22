@@ -1,21 +1,17 @@
 package com.toasterofbread.spmp.service.playercontroller
 
 import dev.toastbits.composekit.utils.common.indexOfOrNull
-import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
-import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.ui.layout.apppage.searchpage.SearchAppPage
-import java.net.URI
-import java.net.URISyntaxException
 
 suspend fun PlayerState.openUri(uri_string: String): Result<Unit> {
-    fun failure(reason: String): Result<Unit> = Result.failure(URISyntaxException(uri_string, reason))
+    fun failure(reason: String): Result<Unit> = Result.failure(RuntimeException("$reason ($uri_string)"))
 
-    val uri: URI = URI(uri_string)
+    val uri: URI = parseURI(uri_string)
     if (uri.host != "music.youtube.com" && uri.host != "www.youtube.com") {
         return failure("Unsupported host '${uri.host}'")
     }
@@ -50,6 +46,28 @@ suspend fun PlayerState.openUri(uri_string: String): Result<Unit> {
     }
 
     return Result.success(Unit)
+}
+
+private data class URI(val host: String, val path: String, val query: String)
+
+private fun parseURI(uri: String): URI {
+    val host_start: Int = uri.indexOfOrNull("://")?.plus(3) ?: 0
+    val host_end: Int = uri.indexOfOrNull('/', start_index = host_start) ?: uri.length
+
+    val host: String = uri.substring(host_start, host_end)
+    var path: String = ""
+    var query: String = ""
+
+    if (host_end < uri.length) {
+        val path_end: Int = uri.indexOfOrNull('?', start_index = host_end) ?: uri.length
+        path = uri.substring(host_end, path_end)
+
+        if (path_end + 1 < uri.length) {
+            query = uri.substring(path_end + 1)
+        }
+    }
+
+    return URI(host, path, query)
 }
 
 private suspend fun PlayerState.openItem(item: MediaItem) {

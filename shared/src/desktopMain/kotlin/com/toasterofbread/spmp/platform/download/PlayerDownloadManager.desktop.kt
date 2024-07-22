@@ -66,6 +66,8 @@ actual class PlayerDownloadManager actual constructor(private val context: AppCo
         }
     }
 
+    actual fun canStartDownload(): Boolean = true
+
     @Synchronized
     actual fun startDownload(
         song: Song,

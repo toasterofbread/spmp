@@ -7,12 +7,8 @@ import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.platform.download.DownloadMethod
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getStreamingCategoryItems
-import com.toasterofbread.spmp.youtubeapi.NewPipeVideoFormatsEndpoint
-import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.ytmkt.model.YtmApi
-import dev.toastbits.ytmkt.formats.PipedVideoFormatsEndpoint
 import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
-import dev.toastbits.ytmkt.formats.YoutubeiVideoFormatsEndpoint
 import dev.toastbits.composekit.platform.PreferencesProperty
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -104,13 +100,6 @@ enum class VideoFormatsEndpointType {
     PIPED,
     NEWPIPE;
 
-    fun instantiate(api: YtmApi): VideoFormatsEndpoint =
-        when (this) {
-            YOUTUBEI -> YoutubeiVideoFormatsEndpoint(api)
-            PIPED -> PipedVideoFormatsEndpoint(api)
-            NEWPIPE -> NewPipeVideoFormatsEndpoint(api)
-        }
-
     @Composable
     fun getReadable(): String =
         when (this) {
@@ -123,3 +112,7 @@ enum class VideoFormatsEndpointType {
         val DEFAULT: VideoFormatsEndpointType = YOUTUBEI
     }
 }
+
+expect fun VideoFormatsEndpointType.isAvailable(): Boolean
+
+expect fun VideoFormatsEndpointType.instantiate(api: YtmApi): VideoFormatsEndpoint

@@ -43,7 +43,7 @@ fun HorizontalLyricsLineDisplay(
     require(lyrics.synced)
 
     val show_furigana_option: Boolean by LocalPlayerState.current.settings.lyrics.DEFAULT_FURIGANA.observe()
-    val current_line_state: CurrentLineState = rememberCurrentLineState(lyrics, lyrics_linger, getTime)
+    val current_line_state: CurrentLineState? = rememberCurrentLineState(lyrics, lyrics_linger, getTime)
 
     val lyrics_text_style: TextStyle =
         LocalTextStyle.current.copy(
@@ -65,7 +65,7 @@ fun HorizontalLyricsLineDisplay(
             else -> Alignment.Center
         }
     ) {
-        current_line_state.LyricsDisplay { show, line ->
+        current_line_state?.LyricsDisplay { show, line ->
             NullableValueAnimatedVisibility(
                 line?.takeIf { show },
                 Modifier.height(IntrinsicSize.Min).width(IntrinsicSize.Max),
@@ -87,7 +87,7 @@ fun HorizontalLyricsLineDisplay(
         }
 
         AlignableCrossfade(
-            if (current_line_state.isLineShowing()) null else emptyContent,
+            if (current_line_state?.isLineShowing() == true) null else emptyContent,
             Modifier.fillMaxWidth(),
             contentAlignment = Alignment.Center
         ) { content ->
@@ -125,13 +125,13 @@ fun VerticalLyricsLineDisplay(
             color = text_colour
         )
 
-    val current_line_state: CurrentLineState = rememberCurrentLineState(lyrics, lyrics_linger, getTime)
+    val current_line_state: CurrentLineState? = rememberCurrentLineState(lyrics, lyrics_linger, getTime)
 
     Box(
         modifier,
         contentAlignment = Alignment.Center
     ) {
-        current_line_state.LyricsDisplay { show, line ->
+        current_line_state?.LyricsDisplay { show, line ->
             NullableValueAnimatedVisibility(
                 line?.takeIf { show },
                 Modifier.height(IntrinsicSize.Min).width(IntrinsicSize.Max),
@@ -210,20 +210,24 @@ private fun rememberCurrentLineState(
     lyrics: SongLyrics,
     linger: Boolean,
     getTime: () -> Long
-): CurrentLineState {
+): CurrentLineState? {
     val player: PlayerState = LocalPlayerState.current
     val romanise_furigana: Boolean by player.settings.lyrics.ROMANISE_FURIGANA.observe()
 
-    val state: CurrentLineState = remember(romanise_furigana) {
+    var state: CurrentLineState? by remember { mutableStateOf(null) }
+
+    LaunchedEffect(romanise_furigana) {
         val tokeniser: LyricsFuriganaTokeniser = createFuriganaTokeniser(romanise_furigana)
         val lines: List<List<SongLyrics.Term>> = lyrics.lines.map { tokeniser.mergeAndFuriganiseTerms(it) }
-        CurrentLineState(lines).apply { update(getTime(), linger) }
+        state = CurrentLineState(lines).apply { update(getTime(), linger) }
     }
 
-    LaunchedEffect(linger) {
+    LaunchedEffect(linger, state) {
+        val current_state: CurrentLineState = state ?: return@LaunchedEffect
+
         while (true) {
             delay(UPDATE_INTERVAL_MS)
-            state.update(getTime(), linger)
+            current_state.update(getTime(), linger)
         }
     }
 

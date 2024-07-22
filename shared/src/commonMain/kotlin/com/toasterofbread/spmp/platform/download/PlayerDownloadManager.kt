@@ -150,6 +150,7 @@ expect class PlayerDownloadManager(context: AppContext) {
     suspend fun getDownload(song: Song): DownloadStatus?
     suspend fun getDownloads(): List<DownloadStatus>
 
+    fun canStartDownload(): Boolean
     fun startDownload(
         song: Song,
         silent: Boolean = false,

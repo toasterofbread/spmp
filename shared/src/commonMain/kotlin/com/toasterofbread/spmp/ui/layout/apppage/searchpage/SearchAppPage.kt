@@ -44,6 +44,7 @@ import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.theme.appHover
 import com.toasterofbread.spmp.ui.component.NotImplementedMessage
+import dev.toastbits.composekit.platform.ReentrantLock
 import dev.toastbits.composekit.platform.synchronized
 import dev.toastbits.ytmkt.endpoint.*
 import dev.toastbits.ytmkt.endpoint.SearchFilter
@@ -72,9 +73,9 @@ internal data class AppSearchResults(
 }
 
 class SearchAppPage(override val state: AppPageState, val context: AppContext): AppPage() {
-    private val coroutine_scope = CoroutineScope(Job())
-    private val search_lock = Object()
-    private val search_endpoint = context.ytapi.Search
+    private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
+    private val search_lock: ReentrantLock = ReentrantLock()
+    private val search_endpoint: SearchEndpoint = context.ytapi.Search
 
     private var clearFocus: (() -> Unit)? = null
     private var multiselect_context: MediaItemMultiSelectContext? = null

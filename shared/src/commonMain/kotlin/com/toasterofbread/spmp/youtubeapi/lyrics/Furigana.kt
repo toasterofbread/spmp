@@ -1,23 +1,22 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics
 
-
-import com.atilika.kuromoji.ipadic.Token
-import com.atilika.kuromoji.ipadic.Tokenizer
-import dev.toastbits.composekit.utils.common.hasKanjiAndHiraganaOrKatakana
+import com.github.wanasit.kotori.Token
+import com.github.wanasit.kotori.mecab.MeCabTermFeatures
 import dev.toastbits.composekit.utils.common.isHiragana
 import dev.toastbits.composekit.utils.common.isJa
 import dev.toastbits.composekit.utils.common.isKanji
 import dev.toastbits.composekit.utils.common.isKatakana
 import dev.toastbits.composekit.utils.common.toHiragana
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
-import java.nio.channels.ClosedByInterruptException
-import com.moji4j.MojiConverter
+import dev.toastbits.composekit.platform.ReentrantLock
+import dev.toastbits.composekit.utils.common.hasKanjiAndHiraganaOrKatakana
+import dev.toastbits.kanakt.Kana
 
 fun interface LyricsFuriganaTokeniser {
     fun mergeAndFuriganiseTerms(terms: List<SongLyrics.Term>): List<SongLyrics.Term>
 }
 
-private class LyricsFuriganaTokeniserImpl(val tokeniser: Tokenizer, val romanise: Boolean): LyricsFuriganaTokeniser {
+private class LyricsFuriganaTokeniserImpl(val tokeniser: Kotori, val romanise: Boolean): LyricsFuriganaTokeniser {
     override fun mergeAndFuriganiseTerms(terms: List<SongLyrics.Term>): List<SongLyrics.Term> {
         if (terms.isEmpty()) {
             return emptyList()
@@ -41,10 +40,9 @@ private class LyricsFuriganaTokeniserImpl(val tokeniser: Tokenizer, val romanise
         ret.addAll(tokeniser._mergeAndFuriganiseTerms(terms_to_process, romanise))
 
         if (romanise) {
-            val converter: MojiConverter = MojiConverter()
             for (term in ret) {
                 for (subterm in term.subterms) {
-                    subterm.reading = subterm.reading?.let { converter.convertKanaToRomaji(it).filter { it != 'っ' } }
+                    subterm.reading = subterm.reading?.let { Kana.romanise(it).joinToString { it.reading.orEmpty() } }
                 }
             }
         }
@@ -53,24 +51,20 @@ private class LyricsFuriganaTokeniserImpl(val tokeniser: Tokenizer, val romanise
     }
 }
 
-private val tokeniser_impl: Tokenizer by lazy { Tokenizer() }
+private var tokeniser_impl: Kotori? = null
+private val tokeniser_load_lock: ReentrantLock = ReentrantLock()
 
-@Synchronized
-fun createFuriganaTokeniser(romanise: Boolean): LyricsFuriganaTokeniser {
-    try {
-        return LyricsFuriganaTokeniserImpl(tokeniser_impl, romanise)
+private suspend fun getTokeniser(): Kotori = tokeniser_load_lock.withLock {
+    if (tokeniser_impl == null) {
+        tokeniser_impl = loadKotori()
     }
-    catch (e: RuntimeException) {
-        if (e.cause is ClosedByInterruptException) {
-            throw InterruptedException()
-        }
-        else {
-            throw e
-        }
-    }
+    return@withLock tokeniser_impl!!
 }
 
-private fun Tokenizer._mergeAndFuriganiseTerms(terms: List<SongLyrics.Term>, all: Boolean = false): List<SongLyrics.Term> {
+suspend fun createFuriganaTokeniser(romanise: Boolean): LyricsFuriganaTokeniser =
+    LyricsFuriganaTokeniserImpl(getTokeniser(), romanise)
+
+private fun Kotori._mergeAndFuriganiseTerms(terms: List<SongLyrics.Term>, all: Boolean = false): List<SongLyrics.Term> {
     if (terms.isEmpty()) {
         return emptyList()
     }
@@ -84,13 +78,13 @@ private fun Tokenizer._mergeAndFuriganiseTerms(terms: List<SongLyrics.Term>, all
         terms_text += term.subterms.single().text
     }
 
-    val tokens: MutableList<Token> = tokenize(terms_text)
+    val tokens: List<Token<MeCabTermFeatures>> = tokenize(terms_text)
 
     var current_term: Int = 0
     var term_head: Int = 0
 
     for (token in tokens) {
-        val token_base: String = token.surface
+        val token_base: String = token.text
 
         var text: String = ""
         var start: Long? = null
@@ -124,8 +118,8 @@ private fun Tokenizer._mergeAndFuriganiseTerms(terms: List<SongLyrics.Term>, all
                 listOf(
                     SongLyrics.Term.Text(
                         text,
-                        if (token.reading == "*") text
-                        else token.reading.toHiragana()
+                        if (token.features.reading == "*") text
+                        else token.features.reading?.toHiragana()
                     )
                 )
                     .let { terms ->

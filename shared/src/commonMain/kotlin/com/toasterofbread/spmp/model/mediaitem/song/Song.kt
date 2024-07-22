@@ -4,7 +4,6 @@ import LocalPlayerState
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.IntOffset
-import app.cash.sqldelight.Query
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
@@ -17,9 +16,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.crop
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
-import com.toasterofbread.spmp.platform.toImageBitmap
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.toLyricsReference
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -31,6 +28,7 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import kotlin.math.roundToInt
 import PlatformIO
+import com.toasterofbread.spmp.platform.crop
 import io.ktor.client.HttpClient
 
 private const val STATIC_LYRICS_SYNC_OFFSET: Long = 1000

@@ -37,7 +37,7 @@ import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 import com.toasterofbread.spmp.ui.layout.artistpage.artistPageGetAllItems
 import dev.toastbits.ytmkt.endpoint.ArtistWithParamsRow
@@ -60,7 +60,7 @@ internal fun ArtistAppPage.LFFArtistEndPane(
     item_layouts: List<ArtistLayout>?,
     apply_filter: Boolean
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     val end_padding: Dp = content_padding.calculateEndPadding(LocalLayoutDirection.current)
@@ -206,7 +206,7 @@ internal fun ArtistAppPage.LFFArtistEndPane(
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-private fun onSinglePlaylistClicked(playlist: Playlist, player: PlayerState, click_overrides: PlayerClickOverrides) {
+private fun onSinglePlaylistClicked(playlist: Playlist, player: OldPlayerStateImpl, click_overrides: PlayerClickOverrides) {
     GlobalScope.launch {
         playlist.loadData(player.context).onSuccess { data ->
             data.items?.firstOrNull()?.also { first_item ->

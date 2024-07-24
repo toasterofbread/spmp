@@ -35,7 +35,7 @@ import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.composekit.platform.assert
 import dev.toastbits.ytmkt.endpoint.ArtistWithParamsRow
 import dev.toastbits.ytmkt.model.external.ItemLayoutType
@@ -51,7 +51,7 @@ internal fun ArtistAppPage.SFFArtistPage(
     content_padding: PaddingValues = PaddingValues(),
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     val own_multiselect_context = remember(multiselect_context) { if (multiselect_context != null) null else MediaItemMultiSelectContext(player.context) {} }
@@ -214,7 +214,7 @@ internal fun ArtistAppPage.SFFArtistPage(
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-private fun onSinglePlaylistClicked(playlist: Playlist, player: PlayerState, click_overrides: PlayerClickOverrides) {
+private fun onSinglePlaylistClicked(playlist: Playlist, player: OldPlayerStateImpl, click_overrides: PlayerClickOverrides) {
     GlobalScope.launch {
         playlist.loadData(player.context).onSuccess { data ->
             data.items?.firstOrNull()?.also { first_item ->

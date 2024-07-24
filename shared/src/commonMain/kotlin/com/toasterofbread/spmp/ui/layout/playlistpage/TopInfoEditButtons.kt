@@ -29,13 +29,13 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.downloadAsLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.uploadAsAccountPlaylist
 import com.toasterofbread.spmp.platform.getOrNotify
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import kotlinx.coroutines.launch
 import LocalPlayerState
 
 @Composable
 internal fun PlaylistAppPage.PlaylistTopInfoEditButtons(modifier: Modifier = Modifier) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
         IconButton({

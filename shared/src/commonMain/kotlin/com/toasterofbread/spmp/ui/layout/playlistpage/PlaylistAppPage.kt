@@ -62,7 +62,7 @@ import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -295,7 +295,7 @@ class PlaylistAppPage(
         content_padding: PaddingValues,
         close: () -> Unit
     ) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val db: Database = player.database
 
         val playlist_items: List<MediaItem>? by playlist.Items.observe(db, key = items_reload_key)

@@ -28,7 +28,7 @@ import com.toasterofbread.spmp.model.radio.RadioState
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.radiobuilder.getReadable
 import dev.toastbits.ytmkt.endpoint.RadioBuilderModifier
 import org.jetbrains.compose.resources.stringResource
@@ -42,7 +42,7 @@ internal fun CurrentRadioIndicator(
     modifier: Modifier = Modifier,
     getAllSelectableItems: () -> List<MultiSelectItem>
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val horizontal_padding: Dp = 15.dp
 
     val radio_state: RadioState? = player.controller?.radio_instance?.state

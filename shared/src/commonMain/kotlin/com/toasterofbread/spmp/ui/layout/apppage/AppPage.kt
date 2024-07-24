@@ -16,11 +16,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import dev.toastbits.composekit.platform.composable.ScrollBarLazyRow
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 import dev.toastbits.composekit.utils.composable.ScrollBarLazyRowOrColumn
@@ -120,7 +121,7 @@ abstract class AppPage {
                 PROFILE -> Icons.Default.Person
             }
 
-        fun getPage(player: PlayerState, state: AppPageState): AppPage? =
+        fun getPage(context: AppContext, state: AppPageState): AppPage? =
             when (this) {
                 SONG_FEED -> state.SongFeed
                 LIBRARY -> state.Library
@@ -128,9 +129,9 @@ abstract class AppPage {
                 RADIO_BUILDER -> state.RadioBuilder
                 CONTROL_PANEL -> state.ControlPanel
                 SETTINGS -> state.Settings
-                PROFILE -> player.getOwnChannel()?.let { ArtistAppPage(state, it) }
+                PROFILE -> context.getOwnChannel()?.let { ArtistAppPage(state, it) }
             }
     }
 }
 
-private fun PlayerState.getOwnChannel(): Artist? = context.ytapi.user_auth_state?.own_channel_id?.let { ArtistRef(it) }
+private fun AppContext.getOwnChannel(): Artist? = ytapi.user_auth_state?.own_channel_id?.let { ArtistRef(it) }

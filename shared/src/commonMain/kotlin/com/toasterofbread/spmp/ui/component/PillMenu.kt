@@ -51,7 +51,7 @@ import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.composable.NoRipple
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 import kotlin.math.sign
 import dev.toastbits.composekit.utils.composable.RowOrColumn
@@ -303,7 +303,7 @@ class PillMenu(
             }
 
             if (visible) {
-                val player: PlayerState = LocalPlayerState.current
+                val player: OldPlayerStateImpl = LocalPlayerState.current
                 Box(
                     contentAlignment = alignment,
                     modifier = container_modifier

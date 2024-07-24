@@ -57,7 +57,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.rememberDownloadStatus
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
 import dev.toastbits.composekit.settings.ui.on_accent
@@ -90,7 +90,7 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
     queue_index: Int?,
     withSong: (suspend (Song) -> Unit) -> Unit,
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val density: Density = LocalDensity.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 

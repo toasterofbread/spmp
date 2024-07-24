@@ -20,7 +20,7 @@ import dev.toastbits.composekit.utils.common.getValue
 import dev.toastbits.composekit.utils.composable.*
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.component.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import kotlin.math.sign
@@ -57,7 +57,7 @@ data class ContentBarElementLyrics(
 
     @Composable
     override fun isDisplaying(): Boolean {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val current_song: Song? by player.status.song_state
         lyrics_state = current_song?.let { SongLyricsLoader.rememberItemState(it, player.context) }
 
@@ -72,7 +72,7 @@ data class ContentBarElementLyrics(
 
     @Composable
     override fun ElementContent(vertical: Boolean, slot: LayoutSlot?, bar_size: DpSize, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val current_song: Song? by player.status.song_state
         val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(player.database, true)
 

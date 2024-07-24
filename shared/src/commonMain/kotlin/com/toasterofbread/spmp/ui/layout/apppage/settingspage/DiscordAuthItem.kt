@@ -28,7 +28,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.DiscordAccountPreview
 import com.toasterofbread.spmp.ui.layout.DiscordLoginConfirmation
 import com.toasterofbread.spmp.platform.DiscordStatus
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.composekit.settings.ui.on_accent
 import dev.toastbits.composekit.settings.ui.vibrant_accent
 import kotlinx.serialization.json.JsonElement
@@ -145,7 +145,7 @@ fun getDiscordAuthItem(
                 return@LargeToggleSettingsItem
             }
 
-            val player: PlayerState = LocalPlayerState.current
+            val player: OldPlayerStateImpl = LocalPlayerState.current
             var show_info_dialog: Boolean by remember { mutableStateOf(false) }
 
             if (show_info_dialog) {

@@ -49,7 +49,7 @@ import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverride
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.composekit.platform.assert
 import dev.toastbits.ytmkt.endpoint.LoadPlaylistEndpoint
 import dev.toastbits.ytmkt.model.implementedOrNull
@@ -90,7 +90,7 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
         showing_alt_content: Boolean,
         modifier: Modifier
     ) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val auth_state: ApiAuthenticationState? = player.context.ytapi.user_auth_state
 
         val downloads: List<DownloadStatus> by rememberSongDownloads()
@@ -213,7 +213,7 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
 
     @Composable
     override fun RowOrColumnScope.SideContent(showing_alt_content: Boolean) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val auth_state: ApiAuthenticationState? = player.context.ytapi.user_auth_state
 
         val load_endpoint: LoadPlaylistEndpoint? = player.context.ytapi.LoadPlaylist.implementedOrNull()
@@ -241,7 +241,7 @@ private fun InfoRow(songs: List<Song>, modifier: Modifier = Modifier, show_sync_
         return
     }
 
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     var total_duration_string: String? by remember { mutableStateOf(null) }
     LaunchedEffect(songs) {
@@ -279,7 +279,7 @@ private fun InfoRow(songs: List<Song>, modifier: Modifier = Modifier, show_sync_
 
 @Composable
 private fun LibrarySyncButton() {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     IconButton({
@@ -302,7 +302,7 @@ private fun LibrarySyncButton() {
     }
 }
 
-private fun onSongClicked(songs: List<Song>, player: PlayerState, clicked_song: Song, index: Int) {
+private fun onSongClicked(songs: List<Song>, player: OldPlayerStateImpl, clicked_song: Song, index: Int) {
     player.withPlayer {
         val ADD_BEFORE = 0
         val ADD_AFTER = 9

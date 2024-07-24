@@ -46,7 +46,7 @@ import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.getMediaNotificationImageMaxOffset
 import com.toasterofbread.spmp.platform.playerservice.getMediaNotificationImageSize
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.compose.resources.stringResource
@@ -67,7 +67,7 @@ actual class NotifImagePlayerOverlayMenu: PlayerOverlayMenu() {
         getCurrentSongThumb: () -> ImageBitmap?,
     ) {
         val song: Song = getSong() ?: return
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
 
         Column(
             Modifier.fillMaxSize(),

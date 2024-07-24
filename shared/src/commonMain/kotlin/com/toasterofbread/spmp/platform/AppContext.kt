@@ -18,7 +18,7 @@ import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PlatformContext
 import dev.toastbits.composekit.platform.PlatformPreferences
@@ -126,14 +126,14 @@ class AppThemeManager(
 }
 
 @Composable
-fun PlayerState.getDefaultHorizontalPadding(): Dp =
+fun OldPlayerStateImpl.getDefaultHorizontalPadding(): Dp =
     if (Platform.DESKTOP.isCurrent() && FormFactor.observe().value == FormFactor.LANDSCAPE) 30.dp else 10.dp
 @Composable
-fun PlayerState.getDefaultVerticalPadding(): Dp =
+fun OldPlayerStateImpl.getDefaultVerticalPadding(): Dp =
     if (Platform.DESKTOP.isCurrent() && FormFactor.observe().value == FormFactor.LANDSCAPE) 30.dp else 10.dp
 
 @Composable
-fun PlayerState.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())
+fun OldPlayerStateImpl.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())
 
 suspend fun AppContext.getUiLanguage(): String =
     settings.system.LANG_UI.get().ifEmpty { getDefaultLanguage() }

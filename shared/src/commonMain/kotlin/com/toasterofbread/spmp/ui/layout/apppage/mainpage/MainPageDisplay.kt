@@ -18,7 +18,7 @@ import dev.toastbits.composekit.utils.composable.*
 import dev.toastbits.composekit.utils.composable.getTop
 import dev.toastbits.composekit.utils.modifier.background
 import com.toasterofbread.spmp.platform.*
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.ui.layout.contentbar.*
@@ -27,7 +27,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 
 @Composable
 fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val density: Density = LocalDensity.current
     val form_factor: FormFactor by FormFactor.observe()
     val horizontal_padding: Dp by animateDpAsState(player.getDefaultHorizontalPadding())

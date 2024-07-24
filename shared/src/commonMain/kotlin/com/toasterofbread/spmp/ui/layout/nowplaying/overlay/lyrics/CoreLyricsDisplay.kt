@@ -20,7 +20,7 @@ import dev.toastbits.composekit.platform.composable.platformClickable
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.component.HorizontalFuriganaText
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING_DP
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
@@ -38,7 +38,7 @@ fun CoreLyricsDisplay(
     enable_autoscroll: Boolean = true,
     onLineAltClick: ((Int) -> Unit)? = null
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val density: Density = LocalDensity.current
     val lyrics_sync_offset: Long? by song.getLyricsSyncOffset(player.database, false)
 

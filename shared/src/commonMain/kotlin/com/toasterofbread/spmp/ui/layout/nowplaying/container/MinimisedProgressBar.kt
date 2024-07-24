@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import dev.toastbits.composekit.utils.composable.RecomposeOnInterval
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.nowplaying.*
 
 @Composable
@@ -19,7 +19,7 @@ internal fun MinimisedProgressBar(
     height: Dp,
     modifier: Modifier = Modifier
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
 
     RecomposeOnInterval(POSITION_UPDATE_INTERVAL_MS) { state ->

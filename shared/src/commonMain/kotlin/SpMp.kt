@@ -22,7 +22,7 @@ import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.service.playercontroller.openUri
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.RootView
 import com.toasterofbread.spmp.ui.layout.loadingsplash.LoadingSplash
@@ -45,7 +45,7 @@ import spmp.shared.generated.resources.app_name
 import spmp.shared.generated.resources.warning_spms_api_version_mismatch
 import spmp.shared.generated.resources.`warning_spms_api_version_mismatch_$theirs_$ours`
 
-val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.player_state }
+val LocalPlayerState: ProvidableCompositionLocal<OldPlayerStateImpl> = staticCompositionLocalOf { SpMp.player_state }
 val LocalProgramArguments: ProvidableCompositionLocal<ProgramArguments> = staticCompositionLocalOf { ProgramArguments() }
 
 object LocalNowPlayingExpansion {
@@ -58,9 +58,9 @@ object SpMp {
 
     private lateinit var context: AppContext
 
-    var _player_state: PlayerState? = null
+    var _player_state: OldPlayerStateImpl? = null
         private set
-    val player_state: PlayerState get() = _player_state!!
+    val player_state: OldPlayerStateImpl get() = _player_state!!
 
     val prefs: PlatformPreferences get() = context.getPrefs()
 
@@ -74,10 +74,10 @@ object SpMp {
     suspend fun initPlayer(
         launch_arguments: ProgramArguments,
         composable_coroutine_scope: CoroutineScope
-    ): PlayerState {
+    ): OldPlayerStateImpl {
         val np_theme_mode: ThemeMode = context.settings.theme.NOWPLAYING_THEME_MODE.get()
         val swipe_sensitivity: Float = context.settings.player.EXPAND_SWIPE_SENSITIVITY.get()
-        val player: PlayerState = PlayerState(context, launch_arguments, composable_coroutine_scope, np_theme_mode, swipe_sensitivity)
+        val player: OldPlayerStateImpl = OldPlayerStateImpl(context, launch_arguments, composable_coroutine_scope, np_theme_mode, swipe_sensitivity)
         player.onStart()
         _player_state = player
         return player

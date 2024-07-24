@@ -18,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -27,7 +27,7 @@ import spmp.shared.generated.resources.s_cat_search
 
 @Composable
 fun SearchSettingsDialog(modifier: Modifier = Modifier, close: () -> Unit) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val settings_items: List<SettingsItem> = remember { player.settings.search.getItems() }
 
     AlertDialog(

@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.*
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.nowplaying.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT
 import dev.toastbits.composekit.utils.common.*
@@ -29,7 +29,7 @@ internal fun PlayerBackground(
     page_height: Dp,
     modifier: Modifier = Modifier
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
 
     val form_factor: FormFactor by NowPlayingPage.observeFormFactor()
@@ -105,7 +105,7 @@ private fun ImageBackground(
     landscape: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
 
     val default_background_opacity: Float by player.settings.theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.observe()
@@ -148,7 +148,7 @@ private fun ImageBackground(
 }
 
 private fun Modifier.playerBackground(getPageHeight: () -> Dp): Modifier = composed {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
     val density: Density = LocalDensity.current
 

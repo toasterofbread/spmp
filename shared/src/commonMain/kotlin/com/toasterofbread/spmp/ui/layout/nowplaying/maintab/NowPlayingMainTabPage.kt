@@ -18,7 +18,7 @@ import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.utils.common.getThemeColour
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import kotlinx.coroutines.delay
@@ -47,7 +47,7 @@ class NowPlayingMainTabPage: NowPlayingPage() {
     private var colour_song: Song? by mutableStateOf(null)
     var seek_state by mutableStateOf(-1f)
 
-    private lateinit var player: PlayerState
+    private lateinit var player: OldPlayerStateImpl
     private val current_song: Song? get() = player.status.m_song
 
     fun setThemeColour(value: Color?, custom: Boolean) {
@@ -83,7 +83,7 @@ class NowPlayingMainTabPage: NowPlayingPage() {
         }
     }
 
-    override fun getPlayerBackgroundColourOverride(player: PlayerState): Color? {
+    override fun getPlayerBackgroundColourOverride(player: OldPlayerStateImpl): Color? {
 //        if (Platform.DESKTOP.isCurrent()) {
 //            return player.theme.accent.blendWith(player.theme.background, 0.05f)
 //        }

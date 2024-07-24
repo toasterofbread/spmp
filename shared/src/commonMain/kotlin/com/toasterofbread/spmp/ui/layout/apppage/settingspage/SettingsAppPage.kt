@@ -38,7 +38,7 @@ import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import androidx.compose.runtime.MutableState
 import dev.toastbits.composekit.utils.common.copy
 
@@ -77,7 +77,7 @@ class SettingsAppPage(override val state: AppPageState, getFooterModifier: @Comp
         content_padding: PaddingValues,
         close: () -> Unit,
     ) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val show_reset_confirmation: MutableState<Boolean> = remember { mutableStateOf(false) }
 
         ResetConfirmationDialog(

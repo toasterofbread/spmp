@@ -18,7 +18,7 @@ import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.radio.RadioInstance
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.theme.appHover
 
@@ -28,7 +28,7 @@ fun RadioInstance.StatusDisplay(
     expanded_modifier: Modifier = Modifier,
     disable_parent_scroll: Boolean = false
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     AlignableCrossfade(
         Triple(is_loading, load_error, isContinuationAvailable()),

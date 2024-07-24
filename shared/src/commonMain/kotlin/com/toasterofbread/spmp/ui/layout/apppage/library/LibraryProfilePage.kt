@@ -15,7 +15,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 
 class LibraryProfilePage(context: AppContext): LibrarySubPage(context) {
@@ -37,7 +37,7 @@ class LibraryProfilePage(context: AppContext): LibrarySubPage(context) {
         modifier: Modifier
     ) {
         val channel: Artist = own_channel ?: return
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
 
         val page: AppPage = remember {
             ArtistAppPage(player.app_page_state, channel)

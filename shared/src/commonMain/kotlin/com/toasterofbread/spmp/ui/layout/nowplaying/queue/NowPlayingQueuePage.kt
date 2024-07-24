@@ -5,12 +5,12 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 
 class NowPlayingQueuePage: NowPlayingPage() {
-    override fun shouldShow(player: PlayerState, form_factor: FormFactor): Boolean =
+    override fun shouldShow(form_factor: FormFactor): Boolean =
         form_factor == FormFactor.PORTRAIT
 
     @Composable

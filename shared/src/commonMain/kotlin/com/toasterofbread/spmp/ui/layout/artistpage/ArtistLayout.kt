@@ -51,7 +51,7 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.composekit.settings.ui.makeVibrant
 
 private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
@@ -68,7 +68,7 @@ fun ArtistLayout(
     getAllSelectableItems: (() -> List<List<MultiSelectItem>>)? = null,
     content: LazyListScope.(accent_colour: Color?, Modifier) -> Unit
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val density: Density = LocalDensity.current
 
     val thumbnail_provider: ThumbnailProvider? by artist.ThumbnailProvider.observe(player.database)

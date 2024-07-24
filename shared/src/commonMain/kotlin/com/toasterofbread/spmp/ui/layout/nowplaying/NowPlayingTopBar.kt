@@ -4,7 +4,7 @@ import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.PortraitLayoutSlo
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.contentbar.DisplayBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import androidx.compose.runtime.*
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
@@ -45,7 +45,7 @@ class NowPlayingTopBar {
         modifier: Modifier = Modifier,
         container_modifier: Modifier = Modifier
     ) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val density: Density = LocalDensity.current
 
         val scale: Float by remember { derivedStateOf {

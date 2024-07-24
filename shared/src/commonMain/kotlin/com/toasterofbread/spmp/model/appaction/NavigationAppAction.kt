@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.model.appaction
 
 import kotlinx.serialization.Serializable
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.appaction.action.navigation.*
 import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
@@ -28,7 +28,7 @@ data class NavigationAppAction(
 ): AppAction {
     override fun getType(): AppAction.Type = AppAction.Type.NAVIGATION
     override fun getIcon(): ImageVector = action.getIcon()
-    override suspend fun executeAction(player: PlayerState) {
+    override suspend fun executeAction(player: OldPlayerStateImpl) {
         action.execute(player)
     }
 

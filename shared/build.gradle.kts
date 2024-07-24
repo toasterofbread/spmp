@@ -93,7 +93,7 @@ kotlin {
                 implementation(deps.get("dev.toastbits:spms"))
                 implementation(deps.get("dev.toastbits.composekit:library"))
                 implementation(deps.get("dev.toastbits.ytmkt:ytmkt"))
-                implementation(deps.get("dev.toastbits.kanakt:kanakt"))
+                implementation(deps.get("dev.toastbits.kana-kt:kanakt"))
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
@@ -174,7 +174,14 @@ kotlin {
                 implementation(deps.get("app.cash.sqldelight:web-worker-driver-wasm-js"))
 
                 // TEMP
+                implementation("com.catppuccin:catppuccin-kotlin-wasm-js:1.0.3-dev")
                 implementation("com.github.wanasit.kotori:kotori-wasm-js:1.0.0-TEST")
+            }
+        }
+
+        commonTest {
+            dependencies {
+                implementation(kotlin("test"))
             }
         }
     }
@@ -243,20 +250,20 @@ afterEvaluate {
         finalizedBy(fixDatabaseVersion)
     }
 
-    rootProject.tasks.apply {
-        getByName("kotlinNodeJsSetup") {
-            enabled = false
-        }
-
-        getByName("kotlinNpmInstall") {
-            enabled = false
-        }
-
-        getByName<YarnLockStoreTask>("kotlinStoreYarnLock") {
-            inputFile.asFile.get().apply {
-                parentFile.mkdirs()
-                createNewFile()
-            }
-        }
-    }
+//    rootProject.tasks.apply {
+//        getByName("kotlinNodeJsSetup") {
+//            enabled = false
+//        }
+//
+//        getByName("kotlinNpmInstall") {
+//            enabled = false
+//        }
+//
+//        getByName<YarnLockStoreTask>("kotlinStoreYarnLock") {
+//            inputFile.asFile.get().apply {
+//                parentFile.mkdirs()
+//                createNewFile()
+//            }
+//        }
+//    }
 }

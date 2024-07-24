@@ -36,7 +36,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getDiscordAuthItem
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import LocalProgramArguments
 import ProgramArguments
 import LocalPlayerState
@@ -94,7 +94,7 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
 
         ComposableSettingsItem {
             val program_arguments: ProgramArguments = LocalProgramArguments.current
-            val player: PlayerState = LocalPlayerState.current
+            val player: OldPlayerStateImpl = LocalPlayerState.current
 
             if (program_arguments.is_flatpak) {
                 LinkifyText(

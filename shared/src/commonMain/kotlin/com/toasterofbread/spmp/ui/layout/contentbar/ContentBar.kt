@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.utils.common.getContrasted
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
@@ -43,7 +43,7 @@ sealed class ContentBar {
         getParentBackgroundColour: () -> Color? = { null },
         getBackgroundColour: (Color) -> Color = { it }
     ): Boolean {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val slot_colour_source: ColourSource by slot.rememberColourSource()
 
         var result: Boolean by remember { mutableStateOf(false) }
@@ -114,7 +114,7 @@ fun LayoutSlot.DisplayBar(
     getBackgroundColour: (Color) -> Color = { it },
     onConfigDataChanged: (JsonElement?) -> Unit = {}
 ): Boolean {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val content_bar: ContentBar? by observeContentBar()
 
     val config_data: JsonElement? = observeConfigData()

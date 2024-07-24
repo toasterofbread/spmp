@@ -33,7 +33,7 @@ import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.appaction.NavigationAppAction
 import com.toasterofbread.spmp.model.appaction.action.navigation.AppPageNavigationAction
 import com.toasterofbread.spmp.model.appaction.OtherAppAction
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.*
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
@@ -90,7 +90,7 @@ data class ContentBarElementButton(
             return
         }
 
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
         val is_close: Boolean = onPreviewClick == null && become_close_while_target_open && isSelected()
@@ -221,4 +221,4 @@ private fun getCurrentAppPageType(): AppPage.Type? =
         }
     }
 
-private fun PlayerState.getOwnChannelId(): String? = context.ytapi.user_auth_state?.own_channel_id
+private fun OldPlayerStateImpl.getOwnChannelId(): String? = context.ytapi.user_auth_state?.own_channel_id

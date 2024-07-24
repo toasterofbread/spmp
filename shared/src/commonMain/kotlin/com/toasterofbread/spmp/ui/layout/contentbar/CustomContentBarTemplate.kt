@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.platform.composable.platformClickable
 import com.toasterofbread.spmp.model.appaction.*
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.theme.appHover
@@ -135,7 +135,7 @@ enum class CustomContentBarTemplate {
 
     @Composable
     private fun BarPreview(modifier: Modifier = Modifier) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val bar: CustomContentBar = remember { CustomContentBar("", elements = getElements()) }
 
         Column(
@@ -168,7 +168,7 @@ enum class CustomContentBarTemplate {
     companion object {
         @Composable
         fun SelectionDialog(modifier: Modifier = Modifier, onSelected: (CustomContentBarTemplate?) -> Unit) {
-            val player: PlayerState = LocalPlayerState.current
+            val player: OldPlayerStateImpl = LocalPlayerState.current
 
             AlertDialog(
                 { onSelected(null) },

@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.utils.composable.ScrollableRowOrColumn
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.composekit.settings.ui.on_accent
 import dev.toastbits.ytmkt.endpoint.*
 
@@ -19,7 +19,7 @@ internal fun SearchAppPage.SearchFiltersRow(
     content_padding: PaddingValues = PaddingValues(),
     lazy: Boolean
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     ScrollableRowOrColumn(
         row = true,

@@ -19,7 +19,7 @@ import dev.toastbits.composekit.utils.common.*
 import dev.toastbits.composekit.utils.composable.getBottom
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
@@ -35,7 +35,7 @@ const val POSITION_UPDATE_INTERVAL_MS: Long = 100
 
 @Composable
 fun NowPlaying(modifier: Modifier = Modifier) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
     val density: Density = LocalDensity.current
     val form_factor: FormFactor by NowPlayingPage.observeFormFactor()
@@ -156,7 +156,7 @@ enum class ThemeMode {
     }
 }
 
-private fun PlayerState.getBackgroundColourOverride(): Color {
+private fun OldPlayerStateImpl.getBackgroundColourOverride(): Color {
     val form_factor: FormFactor = FormFactor.getCurrent(this)
     val pages: List<NowPlayingPage> = NowPlayingPage.ALL.filter { it.shouldShow(this, form_factor) }
 
@@ -185,9 +185,9 @@ private fun PlayerState.getBackgroundColourOverride(): Color {
 }
 
 private var derived_np_background: State<Color>? = null
-private var derived_np_background_player: PlayerState? = null
+private var derived_np_background_player: OldPlayerStateImpl? = null
 
-fun PlayerState.getNPBackground(): Color {
+fun OldPlayerStateImpl.getNPBackground(): Color {
     if (derived_np_background == null || derived_np_background_player != this) {
         derived_np_background = derivedStateOf { getBackgroundColourOverride() }
         derived_np_background_player = this
@@ -195,7 +195,7 @@ fun PlayerState.getNPBackground(): Color {
     return derived_np_background!!.value
 }
 
-internal fun PlayerState.getNPOnBackground(): Color {
+internal fun OldPlayerStateImpl.getNPOnBackground(): Color {
     return getBackgroundColourOverride().getContrasted()
 //    val override: Color? = getBackgroundColourOverride()?.getPlayerBackgroundColourOverride(this)
 //    if (override != null) {
@@ -209,12 +209,12 @@ internal fun PlayerState.getNPOnBackground(): Color {
 //    }
 }
 
-internal fun PlayerState.getNPAltBackground(theme_mode: ThemeMode = np_theme_mode): Color {
+internal fun OldPlayerStateImpl.getNPAltBackground(theme_mode: ThemeMode = np_theme_mode): Color {
     return when (theme_mode) {
         ThemeMode.BACKGROUND -> getNPBackground().amplifyPercent(-0.4f, opposite_percent = -0.2f)
         else -> theme.background
     }
 }
 
-internal fun PlayerState.getNPAltOnBackground(): Color =
+internal fun OldPlayerStateImpl.getNPAltOnBackground(): Color =
     getNPBackground().amplifyPercent(-0.4f, opposite_percent = -0.1f)

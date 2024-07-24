@@ -19,7 +19,7 @@ import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.apppage.library.LibraryAppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import dev.toastbits.composekit.settings.ui.on_accent
@@ -40,7 +40,7 @@ fun LibraryAppPage.LibraryIconButtonPageSelector(
     show_source_buttons: Boolean = true,
     separate_source_and_contextual: Boolean = false
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val density: Density = LocalDensity.current
 
     var bar_height: Int by remember { mutableStateOf(0) }
@@ -229,7 +229,7 @@ fun LibraryAppPage.LibraryIconButtonPageSelector(
 
 @Composable
 private fun LibraryAppPage.FilterBar(modifier: Modifier = Modifier) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val focus_requester: FocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {

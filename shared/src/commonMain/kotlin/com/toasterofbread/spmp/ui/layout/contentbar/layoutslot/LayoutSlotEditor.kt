@@ -18,7 +18,7 @@ import dev.toastbits.composekit.platform.composable.BackHandler
 import dev.toastbits.composekit.settings.ui.item.*
 import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.platform.*
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.ui.layout.contentbar.InternalContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
@@ -68,7 +68,7 @@ fun LayoutSlotEditor(
     modifier: Modifier = Modifier,
     onClose: () -> Unit
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val form_factor: FormFactor by FormFactor.observe()
 
     var custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()

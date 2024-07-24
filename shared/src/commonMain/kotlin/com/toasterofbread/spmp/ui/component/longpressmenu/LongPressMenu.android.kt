@@ -48,7 +48,7 @@ import dev.toastbits.composekit.utils.composable.getBottom
 import dev.toastbits.composekit.utils.composable.getEnd
 import dev.toastbits.composekit.utils.composable.getStart
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
 import kotlinx.coroutines.CoroutineScope
@@ -64,7 +64,7 @@ internal fun AndroidLongPressMenu(
     onDismissRequest: () -> Unit,
     data: LongPressMenuData
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val density: Density = LocalDensity.current
 
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()

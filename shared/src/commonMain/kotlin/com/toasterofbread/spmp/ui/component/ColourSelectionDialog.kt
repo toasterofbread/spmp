@@ -10,7 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.background
 import LocalPlayerState
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
@@ -62,7 +62,7 @@ fun ColourSelectionDialog(
     onColourSelected: (ColourSource) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     var selecting_custom_colour: Boolean by remember { mutableStateOf(false) }
 
     AlertDialog(
@@ -115,7 +115,7 @@ private fun ThemeColourSelectionList(
     onSelected: (ColourSource) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     LazyColumn(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         items(ThemeValues.Colour.entries) { colour ->

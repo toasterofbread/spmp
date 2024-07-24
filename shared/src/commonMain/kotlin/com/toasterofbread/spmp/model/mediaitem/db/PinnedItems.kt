@@ -19,7 +19,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -35,7 +35,7 @@ fun Database.getPinnedItems(): List<MediaItem> {
 
 @Composable
 fun rememberPinnedItems(): List<MediaItem>? {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     var pinned_items: List<MediaItem> by remember { mutableStateOf(player.database.getPinnedItems()) }
     var loaded_pinned_items: List<MediaItem>? by remember { mutableStateOf(null) }

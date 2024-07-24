@@ -23,7 +23,7 @@ import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBarTemplate
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarList
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.theme.appHover
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import kotlinx.serialization.Serializable
 import LocalPlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBar
@@ -50,7 +50,7 @@ data class ContentBarElementContentBar(
 
     @Composable
     override fun isDisplaying(): Boolean {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
         val content_bar: ContentBar? = remember(bar) { bar.getBar(custom_bars) }
         return content_bar?.isDisplaying() == true
@@ -71,7 +71,7 @@ data class ContentBarElementContentBar(
             return
         }
 
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
         val content_bar: ContentBar? = remember(bar) { bar.getBar(custom_bars) }
         content_bar?.BarContent(
@@ -86,7 +86,7 @@ data class ContentBarElementContentBar(
 
     @Composable
     override fun SubConfigurationItems(item_modifier: Modifier, onModification: (ContentBarElement) -> Unit) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
         val content_bar: ContentBar = remember(bar) { bar.getBar(custom_bars)!! }
         var show_bar_selector: Boolean by remember { mutableStateOf(false) }

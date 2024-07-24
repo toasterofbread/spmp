@@ -6,9 +6,10 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.apppage.searchpage.SearchAppPage
 
-suspend fun PlayerState.openUri(uri_string: String): Result<Unit> {
+suspend fun OldPlayerStateImpl.openUri(uri_string: String): Result<Unit> {
     fun failure(reason: String): Result<Unit> = Result.failure(RuntimeException("$reason ($uri_string)"))
 
     val uri: URI = parseURI(uri_string)
@@ -70,7 +71,7 @@ private fun parseURI(uri: String): URI {
     return URI(host, path, query)
 }
 
-private suspend fun PlayerState.openItem(item: MediaItem) {
+private suspend fun OldPlayerStateImpl.openItem(item: MediaItem) {
     item.loadData(context, populate_data = false, force = true)
 
     withPlayer {

@@ -40,7 +40,7 @@ import com.toasterofbread.spmp.platform.DiscordMeResponse
 import com.toasterofbread.spmp.platform.WebViewLogin
 import com.toasterofbread.spmp.platform.getDiscordAccountInfo
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import androidx.compose.foundation.layout.PaddingValues
 import com.toasterofbread.spmp.platform.getOrNotify
 import kotlinx.serialization.json.Json
@@ -63,7 +63,7 @@ private const val DISCORD_API_URL: String = "https://discord.com/api/"
 
 @Composable
 fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Boolean?) -> Unit) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     AlertDialog(
         { onFinished(null) },
@@ -97,7 +97,7 @@ fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Bo
 
 @Composable
 fun DiscordLogin(content_padding: PaddingValues, modifier: Modifier = Modifier, manual: Boolean = false, onFinished: (Result<String?>?) -> Unit) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     if (!manual && isWebViewLoginSupported()) {
         WebViewLogin(
@@ -140,7 +140,7 @@ private val DiscordMeResponseSaver: Saver<DiscordMeResponse?, String> =
 
 @Composable
 fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     var account_info: DiscordMeResponse? by rememberSaveable(stateSaver = DiscordMeResponseSaver) { mutableStateOf(DiscordMeResponse.EMPTY) }
     var started: Boolean by remember { mutableStateOf(false) }

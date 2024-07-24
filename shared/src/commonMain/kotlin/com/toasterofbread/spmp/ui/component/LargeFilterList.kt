@@ -15,7 +15,7 @@ import dev.toastbits.composekit.utils.common.*
 import dev.toastbits.composekit.utils.composable.*
 import dev.toastbits.composekit.utils.modifier.horizontal
 import dev.toastbits.composekit.utils.modifier.vertical
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.composekit.settings.ui.vibrant_accent
 
 @Composable
@@ -30,7 +30,7 @@ fun LargeFilterList(
     lazy: Boolean = false,
     onSelected: (Int) -> Unit
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val horizontal_padding: PaddingValues = content_padding.horizontal
 
     @Composable

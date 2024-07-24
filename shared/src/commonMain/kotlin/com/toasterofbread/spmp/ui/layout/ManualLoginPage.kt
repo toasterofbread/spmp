@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.sp
 import dev.toastbits.composekit.utils.composable.Marquee
 import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import dev.toastbits.composekit.utils.modifier.horizontal
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 import kotlinx.coroutines.CoroutineScope
@@ -60,7 +60,7 @@ fun ManualLoginPage(
     content_padding: PaddingValues = PaddingValues(),
     onFinished: suspend (String?) -> Pair<String, String>?,
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val density: Density = LocalDensity.current
 
     Box(modifier) {

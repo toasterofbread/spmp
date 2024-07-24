@@ -62,7 +62,7 @@ import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import dev.toastbits.composekit.utils.modifier.background
 import dev.toastbits.composekit.utils.modifier.disableParentScroll
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.model.JsonHttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.headers
@@ -96,7 +96,7 @@ fun ErrorInfoDisplay(
     expanded_content_modifier: Modifier = Modifier.height(ERROR_INFO_DISPLAY_DEFAULT_EXPANDED_HEIGHT_DP.dp),
     disable_parent_scroll: Boolean = true,
     start_expanded: Boolean = false,
-    getAccentColour: @Composable PlayerState.() -> Color = { theme.accent },
+    getAccentColour: @Composable OldPlayerStateImpl.() -> Color = { theme.accent },
     extraButtonContent: (@Composable () -> Unit)? = null,
     onExtraButtonPressed: (() -> Unit)? = null,
     onRetry: (() -> Unit)? = null,
@@ -110,7 +110,7 @@ fun ErrorInfoDisplay(
         return
     }
 
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val density: Density = LocalDensity.current
     var expanded: Boolean by remember { mutableStateOf(start_expanded) }
     val shape: Shape = RoundedCornerShape(20.dp)
@@ -209,7 +209,7 @@ fun ErrorInfoDisplay(
 
 @Composable
 private fun LongTextDisplay(text: String, wrap_text: Boolean, modifier: Modifier = Modifier) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val limited_text: String = remember(text) { text.take(10000) }
 
     SelectionContainer {

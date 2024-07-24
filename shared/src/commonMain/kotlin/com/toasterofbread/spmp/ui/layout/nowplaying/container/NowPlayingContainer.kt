@@ -24,7 +24,7 @@ import dev.toastbits.composekit.utils.composable.getTop
 import dev.toastbits.composekit.utils.composable.getBottom
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.nowplaying.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
@@ -43,7 +43,7 @@ fun NowPlayingContainer(
     getBottomBarHeight: () -> Dp,
     modifier: Modifier = Modifier,
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 

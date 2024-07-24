@@ -18,7 +18,7 @@ import com.toasterofbread.spmp.ui.component.shortcut.trigger.KeyboardShortcutTri
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.getTextFieldFocusState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.isTextFieldFocused
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import kotlinx.coroutines.*
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.skiko.OS
@@ -70,7 +70,7 @@ fun main(args: Array<String>) {
     val enable_window_transparency: Boolean = runBlocking { context.settings.theme.ENABLE_WINDOW_TRANSPARENCY.get() }
 
     val shortcut_state: ShortcutState = ShortcutState()
-    var player: PlayerState? = null
+    var player: OldPlayerStateImpl? = null
 
     application {
         val text_field_focus_state: Any = getTextFieldFocusState()

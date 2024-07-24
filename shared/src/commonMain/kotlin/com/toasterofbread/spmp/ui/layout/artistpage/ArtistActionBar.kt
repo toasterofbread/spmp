@@ -47,7 +47,7 @@ import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.utils.modifier.vertical
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.observeUrl
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.composekit.settings.ui.vibrant_accent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -65,7 +65,7 @@ fun ArtistActionBar(
     play_button_size: Dp? = null,
     accent_colour: Color? = null
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     val shuffle_playlist_id: String? by artist.ShufflePlaylistId.observe(player.database)
 

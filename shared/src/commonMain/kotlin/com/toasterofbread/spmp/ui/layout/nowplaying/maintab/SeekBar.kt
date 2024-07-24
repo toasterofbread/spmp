@@ -36,7 +36,7 @@ import com.github.krottv.compose.sliders.SliderValueHorizontal
 import dev.toastbits.composekit.utils.common.formatElapsedTime
 import dev.toastbits.composekit.utils.composable.RecomposeOnInterval
 import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.nowplaying.POSITION_UPDATE_INTERVAL_MS
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
@@ -46,10 +46,10 @@ fun SeekBar(
     seek: (Float) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    getColour: PlayerState.() -> Color = { getNPOnBackground() },
-    getTrackColour: PlayerState.() -> Color = { getNPAltOnBackground() }
+    getColour: OldPlayerStateImpl.() -> Color = { getNPOnBackground() },
+    getTrackColour: OldPlayerStateImpl.() -> Color = { getNPAltOnBackground() }
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     var position_override by remember { mutableStateOf<Float?>(null) }
     var old_position by remember { mutableStateOf<Float?>(null) }
@@ -129,7 +129,7 @@ private fun SeekTrack(
     progress_colour: Color,
     height: Dp = 4.dp
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val visual_progress by animateFloatAsState(progress, spring(stiffness = Spring.StiffnessLow))
     val show_gradient: Boolean by player.settings.player.SHOW_SEEK_BAR_GRADIENT.observe()
 

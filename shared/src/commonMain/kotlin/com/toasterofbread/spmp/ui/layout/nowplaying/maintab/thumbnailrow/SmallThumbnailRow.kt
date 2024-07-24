@@ -47,7 +47,7 @@ import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.getPixel
 import com.toasterofbread.spmp.platform.SongVideoPlayback
 import com.toasterofbread.spmp.ui.component.Thumbnail
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.nowplaying.EXPANDED_THRESHOLD
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
@@ -342,7 +342,7 @@ internal fun Modifier.songThumbnailShadow(
     apply_expansion_to_colour: Boolean = true,
     inGraphicsLayer: GraphicsLayerScope.() -> Unit = {}
 ): Modifier {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val default_shadow_radius: Float by player.settings.theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS.observe()
     val shadow_radius: Float? by song?.ShadowRadius?.observe(player.database)
 

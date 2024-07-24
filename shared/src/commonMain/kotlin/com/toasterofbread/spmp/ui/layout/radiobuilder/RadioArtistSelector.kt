@@ -34,7 +34,7 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getArtistThumbShape
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getLongPressMenuData
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.platform.FormFactor
 import dev.toastbits.ytmkt.endpoint.RadioBuilderArtist
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider as YtmThumbnailProvider
@@ -49,7 +49,7 @@ internal fun RadioArtistSelector(
     modifier: Modifier = Modifier,
     onFinished: (List<Int>?) -> Unit
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val form_factor: FormFactor by FormFactor.observe()
     val selected_artists: MutableList<Int> = remember { mutableStateListOf() }
 

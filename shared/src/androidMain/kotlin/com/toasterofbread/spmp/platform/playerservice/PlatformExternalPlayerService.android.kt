@@ -4,7 +4,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
@@ -47,7 +47,7 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
 
     @Composable
     override fun PersistentContent(requestServiceChange: (PlayerServiceCompanion) -> Unit) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val launch_arguments: ProgramArguments = LocalProgramArguments.current
         val ui_only: Boolean by player.settings.platform.EXTERNAL_SERVER_MODE_UI_ONLY.observe()
         LaunchedEffect(ui_only) {

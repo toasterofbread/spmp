@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.Shape
 import dev.toastbits.composekit.settings.ui.SettingsPage
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
 import dev.toastbits.composekit.utils.common.thenWith
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getLayoutCategoryItems
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBar
@@ -88,7 +88,7 @@ class LayoutSettings(val context: AppContext): SettingsGroup("LAYOUT", context.g
             { getLayoutCategoryItems(context) },
             { Icons.Outlined.VerticalSplit },
             titleBarEndContent = { modifier ->
-                val player: PlayerState = LocalPlayerState.current
+                val player: OldPlayerStateImpl = LocalPlayerState.current
                 val density: Density = LocalDensity.current
                 var show_preview_options: Boolean by remember { mutableStateOf(false) }
 

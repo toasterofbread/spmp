@@ -9,7 +9,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.*
 import dev.toastbits.composekit.utils.composable.ShapedIconButton
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
@@ -20,7 +20,7 @@ internal fun CustomContentBarCopyPasteButtons(
     item_modifier: Modifier = Modifier,
     onPaste: (List<ContentBarElement>) -> Unit
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val clipboard: ClipboardManager = LocalClipboardManager.current
 
     val colours: IconButtonColors = IconButtonDefaults.iconButtonColors(

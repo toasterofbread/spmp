@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.utils.common.*
 import dev.toastbits.composekit.utils.composable.*
 import com.toasterofbread.spmp.platform.*
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.vertical
@@ -84,7 +84,7 @@ internal abstract class CustomContentBarEditor() {
 
     @Composable
     fun Editor(initial_bar: CustomContentBar) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val density: Density = LocalDensity.current
 
         if (_bar == null) {
@@ -164,7 +164,7 @@ internal abstract class CustomContentBarEditor() {
 
     @Composable
     private fun SelectedElementOptions(modifier: Modifier = Modifier) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
 
         var element_index: Int by remember { mutableStateOf(selected_element ?: -1) }
         LaunchedEffect(selected_element) {
@@ -216,7 +216,7 @@ internal abstract class CustomContentBarEditor() {
 
     @Composable
     private fun BarContentButtons(modifier: Modifier = Modifier) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val button_colours: ButtonColors = ButtonDefaults.buttonColors(
             containerColor = player.theme.background,
             contentColor = player.theme.on_background
@@ -266,7 +266,7 @@ internal abstract class CustomContentBarEditor() {
 
     @Composable
     private fun BarPreview(modifier: Modifier = Modifier, size_modifier: Modifier = Modifier) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val vertical_bar: Boolean = useVerticalBarLayout()
         val delete_button_offset: Dp = 42.dp
 

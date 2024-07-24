@@ -25,7 +25,7 @@ import com.toasterofbread.spmp.platform.download.rememberSongDownloads
 import com.toasterofbread.spmp.platform.getOrNotify
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.composekit.settings.ui.on_accent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
@@ -44,7 +44,7 @@ internal fun ColumnScope.MultiSelectOverflowActions(
     multiselect_context: MediaItemMultiSelectContext,
     additionalSelectedItemActions: (@Composable ColumnScope.(MediaItemMultiSelectContext) -> Unit)?
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     val selected_items = multiselect_context.selected_items
@@ -105,7 +105,7 @@ internal fun ColumnScope.MultiSelectOverflowActions(
 
 @Composable
 private fun AddToPlaylistDialog(multiselect_context: MediaItemMultiSelectContext, items: List<Song>, coroutine_scope: CoroutineScope, onFinished: () -> Unit) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     val selected_playlists: SnapshotStateList<Playlist> = remember { mutableStateListOf() }
     val button_colours = IconButtonDefaults.iconButtonColors(

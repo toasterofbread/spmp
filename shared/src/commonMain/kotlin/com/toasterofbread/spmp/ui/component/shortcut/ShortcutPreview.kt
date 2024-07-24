@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.appaction.shortcut.*
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.*
 import dev.toastbits.composekit.settings.ui.vibrant_accent
 import org.jetbrains.compose.resources.stringResource
@@ -30,7 +30,7 @@ fun ShortcutPreview(
     modifier: Modifier = Modifier,
     onModification: (Shortcut?) -> Unit
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val shape: Shape = RoundedCornerShape(16.dp)
     var editing: Boolean by remember { mutableStateOf(false) }
 

@@ -30,7 +30,7 @@ import dev.toastbits.composekit.utils.common.*
 import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.modifier.background
 import dev.toastbits.composekit.utils.composable.NoRipple
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.component.*
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
@@ -65,7 +65,7 @@ internal fun ContentBarSelector(
     content_padding: PaddingValues = PaddingValues(),
     base_content_padding: PaddingValues = PaddingValues()
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val density: Density = LocalDensity.current
     val slot_colour_source: ColourSource by slot.rememberColourSource()
 
@@ -147,7 +147,7 @@ private fun ContentBarSelectorMainRow(
     rotate_modifier: Modifier,
     modifier: Modifier = Modifier
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
     val content_bar: ContentBar? by slot.observeContentBar()
 
@@ -254,7 +254,7 @@ private fun BarSelectorPopup(
     modifier: Modifier = Modifier,
     size_modifier: Modifier = Modifier
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     AlertDialog(
         onDismissed,
@@ -313,7 +313,7 @@ internal fun CustomBarsContentBarList(
     lazy: Boolean = false,
     bar_background_colour: Color? = null
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     ContentBarList(
@@ -379,7 +379,7 @@ internal fun ContentBarList(
     buttonEndContent: @Composable (Modifier, Int) -> Unit = { _, _ -> },
     onSelected: ((Int) -> Unit)?
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
     val bars: List<ContentBar> = remember(bar_references, custom_bars) {
         bar_references.mapNotNull { it.getBar(custom_bars) }
@@ -471,7 +471,7 @@ private fun Modifier.contentBarPreview(
     border_colour: Color? = null,
     interactive: Boolean = true
 ): Modifier {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val shape: Shape = RoundedCornerShape(20.dp)
 
     return (

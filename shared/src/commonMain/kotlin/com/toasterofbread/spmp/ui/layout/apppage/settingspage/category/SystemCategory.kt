@@ -31,7 +31,7 @@ import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import LocalPlayerState
@@ -125,7 +125,7 @@ internal fun getSystemCategoryItems(context: AppContext, available_languages: Li
                 context.settings.system.UI_SCALE.set(1f)
             }
         ) {
-            val player: PlayerState = LocalPlayerState.current
+            val player: OldPlayerStateImpl = LocalPlayerState.current
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 ItemTitleText(context.settings.system.UI_SCALE.getName(), theme, Modifier.weight(1f))

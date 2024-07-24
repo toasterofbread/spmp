@@ -9,7 +9,7 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.appaction.action.playback.*
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -25,7 +25,7 @@ sealed interface AppAction {
     fun getIcon(): ImageVector
     fun isUsableDuringTextInput(): Boolean = false
 
-    suspend fun executeAction(player: PlayerState)
+    suspend fun executeAction(player: OldPlayerStateImpl)
 
     fun hasCustomContent(): Boolean = false
     @Composable

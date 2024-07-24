@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.model.appaction.action.navigation
 
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
@@ -22,7 +22,7 @@ import spmp.shared.generated.resources.appaction_navigation_jump_to_lyrics
 sealed interface NavigationAction {
     fun getType(): Type
     fun getIcon(): ImageVector
-    suspend fun execute(player: PlayerState)
+    suspend fun execute(player: OldPlayerStateImpl)
 
     @Composable
     fun Preview(modifier: Modifier) {

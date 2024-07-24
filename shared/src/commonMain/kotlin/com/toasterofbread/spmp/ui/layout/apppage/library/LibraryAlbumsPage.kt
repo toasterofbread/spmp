@@ -38,7 +38,7 @@ import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.ytmkt.endpoint.LikedAlbumsEndpoint
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 import org.jetbrains.compose.resources.stringResource
@@ -64,7 +64,7 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
         showing_alt_content: Boolean,
         modifier: Modifier
     ) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val auth_state: ApiAuthenticationState = player.context.ytapi.user_auth_state ?: return
 
         val load_endpoint: LikedAlbumsEndpoint = auth_state.LikedAlbums
@@ -111,7 +111,7 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
 
     @Composable
     override fun RowOrColumnScope.SideContent(showing_alt_content: Boolean) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val auth_state: ApiAuthenticationState = player.context.ytapi.user_auth_state ?: return
 
         val load_endpoint: LikedAlbumsEndpoint = auth_state.LikedAlbums

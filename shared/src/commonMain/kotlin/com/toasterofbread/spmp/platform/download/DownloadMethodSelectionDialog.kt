@@ -28,7 +28,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -45,7 +45,7 @@ fun DownloadMethodSelectionDialog(
     always_show_options: Boolean = false,
     songs: List<Song>? = null
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     var download_method: DownloadMethod by player.settings.streaming.DOWNLOAD_METHOD.observe()
     var skip_confirmation: Boolean by player.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.observe()

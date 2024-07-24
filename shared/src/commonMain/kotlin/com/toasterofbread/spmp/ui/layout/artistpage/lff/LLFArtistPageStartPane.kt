@@ -51,7 +51,7 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistInfoDialog
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistSubscribeButton
@@ -69,7 +69,7 @@ fun LFFArtistStartPane(
     item_layouts: List<ArtistLayout>?,
     apply_filter: Boolean
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     val start_padding: Dp = content_padding.calculateStartPadding(LocalLayoutDirection.current)
     val primary_shape: Shape = RoundedCornerShape(15.dp)
@@ -288,7 +288,7 @@ fun LFFArtistStartPane(
 
 @Composable
 private fun InfoButtons(artist: Artist) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     var show_info: Boolean by remember { mutableStateOf(false) }
     if (show_info) {

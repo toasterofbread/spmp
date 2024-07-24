@@ -15,7 +15,7 @@ import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.toByteArray
 import com.toasterofbread.spmp.platform.toImageBitmap
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import PlatformIO
@@ -149,7 +149,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
 
     @Composable
     fun rememberItemState(item: MediaItem): ItemState {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val state = remember(item) {
             object : ItemState {
                 override val loaded_images: MutableMap<ThumbnailProvider.Quality, ImageBitmap> = mutableStateMapOf()

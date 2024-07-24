@@ -4,7 +4,7 @@ import com.toasterofbread.spmp.model.settings.category.*
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.Language
 
-class Settings(context: AppContext, available_languages: List<Language>) {
+class Settings(val context: AppContext, available_languages: List<Language>) {
     val youtube_auth: YoutubeAuthSettings = YoutubeAuthSettings(context)
     val system: SystemSettings = SystemSettings(context, available_languages)
     val behaviour: BehaviourSettings = BehaviourSettings(context)

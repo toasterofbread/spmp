@@ -35,8 +35,8 @@ import com.toasterofbread.spmp.model.observe
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PinnedItemsRow
-import com.toasterofbread.spmp.service.playercontroller.FeedLoadState
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.FeedLoadState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.component.NotImplementedMessage
 import dev.toastbits.ytmkt.model.external.ItemLayoutType
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
@@ -65,7 +65,7 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
         loadFeed(false)
     }
 
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val form_factor: FormFactor by FormFactor.observe()
 
     val artists_layout: AppMediaItemLayout = remember {

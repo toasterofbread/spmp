@@ -45,7 +45,7 @@ import com.toasterofbread.spmp.model.mediaitem.layout.open
 import com.toasterofbread.spmp.model.mediaitem.layout.shouldShowTitleBar
 import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.ytmkt.model.external.YoutubePage
 import dev.toastbits.ytmkt.uistrings.UiString
 import kotlinx.coroutines.CoroutineScope
@@ -62,7 +62,7 @@ fun TitleBar(
     font_size: TextUnit? = null,
     scrollable_state: ScrollableState? = null
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     AnimatedVisibility(

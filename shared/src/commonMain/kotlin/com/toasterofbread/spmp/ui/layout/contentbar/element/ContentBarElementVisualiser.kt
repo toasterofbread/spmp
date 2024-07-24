@@ -13,7 +13,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Waves
 import androidx.compose.foundation.layout.padding
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import LocalPlayerState
 import dev.toastbits.composekit.utils.common.thenIf
@@ -33,7 +33,7 @@ data class ContentBarElementVisualiser(
 
     @Composable
     override fun ElementContent(vertical: Boolean, slot: LayoutSlot?, bar_size: DpSize, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
 
         if (onPreviewClick != null) {
             IconButton(onPreviewClick) {

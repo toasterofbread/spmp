@@ -40,11 +40,11 @@ import dev.toastbits.composekit.utils.common.blendWith
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.composable.LinkifyText
 import dev.toastbits.composekit.utils.composable.NoRipple
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 
 @Composable
 fun DescriptionCard(description_text: String, expanding: Boolean = true, height: Dp = 200.dp) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     var expanded: Boolean by remember { mutableStateOf(false) }
     var can_expand: Boolean by remember { mutableStateOf(false) }

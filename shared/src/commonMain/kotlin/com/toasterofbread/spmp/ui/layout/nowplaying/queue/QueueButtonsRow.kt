@@ -26,7 +26,7 @@ import dev.toastbits.composekit.platform.vibrateShort
 import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.composable.TextOrIconButton
 import dev.toastbits.composekit.utils.modifier.bounceOnClick
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.appHover
 import org.jetbrains.compose.resources.stringResource
@@ -42,7 +42,7 @@ fun QueueButtonsRow(
     scrollToItem: (Int) -> Unit
 ) {
     val padding: Dp = 10.dp
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val button_colour: Color = getButtonColour()
 
     Row(

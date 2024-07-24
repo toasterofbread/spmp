@@ -7,7 +7,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.*
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import dev.toastbits.composekit.platform.composable.platformClickable
 import org.jetbrains.compose.resources.stringResource
@@ -18,7 +18,7 @@ import spmp.shared.generated.resources.layout_editor_preview_option_portrait_mod
 
 @Composable
 fun LayoutSlotEditorPreviewOptions(modifier: Modifier = Modifier) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val form_factor: FormFactor by FormFactor.observe()
 
     DisposableEffect(Unit) {

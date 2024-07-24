@@ -19,7 +19,7 @@ import dev.toastbits.composekit.utils.composable.PlatformClickableIconButton
 import dev.toastbits.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.theme.appHover
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -32,7 +32,7 @@ internal object NowPlayingMainTabActionButtons {
             return
         }
 
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val auth_state: ApiAuthenticationState? = player.context.ytapi.user_auth_state
 
         LikeDislikeButton(
@@ -45,7 +45,7 @@ internal object NowPlayingMainTabActionButtons {
 
     @Composable
     fun RadioButton(song: Song?, modifier: Modifier = Modifier, colour: Color = LocalContentColor.current) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
 
         IconButton(
             {
@@ -66,7 +66,7 @@ internal object NowPlayingMainTabActionButtons {
 
     @Composable
     fun ShuffleButton(modifier: Modifier = Modifier, colour: Color = LocalContentColor.current) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
 
         IconButton(
             {
@@ -84,7 +84,7 @@ internal object NowPlayingMainTabActionButtons {
 
     @Composable
     fun OpenExternalButton(song: Song?, modifier: Modifier = Modifier) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         if (!(player.context.canShare() || player.context.canOpenUrl())) {
             return
         }
@@ -123,7 +123,7 @@ internal object NowPlayingMainTabActionButtons {
 
     @Composable
     fun DownloadButton(song: Song?, modifier: Modifier = Modifier) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
 
         PlatformClickableIconButton(
             onClick = {

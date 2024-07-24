@@ -72,7 +72,7 @@ import dev.toastbits.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.settings.SettingsImportExport
 import com.toasterofbread.spmp.model.settings.category.SettingsGroup
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.layout.ProjectInfoDialog
 import kotlinx.coroutines.CoroutineScope
@@ -114,7 +114,7 @@ import spmp.shared.generated.resources.project_url_name
 
 @Composable
 internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(), top_padding: Dp = 0.dp) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     var importing: Boolean by remember { mutableStateOf(false) }
@@ -405,7 +405,7 @@ internal fun SettingsImportDialog(modifier: Modifier = Modifier, onFinished: () 
 
 @Composable
 private fun ProjectButton(modifier: Modifier = Modifier) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val clipboard: ClipboardManager = LocalClipboardManager.current
 
     val project_url: String = stringResource(Res.string.project_url)
@@ -458,7 +458,7 @@ private fun InfoButton(modifier: Modifier = Modifier) {
 
 @Composable
 private fun StyledCheckbox(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     Checkbox(
         checked,
         onCheckedChange,

@@ -19,7 +19,7 @@ import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getServerGroupItems
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.platform.playerservice.LocalServer
 import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
@@ -37,7 +37,7 @@ private const val LOCAL_SERVER_AUTOSTART_DELAY_MS: Long = 100
 
 @Composable
 fun SplashExtraLoadingContent(item_modifier: Modifier) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     var show_config_dialog: Boolean by remember { mutableStateOf(false) }
 
     val button_colours: ButtonColors =

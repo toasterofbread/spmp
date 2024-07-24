@@ -33,6 +33,8 @@ import dev.toastbits.ytmkt.model.external.ItemLayoutType
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import PlatformIO
+import com.toasterofbread.spmp.model.state.FeedLoadState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 
 internal const val ARTISTS_ROW_DEFAULT_MIN_OCCURRENCES: Int = 2
 internal const val ARTISTS_ROW_MIN_ARTISTS: Int = 4
@@ -93,7 +95,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
         content_padding: PaddingValues,
         close: () -> Unit
     ) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val form_factor: FormFactor by FormFactor.observe()
 
         LaunchedEffect(Unit) {

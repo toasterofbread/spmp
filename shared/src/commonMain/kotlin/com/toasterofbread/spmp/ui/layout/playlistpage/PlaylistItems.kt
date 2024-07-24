@@ -21,7 +21,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getLongPressMenuData
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import dev.toastbits.composekit.utils.common.getValue
@@ -40,7 +40,7 @@ internal fun PlaylistAppPage.PlaylistItems(
 ) {
     list_scope.itemsIndexed(sorted_items ?: emptyList()) { index, item ->
         val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
 
         val long_press_menu_data = remember(item) {
             item.getLongPressMenuData(multiselect_context)

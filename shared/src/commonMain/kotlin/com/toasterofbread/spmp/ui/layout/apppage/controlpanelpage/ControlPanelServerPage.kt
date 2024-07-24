@@ -55,7 +55,7 @@ import com.toasterofbread.spmp.platform.playerservice.getInfoUrl
 import com.toasterofbread.spmp.platform.playerservice.getName
 import com.toasterofbread.spmp.platform.playerservice.getSpMsMachineId
 import com.toasterofbread.spmp.resources.stringResourceTODO
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
 import dev.toastbits.composekit.settings.ui.vibrant_accent
@@ -90,7 +90,7 @@ fun ControlPanelServerPage(
     multiselect_context: MediaItemMultiSelectContext? = null,
     content_padding: PaddingValues = PaddingValues()
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     var service_found: Boolean by remember { mutableStateOf(false) }
@@ -267,7 +267,7 @@ fun ControlPanelServerPage(
 
 @Composable
 private fun ClientInfoDisplay(client: SpMsClientInfo, modifier: Modifier = Modifier) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     val machine_id: String = remember { getSpMsMachineId(player.context) }

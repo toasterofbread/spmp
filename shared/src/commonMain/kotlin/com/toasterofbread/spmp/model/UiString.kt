@@ -12,7 +12,7 @@ import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.resources.Language
 import com.toasterofbread.spmp.resources.getResourceEnvironment
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.ytmkt.uistrings.RawUiString
 import dev.toastbits.ytmkt.uistrings.UiString
 import dev.toastbits.ytmkt.uistrings.YoutubeUiString
@@ -36,7 +36,7 @@ data class AppUiString(
 
 @Composable
 fun UiString.observe(): String {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     var string: String by remember { mutableStateOf("") }
     val ui_language: String by player.context.observeUiLanguage()
 

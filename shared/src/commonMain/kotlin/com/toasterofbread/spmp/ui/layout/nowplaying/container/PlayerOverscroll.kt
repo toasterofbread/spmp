@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalDensity
 import dev.toastbits.composekit.platform.vibrateShort
 import com.toasterofbread.spmp.model.settings.category.*
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.nowplaying.container.npAnchorToDp
 import kotlinx.coroutines.delay
 
@@ -41,7 +41,7 @@ internal fun Modifier.playerOverscroll(
         }
     }
 
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val controller: PlayerService? = player.controller
     val density: Density = LocalDensity.current
     var player_alpha: Float by remember { mutableStateOf(1f) }

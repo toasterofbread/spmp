@@ -14,7 +14,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
@@ -51,7 +51,7 @@ fun List<MediaItemHolder>.rememberFilteredItems(
     apply_filter: Boolean = true,
     is_song_feed: Boolean = false
 ): State<List<MediaItem>> {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val hidden_items: List<MediaItem> = rememberHiddenItems()
     val items_state: MutableState<List<MediaItem>> = remember { mutableStateOf(emptyList()) }
 

@@ -18,7 +18,7 @@ import dev.toastbits.composekit.utils.composable.*
 import dev.toastbits.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.component.LargeFilterList
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
@@ -38,7 +38,7 @@ internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
             Platform.WEB -> 125.dp
         }
 
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     val artists: List<MediaItem>? by artists_layout?.items?.rememberFilteredYtmItems()
     var show_filters: Boolean by remember { mutableStateOf(false) }

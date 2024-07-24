@@ -29,7 +29,7 @@ import dev.toastbits.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.theme.appHover
 import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
 import dev.toastbits.ytmkt.endpoint.SongLikedEndpoint
@@ -48,7 +48,7 @@ fun LikeDislikeButton(
     val get_liked_endpoint: SongLikedEndpoint? = auth_state?.SongLiked
     val set_liked_endpoint: SetSongLikedEndpoint? = auth_state?.SetSongLiked
 
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     val loading: Boolean = SongLikedLoader.rememberItemState(song.id).loading

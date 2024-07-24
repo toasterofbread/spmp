@@ -25,7 +25,7 @@ import dev.toastbits.composekit.platform.composable.ScrollBarLazyRow
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.appaction.shortcut.getDefaultShortcuts
 import com.toasterofbread.spmp.ui.component.shortcut.ShortcutPreview
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import LocalPlayerState
@@ -35,7 +35,7 @@ import spmp.shared.generated.resources.s_key_navigate_song_with_numbers
 
 @Composable
 fun ShortcutsEditor(modifier: Modifier = Modifier) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     var shortcuts: List<Shortcut>? by player.settings.shortcut.CONFIGURED_SHORTCUTS.observe()
     val default_shortcuts: List<Shortcut> = remember { getDefaultShortcuts() }
 

@@ -15,7 +15,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import com.toasterofbread.spmp.model.appaction.AppAction
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.composable.onWindowBackPressed
@@ -37,7 +37,7 @@ data class OtherAppAction(
     override fun getIcon(): ImageVector = action.getIcon()
     override fun isUsableDuringTextInput(): Boolean = action.isUsableDuringTextInput()
 
-    override suspend fun executeAction(player: PlayerState) {
+    override suspend fun executeAction(player: OldPlayerStateImpl) {
         action.execute(player)
     }
 
@@ -138,7 +138,7 @@ data class OtherAppAction(
                 else -> false
             }
 
-        suspend fun execute(player: PlayerState) {
+        suspend fun execute(player: OldPlayerStateImpl) {
             when (this) {
                 NAVIGATE_BACK -> onWindowBackPressed(player.context)
 

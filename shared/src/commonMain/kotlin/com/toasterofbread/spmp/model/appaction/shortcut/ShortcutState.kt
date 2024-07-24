@@ -5,7 +5,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.input.key.*
 import dev.toastbits.composekit.utils.common.addUnique
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.*
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.model.appaction.shortcut.getDefaultShortcuts
 import kotlinx.serialization.json.Json
 import kotlinx.coroutines.CoroutineScope
@@ -34,7 +34,7 @@ class ShortcutState {
 
     @Composable
     fun ObserveState() {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         navigate_song_with_numbers = player.settings.shortcut.NAVIGATE_SONG_WITH_NUMBERS.observe().value
 
         val shortcuts: List<Shortcut>? by player.settings.shortcut.CONFIGURED_SHORTCUTS.observe()
@@ -66,7 +66,7 @@ class ShortcutState {
     fun onKeyPress(
         event: KeyEvent,
         text_input_active: Boolean,
-        player: PlayerState
+        player: OldPlayerStateImpl
     ): Boolean {
         key_detection_state?.also {
             it.invoke(event.key)
@@ -101,7 +101,7 @@ class ShortcutState {
         return false
     }
 
-    fun onButtonPress(button_code: Int, player: PlayerState): Boolean {
+    fun onButtonPress(button_code: Int, player: OldPlayerStateImpl): Boolean {
         button_detection_state?.also {
             it.invoke(button_code)
             return true

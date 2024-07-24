@@ -39,7 +39,7 @@ import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverride
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.theme.appHover
 import dev.toastbits.ytmkt.uistrings.durationToString
 import org.burnoutcrew.reorderable.ReorderableLazyListState
@@ -139,7 +139,7 @@ class QueueTabItem(val song: Song, val key: Int) {
         multiselect_context: MediaItemMultiSelectContext,
         requestRemove: () -> Unit
     ) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
         val max_offset: Float = with(LocalDensity.current) { player.screen_size.width.toPx() }

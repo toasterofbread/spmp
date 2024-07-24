@@ -29,7 +29,7 @@ import dev.toastbits.composekit.utils.modifier.scrollWithoutClip
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.*
@@ -126,7 +126,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
 
     @Composable
     internal fun SearchButton(icon: ImageVector = Icons.Default.Search) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val keyboard_controller: SoftwareKeyboardController? = LocalSoftwareKeyboardController.current
 
         Crossfade(showing_search_field) { searching ->
@@ -218,7 +218,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
         content_padding: PaddingValues,
         close: () -> Unit
     ) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
 
         MediaItemSortType.SelectionMenu(
             show_sort_type_menu,

@@ -33,7 +33,7 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Button
 import com.toasterofbread.spmp.SpMpDeps
 import com.toasterofbread.spmp.DependencyInfo
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.platform.AppContext
 import LocalPlayerState
 import dev.toastbits.composekit.settings.ui.vibrant_accent
@@ -59,7 +59,7 @@ class DependencySettings(val context: AppContext): SettingsGroup("DEPENDENCY", c
             ) },
             { Icons.Outlined.LibraryBooks },
             titleBarEndContent = { modifier ->
-                val player: PlayerState = LocalPlayerState.current
+                val player: OldPlayerStateImpl = LocalPlayerState.current
 
                 if (player.context.canOpenUrl()) {
                     IconButton(
@@ -88,7 +88,7 @@ private fun DependencyList(modifier: Modifier = Modifier) {
 
 @Composable
 private fun DependencyInfo(dependency: DependencyInfo, modifier: Modifier = Modifier) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     Column(
         modifier

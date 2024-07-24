@@ -29,7 +29,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.getUiLanguage
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.ytmkt.uistrings.durationToString
 import LocalPlayerState
 import com.toasterofbread.spmp.model.mediaitem.observeUrl
@@ -40,7 +40,7 @@ import spmp.shared.generated.resources.playlist_x_songs
 
 @Composable
 internal fun PlaylistAppPage.PlaylistButtonBar(modifier: Modifier = Modifier) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     var playlist_pinned: Boolean by playlist.observePinnedToHome()
 
     Crossfade(edit_in_progress, modifier) { editing ->
@@ -84,7 +84,7 @@ internal fun PlaylistAppPage.PlaylistButtonBar(modifier: Modifier = Modifier) {
 
 @Composable
 private fun PlaylistAppPage.PlaylistInfoText(items: List<Song>?, modifier: Modifier = Modifier) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val db = player.database
 
     Row(

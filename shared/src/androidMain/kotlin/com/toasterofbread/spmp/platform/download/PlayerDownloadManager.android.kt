@@ -7,7 +7,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.startPlatformService
 import com.toasterofbread.spmp.platform.unbindPlatformService
-import com.toasterofbread.spmp.service.playercontroller.DownloadRequestCallback
+import com.toasterofbread.spmp.model.state.DownloadRequestCallback
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext

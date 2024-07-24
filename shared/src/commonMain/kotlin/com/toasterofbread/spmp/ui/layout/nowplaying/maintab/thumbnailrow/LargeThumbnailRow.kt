@@ -43,7 +43,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.formatArtistTitles
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.ui.component.HorizontalLyricsLineDisplay
 import com.toasterofbread.spmp.ui.component.Thumbnail
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.nowplaying.EXPANDED_THRESHOLD
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
@@ -68,7 +68,7 @@ fun LargeThumbnailRow(
     overlayContent: (@Composable () -> Unit)? = null,
 ) {
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val density: Density = LocalDensity.current
     val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
 
@@ -366,7 +366,7 @@ fun LargeThumbnailRow(
     }
 }
 
-private suspend fun PlayerState.performPressAction(
+private suspend fun OldPlayerStateImpl.performPressAction(
     long_press: Boolean,
     main_overlay_menu: PlayerOverlayMenu,
     setThemeColour: (Color) -> Unit,

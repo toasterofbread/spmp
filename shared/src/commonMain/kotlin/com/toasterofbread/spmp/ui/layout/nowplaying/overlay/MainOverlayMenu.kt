@@ -32,7 +32,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.ColourpickCallback
 import dev.toastbits.composekit.settings.ui.on_accent
@@ -61,7 +61,7 @@ class MainPlayerOverlayMenu(
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
         val song: Song = getSong() ?: return
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val download_manager = player.context.download_manager
 
         val song_artists: List<Artist>? by song.Artists.observe(player.database)

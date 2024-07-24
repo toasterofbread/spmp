@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.settings.category.SettingsGroup
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.SettingsAppPage
 import kotlinx.serialization.Serializable
@@ -38,7 +38,7 @@ data class AppPageNavigationAction(
     override fun getIcon(): ImageVector =
         page.getIcon()
 
-    override suspend fun execute(player: PlayerState) {
+    override suspend fun execute(player: OldPlayerStateImpl) {
         val page: AppPage = page.getPage(player, player.app_page_state) ?: return
         player.openAppPage(page)
 
@@ -62,7 +62,7 @@ data class AppPageNavigationAction(
 
     @Composable
     override fun ConfigurationItems(item_modifier: Modifier, onModification: (NavigationAction) -> Unit) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         var show_settings_group_selector: Boolean by remember { mutableStateOf(false) }
         val settings_pages: List<SettingsGroup.CategoryPage> = remember { player.settings.group_pages }
 

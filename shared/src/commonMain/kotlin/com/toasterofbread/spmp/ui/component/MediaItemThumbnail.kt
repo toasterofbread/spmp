@@ -33,12 +33,12 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistDefaultThumbnail
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider.Companion.fromImageUrl
 import kotlinx.coroutines.CoroutineScope
 
 private suspend inline fun MediaItem.loadThumb(
-    player: PlayerState,
+    player: OldPlayerStateImpl,
     target_quality: Quality,
     base_provider: ThumbnailProvider?,
     disable_cache: Boolean,
@@ -82,7 +82,7 @@ fun MediaItem.Thumbnail(
 ) {
     require(this !is LocalPlaylistRef) { "LocalPlaylistRef must be loaded and passed as a LocalPlaylistData" }
 
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     var loading: Boolean by remember { mutableStateOf(true) }
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 

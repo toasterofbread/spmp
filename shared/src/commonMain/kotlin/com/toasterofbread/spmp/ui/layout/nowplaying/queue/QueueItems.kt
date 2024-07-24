@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import org.burnoutcrew.reorderable.ReorderableItem
@@ -20,12 +20,12 @@ fun LazyListScope.QueueItems(
     song_items: SnapshotStateList<QueueTabItem>,
     queue_list_state: ReorderableLazyListState,
     multiselect_context: MediaItemMultiSelectContext,
-    player: PlayerState,
+    player: OldPlayerStateImpl,
     getPlayingKey: () -> Int?,
     setPlayingKey: (Int?) -> Unit,
     item_modifier: Modifier = Modifier,
-    getItemColour: PlayerState.() -> Color = { getNPAltOnBackground() },
-    getCurrentItemColour: PlayerState.() -> Color = { getNPBackground() }
+    getItemColour: OldPlayerStateImpl.() -> Color = { getNPAltOnBackground() },
+    getCurrentItemColour: OldPlayerStateImpl.() -> Color = { getNPBackground() }
 ) {
     val items: List<QueueTabItem> = song_items.toList()
     items(items.size, { items[it].key }) { index ->

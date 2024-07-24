@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.unit.Dp
 import dev.toastbits.composekit.utils.common.copy
 import dev.toastbits.composekit.utils.modifier.*
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.component.LargeFilterList
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
@@ -31,7 +31,7 @@ internal fun SearchAppPage.VerticalSearchSecondaryBar(
     modifier: Modifier,
     content_padding: PaddingValues
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val focus_requester: FocusRequester = remember { FocusRequester() }
 
     var show_search_bar: Boolean by remember { mutableStateOf(true) }

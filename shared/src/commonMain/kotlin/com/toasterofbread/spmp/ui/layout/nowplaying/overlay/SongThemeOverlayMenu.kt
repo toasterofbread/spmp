@@ -34,7 +34,7 @@ import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.createImageBitmapUtil
 import com.toasterofbread.spmp.platform.isVideoPlaybackSupported
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
@@ -74,7 +74,7 @@ class SongThemePlayerOverlayMenu(
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
         val song: Song = getSong() ?: return
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
 
         val thumb_image: ImageBitmap? = getCurrentSongThumb()
         var palette_colours: List<Color>? by remember { mutableStateOf(null) }
@@ -244,7 +244,7 @@ class SongThemePlayerOverlayMenu(
 
 @Composable
 private fun ValueSlider(value_state: MutableState<Float?>, default_value: Float, title: String) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     val current_value: Float = value_state.value ?: default_value

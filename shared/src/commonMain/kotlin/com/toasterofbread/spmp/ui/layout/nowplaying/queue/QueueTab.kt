@@ -54,7 +54,7 @@ import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.component.radio.StatusDisplay
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
@@ -81,12 +81,12 @@ internal fun QueueTab(
     border_thickness: Dp = 1.5.dp,
     wave_border_mode_override: NowPlayingQueueWaveBorderMode? = null,
     button_row_arrangement: Arrangement.Horizontal = Arrangement.SpaceEvenly,
-    getBackgroundColour: PlayerState.() -> Color = { getNPAltOnBackground() },
+    getBackgroundColour: OldPlayerStateImpl.() -> Color = { getNPAltOnBackground() },
     getBackgroundOpacity: () -> Float = { 1f },
-    getOnBackgroundColour: PlayerState.() -> Color = { getNPBackground() },
-    getWaveBorderColour: PlayerState.() -> Color = getOnBackgroundColour,
+    getOnBackgroundColour: OldPlayerStateImpl.() -> Color = { getNPBackground() },
+    getWaveBorderColour: OldPlayerStateImpl.() -> Color = getOnBackgroundColour,
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val density: Density = LocalDensity.current
     val scroll_coroutine_scope = rememberCoroutineScope()
 
@@ -381,11 +381,11 @@ private fun QueueBorder(
     list_padding: Dp,
     queue_list_state: ReorderableLazyListState,
     border_thickness: Dp,
-    getBackgroundColour: PlayerState.() -> Color,
+    getBackgroundColour: OldPlayerStateImpl.() -> Color,
     getBackgroundOpacity: () -> Float,
-    getBorderColour: PlayerState.() -> Color
+    getBorderColour: OldPlayerStateImpl.() -> Color
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     if (wave_border_mode == NowPlayingQueueWaveBorderMode.LINE) {
         HorizontalDivider(Modifier.padding(horizontal = list_padding), border_thickness, getBorderColour(player))

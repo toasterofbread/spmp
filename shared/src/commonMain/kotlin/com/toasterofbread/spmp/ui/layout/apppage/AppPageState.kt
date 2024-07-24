@@ -7,13 +7,15 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.library.LibraryAppPage
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.SettingsAppPage
 import com.toasterofbread.spmp.ui.layout.apppage.songfeedpage.SongFeedAppPage
 import com.toasterofbread.spmp.ui.layout.apppage.searchpage.SearchAppPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 
-class AppPageState(val player: PlayerState) {
+class AppPageState(
+    val context: AppContext
+) {
     val SongFeed = SongFeedAppPage(this)
     val Library = LibraryAppPage(this)
     val Search = SearchAppPage(this, context)
@@ -23,10 +25,11 @@ class AppPageState(val player: PlayerState) {
         LocalPlayerState.current.nowPlayingTopOffset(Modifier, NowPlayingTopOffsetSection.PAGE_BAR)
     }
 
-    val Default: AppPage = AppPage.Type.DEFAULT.getPage(player, this)!!
-    val context: AppContext get() = player.context
+    val Default: AppPage = AppPage.Type.DEFAULT.getPage(context, this)!!
 
     var current_page: AppPage by mutableStateOf(Default)
+        private set
+    private val page_listeners: MutableList<(AppPage) -> Unit> = mutableListOf()
 
     fun setPage(page: AppPage? = null, from_current: Boolean, going_back: Boolean): Boolean {
         val new_page = page ?: Default
@@ -42,9 +45,22 @@ class AppPageState(val player: PlayerState) {
                     else null
                 )
             }
+
+            for (listener in page_listeners) {
+                listener.invoke(new_page)
+            }
+
             return true
         }
         return false
+    }
+
+    fun addPageListener(listener: (AppPage) -> Unit) {
+        page_listeners.add(listener)
+    }
+
+    fun removePageListener(listener: (AppPage) -> Unit) {
+        page_listeners.remove(listener)
     }
 
     fun getViewMorePage(browse_id: String, title: String?): AppPage = when (browse_id) {

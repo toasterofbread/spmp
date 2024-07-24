@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.Dp
 import com.toasterofbread.spmp.platform.playerservice.PlayerServiceLoadState
 import com.toasterofbread.spmp.platform.playerservice.PlayerServiceCompanion
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.composekit.settings.ui.on_accent
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.*
@@ -75,7 +75,7 @@ fun LoadingSplash(
     modifier: Modifier = Modifier,
     content_padding: PaddingValues = PaddingValues(),
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     var show_message: Boolean by remember { mutableStateOf(false) }
 

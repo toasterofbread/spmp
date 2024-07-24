@@ -19,6 +19,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.*
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitles
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.service.playercontroller.*
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -40,12 +41,12 @@ fun PlayerButton(
     image: ImageVector,
     size: Dp = 60.dp,
     enabled: Boolean = true,
-    getBackgroundColour: PlayerState.() -> Color = { getNPBackground() },
-    getOnBackgroundColour: PlayerState.() -> Color = { getNPOnBackground() },
-    getAccentColour: (PlayerState.() -> Color)? = null,
+    getBackgroundColour: OldPlayerStateImpl.() -> Color = { getNPBackground() },
+    getOnBackgroundColour: OldPlayerStateImpl.() -> Color = { getNPOnBackground() },
+    getAccentColour: (OldPlayerStateImpl.() -> Color)? = null,
     onClick: () -> Unit
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     Box(
         contentAlignment = Alignment.Center,
@@ -110,16 +111,16 @@ internal fun Controls(
     text_align: TextAlign = TextAlign.Center,
     title_text_max_lines: Int = 1,
     button_size: Dp = 60.dp,
-    getBackgroundColour: PlayerState.() -> Color = { getNPBackground() },
-    getOnBackgroundColour: PlayerState.() -> Color = { getNPOnBackground() },
-    getAccentColour: (PlayerState.() -> Color)? = null,
+    getBackgroundColour: OldPlayerStateImpl.() -> Color = { getNPBackground() },
+    getOnBackgroundColour: OldPlayerStateImpl.() -> Color = { getNPOnBackground() },
+    getAccentColour: (OldPlayerStateImpl.() -> Color)? = null,
     buttonRowStartContent: @Composable RowScope.() -> Unit = {},
     buttonRowEndContent: @Composable RowScope.() -> Unit = {},
     artistRowStartContent: @Composable RowScope.() -> Unit = {},
     artistRowEndContent: @Composable RowScope.() -> Unit = {},
     textRowStartContent: @Composable RowScope.() -> Unit = {}
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     val song_title: String? by song?.observeActiveTitle()
@@ -239,7 +240,7 @@ internal fun Controls(
             }
         }
 
-        val getSeekBarTrackColour: PlayerState.() -> Color = {
+        val getSeekBarTrackColour: OldPlayerStateImpl.() -> Color = {
             getOnBackgroundColour(this).copy(alpha = 0.1f)
         }
 

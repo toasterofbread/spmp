@@ -36,7 +36,7 @@ import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.ytmkt.model.YtmApi
 import dev.toastbits.ytmkt.endpoint.AccountPlaylistsEndpoint
 import dev.toastbits.ytmkt.endpoint.CreateAccountPlaylistEndpoint
@@ -61,7 +61,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
         showing_alt_content: Boolean,
         modifier: Modifier
     ) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val api: YtmApi = player.context.ytapi
 
         val show_likes_playlist: Boolean by player.settings.behaviour.SHOW_LIKES_PLAYLIST.observe()
@@ -129,7 +129,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
 
     @Composable
     override fun RowOrColumnScope.SideContent(showing_alt_content: Boolean) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val auth_state: ApiAuthenticationState? = player.context.ytapi.user_auth_state
 
         val load_endpoint: AccountPlaylistsEndpoint? = auth_state?.AccountPlaylists?.implementedOrNull()

@@ -23,6 +23,8 @@ import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.db.getPinnedItems
 import com.toasterofbread.spmp.model.mediaitem.layout.*
 import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
+import com.toasterofbread.spmp.model.state.FeedLoadState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.*
 import com.toasterofbread.spmp.ui.component.NotImplementedMessage
@@ -55,7 +57,7 @@ internal fun SongFeedAppPage.LFFSongFeedAppPage(
         loadFeed(false)
     }
 
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val form_factor: FormFactor by FormFactor.observe()
 
     val hidden_rows: Set<String> by player.settings.feed.HIDDEN_ROWS.observe()

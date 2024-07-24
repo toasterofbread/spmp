@@ -22,12 +22,12 @@ import dev.toastbits.composekit.utils.common.getInnerSquareSizeOfCircle
 import dev.toastbits.composekit.utils.composable.crossOut
 import dev.toastbits.composekit.utils.modifier.background
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import kotlin.math.roundToInt
 
 @Composable
 fun RepeatButton(getBackgroundColour: () -> Color, modifier: Modifier = Modifier) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
 
     Box(
         modifier = modifier

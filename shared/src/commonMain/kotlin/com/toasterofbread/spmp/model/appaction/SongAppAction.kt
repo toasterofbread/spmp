@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.model.appaction
 
 import kotlinx.serialization.Serializable
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
@@ -69,7 +69,7 @@ data class SongAppAction(
         action.CustomContent(onClick, song, modifier)
     }
 
-    override suspend fun executeAction(player: PlayerState) {
+    override suspend fun executeAction(player: OldPlayerStateImpl) {
         val song: Song = player.status.song ?: return
         val index: Int = player.status.index
         if (index < 0) {
@@ -92,7 +92,7 @@ data class SongAppAction(
 
     @Composable
     override fun ConfigurationItems(item_modifier: Modifier, onModification: (AppAction) -> Unit) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
 
         var show_action_selector: Boolean by remember { mutableStateOf(false) }
         val available_actions: List<Action> = remember { Action.getAvailable(player.context) }
@@ -224,7 +224,7 @@ data class SongAppAction(
                 else -> true
             }
 
-        suspend fun execute(song: Song, queue_index: Int, player: PlayerState) {
+        suspend fun execute(song: Song, queue_index: Int, player: OldPlayerStateImpl) {
             when (this) {
                 TOGGLE_LIKE -> {
                     val set_liked_endpoint: SetSongLikedEndpoint? = player.context.ytapi.user_auth_state?.SetSongLiked

@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.composable.wave.WaveShape
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.composekit.settings.ui.ThemeValues
 
 const val WAVE_BORDER_HEIGHT_DP: Float = 20f
@@ -37,7 +37,7 @@ fun WaveBorder(
     border_colour: Color = LocalContentColor.current,
     getAlpha: () -> Float = { 1f }
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     val density: Density = LocalDensity.current
 
     val colour: Color = getColour(player.theme)

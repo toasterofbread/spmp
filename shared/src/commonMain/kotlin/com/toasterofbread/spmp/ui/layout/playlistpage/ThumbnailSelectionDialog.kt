@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import LocalPlayerState
@@ -47,7 +47,7 @@ import spmp.shared.generated.resources.playlist_empty
 internal fun PlaylistAppPage.ThumbnailSelectionDialog(
     close: () -> Unit
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val player: OldPlayerStateImpl = LocalPlayerState.current
     var url_input_mode: Boolean by remember { mutableStateOf(false) }
     var url_input: String by remember(url_input_mode) { mutableStateOf("") }
 

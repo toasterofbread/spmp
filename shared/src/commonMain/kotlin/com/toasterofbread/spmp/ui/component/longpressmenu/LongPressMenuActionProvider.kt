@@ -32,7 +32,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.theme.appHover
 
 class LongPressMenuActionProvider(
@@ -51,7 +51,7 @@ class LongPressMenuActionProvider(
         onClick: (active_queue_index: Int) -> Unit,
         onLongClick: ((active_queue_index: Int) -> Unit)? = null
     ) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val service: PlayerService = LocalPlayerState.current.controller ?: return
 
         var active_queue_item: Song? by remember { mutableStateOf(null) }
@@ -147,7 +147,7 @@ class LongPressMenuActionProvider(
             onAction: () -> Unit,
             fill_width: Boolean = true
         ) {
-            val player: PlayerState = LocalPlayerState.current
+            val player: OldPlayerStateImpl = LocalPlayerState.current
 
             Row(
                 modifier

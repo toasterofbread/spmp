@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.youtubeapi.AccountSwitcherEndpoint
 import com.toasterofbread.spmp.youtubeapi.YTMLogin
 import dev.toastbits.composekit.utils.composable.LinkifyText
@@ -70,7 +70,7 @@ class YoutubeMusicLoginPage(val api: YoutubeiApi): LoginPage() {
         content_padding: PaddingValues,
         onFinished: (Result<ApiAuthenticationState>?) -> Unit
     ) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
         val coroutine_scope: CoroutineScope = rememberCoroutineScope()
         val manual: Boolean = confirm_param == true
 
@@ -194,7 +194,7 @@ class YoutubeMusicLoginPage(val api: YoutubeiApi): LoginPage() {
 
     @Composable
     override fun LoginConfirmationDialog(info_only: Boolean, manual_only: Boolean, onFinished: (param: Any?) -> Unit) {
-        val player: PlayerState = LocalPlayerState.current
+        val player: OldPlayerStateImpl = LocalPlayerState.current
 
         AlertDialog(
             { onFinished(null) },

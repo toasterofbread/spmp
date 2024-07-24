@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.model.appaction.action.playback
 
 import kotlinx.serialization.Serializable
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -29,7 +29,7 @@ data class SeekByTimePlaybackAppAction(
     override fun getType(): PlaybackAction.Type =
         PlaybackAction.Type.SEEK_BY_TIME
 
-    override suspend fun execute(player: PlayerState) {
+    override suspend fun execute(player: OldPlayerStateImpl) {
         if (seek_ms == 0L) {
             return
         }
@@ -71,7 +71,7 @@ class SeekNextPlaybackAppAction: PlaybackAction {
     override fun getType(): PlaybackAction.Type =
         PlaybackAction.Type.SEEK_NEXT
 
-    override suspend fun execute(player: PlayerState) {
+    override suspend fun execute(player: OldPlayerStateImpl) {
         player.withPlayer{
             seekToNext()
         }
@@ -83,7 +83,7 @@ class SeekPreviousPlaybackAppAction: PlaybackAction {
     override fun getType(): PlaybackAction.Type =
         PlaybackAction.Type.SEEK_PREVIOUS
 
-    override suspend fun execute(player: PlayerState) {
+    override suspend fun execute(player: OldPlayerStateImpl) {
         player.withPlayer{
             seekToPrevious()
         }
@@ -95,7 +95,7 @@ class SeekRandomPlaybackAppAction: PlaybackAction {
     override fun getType(): PlaybackAction.Type =
         PlaybackAction.Type.SEEK_RANDOM
 
-    override suspend fun execute(player: PlayerState) {
+    override suspend fun execute(player: OldPlayerStateImpl) {
         player.withPlayer{
             seekToSong(Random.nextInt(0 until player.status.m_song_count))
         }
@@ -107,7 +107,7 @@ class UndoSeekPlaybackAppAction: PlaybackAction {
     override fun getType(): PlaybackAction.Type =
         PlaybackAction.Type.UNDO_SEEK
 
-    override suspend fun execute(player: PlayerState) {
+    override suspend fun execute(player: OldPlayerStateImpl) {
         player.withPlayer {
             undoSeek()
         }

@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
 import dev.toastbits.composekit.utils.common.addUnique
 import dev.toastbits.composekit.utils.common.thenIf
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerHeight
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerVPadding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlaying
@@ -32,7 +32,7 @@ val MINIMISED_NOW_PLAYING_V_PADDING_DP: Float
 private val LocalFocusedTextFieldOwners: ProvidableCompositionLocal<MutableList<Any>> = staticCompositionLocalOf { mutableStateListOf() }
 
 @Composable
-fun RootView(player: PlayerState) {
+fun RootView(player: OldPlayerStateImpl) {
     val density: Density = LocalDensity.current
     Box(
         Modifier

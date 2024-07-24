@@ -3,10 +3,14 @@ package com.toasterofbread.spmp.ui.component.multiselect
 import androidx.compose.foundation.layout.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.UiState
 import com.toasterofbread.spmp.platform.FormFactor
+import com.toasterofbread.spmp.platform.AppContext
 
-class AppPageMultiSelectContext(private val player: PlayerState): MediaItemMultiSelectContext(player.context) {
+class AppPageMultiSelectContext(
+    private val ui_state: UiState,
+    context: AppContext
+): MediaItemMultiSelectContext(context) {
     @Composable
     override fun InfoDisplayContent(
         modifier: Modifier,
@@ -28,12 +32,12 @@ class AppPageMultiSelectContext(private val player: PlayerState): MediaItemMulti
             }
 
             if (getAllItems != null) {
-                player.multiselect_info_all_items_getters.add(getAllItems)
+                ui_state.addMultiselectInfoAllItemsGetter(getAllItems)
             }
 
             onDispose {
                 if (getAllItems != null) {
-                    player.multiselect_info_all_items_getters.remove(getAllItems)
+                    ui_state.removeMultiselectInfoAllItemsGetter(getAllItems)
                 }
             }
         }

@@ -296,6 +296,15 @@ class SpMpDeps(extra: Map<String, Any>) {
                 url = "https://github.com/dzolnai/ExoVisualizer",
                 license = "MIT",
                 license_url = "https://github.com/dzolnai/ExoVisualizer/blob/720e1b127b900aece546b8e88aed65db50379f0a/LICENSE"
+            ),
+            "com.github.toasterofbread.kotori" to DependencyInfo(
+                version = "f30ce74e20",
+                name = "Kotori",
+                author = "wanasit",
+                url = "https://github.com/wanasit/kotori",
+                license = "MIT",
+                license_url = "https://github.com/wanasit/kotori/blob/7ca4f352e6bf4fb314828d36a217953ec5006b20/LICENSE",
+                fork_url = "https://github.com/toasterofbread/kotori"
             )
         )
 }

@@ -115,9 +115,7 @@ kotlin {
                 implementation(deps.get("io.ktor:ktor-client-core", "io.ktor"))
                 implementation(deps.get("io.ktor:ktor-client-content-negotiation", "io.ktor"))
                 implementation(deps.get("io.ktor:ktor-serialization-kotlinx-json", "io.ktor"))
-
-                // TEMP
-                implementation("com.github.wanasit.kotori:kotori:1.0.0-TEST")
+                implementation(deps.get("com.github.toasterofbread.kotori:kotori"))
             }
         }
 
@@ -126,10 +124,6 @@ kotlin {
                 implementation(deps.get("io.ktor:ktor-client-cio", "io.ktor"))
                 implementation(deps.get("dev.toastbits.compose-webview-multiplatform:compose-webview-multiplatform"))
                 implementation(deps.get("org.bitbucket.ijabz:jaudiotagger"))
-
-
-                // TEMP
-                implementation("com.github.wanasit.kotori:kotori-jvm:1.0.0-TEST")
             }
         }
 
@@ -173,10 +167,6 @@ kotlin {
             dependencies {
                 implementation(deps.get("io.ktor:ktor-client-js", "io.ktor"))
                 implementation(deps.get("app.cash.sqldelight:web-worker-driver-wasm-js"))
-
-                // TEMP
-                // implementation("com.catppuccin:catppuccin-kotlin-wasm-js:1.0.3-dev")
-                implementation("com.github.wanasit.kotori:kotori-wasm-js:1.0.0-TEST")
             }
         }
     }

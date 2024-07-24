@@ -11,6 +11,7 @@ pluginManagement {
         google()
         maven("https://oss.sonatype.org/content/repositories/snapshots/")
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
+        maven("https://jitpack.io")
     }
 
     plugins {
@@ -35,9 +36,10 @@ pluginManagement {
 
 dependencyResolutionManagement {
     repositories {
+        mavenLocal()
+
         google()
         mavenCentral()
-        mavenLocal()
         maven("https://jitpack.io")
 
         // https://github.com/KevinnZou/compose-webview-multiplatform
@@ -51,5 +53,7 @@ dependencyResolutionManagement {
 
         maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
         maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
+
+        maven("https://oss.sonatype.org/content/repositories/snapshots")
     }
 }

@@ -1,7 +1,5 @@
 package plugin.spmp
 
-import org.gradle.language.ComponentDependencies
-
 class SpMpDeps(extra: Map<String, Any>) {
     companion object {
         const val OUTPUT_DIR: String = "generated/sources/dependencyList/main/com/toasterofbread/spmp"
@@ -28,7 +26,7 @@ class SpMpDeps(extra: Map<String, Any>) {
     val dependencies: Map<String, DependencyInfo> =
         mapOf(
             "dev.toastbits:spms" to DependencyInfo(
-                version = "0.4.0-beta2-SNAPSHOT",
+                version = "0.3.1-wasm2",
                 name = "spmp-server",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/spmp-server",
@@ -36,7 +34,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/toasterofbread/spmp-server/blob/6dde651ffc102d604ac7ecd5ac7471b1572fd2e6/LICENSE"
             ),
             "dev.toastbits.composekit" to DependencyInfo(
-                version = "0.0.3-SNAPSHOT",
+                version = "e83119148b",
                 name = "ComposeKit",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/composekit",
@@ -44,7 +42,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/toasterofbread/ComposeKit/blob/136f216e65395660255d3270af9b79c90ae2254c/LICENSE"
             ),
             "dev.toastbits.ytmkt" to DependencyInfo(
-                version = "0.2.6-SNAPSHOT",
+                version = "0.3.0",
                 name = "ytm-kt",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/ytm-kt",
@@ -59,8 +57,8 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license = "Apache-2.0",
                 license_url = "https://github.com/toasterofbread/mediasession-kt/blob/fd4c5e876e2782dbe856b886f5b8dc083c26293c/LICENSE"
             ),
-            "dev.toastbits.kanakt" to DependencyInfo(
-                version = "0.0.1",
+            "dev.toastbits.kana-kt" to DependencyInfo(
+                version = "c891811875",
                 name = "kana-kt",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/kana-kt",

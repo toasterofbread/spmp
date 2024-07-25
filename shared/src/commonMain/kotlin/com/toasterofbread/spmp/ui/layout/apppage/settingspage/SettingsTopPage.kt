@@ -72,7 +72,7 @@ import dev.toastbits.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.settings.SettingsImportExport
 import com.toasterofbread.spmp.model.settings.category.SettingsGroup
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.layout.ProjectInfoDialog
 import kotlinx.coroutines.CoroutineScope
@@ -114,7 +114,7 @@ import spmp.shared.generated.resources.project_url_name
 
 @Composable
 internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(), top_padding: Dp = 0.dp) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     var importing: Boolean by remember { mutableStateOf(false) }
@@ -130,7 +130,7 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
     }
 
     val horizontal_padding: PaddingValues = content_padding.horizontal
-    val category_pages: List<SettingsGroup.CategoryPage> = remember { player.settings.group_pages }
+    val category_pages: List<SettingsGroup.CategoryPage> = remember { state.settings.group_pages }
     val item_spacing: Dp = 10.dp
 
     LazyColumn(
@@ -164,7 +164,7 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
                     {
                         exporting = false
                         coroutine_scope.launch {
-                            peformExport(player.context, export_categories)
+                            peformExport(state.context, export_categories)
                         }
                     },
                     { exporting = it },
@@ -182,7 +182,7 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
         }
 
         items(category_pages.filter { it.group.showPage(exporting) }) { page ->
-            val title_item: SettingsItem? = remember(page) { page.getTitleItem(player.context) }
+            val title_item: SettingsItem? = remember(page) { page.getTitleItem(state.context) }
             if (title_item == null) {
                 return@items
             }
@@ -257,7 +257,7 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
 
 @Composable
 internal fun SettingsImportDialog(modifier: Modifier = Modifier, onFinished: () -> Unit) {
-    val context: AppContext = LocalPlayerState.current.context
+    val context: AppContext = LocalAppContext.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     var import_data: SettingsImportExport.SettingsExportData? by remember { mutableStateOf(null) }
@@ -405,7 +405,7 @@ internal fun SettingsImportDialog(modifier: Modifier = Modifier, onFinished: () 
 
 @Composable
 private fun ProjectButton(modifier: Modifier = Modifier) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val clipboard: ClipboardManager = LocalClipboardManager.current
 
     val project_url: String = stringResource(Res.string.project_url)
@@ -414,7 +414,7 @@ private fun ProjectButton(modifier: Modifier = Modifier) {
 
     fun copyProjectUrl() {
         clipboard.setText(AnnotatedString(project_url))
-        player.context.sendToast(notif_copied_x_to_clipboard.replace("\$x", project_url_name))
+        state.context.sendToast(notif_copied_x_to_clipboard.replace("\$x", project_url_name))
     }
 
     Icon(
@@ -422,17 +422,17 @@ private fun ProjectButton(modifier: Modifier = Modifier) {
         null,
         modifier.platformClickable(
             onClick = {
-                if (player.context.canOpenUrl()) {
-                    player.context.openUrl(project_url)
+                if (state.context.canOpenUrl()) {
+                    state.context.openUrl(project_url)
                 }
                 else {
                     copyProjectUrl()
                 }
             },
             onAltClick = {
-                if (player.context.canOpenUrl()) {
+                if (state.context.canOpenUrl()) {
                     copyProjectUrl()
-                    player.context.vibrateShort()
+                    state.context.vibrateShort()
                 }
             }
         )
@@ -458,14 +458,14 @@ private fun InfoButton(modifier: Modifier = Modifier) {
 
 @Composable
 private fun StyledCheckbox(checked: Boolean, onCheckedChange: (Boolean) -> Unit) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     Checkbox(
         checked,
         onCheckedChange,
         colors = CheckboxDefaults.colors(
-            checkedColor = player.theme.accent,
-            uncheckedColor = player.theme.accent,
-            checkmarkColor = player.theme.on_accent
+            checkedColor = state.theme.accent,
+            uncheckedColor = state.theme.accent,
+            checkmarkColor = state.theme.on_accent
         )
     )
 }

@@ -41,7 +41,7 @@ fun getDefaultShortcuts(): List<Shortcut> =
             SongAppAction(SongAppAction.Action.REMOVE_FROM_QUEUE)
         ),
 
-        // Toggle player
+        // Toggle state
         Shortcut(
             KeyboardShortcutTrigger(Key.Tab.keyCode),
             NavigationAppAction(TogglePlayerNavigationAction())

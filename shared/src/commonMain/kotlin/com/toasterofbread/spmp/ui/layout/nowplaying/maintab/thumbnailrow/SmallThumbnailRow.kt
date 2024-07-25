@@ -47,7 +47,7 @@ import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.getPixel
 import com.toasterofbread.spmp.platform.SongVideoPlayback
 import com.toasterofbread.spmp.ui.component.Thumbnail
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.nowplaying.EXPANDED_THRESHOLD
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
@@ -80,9 +80,9 @@ fun SmallThumbnailRow(
     disable_parent_scroll_while_menu_open: Boolean = true,
     overlayContent: (@Composable () -> Unit)? = null
 ) {
-    val player = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val expansion = LocalNowPlayingExpansion.current
-    val current_song = player.status.m_song
+    val current_song = state.session.status.m_song
 
     val song_title: String? by current_song?.observeActiveTitle()
     val song_artist_titles: List<String?>? = current_song?.Artists?.observePropertyActiveTitles()
@@ -94,16 +94,16 @@ fun SmallThumbnailRow(
     var image_size: IntSize by remember { mutableStateOf(IntSize(1, 1)) }
 
     var colourpick_callback by remember { mutableStateOf<((Color?) -> Unit)?>(null) }
-    LaunchedEffect(player.np_overlay_menu) {
+    LaunchedEffect(state.player.np_overlay_menu) {
         colourpick_callback = null
     }
 
     val main_overlay_menu = remember {
         MainPlayerOverlayMenu(
-            { player.openNpOverlayMenu(it) },
+            { state.player.openNpOverlayMenu(it) },
             { colourpick_callback = it },
             setThemeColour,
-            { player.screen_size.width }
+            { state.ui.screen_size.width }
         )
     }
 
@@ -122,19 +122,19 @@ fun SmallThumbnailRow(
                 opened = true
             }
             else if (opened) {
-                player.openNpOverlayMenu(null)
+                state.player.openNpOverlayMenu(null)
             }
         }
 
         // Keep thumbnail centered
         Spacer(Modifier)
 
-        val overlay_swap_long_short_press_actions: Boolean by player.settings.player.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.observe()
-        val overlay_custom_action: PlayerOverlayMenuAction by player.settings.player.OVERLAY_CUSTOM_ACTION.observe()
+        val overlay_swap_long_short_press_actions: Boolean by state.settings.state.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.observe()
+        val overlay_custom_action: PlayerOverlayMenuAction by state.settings.state.OVERLAY_CUSTOM_ACTION.observe()
 
         Box(Modifier.aspectRatio(1f)) {
             fun performPressAction(long_press: Boolean) {
-                if (player.np_overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
+                if (state.player.np_overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
                     return
                 }
 
@@ -147,9 +147,9 @@ fun SmallThumbnailRow(
                     else PlayerOverlayMenuAction.DEFAULT
 
                 when (action) {
-                    PlayerOverlayMenuAction.OPEN_MAIN_MENU -> player.openNpOverlayMenu(main_overlay_menu)
+                    PlayerOverlayMenuAction.OPEN_MAIN_MENU -> state.player.openNpOverlayMenu(main_overlay_menu)
                     PlayerOverlayMenuAction.OPEN_THEMING -> {
-                        player.openNpOverlayMenu(
+                        state.player.openNpOverlayMenu(
                             SongThemePlayerOverlayMenu(
                                 { colourpick_callback = it },
                                 setThemeColour
@@ -165,17 +165,17 @@ fun SmallThumbnailRow(
                         }
                     }
                     PlayerOverlayMenuAction.ADJUST_NOTIFICATION_IMAGE_OFFSET -> {
-                        player.openNpOverlayMenu(NotifImagePlayerOverlayMenu())
+                        state.player.openNpOverlayMenu(NotifImagePlayerOverlayMenu())
                     }
                     PlayerOverlayMenuAction.OPEN_LYRICS -> {
-                        player.openNpOverlayMenu(PlayerOverlayMenu.getLyricsMenu())
+                        state.player.openNpOverlayMenu(PlayerOverlayMenu.getLyricsMenu())
                     }
                     PlayerOverlayMenuAction.OPEN_RELATED -> {
-                        player.openNpOverlayMenu(RelatedContentPlayerOverlayMenu(player.context.ytapi.SongRelatedContent))
+                        state.player.openNpOverlayMenu(RelatedContentPlayerOverlayMenu(state.context.ytapi.SongRelatedContent))
                     }
                     PlayerOverlayMenuAction.DOWNLOAD -> {
                         current_song?.also { song ->
-                            player.onSongDownloadRequested(song)
+                            state.ui.onSongDownloadRequested(listOf(song))
                         }
                     }
                 }
@@ -204,14 +204,14 @@ fun SmallThumbnailRow(
                             }
                         )
 
-                val default_video_position: ThemeSettings.VideoPosition by player.settings.theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
-                val song_video_position: ThemeSettings.VideoPosition? by song.VideoPosition.observe(player.database)
+                val default_video_position: ThemeSettings.VideoPosition by state.settings.theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
+                val song_video_position: ThemeSettings.VideoPosition? by song.VideoPosition.observe(state.database)
                 var video_showing: Boolean = false
 
                 if ((song_video_position ?: default_video_position) == ThemeSettings.VideoPosition.THUMBNAIL) {
                     video_showing = SongVideoPlayback(
                         song.id,
-                        { player.status.getPositionMs() },
+                        { state.session.status.getPositionMs() },
                         content_modifier,
                         fill = true
                     )
@@ -219,7 +219,7 @@ fun SmallThumbnailRow(
 
                 song.Thumbnail(
                     ThumbnailProvider.Quality.HIGH,
-                    getContentColour = { player.getNPOnBackground() },
+                    getContentColour = { state.ui.getNPOnBackground() },
                     onLoaded = {
                         current_thumb_image = it
                         onThumbnailLoaded(song, it)
@@ -231,7 +231,7 @@ fun SmallThumbnailRow(
 
             // Thumbnail overlay menu
             androidx.compose.animation.AnimatedVisibility(
-                player.np_overlay_menu != null || colourpick_callback != null,
+                state.player.np_overlay_menu != null || colourpick_callback != null,
                 Modifier.fillMaxSize(),
                 enter = fadeIn(tween(OVERLAY_MENU_ANIMATION_DURATION)),
                 exit = fadeOut(tween(OVERLAY_MENU_ANIMATION_DURATION))
@@ -254,8 +254,8 @@ fun SmallThumbnailRow(
                                         }
                                     }
 
-                                    if (expansion.get() in 0.9f .. 1.1f && player.np_overlay_menu?.closeOnTap() == true) {
-                                        player.openNpOverlayMenu(null)
+                                    if (expansion.get() in 0.9f .. 1.1f && state.player.np_overlay_menu?.closeOnTap() == true) {
+                                        state.player.openNpOverlayMenu(null)
                                     }
                                 }
                             )
@@ -278,17 +278,17 @@ fun SmallThumbnailRow(
                             }),
                         contentAlignment = Alignment.Center
                     ) {
-                        BackHandler(player.np_overlay_menu != null, priority = 2) {
-                            player.navigateNpOverlayMenuBack()
+                        BackHandler(state.player.np_overlay_menu != null, priority = 2) {
+                            state.player.navigateNpOverlayMenuBack()
                             colourpick_callback = null
                         }
 
-                        Crossfade(player.np_overlay_menu) { menu ->
+                        Crossfade(state.player.np_overlay_menu) { menu ->
                             CompositionLocalProvider(LocalContentColor provides Color.White) {
                                 menu?.Menu(
-                                    { player.status.m_song!! },
+                                    { state.session.status.m_song!! },
                                     { expansion.getAbsolute() },
-                                    { player.openNpOverlayMenu(main_overlay_menu) },
+                                    { state.player.openNpOverlayMenu(main_overlay_menu) },
                                     getSeekState
                                 ) { current_thumb_image }
                             }
@@ -317,19 +317,19 @@ fun SmallThumbnailRow(
                 Text(
                     song_title ?: "",
                     maxLines = 1,
-                    color = player.getNPOnBackground(),
+                    color = state.ui.getNPOnBackground(),
                     overflow = TextOverflow.Ellipsis
                 )
                 Text(
-                    song_artist_titles?.let { formatArtistTitles(it, player.context) } ?: "",
+                    song_artist_titles?.let { formatArtistTitles(it, state.context) } ?: "",
                     maxLines = 1,
-                    color = player.getNPOnBackground(),
+                    color = state.ui.getNPOnBackground(),
                     overflow = TextOverflow.Ellipsis,
                     style = MaterialTheme.typography.bodySmall
                 )
             }
 
-            val show_prev_button: Boolean by player.settings.player.MINI_SHOW_PREV_BUTTON.observe()
+            val show_prev_button: Boolean by state.settings.state.MINI_SHOW_PREV_BUTTON.observe()
             ThumbnailRowControlButtons(Modifier.size(40.dp), show_prev_button = show_prev_button)
         }
     }
@@ -342,16 +342,16 @@ internal fun Modifier.songThumbnailShadow(
     apply_expansion_to_colour: Boolean = true,
     inGraphicsLayer: GraphicsLayerScope.() -> Unit = {}
 ): Modifier {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    val default_shadow_radius: Float by player.settings.theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS.observe()
-    val shadow_radius: Float? by song?.ShadowRadius?.observe(player.database)
+    val state: SpMp.State = LocalAppState.current
+    val default_shadow_radius: Float by state.settings.theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS.observe()
+    val shadow_radius: Float? by song?.ShadowRadius?.observe(state.database)
 
     return graphicsLayer {
         shadowElevation = (20.dp * (shadow_radius ?: default_shadow_radius)).toPx()
         this.shape = shape
         clip = true
 
-        val shadow_colour: Color = Color.Black.thenIf(apply_expansion_to_colour) { copy(alpha = player.expansion.get().coerceIn(0f, 1f)) }
+        val shadow_colour: Color = Color.Black.thenIf(apply_expansion_to_colour) { copy(alpha = state.ui.player_expansion.get().coerceIn(0f, 1f)) }
         ambientShadowColor = shadow_colour
         spotShadowColor = shadow_colour
 

@@ -29,7 +29,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.getUiLanguage
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.ytmkt.uistrings.durationToString
 import LocalPlayerState
 import com.toasterofbread.spmp.model.mediaitem.observeUrl
@@ -40,7 +40,7 @@ import spmp.shared.generated.resources.playlist_x_songs
 
 @Composable
 internal fun PlaylistAppPage.PlaylistButtonBar(modifier: Modifier = Modifier) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     var playlist_pinned: Boolean by playlist.observePinnedToHome()
 
     Crossfade(edit_in_progress, modifier) { editing ->
@@ -49,7 +49,7 @@ internal fun PlaylistAppPage.PlaylistButtonBar(modifier: Modifier = Modifier) {
         }
         else {
             Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                IconButton({ player.playMediaItem(playlist, true) }) {
+                IconButton({ state.session.playMediaItem(playlist, true) }) {
                     Icon(Icons.Default.Shuffle, null)
                 }
 
@@ -59,12 +59,12 @@ internal fun PlaylistAppPage.PlaylistButtonBar(modifier: Modifier = Modifier) {
                     }
                 }
 
-                if (player.context.canShare()) {
+                if (state.context.canShare()) {
                     val playlist_url: String = playlist.observeUrl()
                     IconButton({
-                        player.context.shareText(
+                        state.context.shareText(
                             playlist_url,
-                            playlist.getActiveTitle(player.database) ?: ""
+                            playlist.getActiveTitle(state.database) ?: ""
                         )
                     }) {
                         Icon(Icons.Default.Share, null)
@@ -75,7 +75,7 @@ internal fun PlaylistAppPage.PlaylistButtonBar(modifier: Modifier = Modifier) {
                     Icon(Icons.Default.Edit, null)
                 }
 
-                val playlist_items: List<Song>? by playlist.Items.observe(player.database)
+                val playlist_items: List<Song>? by playlist.Items.observe(state.database)
                 PlaylistInfoText(playlist_items, Modifier.fillMaxWidth().weight(1f))
             }
         }
@@ -84,8 +84,8 @@ internal fun PlaylistAppPage.PlaylistButtonBar(modifier: Modifier = Modifier) {
 
 @Composable
 private fun PlaylistAppPage.PlaylistInfoText(items: List<Song>?, modifier: Modifier = Modifier) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    val db = player.database
+    val state: SpMp.State = LocalAppState.current
+    val db = state.database
 
     Row(
         modifier,
@@ -97,7 +97,7 @@ private fun PlaylistAppPage.PlaylistInfoText(items: List<Song>?, modifier: Modif
             val total_duration: Long? by playlist.TotalDuration.observe(db)
 
             if (item_count > 0) {
-                val ui_language: String by player.context.observeUiLanguage()
+                val ui_language: String by state.context.observeUiLanguage()
                 val playlist_x_songs: String = stringResource(Res.string.playlist_x_songs)
 
                 val text: String = remember(total_duration, item_count, ui_language) {

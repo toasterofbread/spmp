@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.platform.playerservice
 
+import LocalAppContext
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.getValue
@@ -28,7 +29,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -46,8 +47,11 @@ import dev.toastbits.composekit.platform.PlatformPreferences
 import io.ktor.client.request.get
 import LocalPlayerState
 import LocalProgramArguments
+import LocalTheme
 import ProgramArguments
 import androidx.compose.runtime.rememberCoroutineScope
+import com.toasterofbread.spmp.model.settings.Settings
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import dev.toastbits.composekit.settings.ui.on_accent
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
@@ -244,7 +248,9 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
 
     @Composable
     override fun LoadScreenExtraContent(item_modifier: Modifier, requestServiceChange: (PlayerServiceCompanion) -> Unit) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val context: AppContext = LocalAppContext.current
+        val theme: ThemeValues = LocalTheme.current
+        val settings: Settings = LocalSettings.current
         val coroutine_scope: CoroutineScope = rememberCoroutineScope()
         val launch_arguments: ProgramArguments = LocalProgramArguments.current
 
@@ -269,8 +275,8 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
             try {
                 local_server_process =
                     LocalServer.startLocalServer(
-                        player.context,
-                        player.settings.platform.SERVER_PORT.get()
+                        context,
+                        settings.platform.SERVER_PORT.get()
                     )
 
                 if (!automatic && local_server_process == null) {
@@ -312,8 +318,8 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
                 },
                 colors =
                     ButtonDefaults.buttonColors(
-                        containerColor = player.theme.accent,
-                        contentColor = player.theme.on_accent
+                        containerColor = theme.accent,
+                        contentColor = theme.on_accent
                     ),
                 modifier = item_modifier
             ) {
@@ -330,7 +336,7 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
         else if (server_unavailability_reason != null) {
             OutlinedButton(
                 { show_unavailability_dialog = !show_unavailability_dialog },
-                border = BorderStroke(Dp.Hairline, player.theme.accent),
+                border = BorderStroke(Dp.Hairline, theme.accent),
                 modifier = item_modifier
             ) {
                 Row(

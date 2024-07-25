@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.component.longpressmenu.playlist
 
+import LocalAppState
 import LocalPlayerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
@@ -25,20 +26,20 @@ import spmp.shared.generated.resources.playlist_delete
 fun LongPressMenuActionProvider.PlaylistLongPressMenuActions(playlist: MediaItem) {
     require(playlist is Playlist)
 
-    val player = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val coroutine_context = rememberCoroutineScope()
 
     ActionButton(
         Icons.Default.PlayArrow, stringResource(Res.string.lpm_action_play),
         onClick = {
-            player.playMediaItem(playlist)
+            state.session.playMediaItem(playlist)
         }
     )
 
     ActionButton(
         Icons.Default.Shuffle, stringResource(Res.string.lpm_action_shuffle_playlist),
         onClick = {
-            player.playMediaItem(playlist, true)
+            state.session.playMediaItem(playlist, true)
         }
     )
 
@@ -47,14 +48,14 @@ fun LongPressMenuActionProvider.PlaylistLongPressMenuActions(playlist: MediaItem
             stringResource(if (distance == 1) Res.string.lpm_action_play_after_1_song else Res.string.lpm_action_play_after_x_songs).replace("\$x", distance.toString())
         },
         onClick = { active_queue_index ->
-            player.playMediaItem(playlist, at_index = active_queue_index + 1)
+            state.session.playMediaItem(playlist, at_index = active_queue_index + 1)
         },
         onLongClick = { active_queue_index ->
-            player.playMediaItem(playlist, at_index = active_queue_index + 1, shuffle = true)
+            state.session.playMediaItem(playlist, at_index = active_queue_index + 1, shuffle = true)
         }
     )
 
-    val playlist_editor by playlist.rememberEditorOrNull(player.context)
+    val playlist_editor by playlist.rememberEditorOrNull(state.context)
     if (playlist_editor != null) {
         ActionButton(
             Icons.Default.Delete,

@@ -31,7 +31,7 @@ import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
 import com.toasterofbread.spmp.platform.getOrNotify
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
@@ -42,7 +42,7 @@ import spmp.shared.generated.resources.lpm_action_play_after_x_songs
 
 @Composable
 internal fun RowScope.MultiSelectGeneralActions(multiselect_context: MediaItemMultiSelectContext) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
     val downloads: List<DownloadStatus> by rememberSongDownloads()
 
@@ -57,7 +57,7 @@ internal fun RowScope.MultiSelectGeneralActions(multiselect_context: MediaItemMu
     val all_are_editable_playlists: Boolean by remember { derivedStateOf {
         selected_items.isNotEmpty()
         && selected_items.all { item ->
-            item.first is Playlist && (item.first as Playlist).isPlaylistEditable(player.context)
+            item.first is Playlist && (item.first as Playlist).isPlaylistEditable(state.context)
         }
     } }
 
@@ -71,7 +71,7 @@ internal fun RowScope.MultiSelectGeneralActions(multiselect_context: MediaItemMu
             && selected_items.all { item ->
                 when (item.first) {
                     is LocalPlaylist -> true
-                    is Playlist -> (item.first as Playlist).isPlaylistEditable(player.context)
+                    is Playlist -> (item.first as Playlist).isPlaylistEditable(state.context)
                     is Song -> downloads.firstOrNull { it.song.id == item.first.id }?.isCompleted() == true
                     else -> false
                 }
@@ -83,9 +83,9 @@ internal fun RowScope.MultiSelectGeneralActions(multiselect_context: MediaItemMu
     AnimatedVisibility(selected_items.isNotEmpty()) {
         IconButton({
             all_are_pinned.also { pinned ->
-                player.database.transaction {
+                state.database.transaction {
                     for (item in multiselect_context.getUniqueSelectedItems()) {
-                        item.setPinned(!pinned, player.context)
+                        item.setPinned(!pinned, state.context)
                     }
                 }
             }
@@ -103,13 +103,13 @@ internal fun RowScope.MultiSelectGeneralActions(multiselect_context: MediaItemMu
                 multiselect_context.getUniqueSelectedItems().mapNotNull { item ->
                     if (item is Playlist) {
                         launch {
-                            val editor: InteractivePlaylistEditor? = item.getEditorOrNull(player.context).getOrNull()
-                            editor?.deletePlaylist()?.getOrNotify(player.context, "deletePlaylist")
+                            val editor: InteractivePlaylistEditor? = item.getEditorOrNull(state.context).getOrNull()
+                            editor?.deletePlaylist()?.getOrNotify(state.context, "deletePlaylist")
                         }
                     }
                     else if (item is Song) {
                         launch {
-                            player.context.download_manager.deleteSongLocalAudioFile(item)
+                            state.context.download_manager.deleteSongLocalAudioFile(item)
                         }
                     }
                     else null
@@ -125,10 +125,10 @@ internal fun RowScope.MultiSelectGeneralActions(multiselect_context: MediaItemMu
     AnimatedVisibility(selected_items.isNotEmpty()) {
         Row(
             Modifier.clickable {
-                player.withPlayer {
+                state.session.withPlayer {
                     addMultipleToQueue(
                         multiselect_context.getUniqueSelectedItems().filterIsInstance<Song>(),
-                        (active_queue_index + 1).coerceAtMost(player.status.m_song_count),
+                        (active_queue_index + 1).coerceAtMost(state.session.status.m_song_count),
                         is_active_queue = true
                     )
                 }
@@ -138,8 +138,8 @@ internal fun RowScope.MultiSelectGeneralActions(multiselect_context: MediaItemMu
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(Icons.Default.SubdirectoryArrowRight, null)
-            player.withPlayerComposable {
-                val distance: Int = active_queue_index - player.status.m_index + 1
+            state.session.withPlayerComposable {
+                val distance: Int = active_queue_index - state.session.status.m_index + 1
                 Text(
                     stringResource(
                         if (distance == 1) Res.string.lpm_action_play_after_1_song

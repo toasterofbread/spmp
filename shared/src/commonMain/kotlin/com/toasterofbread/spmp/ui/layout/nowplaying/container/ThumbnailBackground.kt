@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 
@@ -19,14 +19,14 @@ fun ThumbnailBackground(
     modifier: Modifier = Modifier,
     getAlpha: () -> Float = { 1f }
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
 
-    val default_background_image_opacity: Float by player.settings.theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.observe()
-    val current_song: Song? by player.status.song_state
+    val default_background_image_opacity: Float by state.settings.theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.observe()
+    val current_song: Song? by state.session.status.song_state
 
     current_song?.also { song ->
-        val background_image_opacity: Float? by song.BackgroundImageOpacity.observe(player.database)
+        val background_image_opacity: Float? by song.BackgroundImageOpacity.observe(state.database)
         val opacity: Float = background_image_opacity ?: default_background_image_opacity
         if (opacity <= 0f) {
             return@also

@@ -44,7 +44,7 @@ import androidx.compose.ui.unit.Dp
 import com.toasterofbread.spmp.platform.playerservice.PlayerServiceLoadState
 import com.toasterofbread.spmp.platform.playerservice.PlayerServiceCompanion
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.composekit.settings.ui.on_accent
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.*
@@ -75,7 +75,7 @@ fun LoadingSplash(
     modifier: Modifier = Modifier,
     content_padding: PaddingValues = PaddingValues(),
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     var show_message: Boolean by remember { mutableStateOf(false) }
 
@@ -84,9 +84,9 @@ fun LoadingSplash(
         show_message = true
     }
 
-    player.controller?.PersistentContent(requestServiceChange = requestServiceChange)
+    state.session.controller?.PersistentContent(requestServiceChange = requestServiceChange)
 
-    BoxWithConstraints(modifier.background(player.theme.background)) {
+    BoxWithConstraints(modifier.background(state.theme.background)) {
         val wave_layers: List<WaveLayer> = remember {
             getDefaultOverlappingWavesLayers(7, 0.35f)
         }
@@ -98,7 +98,7 @@ fun LoadingSplash(
             exit = fadeOut()
         ) {
             OverlappingWaves(
-                { player.theme.accent.copy(alpha = 0.2f) },
+                { state.theme.accent.copy(alpha = 0.2f) },
                 BlendMode.Screen,
                 modifier
                     .fillMaxWidth(1f)
@@ -140,7 +140,7 @@ fun LoadingSplash(
                                 .drawWithContent {
                                     drawIntoCanvas { canvas ->
                                         val first_filter: ColorFilter = ColorFilter.colorMatrix(ColorMatrix().apply { setToSaturation(0f) })
-                                        val second_filter: ColorFilter = ColorFilter.tint(player.theme.accent, BlendMode.Modulate)
+                                        val second_filter: ColorFilter = ColorFilter.tint(state.theme.accent, BlendMode.Modulate)
 
                                         canvas.saveLayer(
                                             Rect(0f, 0f, size.width, size.height),
@@ -171,7 +171,7 @@ fun LoadingSplash(
                                     if (message != null) {
                                         Text(
                                             message,
-                                            color = player.theme.on_background,
+                                            color = state.theme.on_background,
                                             modifier = Modifier.wrapContentWidth()
                                         )
                                     }
@@ -180,14 +180,14 @@ fun LoadingSplash(
                                 AnimatedVisibility(load_state?.loading == true) {
                                     LinearProgressIndicator(
                                         Modifier.fillMaxWidth().height(2.dp),
-                                        color = player.theme.accent
+                                        color = state.theme.accent
                                     )
                                 }
 
                                 FlowRow(
                                     horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterHorizontally)
                                 ) {
-                                    player.controller?.LoadScreenExtraContent(
+                                    state.session.controller?.LoadScreenExtraContent(
                                         Modifier.align(Alignment.CenterVertically),
                                         requestServiceChange = requestServiceChange
                                     )
@@ -214,25 +214,25 @@ fun LoadingSplash(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically)
                     ) {
-                        CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
+                        CompositionLocalProvider(LocalContentColor provides state.theme.on_background) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                Icon(Icons.Default.Warning, null, tint = player.theme.on_background)
-                                Text(stringResource(Res.string.error_player_service_not_connected), color = player.theme.on_background)
+                                Icon(Icons.Default.Warning, null, tint = state.theme.on_background)
+                                Text(stringResource(Res.string.error_player_service_not_connected), color = state.theme.on_background)
                             }
 
-                            if (player.context.canOpenUrl()) {
+                            if (state.context.canOpenUrl()) {
                                 val report_issue_url: String = stringResource(Res.string.report_issue_url)
 
                                 Button(
                                     {
-                                        player.context.openUrl(report_issue_url)
+                                        state.context.openUrl(report_issue_url)
                                     },
                                     colors = ButtonDefaults.buttonColors(
-                                        containerColor = player.theme.accent,
-                                        contentColor = player.theme.on_accent
+                                        containerColor = state.theme.accent,
+                                        contentColor = state.theme.on_accent
                                     )
                                 ) {
                                     Text(stringResource(Res.string.report_error))

@@ -15,7 +15,9 @@ import dev.toastbits.composekit.utils.common.*
 import dev.toastbits.composekit.utils.composable.*
 import dev.toastbits.composekit.utils.modifier.horizontal
 import dev.toastbits.composekit.utils.modifier.vertical
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import LocalTheme
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import dev.toastbits.composekit.settings.ui.vibrant_accent
 
 @Composable
@@ -30,7 +32,7 @@ fun LargeFilterList(
     lazy: Boolean = false,
     onSelected: (Int) -> Unit
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val theme: ThemeValues = LocalTheme.current
     val horizontal_padding: PaddingValues = content_padding.horizontal
 
     @Composable
@@ -42,12 +44,12 @@ fun LargeFilterList(
             Modifier.padding(horizontal_padding).aspectRatio(1f),
             colors =
                 if (is_selected) CardDefaults.cardColors(
-                    containerColor = player.theme.vibrant_accent,
-                    contentColor = player.theme.vibrant_accent.getContrasted()
+                    containerColor = theme.vibrant_accent,
+                    contentColor = theme.vibrant_accent.getContrasted()
                 )
                 else CardDefaults.cardColors(
-                    containerColor = player.theme.accent.blendWith(player.theme.background, 0.05f),
-                    contentColor = player.theme.on_background
+                    containerColor = theme.accent.blendWith(theme.background, 0.05f),
+                    contentColor = theme.on_background
                 ),
             shape = RoundedCornerShape(25.dp)
         ) {
@@ -60,7 +62,7 @@ fun LargeFilterList(
                         Modifier.aspectRatio(1f).fillMaxHeight().weight(1f).padding(10.dp),
                         tint =
                             if (is_selected) LocalContentColor.current
-                            else player.theme.vibrant_accent
+                            else theme.vibrant_accent
                     )
                 }
 

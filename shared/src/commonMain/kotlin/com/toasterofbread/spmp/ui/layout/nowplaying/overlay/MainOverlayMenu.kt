@@ -32,7 +32,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.ColourpickCallback
 import dev.toastbits.composekit.settings.ui.on_accent
@@ -61,10 +61,10 @@ class MainPlayerOverlayMenu(
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
         val song: Song = getSong() ?: return
-        val player: OldPlayerStateImpl = LocalPlayerState.current
-        val download_manager = player.context.download_manager
+        val state: SpMp.State = LocalAppState.current
+        val download_manager = state.context.download_manager
 
-        val song_artists: List<Artist>? by song.Artists.observe(player.database)
+        val song_artists: List<Artist>? by song.Artists.observe(state.database)
 
         val download_progress = remember { Animatable(0f) }
         var download_progress_target: Float by remember { mutableStateOf(0f) }
@@ -116,11 +116,11 @@ class MainPlayerOverlayMenu(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val button_colour: Color = player.theme.on_accent
+            val button_colour: Color = state.theme.on_accent
             val button_size: Dp = 42.dp
             val button_modifier: Modifier = Modifier
                 .background(
-                    player.theme.accent,
+                    state.theme.accent,
                     CircleShape
                 )
                 .size(button_size)
@@ -150,7 +150,7 @@ class MainPlayerOverlayMenu(
                 colors = OutlinedTextFieldDefaults.colors(
                     cursorColor = Color.White,
                     focusedBorderColor = Color.White,
-                    unfocusedBorderColor = player.theme.accent,
+                    unfocusedBorderColor = state.theme.accent,
                     focusedLabelColor = Color.White,
                     unfocusedLabelColor = Color.White,
                     focusedTextColor = Color.White,
@@ -167,7 +167,7 @@ class MainPlayerOverlayMenu(
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)) {
                 Box(
                     button_modifier.clickable {
-                        edited_song_title = song.Title.get(player.database) ?: ""
+                        edited_song_title = song.Title.get(state.database) ?: ""
                     },
                     contentAlignment = Alignment.Center
                 ) {
@@ -176,7 +176,7 @@ class MainPlayerOverlayMenu(
 
                 Box(
                     button_modifier.clickable {
-                        song.CustomTitle.set(edited_song_title, player.database)
+                        song.CustomTitle.set(edited_song_title, state.database)
                     },
                     contentAlignment = Alignment.Center
                 ) {
@@ -186,7 +186,7 @@ class MainPlayerOverlayMenu(
 
             Spacer(Modifier.fillMaxHeight().weight(1f))
 
-            val play_count: Int = song.observePlayCount(player.context) ?: 0
+            val play_count: Int = song.observePlayCount(state.context) ?: 0
             Text(stringResource(Res.string.`mediaitem_play_count_$x_short`).replace("\$x", play_count.toString()))
 
             Row(
@@ -218,7 +218,7 @@ class MainPlayerOverlayMenu(
                     Icon(Icons.Filled.MusicNote, null, tint = button_colour)
                 }
 
-                val related_endpoint = player.context.ytapi.SongRelatedContent.implementedOrNull()
+                val related_endpoint = state.context.ytapi.SongRelatedContent.implementedOrNull()
                 if (related_endpoint != null) {
                     Box(
                         button_modifier
@@ -242,7 +242,7 @@ class MainPlayerOverlayMenu(
                             .clickable {
                                 val song: Song = getSong() ?: return@clickable
                                 if (download_status?.status != DownloadStatus.Status.FINISHED && download_status?.status != DownloadStatus.Status.ALREADY_FINISHED) {
-                                    player.onSongDownloadRequested(song)
+                                    state.ui.onSongDownloadRequested(listOf(song))
                                 }
                             },
                         contentAlignment = Alignment.Center
@@ -262,7 +262,7 @@ class MainPlayerOverlayMenu(
                                     Modifier
                                         .size(10.dp)
                                         .offset(offset, offset)
-                                        .background(button_colour, CircleShape), tint = player.theme.accent)
+                                        .background(button_colour, CircleShape), tint = state.theme.accent)
                             }
                         }
                     }

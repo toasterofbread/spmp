@@ -12,7 +12,7 @@ import androidx.compose.material3.FilterChipDefaults
 import androidx.compose.material3.ElevatedFilterChip
 import androidx.compose.animation.Crossfade
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import kotlin.Unit
 import dev.toastbits.ytmkt.endpoint.SongFeedFilterChip
 import LocalPlayerState
@@ -30,7 +30,7 @@ internal fun SongFeedAppPage.SFFSongFeedPagePrimaryBar(
     lazy: Boolean
 ): Boolean {
     val chips: List<SongFeedFilterChip> = filter_chips ?: return false
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     ScrollableRowOrColumn(
         row = true,
@@ -52,7 +52,7 @@ internal fun SongFeedAppPage.SFFSongFeedPagePrimaryBar(
                 {
                     Text(chip.text.observe())
                 },
-                colors = with(player.theme) {
+                colors = with(state.theme) {
                     FilterChipDefaults.elevatedFilterChipColors(
                         containerColor = background,
                         labelColor = on_background,
@@ -61,7 +61,7 @@ internal fun SongFeedAppPage.SFFSongFeedPagePrimaryBar(
                     )
                 },
                 border = FilterChipDefaults.filterChipBorder(
-                    borderColor = player.theme.on_background,
+                    borderColor = state.theme.on_background,
                     enabled = true,
                     selected = is_selected
                 )

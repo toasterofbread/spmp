@@ -3,10 +3,8 @@ package com.toasterofbread.spmp.ui.layout.nowplaying
 
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.gestures.DraggableAnchors
-import androidx.compose.runtime.*
 import com.toasterofbread.spmp.model.state.PlayerState
 import com.toasterofbread.spmp.model.state.UiState
-import kotlinx.coroutines.CoroutineScope
 import kotlin.math.roundToInt
 
 interface ExpansionState {
@@ -43,7 +41,6 @@ interface ExpansionState {
 }
 
 abstract class PlayerExpansionState(
-    private val player_state: PlayerState,
     private val ui_state: UiState
 ): ExpansionState {
     abstract val swipe_state: AnchoredDraggableState<Int>
@@ -57,7 +54,7 @@ abstract class PlayerExpansionState(
 
     fun scrollTo(page: Int) {
         require(page in getPageRange())
-        player_state.switchNowPlayingPage(page)
+        ui_state.switchPlayerPage(page)
     }
 
     fun toggle() {

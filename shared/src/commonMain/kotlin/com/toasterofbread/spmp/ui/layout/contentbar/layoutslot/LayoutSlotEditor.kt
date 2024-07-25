@@ -18,7 +18,10 @@ import dev.toastbits.composekit.platform.composable.BackHandler
 import dev.toastbits.composekit.settings.ui.item.*
 import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.platform.*
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import LocalSettings
+import LocalTheme
+import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.ui.layout.contentbar.InternalContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
@@ -31,6 +34,7 @@ import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElementCon
 import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElement
 import com.toasterofbread.spmp.ui.layout.contentbar.CircularReferenceWarning
 import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import dev.toastbits.composekit.settings.ui.vibrant_accent
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
@@ -68,17 +72,18 @@ fun LayoutSlotEditor(
     modifier: Modifier = Modifier,
     onClose: () -> Unit
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val settings: Settings = LocalSettings.current
+    val theme: ThemeValues = LocalTheme.current
     val form_factor: FormFactor by FormFactor.observe()
 
-    var custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
-    var slot_colours: Map<String, ColourSource> by player.settings.layout.SLOT_COLOURS.observe()
-    var slot_config: Map<String, JsonElement> by player.settings.layout.SLOT_CONFIGS.observe()
+    var custom_bars: List<CustomContentBar> by settings.layout.CUSTOM_BARS.observe()
+    var slot_colours: Map<String, ColourSource> by settings.layout.SLOT_COLOURS.observe()
+    var slot_config: Map<String, JsonElement> by settings.layout.SLOT_CONFIGS.observe()
 
     val slots_property: PreferencesProperty<Map<String, ContentBarReference?>> =
         when (form_factor) {
-            FormFactor.PORTRAIT -> player.settings.layout.PORTRAIT_SLOTS
-            FormFactor.LANDSCAPE -> player.settings.layout.LANDSCAPE_SLOTS
+            FormFactor.PORTRAIT -> settings.layout.PORTRAIT_SLOTS
+            FormFactor.LANDSCAPE -> settings.layout.LANDSCAPE_SLOTS
         }
     val available_slots: List<LayoutSlot> =
         when (form_factor) {
@@ -308,7 +313,7 @@ fun LayoutSlotEditor(
             Row(
                 Modifier
                     .fillMaxWidth()
-                    .background(player.theme.card)
+                    .background(theme.card)
                     .border(2.dp, Color.Red)
                     .padding(10.dp),
                 verticalAlignment = Alignment.CenterVertically,
@@ -358,7 +363,7 @@ fun LayoutSlotEditor(
                     state,
                     onSelected = null,
                     onDismissed = {},
-                    bar_background_colour = player.theme.vibrant_accent.copy(alpha = 0.15f)
+                    bar_background_colour = theme.vibrant_accent.copy(alpha = 0.15f)
                 )
             }
         }

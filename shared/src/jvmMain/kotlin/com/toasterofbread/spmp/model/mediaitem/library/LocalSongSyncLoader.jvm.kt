@@ -19,7 +19,7 @@ internal actual class LocalSongSyncLoader: SyncLoader<DownloadStatus>() {
         val downloads: List<DownloadStatus> =
             getAllLocalSongFiles(context, true)
 
-        SpMp._player_state?.interactService { service: Any ->
+        SpMp._state?.session?.interactService { service: Any ->
             if (service is ClientServerPlayerService) {
                 service.onLocalSongsSynced(downloads)
             }

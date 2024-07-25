@@ -18,7 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -27,8 +27,8 @@ import spmp.shared.generated.resources.s_cat_search
 
 @Composable
 fun SearchSettingsDialog(modifier: Modifier = Modifier, close: () -> Unit) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    val settings_items: List<SettingsItem> = remember { player.settings.search.getItems() }
+    val state: SpMp.State = LocalAppState.current
+    val settings_items: List<SettingsItem> = remember { state.settings.search.getItems() }
 
     AlertDialog(
         onDismissRequest = close,
@@ -46,7 +46,7 @@ fun SearchSettingsDialog(modifier: Modifier = Modifier, close: () -> Unit) {
         text = {
             LazyColumn {
                 items(settings_items) { item ->
-                    item.Item(player.app_page_state.Settings.settings_interface, { _, _ -> }, {}, Modifier)
+                    item.Item(state.ui.app_page_state.Settings.settings_interface, { _, _ -> }, {}, Modifier)
                 }
             }
         }

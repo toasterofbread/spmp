@@ -14,7 +14,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.platform.composable.platformClickable
 import com.toasterofbread.spmp.model.appaction.*
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.theme.appHover
@@ -135,12 +135,12 @@ enum class CustomContentBarTemplate {
 
     @Composable
     private fun BarPreview(modifier: Modifier = Modifier) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
         val bar: CustomContentBar = remember { CustomContentBar("", elements = getElements()) }
 
         Column(
             modifier
-                .background(player.theme.card, RoundedCornerShape(16.dp))
+                .background(state.theme.card, RoundedCornerShape(16.dp))
                 .padding(10.dp),
             verticalArrangement = Arrangement.spacedBy(10.dp)
         ) {
@@ -153,7 +153,7 @@ enum class CustomContentBarTemplate {
             }
 
             bar.CustomBarContent(
-                modifier = Modifier.background(player.theme.vibrant_accent, RoundedCornerShape(16.dp)),
+                modifier = Modifier.background(state.theme.vibrant_accent, RoundedCornerShape(16.dp)),
                 background_colour = ThemeValues.Colour.VIBRANT_ACCENT,
                 vertical = false,
                 always_display = true,
@@ -168,7 +168,7 @@ enum class CustomContentBarTemplate {
     companion object {
         @Composable
         fun SelectionDialog(modifier: Modifier = Modifier, onSelected: (CustomContentBarTemplate?) -> Unit) {
-            val player: OldPlayerStateImpl = LocalPlayerState.current
+            val state: SpMp.State = LocalAppState.current
 
             AlertDialog(
                 { onSelected(null) },
@@ -177,8 +177,8 @@ enum class CustomContentBarTemplate {
                     Button(
                         { onSelected(null) },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = player.theme.background,
-                            contentColor = player.theme.on_background
+                            containerColor = state.theme.background,
+                            contentColor = state.theme.on_background
                         ),
                         modifier = Modifier.appHover(true)
                     ) {

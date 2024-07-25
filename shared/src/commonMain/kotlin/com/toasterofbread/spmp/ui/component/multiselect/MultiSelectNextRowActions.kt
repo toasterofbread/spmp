@@ -28,18 +28,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import dev.toastbits.composekit.platform.vibrateShort
 
 @Composable
 internal fun ColumnScope.MultiSelectNextRowActions(multiselect_context: MediaItemMultiSelectContext) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
-    AnimatedVisibility(player.status.m_song_count > 0) {
+    AnimatedVisibility(state.session.status.m_song_count > 0) {
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             val active_queue_item: Song? =
-                player.controller?.service_player?.run {
+                state.session.controller?.service_player?.run {
                     if (active_queue_index < song_count)
                         getSong(active_queue_index)
                     else null
@@ -67,11 +67,11 @@ internal fun ColumnScope.MultiSelectNextRowActions(multiselect_context: MediaIte
                         remember { MutableInteractionSource() },
                         LocalIndication.current,
                         onClick = {
-                            player.controller?.service_player?.updateActiveQueueIndex(-1)
+                            state.session.controller?.service_player?.updateActiveQueueIndex(-1)
                         },
                         onLongClick = {
-                            player.context.vibrateShort()
-                            player.withPlayer {
+                            state.context.vibrateShort()
+                            state.session.withPlayer {
                                 active_queue_index = current_song_index
                             }
                         }
@@ -88,11 +88,11 @@ internal fun ColumnScope.MultiSelectNextRowActions(multiselect_context: MediaIte
                         remember { MutableInteractionSource() },
                         LocalIndication.current,
                         onClick = {
-                            player.controller?.service_player?.updateActiveQueueIndex(1)
+                            state.session.controller?.service_player?.updateActiveQueueIndex(1)
                         },
                         onLongClick = {
-                            player.context.vibrateShort()
-                            player.withPlayer {
+                            state.context.vibrateShort()
+                            state.session.withPlayer {
                                 active_queue_index = song_count - 1
                             }
                         }

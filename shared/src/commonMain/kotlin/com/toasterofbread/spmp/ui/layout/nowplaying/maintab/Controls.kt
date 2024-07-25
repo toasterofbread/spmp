@@ -19,7 +19,8 @@ import com.toasterofbread.spmp.model.mediaitem.artist.*
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitles
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import com.toasterofbread.spmp.model.state.UiState
 import com.toasterofbread.spmp.service.playercontroller.*
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -41,12 +42,12 @@ fun PlayerButton(
     image: ImageVector,
     size: Dp = 60.dp,
     enabled: Boolean = true,
-    getBackgroundColour: OldPlayerStateImpl.() -> Color = { getNPBackground() },
-    getOnBackgroundColour: OldPlayerStateImpl.() -> Color = { getNPOnBackground() },
-    getAccentColour: (OldPlayerStateImpl.() -> Color)? = null,
+    getBackgroundColour: UiState.() -> Color = { getNPBackground() },
+    getOnBackgroundColour: UiState.() -> Color = { getNPOnBackground() },
+    getAccentColour: (SpMp.State.() -> Color)? = null,
     onClick: () -> Unit
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     Box(
         contentAlignment = Alignment.Center,
@@ -60,7 +61,7 @@ fun PlayerButton(
             )
     ) {
         val painter: VectorPainter = rememberVectorPainter(image)
-        val np_theme_mode: ThemeMode by player.settings.theme.NOWPLAYING_THEME_MODE.observe()
+        val np_theme_mode: ThemeMode by state.settings.theme.NOWPLAYING_THEME_MODE.observe()
 
         Canvas(
             Modifier
@@ -75,14 +76,14 @@ fun PlayerButton(
             val gradient_end: Float
             val gradient_colours: List<Color>
 
-            val accent: Color? = if (np_theme_mode != ThemeMode.NONE) getAccentColour?.invoke(player) else null
+            val accent: Color? = if (np_theme_mode != ThemeMode.NONE) getAccentColour?.invoke(state) else null
             if (accent != null) {
                 gradient_end = this@Canvas.size.width * 0.95f
-                gradient_colours = listOf(getOnBackgroundColour(player), getOnBackgroundColour(player), accent)
+                gradient_colours = listOf(getOnBackgroundColour(state.ui), getOnBackgroundColour(state.ui), accent)
             }
             else {
                 gradient_end = this@Canvas.size.width * 1.9f
-                gradient_colours = listOf(getOnBackgroundColour(player), getBackgroundColour(player))
+                gradient_colours = listOf(getOnBackgroundColour(state.ui), getBackgroundColour(state.ui))
             }
 
             drawRect(
@@ -111,16 +112,16 @@ internal fun Controls(
     text_align: TextAlign = TextAlign.Center,
     title_text_max_lines: Int = 1,
     button_size: Dp = 60.dp,
-    getBackgroundColour: OldPlayerStateImpl.() -> Color = { getNPBackground() },
-    getOnBackgroundColour: OldPlayerStateImpl.() -> Color = { getNPOnBackground() },
-    getAccentColour: (OldPlayerStateImpl.() -> Color)? = null,
+    getBackgroundColour: UiState.() -> Color = { getNPBackground() },
+    getOnBackgroundColour: UiState.() -> Color = { getNPOnBackground() },
+    getAccentColour: (SpMp.State.() -> Color)? = null,
     buttonRowStartContent: @Composable RowScope.() -> Unit = {},
     buttonRowEndContent: @Composable RowScope.() -> Unit = {},
     artistRowStartContent: @Composable RowScope.() -> Unit = {},
     artistRowEndContent: @Composable RowScope.() -> Unit = {},
     textRowStartContent: @Composable RowScope.() -> Unit = {}
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     val song_title: String? by song?.observeActiveTitle()
@@ -145,7 +146,7 @@ internal fun Controls(
                     Text(
                         song_title ?: "",
                         fontSize = title_font_size,
-                        color = getOnBackgroundColour(player),
+                        color = getOnBackgroundColour(state.ui),
                         textAlign = text_align,
                         maxLines = title_text_max_lines,
                         // Using ellipsis makes this go weird, no clue why
@@ -156,7 +157,7 @@ internal fun Controls(
                                 enabled = enabled,
                                 onAltClick = {
                                     show_title_edit_dialog = !show_title_edit_dialog
-                                    player.context.vibrateShort()
+                                    state.context.vibrateShort()
                                 }
                             )
                     )
@@ -182,11 +183,11 @@ internal fun Controls(
                             text = {
                                 CompositionLocalProvider(LocalPlayerClickOverrides provides click_overrides.copy(
                                     onClickOverride = { item, _ ->
-                                        player.openMediaItem(item)
+                                        state.ui.openMediaItem(item)
                                         selecting_artists = null
                                     },
                                     onAltClickOverride = { item, p2 ->
-                                        click_overrides.onMediaItemAltClicked(item, player, p2)
+                                        click_overrides.onMediaItemAltClicked(item, state, p2)
                                         selecting_artists = null
                                     }
                                 )) {
@@ -203,9 +204,9 @@ internal fun Controls(
                     artistRowStartContent()
                     Spacer(Modifier)
                     Text(
-                        song_artist_titles?.let { formatArtistTitles(it, player.context) } ?: "",
+                        song_artist_titles?.let { formatArtistTitles(it, state.context) } ?: "",
                         fontSize = artist_font_size,
-                        color = getOnBackgroundColour(player).copy(alpha = 0.5f),
+                        color = getOnBackgroundColour(state.ui).copy(alpha = 0.5f),
                         textAlign = text_align,
                         maxLines = 1,
                         softWrap = false,
@@ -217,19 +218,19 @@ internal fun Controls(
                             .platformClickable(
                                 enabled = enabled,
                                 onClick = {
-                                    val artists: List<Artist> = song?.Artists?.get(player.database)?.filter { !it.isForItem() } ?: return@platformClickable
+                                    val artists: List<Artist> = song?.Artists?.get(state.database)?.filter { !it.isForItem() } ?: return@platformClickable
                                     if (artists.size == 1) {
-                                        click_overrides.onMediaItemClicked(artists.first(), player)
+                                        click_overrides.onMediaItemClicked(artists.first(), state)
                                     }
                                     else if (artists.size > 1) {
                                         selecting_artists = artists
                                     }
                                 },
                                 onAltClick = {
-                                    val artist: Artist? = song?.Artists?.get(player.database)?.singleOrNull()
+                                    val artist: Artist? = song?.Artists?.get(state.database)?.singleOrNull()
                                     if (artist?.isForItem() == false) {
-                                        click_overrides.onMediaItemAltClicked(artist, player)
-                                        player.context.vibrateShort()
+                                        click_overrides.onMediaItemAltClicked(artist, state)
+                                        state.context.vibrateShort()
                                     }
                                 }
                             )
@@ -240,12 +241,12 @@ internal fun Controls(
             }
         }
 
-        val getSeekBarTrackColour: OldPlayerStateImpl.() -> Color = {
+        val getSeekBarTrackColour: UiState.() -> Color = {
             getOnBackgroundColour(this).copy(alpha = 0.1f)
         }
 
         if (!seek_bar_next_to_buttons) {
-            SeekBar(seek, getColour = getOnBackgroundColour, getTrackColour = getSeekBarTrackColour, enabled = enabled && player.status.m_duration_ms > 0)
+            SeekBar(seek, getColour = getOnBackgroundColour, getTrackColour = getSeekBarTrackColour, enabled = enabled && state.session.status.m_duration_ms > 0)
         }
 
         Row(
@@ -258,37 +259,37 @@ internal fun Controls(
             // Previous
             PlayerButton(
                 Icons.Rounded.SkipPrevious,
-                enabled = enabled && player.status.m_has_previous,
+                enabled = enabled && state.session.status.m_has_previous,
                 size = button_size,
                 getBackgroundColour = getBackgroundColour,
                 getOnBackgroundColour = getOnBackgroundColour,
                 getAccentColour = getAccentColour
             ) {
-                player.controller?.seekToPrevious()
+                state.session.controller?.seekToPrevious()
             }
 
             // Play / pause
             PlayerButton(
-                if (player.status.m_playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
+                if (state.session.status.m_playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
                 enabled = enabled && song != null,
                 size = button_size + 15.dp,
                 getBackgroundColour = getBackgroundColour,
                 getOnBackgroundColour = getOnBackgroundColour,
                 getAccentColour = getAccentColour
             ) {
-                player.controller?.playPause()
+                state.session.controller?.playPause()
             }
 
             // Next
             PlayerButton(
                 Icons.Rounded.SkipNext,
-                enabled = enabled && player.status.m_has_next,
+                enabled = enabled && state.session.status.m_has_next,
                 size = button_size,
                 getBackgroundColour = getBackgroundColour,
                 getOnBackgroundColour = getOnBackgroundColour,
                 getAccentColour = getAccentColour
             ) {
-                player.controller?.seekToNext()
+                state.session.controller?.seekToNext()
             }
 
             if (seek_bar_next_to_buttons) {
@@ -297,7 +298,7 @@ internal fun Controls(
                     Modifier.fillMaxWidth().weight(1f).padding(start = 10.dp),
                     getColour = getOnBackgroundColour,
                     getTrackColour = getSeekBarTrackColour,
-                    enabled = enabled && player.status.m_duration_ms > 0
+                    enabled = enabled && state.session.status.m_duration_ms > 0
                 )
             }
 

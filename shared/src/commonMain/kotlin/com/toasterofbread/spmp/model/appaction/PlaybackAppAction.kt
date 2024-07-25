@@ -11,7 +11,7 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.model.appaction.action.playback.*
 import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
 import org.jetbrains.compose.resources.stringResource
@@ -24,8 +24,8 @@ data class PlaybackAppAction(
 ): AppAction {
     override fun getType(): AppAction.Type = AppAction.Type.PLAYBACK
     override fun getIcon(): ImageVector = action.getType().getIcon()
-    override suspend fun executeAction(player: OldPlayerStateImpl) {
-        action.execute(player)
+    override suspend fun executeAction(state: SpMp.State) {
+        action.execute(state)
     }
 
     @Composable

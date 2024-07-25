@@ -4,7 +4,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
@@ -47,11 +47,11 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
 
     @Composable
     override fun PersistentContent(requestServiceChange: (PlayerServiceCompanion) -> Unit) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
         val launch_arguments: ProgramArguments = LocalProgramArguments.current
-        val ui_only: Boolean by player.settings.platform.EXTERNAL_SERVER_MODE_UI_ONLY.observe()
+        val ui_only: Boolean by state.settings.platform.EXTERNAL_SERVER_MODE_UI_ONLY.observe()
         LaunchedEffect(ui_only) {
-            if (ui_only && PlatformExternalPlayerService.isAvailable(player.context, launch_arguments)) {
+            if (ui_only && PlatformExternalPlayerService.isAvailable(state.context, launch_arguments)) {
                 requestServiceChange(PlatformExternalPlayerService.Companion)
             }
         }
@@ -79,8 +79,8 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
         server.onRadioCancelled()
     }
 
-    override fun getNotificationPlayer(player: Player): Player =
-        object : ForwardingPlayer(player) {
+    override fun getNotificationPlayer(state: Player): Player =
+        object : ForwardingPlayer(state) {
             override fun play() {
                 server.play()
             }
@@ -116,13 +116,13 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
             private var last_seek_position: Long? = null
 
             override fun onMediaItemTransition(mediaItem: ExoMediaItem?, reason: Int) {
-                if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK && player.currentMediaItemIndex != current_song_index) {
-                    server.seekToSong(player.currentMediaItemIndex)
+                if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK && state.currentMediaItemIndex != current_song_index) {
+                    server.seekToSong(state.currentMediaItemIndex)
                 }
             }
 
             override fun onIsPlayingChanged(isPlaying: Boolean) {
-                if (isPlaying == target_playing || player.playbackState != Player.STATE_READY) {
+                if (isPlaying == target_playing || state.playbackState != Player.STATE_READY) {
                     return
                 }
 
@@ -144,7 +144,7 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
                     pause()
                     server.seekTo(newPosition.positionMs)
 
-                    if (player.playbackState == Player.STATE_READY) {
+                    if (state.playbackState == Player.STATE_READY) {
                         onPlaybackReady()
                     }
                 }
@@ -160,7 +160,7 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
     override fun onCreate() {
         super.onCreate()
 
-        player.addListener(player_listener)
+        state.addListener(player_listener)
 
         server._context = context
         server.addListener(server_listener)
@@ -191,7 +191,7 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
         super.removeSong(index)
     }}
     private fun onSongTransition(index: Int) { coroutine_scope.launch(Dispatchers.Main) {
-        if (index < 0 || index == player.currentMediaItemIndex) {
+        if (index < 0 || index == state.currentMediaItemIndex) {
             return@launch
         }
         try {

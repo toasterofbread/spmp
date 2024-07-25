@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.contentbar.element
 
+import LocalAppContext
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.AnimatedVisibility
@@ -33,7 +34,9 @@ import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.appaction.NavigationAppAction
 import com.toasterofbread.spmp.model.appaction.action.navigation.AppPageNavigationAction
 import com.toasterofbread.spmp.model.appaction.OtherAppAction
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import LocalUiState
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.*
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
@@ -74,11 +77,11 @@ data class ContentBarElementButton(
         when (action) {
             is NavigationAppAction ->
                 if (action.action is AppPageNavigationAction)
-                    action.action.page.getPage(LocalPlayerState.current, LocalPlayerState.current.app_page_state) != null
+                    action.action.page.getPage(LocalAppContext.current, LocalUiState.current.app_page_state) != null
                 else true
             is OtherAppAction ->
                 if (action.action == OtherAppAction.Action.RELOAD_PAGE)
-                    Platform.DESKTOP.isCurrent() && LocalPlayerState.current.app_page.canReload()
+                    Platform.DESKTOP.isCurrent() && LocalUiState.current.app_page.canReload()
                 else true
             else -> true
         }
@@ -90,7 +93,7 @@ data class ContentBarElementButton(
             return
         }
 
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
         val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
         val is_close: Boolean = onPreviewClick == null && become_close_while_target_open && isSelected()
@@ -101,12 +104,12 @@ data class ContentBarElementButton(
                     onPreviewClick()
                 }
                 else if (is_close) {
-                    player.openAppPage(player.app_page_state.Default)
-                    player.clearBackHistory()
+                    state.ui.openAppPage(state.ui.app_page_state.Default)
+                    state.ui.clearBackHistory()
                 }
                 else {
                     coroutine_scope.launch {
-                        action.executeAction(player)
+                        action.executeAction(state)
                     }
                 }
             },
@@ -119,7 +122,7 @@ data class ContentBarElementButton(
                 }
                 else if (action is NavigationAppAction) {
                     if (action.action is AppPageNavigationAction && action.action.page == AppPage.Type.PROFILE) {
-                        val own_channel_id: String? = player.getOwnChannelId()
+                        val own_channel_id: String? = state.context.getOwnChannelId()
                         if (own_channel_id != null) {
                             ArtistRef(own_channel_id).Thumbnail(ThumbnailProvider.Quality.LOW, Modifier.size(40.dp).clip(CircleShape))
                         }
@@ -127,7 +130,7 @@ data class ContentBarElementButton(
                     }
                 }
                 else if (action is OtherAppAction && action.action == OtherAppAction.Action.RELOAD_PAGE) {
-                    Crossfade(player.app_page.isReloading()) { reloading ->
+                    Crossfade(state.ui.app_page.isReloading()) { reloading ->
                         if (reloading) {
                             SubtleLoadingIndicator()
                         }
@@ -206,7 +209,7 @@ data class ContentBarElementButton(
 
 @Composable
 private fun getCurrentAppPageType(): AppPage.Type? =
-    with (LocalPlayerState.current.app_page_state) {
+    with (LocalUiState.current.app_page_state) {
         when (val page: AppPage = current_page) {
             SongFeed -> AppPage.Type.SONG_FEED
             Library -> AppPage.Type.LIBRARY
@@ -215,10 +218,10 @@ private fun getCurrentAppPageType(): AppPage.Type? =
             ControlPanel -> AppPage.Type.CONTROL_PANEL
             Settings -> AppPage.Type.SETTINGS
             is ArtistAppPage ->
-                if (page.item?.id == LocalPlayerState.current.getOwnChannelId()) AppPage.Type.PROFILE
+                if (page.item?.id == LocalAppContext.current.getOwnChannelId()) AppPage.Type.PROFILE
                 else null
             else -> null
         }
     }
 
-private fun OldPlayerStateImpl.getOwnChannelId(): String? = context.ytapi.user_auth_state?.own_channel_id
+private fun AppContext.getOwnChannelId(): String? = ytapi.user_auth_state?.own_channel_id

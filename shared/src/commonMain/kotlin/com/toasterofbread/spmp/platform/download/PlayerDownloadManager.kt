@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.platform.download
 
+import LocalAppContext
 import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
@@ -167,7 +168,7 @@ expect class PlayerDownloadManager(context: AppContext) {
 
 @Composable
 fun Song.rememberDownloadStatus(): State<DownloadStatus?> {
-    val download_manager: PlayerDownloadManager = LocalPlayerState.current.context.download_manager
+    val download_manager: PlayerDownloadManager = LocalAppContext.current.download_manager
     val download_state: MutableState<DownloadStatus?> = remember { mutableStateOf(null) }
 
     LaunchedEffect(id) {
@@ -205,7 +206,7 @@ fun Song.rememberDownloadStatus(): State<DownloadStatus?> {
 
 @Composable
 fun rememberSongDownloads(): State<List<DownloadStatus>> {
-    val download_manager: PlayerDownloadManager = LocalPlayerState.current.context.download_manager
+    val download_manager: PlayerDownloadManager = LocalAppContext.current.download_manager
     var downloads: List<DownloadStatus> by remember { mutableStateOf(emptyList()) }
 
     val synced: Iterable<DownloadStatus> = MediaItemLibrary.synced_songs?.values ?: emptyList()

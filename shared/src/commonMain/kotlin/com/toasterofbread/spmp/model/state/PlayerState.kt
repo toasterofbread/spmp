@@ -6,7 +6,6 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
-import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 
@@ -17,19 +16,17 @@ interface PlayerState {
     var np_bottom_bar_showing: Boolean
     var np_bottom_bar_height: Dp
     var np_overlay_menu: PlayerOverlayMenu?
-    val expansion: PlayerExpansionState
 
     var hide_player: Boolean
     fun isPlayerShowing(): Boolean
 
-    fun switchNowPlayingPage(page: Int)
     fun navigateNpOverlayMenuBack()
     fun openNpOverlayMenu(menu: PlayerOverlayMenu?)
 
-    fun getNowPlayingExpansionOffset(density: Density): Dp
+    fun getExpansionOffset(density: Density): Dp
 
     @Composable
-    fun nowPlayingTopOffset(
+    fun topOffset(
         base: Modifier,
         section: NowPlayingTopOffsetSection,
         apply_spacing: Boolean,
@@ -37,7 +34,7 @@ interface PlayerState {
     ): Modifier
 
     @Composable
-    fun nowPlayingBottomPadding(
+    fun bottomPadding(
         include_np: Boolean,
         include_top_items: Boolean
     ): Dp

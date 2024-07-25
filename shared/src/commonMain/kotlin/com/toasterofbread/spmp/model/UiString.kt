@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.model
 
-import LocalPlayerState
+import LocalAppContext
+import LocalAppState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -12,7 +13,6 @@ import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.resources.Language
 import com.toasterofbread.spmp.resources.getResourceEnvironment
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import dev.toastbits.ytmkt.uistrings.RawUiString
 import dev.toastbits.ytmkt.uistrings.UiString
 import dev.toastbits.ytmkt.uistrings.YoutubeUiString
@@ -36,9 +36,9 @@ data class AppUiString(
 
 @Composable
 fun UiString.observe(): String {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val context: AppContext = LocalAppContext.current
     var string: String by remember { mutableStateOf("") }
-    val ui_language: String by player.context.observeUiLanguage()
+    val ui_language: String by context.observeUiLanguage()
 
     LaunchedEffect(this, ui_language) {
         string = getString(ui_language)

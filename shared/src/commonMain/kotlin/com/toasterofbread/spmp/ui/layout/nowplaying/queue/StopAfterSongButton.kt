@@ -1,6 +1,7 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package com.toasterofbread.spmp.ui.layout.nowplaying.queue
 
+import LocalAppState
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateFloatAsState
@@ -25,12 +26,12 @@ import dev.toastbits.composekit.utils.modifier.background
 
 @Composable
 fun StopAfterSongButton(getBackgroundColour: () -> Color, modifier: Modifier = Modifier) {
-    val player = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val rotation by animateFloatAsState(
-        if (player.controller?.service_player?.stop_after_current_song == true) 180f else 0f
+        if (state.session.controller?.service_player?.stop_after_current_song == true) 180f else 0f
     )
 
-    Crossfade(player.controller?.service_player?.stop_after_current_song == true) { stopping ->
+    Crossfade(state.session.controller?.service_player?.stop_after_current_song == true) { stopping ->
         Box(
             modifier = modifier
                 .aspectRatio(1f)
@@ -40,7 +41,7 @@ fun StopAfterSongButton(getBackgroundColour: () -> Color, modifier: Modifier = M
                     interactionSource = remember { MutableInteractionSource() },
                     indication = null,
                     onClick = {
-                        player.controller?.service_player?.stop_after_current_song = !stopping
+                        state.session.controller?.service_player?.stop_after_current_song = !stopping
                     },
                     onLongClick = {}
                 ),

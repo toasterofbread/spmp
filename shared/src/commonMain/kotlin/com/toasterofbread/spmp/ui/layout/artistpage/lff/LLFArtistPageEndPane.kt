@@ -37,7 +37,7 @@ import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 import com.toasterofbread.spmp.ui.layout.artistpage.artistPageGetAllItems
 import dev.toastbits.ytmkt.endpoint.ArtistWithParamsRow
@@ -60,7 +60,7 @@ internal fun ArtistAppPage.LFFArtistEndPane(
     item_layouts: List<ArtistLayout>?,
     apply_filter: Boolean
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     val end_padding: Dp = content_padding.calculateEndPadding(LocalLayoutDirection.current)
@@ -74,7 +74,7 @@ internal fun ArtistAppPage.LFFArtistEndPane(
                         top = content_padding.calculateTopPadding(),
                         end = end_padding
                     ),
-                getAllItems = { artistPageGetAllItems(player, browse_params_rows, item_layouts) },
+                getAllItems = { artistPageGetAllItems(state, browse_params_rows, item_layouts) },
                 wrapContent = {
                     Column {
                         it()
@@ -140,7 +140,7 @@ internal fun ArtistAppPage.LFFArtistEndPane(
                         verticalArrangement = Arrangement.spacedBy(30.dp)
                     ) {
                         for (item_layout in item_layouts ?: emptyList()) {
-                            val layout: AppMediaItemLayout = item_layout.rememberMediaItemLayout(player.database).layout
+                            val layout: AppMediaItemLayout = item_layout.rememberMediaItemLayout(state.database).layout
 
                             val layout_id: YoutubeUILocalisation.StringID? = (layout.title as? YoutubeUiString)?.getYoutubeStringId()
                             if (layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_ARTISTS) {
@@ -148,7 +148,7 @@ internal fun ArtistAppPage.LFFArtistEndPane(
                             }
 
                             val is_singles: Boolean =
-                                player.settings.behaviour.TREAT_SINGLES_AS_SONG.observe().value
+                                state.settings.behaviour.TREAT_SINGLES_AS_SONG.observe().value
                                 && layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
 
                             val is_artist_row: Boolean =
@@ -158,19 +158,19 @@ internal fun ArtistAppPage.LFFArtistEndPane(
                                 LocalPlayerClickOverrides provides click_overrides.copy(
                                     onClickOverride = { item, multiselect_key ->
                                         if (is_singles && item is Playlist) {
-                                            onSinglePlaylistClicked(item, player, click_overrides)
+                                            onSinglePlaylistClicked(item, state, click_overrides)
                                         }
                                         else if (item !is Song) {
-                                            player.openMediaItem(item, is_artist_row)
+                                            state.ui.openMediaItem(item, is_artist_row)
                                         }
                                         else {
-                                            player.playMediaItem(item)
+                                            state.session.playMediaItem(item)
                                         }
                                     },
                                     onAltClickOverride = { item, long_press_data ->
                                         click_overrides.onMediaItemAltClicked(
                                             item,
-                                            player,
+                                            state,
                                             long_press_data =
                                                 if (is_singles && item is Playlist)
                                                     long_press_data?.copy(playlist_as_song = true)
@@ -206,12 +206,12 @@ internal fun ArtistAppPage.LFFArtistEndPane(
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-private fun onSinglePlaylistClicked(playlist: Playlist, player: OldPlayerStateImpl, click_overrides: PlayerClickOverrides) {
+private fun onSinglePlaylistClicked(playlist: Playlist, state: SpMp.State, click_overrides: PlayerClickOverrides) {
     GlobalScope.launch {
-        playlist.loadData(player.context).onSuccess { data ->
+        playlist.loadData(state.context).onSuccess { data ->
             data.items?.firstOrNull()?.also { first_item ->
                 withContext(Dispatchers.Main) {
-                    click_overrides.onMediaItemClicked(first_item, player)
+                    click_overrides.onMediaItemClicked(first_item, state)
                 }
             }
         }

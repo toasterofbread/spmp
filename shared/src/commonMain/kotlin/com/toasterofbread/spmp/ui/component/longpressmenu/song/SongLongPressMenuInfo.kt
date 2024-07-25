@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.component.longpressmenu.song
 
+import LocalAppState
 import LocalPlayerState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
@@ -44,8 +45,8 @@ fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, getAccentCo
         Item(Icons.Default.Radio, stringResource(Res.string.lpm_action_radio_at_song_pos))
     }
 
-    val player = LocalPlayerState.current
-    if ((player.controller?.service_player?.active_queue_index ?: 0) < player.status.m_song_count) {
+    val state: SpMp.State = LocalAppState.current
+    if ((state.session.controller?.service_player?.active_queue_index ?: 0) < state.session.status.m_song_count) {
         Item(Icons.Default.SubdirectoryArrowRight, stringResource(Res.string.lpm_action_radio_after_x_songs))
     }
 

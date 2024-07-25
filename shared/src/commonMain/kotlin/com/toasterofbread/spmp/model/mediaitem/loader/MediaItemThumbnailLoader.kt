@@ -15,10 +15,12 @@ import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.toByteArray
 import com.toasterofbread.spmp.platform.toImageBitmap
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import LocalDataase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import PlatformIO
+import com.toasterofbread.spmp.db.Database
 import dev.toastbits.composekit.platform.synchronized
 import okio.buffer
 import okio.use
@@ -149,7 +151,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
 
     @Composable
     fun rememberItemState(item: MediaItem): ItemState {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val database: Database = LocalDataase.current
         val state = remember(item) {
             object : ItemState {
                 override val loaded_images: MutableMap<ThumbnailProvider.Quality, ImageBitmap> = mutableStateMapOf()
@@ -160,7 +162,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
         LaunchedEffect(state) {
             withContext(Dispatchers.Default) {
                 MediaItemThumbnailLoader.lock.withLock {
-                    val provider = item.ThumbnailProvider.get(player.database) ?: return@withContext
+                    val provider = item.ThumbnailProvider.get(database) ?: return@withContext
 
                     for (quality in ThumbnailProvider.Quality.entries) {
                         val key = MediaItemThumbnailLoaderKey(provider, quality, item.id)

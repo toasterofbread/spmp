@@ -15,7 +15,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import com.toasterofbread.spmp.model.appaction.AppAction
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.composable.onWindowBackPressed
@@ -37,8 +37,8 @@ data class OtherAppAction(
     override fun getIcon(): ImageVector = action.getIcon()
     override fun isUsableDuringTextInput(): Boolean = action.isUsableDuringTextInput()
 
-    override suspend fun executeAction(player: OldPlayerStateImpl) {
-        action.execute(player)
+    override suspend fun executeAction(state: SpMp.State) {
+        action.execute(state)
     }
 
     @Composable
@@ -138,18 +138,18 @@ data class OtherAppAction(
                 else -> false
             }
 
-        suspend fun execute(player: OldPlayerStateImpl) {
+        suspend fun execute(state: SpMp.State) {
             when (this) {
-                NAVIGATE_BACK -> onWindowBackPressed(player.context)
+                NAVIGATE_BACK -> onWindowBackPressed(state.context)
 
                 TOGGLE_FULLSCREEN -> SpMp.toggleFullscreenWindow()
 
-                RELOAD_PAGE -> player.app_page.onReload()
+                RELOAD_PAGE -> state.ui.app_page.onReload()
 
                 INCREASE_UI_SCALE, DECREASE_UI_SCALE -> {
                     val delta: Float = if (this == INCREASE_UI_SCALE) 0.1f else -0.1f
-                    val current: Float = player.context.settings.system.UI_SCALE.get()
-                    player.context.settings.system.UI_SCALE.set((current + delta).coerceAtLeast(0.1f))
+                    val current: Float = state.context.settings.system.UI_SCALE.get()
+                    state.context.settings.system.UI_SCALE.set((current + delta).coerceAtLeast(0.1f))
                 }
             }
         }

@@ -453,13 +453,13 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
 
         val local_players: List<SpMsClientInfo> = getLocalPlayers().getOrNull() ?: return
 
-        for (player in local_players) {
-            if (player.machine_id == connected_server?.machine_id && player.player_port == connected_server?.port) {
+        for (state in local_players) {
+            if (state.machine_id == connected_server?.machine_id && state.player_port == connected_server?.port) {
                 sendRequest(identifier, *params)
                 continue
             }
 
-            val server_url: String = "tcp://127.0.0.1:${player.player_port}"
+            val server_url: String = "tcp://127.0.0.1:${state.player_port}"
 
             val handshake: SpMsClientHandshake =
                 SpMsClientHandshake(

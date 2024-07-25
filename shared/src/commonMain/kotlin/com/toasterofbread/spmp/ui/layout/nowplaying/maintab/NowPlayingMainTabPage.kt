@@ -18,7 +18,8 @@ import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.utils.common.getThemeColour
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import com.toasterofbread.spmp.model.state.UiState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import kotlinx.coroutines.delay
@@ -47,16 +48,16 @@ class NowPlayingMainTabPage: NowPlayingPage() {
     private var colour_song: Song? by mutableStateOf(null)
     var seek_state by mutableStateOf(-1f)
 
-    private lateinit var player: OldPlayerStateImpl
-    private val current_song: Song? get() = player.status.m_song
+    private lateinit var state: SpMp.State
+    private val current_song: Song? get() = state.session.status.m_song
 
     fun setThemeColour(value: Color?, custom: Boolean) {
         theme_colour = value
-        player.theme.onCurrentThumbnnailColourChanged(theme_colour)
+        state.theme.onCurrentThumbnnailColourChanged(theme_colour)
 
         if (custom) {
-            player.status.song
-            current_song?.ThemeColour?.set(theme_colour, player.database)
+            state.session.status.song
+            current_song?.ThemeColour?.set(theme_colour, state.database)
         }
 
         if (value != null) {
@@ -73,7 +74,7 @@ class NowPlayingMainTabPage: NowPlayingPage() {
             setThemeColour(null, false)
         }
         else {
-            val song_theme = song.ThemeColour.get(player.database)
+            val song_theme = song.ThemeColour.get(state.database)
             if (song_theme != null) {
                 setThemeColour(song_theme, false)
             }
@@ -83,17 +84,17 @@ class NowPlayingMainTabPage: NowPlayingPage() {
         }
     }
 
-    override fun getPlayerBackgroundColourOverride(player: OldPlayerStateImpl): Color? {
+    override fun getPlayerBackgroundColourOverride(ui_state: UiState): Color? {
 //        if (Platform.DESKTOP.isCurrent()) {
-//            return player.theme.accent.blendWith(player.theme.background, 0.05f)
+//            return state.theme.accent.blendWith(state.theme.background, 0.05f)
 //        }
         return null
     }
 
     @Composable
     override fun Page(page_height: Dp, top_bar: NowPlayingTopBar, content_padding: PaddingValues, swipe_modifier: Modifier, modifier: Modifier) {
-        player = LocalPlayerState.current
-        val current_song: Song? by player.status.song_state
+        state = LocalAppState.current
+        val current_song: Song? by state.session.status.song_state
 
         LaunchedEffect(current_song) {
             val song = current_song
@@ -103,7 +104,7 @@ class NowPlayingMainTabPage: NowPlayingPage() {
             }
 
             if (song != null) {
-                val song_theme = song.ThemeColour.get(player.database)
+                val song_theme = song.ThemeColour.get(state.database)
                 if (song_theme != null) {
                     setThemeColour(song_theme, false)
                     return@LaunchedEffect
@@ -125,7 +126,7 @@ class NowPlayingMainTabPage: NowPlayingPage() {
                 NowPlayingMainTabNarrow(page_height, top_bar, content_padding, false)
             }
             else {
-                when (player.form_factor) {
+                when (state.ui.form_factor) {
                     FormFactor.PORTRAIT -> NowPlayingMainTabPortrait(page_height, top_bar, content_padding, Modifier.fillMaxWidth())
                     FormFactor.LANDSCAPE -> NowPlayingMainTabLarge(page_height, top_bar, content_padding, Modifier.fillMaxWidth())
                 }

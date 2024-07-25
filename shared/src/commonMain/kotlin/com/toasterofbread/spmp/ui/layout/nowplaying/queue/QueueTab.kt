@@ -54,7 +54,8 @@ import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import com.toasterofbread.spmp.model.state.UiState
 import com.toasterofbread.spmp.ui.component.radio.StatusDisplay
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
@@ -81,21 +82,21 @@ internal fun QueueTab(
     border_thickness: Dp = 1.5.dp,
     wave_border_mode_override: NowPlayingQueueWaveBorderMode? = null,
     button_row_arrangement: Arrangement.Horizontal = Arrangement.SpaceEvenly,
-    getBackgroundColour: OldPlayerStateImpl.() -> Color = { getNPAltOnBackground() },
+    getBackgroundColour: UiState.() -> Color = { getNPAltOnBackground() },
     getBackgroundOpacity: () -> Float = { 1f },
-    getOnBackgroundColour: OldPlayerStateImpl.() -> Color = { getNPBackground() },
-    getWaveBorderColour: OldPlayerStateImpl.() -> Color = getOnBackgroundColour,
+    getOnBackgroundColour: UiState.() -> Color = { getNPBackground() },
+    getWaveBorderColour: UiState.() -> Color = getOnBackgroundColour,
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val density: Density = LocalDensity.current
     val scroll_coroutine_scope = rememberCoroutineScope()
 
     var key_inc by remember { mutableStateOf(0) }
-    val radio_info_position: NowPlayingQueueRadioInfoPosition by player.settings.player.QUEUE_RADIO_INFO_POSITION.observe()
-    val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext(player.context) }
+    val radio_info_position: NowPlayingQueueRadioInfoPosition by state.settings.state.QUEUE_RADIO_INFO_POSITION.observe()
+    val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext(state.context) }
 
     val song_items: SnapshotStateList<QueueTabItem> = remember { mutableStateListOf<QueueTabItem>().also { list ->
-        player.controller?.service_player?.iterateSongs { _, song: Song ->
+        state.session.controller?.service_player?.iterateSongs { _, song: Song ->
             list.add(QueueTabItem(song, key_inc++))
         }
     } }
@@ -154,9 +155,9 @@ internal fun QueueTab(
     }
 
     var playing_key: Int? by remember { mutableStateOf(null) }
-    LaunchedEffect(player.status.m_index, song_items.size) {
-        if (player.status.m_index in song_items.indices) {
-            playing_key = song_items[player.status.m_index].key
+    LaunchedEffect(state.session.status.m_index, song_items.size) {
+        if (state.session.status.m_index in song_items.indices) {
+            playing_key = song_items[state.session.status.m_index].key
         }
         else {
             playing_key = null
@@ -164,12 +165,12 @@ internal fun QueueTab(
     }
 
     DisposableEffect(Unit) {
-        player.interactService {
+        state.session.interactService {
             it.addListener(queue_listener)
         }
 
         onDispose {
-            player.interactService {
+            state.session.interactService {
                 it.removeListener(queue_listener)
             }
         }
@@ -194,7 +195,7 @@ internal fun QueueTab(
             }
 
             song_items.add(from, song_items.removeAt(to))
-            player.controller?.service_player?.undoableAction {
+            state.session.controller?.service_player?.undoableAction {
                 moveSong(from, to)
             }
             playing_key = null
@@ -206,16 +207,16 @@ internal fun QueueTab(
     )
 
     composeScope {
-        val expanded: Boolean by remember { derivedStateOf { player.expansion.get() > 1f } }
+        val expanded: Boolean by remember { derivedStateOf { state.ui.player_expansion.get() > 1f } }
         LaunchedEffect(expanded) {
-            val index = player.status.m_index
+            val index = state.session.status.m_index
             if (expanded && index >= 0) {
                 queue_list_state.listState.scrollToItem(index)
             }
         }
     }
 
-    val content_colour: Color by remember { derivedStateOf { getBackgroundColour(player).getContrasted() } }
+    val content_colour: Color by remember { derivedStateOf { getBackgroundColour(state.ui).getContrasted() } }
 
     CompositionLocalProvider(LocalContentColor provides content_colour) {
         Box(
@@ -231,14 +232,14 @@ internal fun QueueTab(
                             + MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
                     )
                 }
-                .background(shape) { getBackgroundColour(player).copy(alpha = getBackgroundOpacity()) }
+                .background(shape) { getBackgroundColour(state.ui).copy(alpha = getBackgroundOpacity()) }
                 .clip(shape)
         ) {
             val list_padding: Dp = 10.dp
 
             Column(Modifier.fillMaxSize(), horizontalAlignment = Alignment.CenterHorizontally) {
                 QueueButtonsRow(
-                    { getOnBackgroundColour(player) },
+                    { getOnBackgroundColour(state.ui) },
                     multiselect_context,
                     arrangement = button_row_arrangement
                 ) { scroll_index ->
@@ -248,7 +249,7 @@ internal fun QueueTab(
                 }
 
                 if (radio_info_position == NowPlayingQueueRadioInfoPosition.TOP_BAR) {
-                    CurrentRadioIndicator({ getOnBackgroundColour(player) }, multiselect_context, Modifier.padding(bottom = 10.dp)) {
+                    CurrentRadioIndicator({ getOnBackgroundColour(state.ui) }, multiselect_context, Modifier.padding(bottom = 10.dp)) {
                         song_items.map { MultiSelectItem(it.song, it.key) }
                     }
                 }
@@ -257,7 +258,7 @@ internal fun QueueTab(
 
                 val show_border: Boolean by remember { derivedStateOf { getBackgroundOpacity() >= 1f } }
                 if (show_border) {
-                    val wave_border_mode_state: NowPlayingQueueWaveBorderMode by player.settings.player.QUEUE_WAVE_BORDER_MODE.observe()
+                    val wave_border_mode_state: NowPlayingQueueWaveBorderMode by state.settings.state.QUEUE_WAVE_BORDER_MODE.observe()
                     wave_border_mode = wave_border_mode_override ?: wave_border_mode_state
 
                     QueueBorder(
@@ -276,8 +277,8 @@ internal fun QueueTab(
 
                 CompositionLocalProvider(LocalPlayerClickOverrides provides LocalPlayerClickOverrides.current.copy(
                     onClickOverride = { song, index: Int? ->
-                        if (index != player.status.m_index) {
-                            player.controller?.seekToSong(index!!)
+                        if (index != state.session.status.m_index) {
+                            state.session.controller?.seekToSong(index!!)
                         }
                     }
                 )) {
@@ -293,7 +294,7 @@ internal fun QueueTab(
                             list_position = with(density) { coords.positionInParent().y.toDp() }
                         }
                     ) {
-                        val extra_side_padding: Float by player.settings.player.QUEUE_EXTRA_SIDE_PADDING.observe()
+                        val extra_side_padding: Float by state.settings.state.QUEUE_EXTRA_SIDE_PADDING.observe()
                         val side_padding: Dp = maxWidth * extra_side_padding * 0.25f
 
                         ScrollBarLazyColumn(
@@ -309,7 +310,7 @@ internal fun QueueTab(
                         ) {
                             if (radio_info_position == NowPlayingQueueRadioInfoPosition.ABOVE_ITEMS) {
                                 item {
-                                    CurrentRadioIndicator({ getBackgroundColour(player).copy(alpha = getBackgroundOpacity()) }, multiselect_context, Modifier.padding(bottom = 15.dp)) {
+                                    CurrentRadioIndicator({ getBackgroundColour(state.ui).copy(alpha = getBackgroundOpacity()) }, multiselect_context, Modifier.padding(bottom = 15.dp)) {
                                         song_items.map { MultiSelectItem(it.song, it.key) }
                                     }
                                 }
@@ -319,16 +320,16 @@ internal fun QueueTab(
                                 song_items,
                                 queue_list_state,
                                 multiselect_context,
-                                player,
+                                state,
                                 { playing_key },
                                 { playing_key = it },
                                 Modifier.padding(horizontal = list_padding),
-                                getItemColour = { getBackgroundColour(player).copy(alpha = 0f) },
+                                getItemColour = { getBackgroundColour(state.ui).copy(alpha = 0f) },
                                 getCurrentItemColour = getOnBackgroundColour
                             )
 
                             item {
-                                player.controller?.radio_instance?.StatusDisplay(
+                                state.session.controller?.radio_instance?.StatusDisplay(
                                     Modifier
                                         .heightIn(min = 50.dp, max = 500.dp)
                                         .padding(top = list_padding, start = list_padding, end = list_padding)
@@ -346,11 +347,11 @@ internal fun QueueTab(
                                     //     + list_position
                                     // )
 
-                                    // if (player.controller?.radio_instance?.is_loading == true && page_height != null) {
+                                    // if (state.session.controller?.radio_instance?.is_loading == true && page_height != null) {
                                     //     bottom_padding = page_height - bottom_padding
                                     // }
 
-                                    // if (player.controller?.radio_instance?.load_error != null) {
+                                    // if (state.session.controller?.radio_instance?.load_error != null) {
                                     //     bottom_padding += 60.dp
                                     // }
 
@@ -381,14 +382,14 @@ private fun QueueBorder(
     list_padding: Dp,
     queue_list_state: ReorderableLazyListState,
     border_thickness: Dp,
-    getBackgroundColour: OldPlayerStateImpl.() -> Color,
+    getBackgroundColour: UiState.() -> Color,
     getBackgroundOpacity: () -> Float,
-    getBorderColour: OldPlayerStateImpl.() -> Color
+    getBorderColour: UiState.() -> Color
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     if (wave_border_mode == NowPlayingQueueWaveBorderMode.LINE) {
-        HorizontalDivider(Modifier.padding(horizontal = list_padding), border_thickness, getBorderColour(player))
+        HorizontalDivider(Modifier.padding(horizontal = list_padding), border_thickness, getBorderColour(state.ui))
     }
     else {
         var wave_border_offset: Float by remember { mutableStateOf(0f) }
@@ -404,7 +405,7 @@ private fun QueueBorder(
                 }
                 NowPlayingQueueWaveBorderMode.TIME_SYNC -> {
                     while (true) {
-                        wave_border_offset = player.status.getPositionMs() * WAVE_BORDER_TIME_SPEED
+                        wave_border_offset = state.session.status.getPositionMs() * WAVE_BORDER_TIME_SPEED
                         delay(update_interval)
                     }
                 }
@@ -414,7 +415,7 @@ private fun QueueBorder(
 
         WaveBorder(
             Modifier.fillMaxWidth().zIndex(1f),
-            getColour = { getBackgroundColour(player) },
+            getColour = { getBackgroundColour(state.ui) },
             getAlpha = { getBackgroundOpacity() },
             getWaveOffset = {
                 when (wave_border_mode) {
@@ -425,7 +426,7 @@ private fun QueueBorder(
                 }
             },
             border_thickness = border_thickness,
-            border_colour = getBorderColour(player),
+            border_colour = getBorderColour(state.ui),
             waves = 4,
             width_multiplier = 2f
         )

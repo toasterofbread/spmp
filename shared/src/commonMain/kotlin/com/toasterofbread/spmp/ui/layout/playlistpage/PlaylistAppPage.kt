@@ -62,7 +62,7 @@ import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -174,7 +174,7 @@ class PlaylistAppPage(
     override fun isReloading(): Boolean = item_load_state?.value == true
 
     fun getAccentColour(): Color =
-        accent_colour ?: state.player.theme.accent
+        accent_colour ?: state.context.theme.accent
 
     fun beginEdit() {
         edited_title = playlist.getActiveTitle(state.context.database) ?: ""
@@ -295,14 +295,14 @@ class PlaylistAppPage(
         content_padding: PaddingValues,
         close: () -> Unit
     ) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
-        val db: Database = player.database
+        val state: SpMp.State = LocalAppState.current
+        val db: Database = state.database
 
         val playlist_items: List<MediaItem>? by playlist.Items.observe(db, key = items_reload_key)
         var sorted_items: List<MediaItem>? by remember { mutableStateOf(null) }
 
         val load_state: State<Boolean> = playlist.loadDataOnChange(
-            player.context,
+            state.context,
             onLoadFailed = { error ->
                 load_error = error
             },
@@ -324,7 +324,7 @@ class PlaylistAppPage(
             }
 
             val new_editor: InteractivePlaylistEditor? =
-                loaded_playlist?.getEditorOrNull(player.context)?.fold(
+                loaded_playlist?.getEditorOrNull(state.context)?.fold(
                     { it },
                     {
                         load_error = it
@@ -339,7 +339,7 @@ class PlaylistAppPage(
             playlist_editor = new_editor
         }
 
-        val apply_item_filter: Boolean by player.settings.filter.APPLY_TO_PLAYLIST_ITEMS.observe()
+        val apply_item_filter: Boolean by state.settings.filter.APPLY_TO_PLAYLIST_ITEMS.observe()
 
         LaunchedEffect(playlist_items, sort_type, current_filter, apply_item_filter) {
             sorted_items = playlist_items?.let { items ->
@@ -349,7 +349,7 @@ class PlaylistAppPage(
                             return@filter false
                         }
 
-                        if (apply_item_filter && !isMediaItemHidden(item, player.context)) {
+                        if (apply_item_filter && !isMediaItemHidden(item, state.context)) {
                             return@filter false
                         }
 
@@ -391,7 +391,7 @@ class PlaylistAppPage(
                         load_type = LoadType.REFRESH
                         load_error = null
                         coroutine_scope.launch {
-                            MediaItemLoader.loadRemotePlaylist(remote.getEmptyData(), player.context)
+                            MediaItemLoader.loadRemotePlaylist(remote.getEmptyData(), state.context)
                         }
                     }
                 },
@@ -401,7 +401,7 @@ class PlaylistAppPage(
             ) {
                 ScrollBarLazyColumnWithHeader(
                     header_index = if (previous_item == null) 2 else 3,
-                    getHeaderBackgroundColour = { player.theme.background },
+                    getHeaderBackgroundColour = { state.theme.background },
                     state = list_state.listState,
                     horizontalAlignment = Alignment.CenterHorizontally,
                     modifier = Modifier.reorderable(list_state),
@@ -432,7 +432,7 @@ class PlaylistAppPage(
 
                                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                                IconButton({ player.showLongPressMenu(prev) }) {
+                                IconButton({ state.ui.showLongPressMenu(prev) }) {
                                     Icon(Icons.Default.MoreVert, null)
                                 }
                             }
@@ -471,7 +471,7 @@ class PlaylistAppPage(
                                         load_type = LoadType.REFRESH
                                         load_error = null
                                         coroutine_scope.launch {
-                                            MediaItemLoader.loadRemotePlaylist(remote.getEmptyData(), player.context)
+                                            MediaItemLoader.loadRemotePlaylist(remote.getEmptyData(), state.context)
                                         }
                                     }
                                 },
@@ -481,7 +481,7 @@ class PlaylistAppPage(
                                         load_type = LoadType.CONTINUE
                                         load_error = null
                                         coroutine_scope.launch {
-                                            MediaItemLoader.loadRemotePlaylist(remote_data, player.context, continuation = continuation)
+                                            MediaItemLoader.loadRemotePlaylist(remote_data, state.context, continuation = continuation)
                                         }
                                     }
                                 }

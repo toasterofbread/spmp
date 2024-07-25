@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout
 
+import LocalAppState
 import LocalPlayerState
 import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.foundation.layout.Arrangement
@@ -39,14 +40,14 @@ fun PlaylistSelectMenu(
     auth_state: ApiAuthenticationState?,
     modifier: Modifier = Modifier
 ) {
-    val player = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val coroutine_scope = rememberCoroutineScope()
 
     var loading by remember { mutableStateOf(false) }
 
-    val local_playlists: List<Playlist> = MediaItemLibrary.rememberLocalPlaylists(player.context) ?: emptyList()
+    val local_playlists: List<Playlist> = MediaItemLibrary.rememberLocalPlaylists(state.context) ?: emptyList()
     val account_playlists: List<Playlist>? = auth_state?.own_channel_id?.let { channel_id ->
-        rememberOwnedPlaylists(channel_id, player.context)
+        rememberOwnedPlaylists(channel_id, state.context)
     }
 
     fun refreshAccountPlaylists() {
@@ -59,7 +60,7 @@ fun PlaylistSelectMenu(
             loading = true
             val result = playlists_endpoint.getAccountPlaylists()
             result.onFailure { error ->
-                player.context.sendToast(error.toString())
+                state.context.sendToast(error.toString())
             }
             loading = false
         }
@@ -104,7 +105,7 @@ fun PlaylistSelectMenu(
 
 @Composable
 private fun PlaylistItem(selected: SnapshotStateList<Playlist>, playlist: Playlist) {
-    val player = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(5.dp)) {
         Checkbox(
@@ -119,8 +120,8 @@ private fun PlaylistItem(selected: SnapshotStateList<Playlist>, playlist: Playli
             },
             colors = CheckboxDefaults.colors(
                 uncheckedColor = LocalContentColor.current,
-                checkedColor = player.theme.accent,
-                checkmarkColor = player.theme.on_accent
+                checkedColor = state.theme.accent,
+                checkmarkColor = state.theme.on_accent
             )
         )
         MediaItemPreviewLong(playlist)

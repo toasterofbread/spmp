@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
+import LocalAppState
 import LocalPlayerState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -41,7 +42,7 @@ import spmp.shared.generated.resources.album
 
 @Composable
 internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<SearchResult>, Int>, modifier: Modifier = Modifier, onFinished: (Int?) -> Unit) {
-    val player = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     BackHandler {
         onFinished(null)
@@ -58,13 +59,13 @@ internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<Searc
             items(results.size + 1) { index ->
 
                 if (index == results.size) {
-                    Text(stringResource(Res.string.lyrics_no_more_results), color = player.theme.accent)
+                    Text(stringResource(Res.string.lyrics_no_more_results), color = state.theme.accent)
                 }
                 else {
                     val result = results[index]
                     Box(
                         Modifier
-                            .background(player.theme.accent, RoundedCornerShape(16))
+                            .background(state.theme.accent, RoundedCornerShape(16))
                             .clickable {
                                 onFinished(index)
                             }
@@ -85,7 +86,7 @@ internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<Searc
                             val shape = RoundedCornerShape(16)
 
                             Marquee(Modifier.fillMaxWidth()) {
-                                Text(result.name, color = player.theme.on_accent, softWrap = false)
+                                Text(result.name, color = state.theme.on_accent, softWrap = false)
                             }
 
                             Row(
@@ -117,9 +118,9 @@ internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<Searc
 
                             Column(
                                 Modifier
-                                    .border(Dp.Hairline, player.theme.on_accent, shape)
+                                    .border(Dp.Hairline, state.theme.on_accent, shape)
                                     .background(
-                                        player.theme
+                                        state.theme
                                             .on_accent
                                             .copy(alpha = 0.1f), shape
                                     )
@@ -127,10 +128,10 @@ internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<Searc
                                     .fillMaxWidth()
                             ) {
                                 if (result.artist_name != null) {
-                                    Item(stringResource(Res.string.artist), result.artist_name!!, player.theme.on_accent)
+                                    Item(stringResource(Res.string.artist), result.artist_name!!, state.theme.on_accent)
                                 }
                                 if (result.album_name != null) {
-                                    Item(stringResource(Res.string.album), result.album_name!!, player.theme.on_accent)
+                                    Item(stringResource(Res.string.album), result.album_name!!, state.theme.on_accent)
                                 }
                             }
                         }
@@ -141,6 +142,6 @@ internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<Searc
         }
     }
     else {
-        Text(stringResourceTODO("No results found"), modifier, color = player.theme.accent)
+        Text(stringResourceTODO("No results found"), modifier, color = state.theme.accent)
     }
 }

@@ -38,7 +38,7 @@ import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.ytmkt.endpoint.LikedAlbumsEndpoint
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 import org.jetbrains.compose.resources.stringResource
@@ -50,7 +50,7 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
         Icons.Default.Album
 
     override fun isHidden(): Boolean =
-        SpMp.player_state.context.ytapi.user_auth_state == null
+        SpMp.state.context.ytapi.user_auth_state == null
 
     private var load_error: Throwable? by mutableStateOf(null)
     private var liked_albums: List<RemotePlaylistData>? by mutableStateOf(null)
@@ -64,8 +64,8 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
         showing_alt_content: Boolean,
         modifier: Modifier
     ) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
-        val auth_state: ApiAuthenticationState = player.context.ytapi.user_auth_state ?: return
+        val state: SpMp.State = LocalAppState.current
+        val auth_state: ApiAuthenticationState = state.context.ytapi.user_auth_state ?: return
 
         val load_endpoint: LikedAlbumsEndpoint = auth_state.LikedAlbums
         if (!load_endpoint.isImplemented()) {
@@ -73,7 +73,7 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
         }
 
         val sorted_liked_albums: List<RemotePlaylistData> =
-            library_page.sort_type.sortAndFilterItems(liked_albums ?: emptyList(), library_page.search_filter, player.database, library_page.reverse_sort)
+            library_page.sort_type.sortAndFilterItems(liked_albums ?: emptyList(), library_page.search_filter, state.database, library_page.reverse_sort)
 
         val item_spacing: Dp = 15.dp
 
@@ -111,8 +111,8 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
 
     @Composable
     override fun RowOrColumnScope.SideContent(showing_alt_content: Boolean) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
-        val auth_state: ApiAuthenticationState = player.context.ytapi.user_auth_state ?: return
+        val state: SpMp.State = LocalAppState.current
+        val auth_state: ApiAuthenticationState = state.context.ytapi.user_auth_state ?: return
 
         val load_endpoint: LikedAlbumsEndpoint = auth_state.LikedAlbums
         if (!load_endpoint.isImplemented()) {

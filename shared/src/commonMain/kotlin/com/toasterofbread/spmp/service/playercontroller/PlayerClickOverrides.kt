@@ -5,7 +5,7 @@ import androidx.compose.runtime.staticCompositionLocalOf
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getLongPressMenuData
 import kotlinx.coroutines.launch
@@ -19,46 +19,46 @@ data class PlayerClickOverrides(
     val onClickOverride: PlayerOnClickedAction? = null,
     val onAltClickOverride: PlayerOnLongClickedAction? = null
 ) {
-    fun onMediaItemClicked(item: MediaItem, player: OldPlayerStateImpl, multiselect_key: Int? = null) {
-        player.coroutine_scope.launch {
+    fun onMediaItemClicked(item: MediaItem, state: SpMp.State, multiselect_key: Int? = null) {
+        state.context.coroutine_scope.launch {
             if (onClickOverride != null) {
                 onClickOverride.invoke(item, multiselect_key)
                 return@launch
             }
 
             if (item is Song) {
-                player.playMediaItem(item)
-                player.onPlayActionOccurred()
+                state.session.playMediaItem(item)
+                state.ui.onPlayActionOccurred()
             } else if (
                 item is Playlist
-                && player.settings.behaviour.TREAT_SINGLES_AS_SONG.get()
-                && player.settings.behaviour.TREAT_ANY_SINGLE_ITEM_PLAYLIST_AS_SINGLE.get()
+                && state.settings.behaviour.TREAT_SINGLES_AS_SONG.get()
+                && state.settings.behaviour.TREAT_ANY_SINGLE_ITEM_PLAYLIST_AS_SINGLE.get()
             ) {
-                player.coroutine_scope.launch {
-                    item.loadData(player.context).onSuccess { data ->
+                state.context.coroutine_scope.launch {
+                    item.loadData(state.context).onSuccess { data ->
                         val single = data.items?.singleOrNull()
                         if (single != null) {
-                            onMediaItemClicked(single, player)
+                            onMediaItemClicked(single, state)
                         } else {
-                            player.openMediaItem(item)
+                            state.ui.openMediaItem(item)
                         }
                     }
                 }
             } else {
-                player.openMediaItem(item)
+                state.ui.openMediaItem(item)
             }
         }
     }
 
-    fun onMediaItemAltClicked(item: MediaItem, queue_index: Int, player: OldPlayerStateImpl) {
-        onMediaItemAltClicked(item, player, LongPressMenuData(item, multiselect_key = queue_index))
+    fun onMediaItemAltClicked(item: MediaItem, queue_index: Int, state: SpMp.State) {
+        onMediaItemAltClicked(item, state, LongPressMenuData(item, multiselect_key = queue_index))
     }
-    fun onMediaItemAltClicked(item: MediaItem, player: OldPlayerStateImpl, long_press_data: LongPressMenuData? = null) {
+    fun onMediaItemAltClicked(item: MediaItem, state: SpMp.State, long_press_data: LongPressMenuData? = null) {
         if (onAltClickOverride != null) {
             onAltClickOverride.invoke(item, long_press_data)
             return
         }
 
-        player.showLongPressMenu(long_press_data ?: item.getLongPressMenuData())
+        state.ui.showLongPressMenu(long_press_data ?: item.getLongPressMenuData())
     }
 }

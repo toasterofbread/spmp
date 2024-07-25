@@ -60,7 +60,7 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.`mediaitem_play_count_$x_short`
@@ -88,7 +88,7 @@ fun MediaItem.getLongPressMenuData(
 
 @Composable
 fun MediaItem.loadIfLocalPlaylist(): MediaItem? {
-    val context: AppContext = LocalPlayerState.current.context
+    val context: AppContext = LocalAppContext.current
     val state: MutableState<MediaItem?> = remember { mutableStateOf(if (this !is LocalPlaylistRef) this else null) }
 
     LaunchedEffect(this) {
@@ -134,7 +134,7 @@ fun MediaItemPreviewSquare(
         return
     }
 
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val max_lines: Int = max_text_rows ?: MEDIA_ITEM_PREVIEW_SQUARE_DEFAULT_MAX_LINES
 
     Column(
@@ -185,7 +185,7 @@ fun MediaItemPreviewSquare(
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.Center
         ) {
-            val is_explicit: Boolean? by (loaded_item as? Song)?.Explicit?.observe(player.database)
+            val is_explicit: Boolean? by (loaded_item as? Song)?.Explicit?.observe(state.database)
             if (is_explicit == true) {
                 Icon(Icons.Default.Explicit, null, Modifier.size(15.dp).alpha(0.5f))
             }
@@ -249,7 +249,7 @@ fun MediaItemPreviewLong(
         return
     }
 
-    val player = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     Row(
         verticalAlignment = Alignment.CenterVertically,
@@ -291,7 +291,7 @@ fun MediaItemPreviewLong(
             val artist_titles: List<String?>? = if (show_artist) (loaded_item as? MediaItem.WithArtists)?.Artists?.observePropertyActiveTitles() else null
             val extra_info: List<String> = getExtraInfo?.invoke() ?: emptyList()
             val download_status: DownloadStatus? by (loaded_item as? Song)?.rememberDownloadStatus()
-            val is_explicit: Boolean? by (loaded_item as? Song)?.Explicit?.observe(player.database)
+            val is_explicit: Boolean? by (loaded_item as? Song)?.Explicit?.observe(state.database)
 
             if (
                 (show_download_indicator && download_status != null)
@@ -340,7 +340,7 @@ fun MediaItemPreviewLong(
                     }
 
                     if (show_play_count) {
-                        val play_count: Int? = loaded_item.observePlayCount(player.context)
+                        val play_count: Int? = loaded_item.observePlayCount(state.context)
                         InfoText(
                             stringResource(Res.string.`mediaitem_play_count_$x_short`)
                                 .replace("\$x", play_count?.toString() ?: "?")
@@ -356,7 +356,7 @@ fun MediaItemPreviewLong(
                     }
 
                     if (artist_titles != null) {
-                        InfoText(formatArtistTitles(artist_titles, player.context))
+                        InfoText(formatArtistTitles(artist_titles, state.context))
                     }
                 }
             }

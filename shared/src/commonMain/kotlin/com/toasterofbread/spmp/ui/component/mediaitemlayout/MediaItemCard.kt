@@ -20,7 +20,6 @@ import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Book
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.Podcasts
 import androidx.compose.material.icons.filled.Radio
 import androidx.compose.material3.Button
@@ -61,7 +60,8 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getThumbShape
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import dev.toastbits.composekit.settings.ui.vibrant_accent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -76,7 +76,7 @@ fun MediaItemCard(
     multiselect_context: MediaItemMultiSelectContext? = null,
     apply_filter: Boolean = false
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     val item: MediaItemData = remember(layout) { layout.items.first() }
@@ -100,10 +100,10 @@ fun MediaItemCard(
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    click_overrides.onMediaItemClicked(item, player)
+                    click_overrides.onMediaItemClicked(item, state)
                 },
                 onLongClick = {
-                    player.showLongPressMenu(long_press_menu_data)
+                    state.ui.showLongPressMenu(long_press_menu_data)
                 }
             ),
         verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -115,7 +115,7 @@ fun MediaItemCard(
             layout.TitleBar(Modifier.fillMaxWidth().weight(1f), multiselect_context = multiselect_context)
 
             val playlist_type: State<PlaylistType?>? =
-                if (item is RemotePlaylist) item.TypeOfPlaylist.observe(player.database)
+                if (item is RemotePlaylist) item.TypeOfPlaylist.observe(state.database)
                 else null
 
             Text(
@@ -132,7 +132,8 @@ fun MediaItemCard(
                         when (playlist_type?.value) {
                             PlaylistType.PLAYLIST,
                             PlaylistType.LOCAL,
-                            null -> Icons.Filled.PlaylistPlay
+                            null -> Icons.AutoMirrored.Filled.PlaylistPlay
+
                             PlaylistType.ALBUM -> Icons.Filled.Album
                             PlaylistType.AUDIOBOOK -> Icons.Filled.Book
                             PlaylistType.PODCAST -> Icons.Filled.Podcasts
@@ -167,22 +168,22 @@ fun MediaItemCard(
             Column(
                 Modifier
                     .fillMaxSize()
-                    .background(accent_colour ?: player.theme.accent, shape)
+                    .background(accent_colour ?: state.theme.accent, shape)
                     .padding(horizontal = 15.dp, vertical = 5.dp),
                 verticalArrangement = Arrangement.SpaceEvenly
             ) {
                 val item_title: String? by item.observeActiveTitle()
                 Text(
                     item_title ?: "",
-                    style = LocalTextStyle.current.copy(color = (accent_colour ?: player.theme.accent).getContrasted()),
+                    style = LocalTextStyle.current.copy(color = (accent_colour ?: state.theme.accent).getContrasted()),
                     softWrap = false,
                     overflow = TextOverflow.Ellipsis
                 )
 
                 if (item is MediaItem.WithArtists) {
-                    val item_artists: List<Artist>? by item.Artists.observe(player.database)
+                    val item_artists: List<Artist>? by item.Artists.observe(state.database)
                     item_artists?.firstOrNull()?.also { artist ->
-                        MediaItemPreviewLong(artist, contentColour = { (accent_colour ?: player.theme.accent).getContrasted() })
+                        MediaItemPreviewLong(artist, contentColour = { (accent_colour ?: state.theme.accent).getContrasted() })
                     }
                 }
             }
@@ -194,12 +195,12 @@ fun MediaItemCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Button(
-                { player.playMediaItem(item) },
+                { state.session.playMediaItem(item) },
                 Modifier.fillMaxWidth(),
                 shape = shape,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = accent_colour ?: player.theme.vibrant_accent,
-                    contentColor = (accent_colour ?: player.theme.vibrant_accent).getContrasted()
+                    containerColor = accent_colour ?: state.theme.vibrant_accent,
+                    contentColor = (accent_colour ?: state.theme.vibrant_accent).getContrasted()
                 )
             ) {
                 Text(

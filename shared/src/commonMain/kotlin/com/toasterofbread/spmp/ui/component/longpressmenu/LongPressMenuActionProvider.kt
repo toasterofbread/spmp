@@ -32,7 +32,8 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import LocalSessionState
 import com.toasterofbread.spmp.ui.theme.appHover
 
 class LongPressMenuActionProvider(
@@ -51,12 +52,12 @@ class LongPressMenuActionProvider(
         onClick: (active_queue_index: Int) -> Unit,
         onLongClick: ((active_queue_index: Int) -> Unit)? = null
     ) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
-        val service: PlayerService = LocalPlayerState.current.controller ?: return
+        val state: SpMp.State = LocalAppState.current
+        val service: PlayerService = LocalSessionState.current.controller ?: return
 
         var active_queue_item: Song? by remember { mutableStateOf(null) }
-        AnimatedVisibility(service.service_player.active_queue_index < player.status.m_song_count) {
-            if (service.service_player.active_queue_index < player.status.m_song_count) {
+        AnimatedVisibility(service.service_player.active_queue_index < state.session.status.m_song_count) {
+            if (service.service_player.active_queue_index < state.session.status.m_song_count) {
                 val current_song = service.getSong(service.service_player.active_queue_index)
                 if (current_song?.id != active_queue_item?.id) {
                     active_queue_item = current_song
@@ -91,7 +92,7 @@ class LongPressMenuActionProvider(
                                     service.service_player.updateActiveQueueIndex(-1)
                                 },
                                 onAltClick = {
-                                    player.context.vibrateShort()
+                                    state.context.vibrateShort()
                                     service.service_player.updateActiveQueueIndex(-1, to_end = true)
                                 }
                             ),
@@ -107,7 +108,7 @@ class LongPressMenuActionProvider(
                                     service.service_player.updateActiveQueueIndex(1)
                                 },
                                 onAltClick = {
-                                    player.context.vibrateShort()
+                                    state.context.vibrateShort()
                                     service.service_player.updateActiveQueueIndex(1, to_end = true)
                                 }
                             ),
@@ -121,7 +122,7 @@ class LongPressMenuActionProvider(
 
                 CompositionLocalProvider(
                     LocalPlayerClickOverrides provides LocalPlayerClickOverrides.current.copy(
-                        onClickOverride = { item, _ -> player.openMediaItem(item) }
+                        onClickOverride = { item, _ -> state.ui.openMediaItem(item) }
                     )
                 ) {
                     Crossfade(active_queue_item, animationSpec = tween(100)) { active_item ->
@@ -147,7 +148,7 @@ class LongPressMenuActionProvider(
             onAction: () -> Unit,
             fill_width: Boolean = true
         ) {
-            val player: OldPlayerStateImpl = LocalPlayerState.current
+            val state: SpMp.State = LocalAppState.current
 
             Row(
                 modifier
@@ -158,7 +159,7 @@ class LongPressMenuActionProvider(
                         },
                         onAltClick = if (onAltClick == null) null else {
                             {
-                                player.context.vibrateShort()
+                                state.context.vibrateShort()
                                 onAltClick()
                                 onAction()
                             }

@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.settings.category
 
+import LocalAppContext
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -86,7 +87,7 @@ sealed class SettingsGroup(
 
                     @Composable
                     override fun canResetKeys(): Boolean =
-                        getItems(LocalPlayerState.current.context).isNotEmpty()
+                        getItems(LocalAppContext.current).isNotEmpty()
                 }
             )
         }

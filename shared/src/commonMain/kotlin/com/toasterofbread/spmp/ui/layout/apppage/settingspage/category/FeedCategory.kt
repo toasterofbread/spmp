@@ -15,7 +15,7 @@ import com.toasterofbread.spmp.model.serialise
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppStringSetItem
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.composekit.utils.common.toCustomResource
 import dev.toastbits.ytmkt.uistrings.RawUiString
 import dev.toastbits.ytmkt.uistrings.UiString
@@ -84,11 +84,11 @@ internal fun getFeedCategoryItems(context: AppContext): List<SettingsItem> {
             context.settings.feed.HIDDEN_ROWS,
             Res.string.s_hidden_feed_rows_dialog_title,
             itemToText = {
-                val player: OldPlayerStateImpl = LocalPlayerState.current
+                val state: SpMp.State = LocalAppState.current
                 var text: String by remember { mutableStateOf("") }
 
                 LaunchedEffect(it) {
-                    text = UiString.deserialise(it).getString(player.context)
+                    text = UiString.deserialise(it).getString(state.context)
                 }
 
                 return@AppStringSetItem text

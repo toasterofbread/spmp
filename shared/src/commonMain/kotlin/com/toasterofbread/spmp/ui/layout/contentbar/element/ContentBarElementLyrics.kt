@@ -20,7 +20,7 @@ import dev.toastbits.composekit.utils.common.getValue
 import dev.toastbits.composekit.utils.composable.*
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import kotlin.math.sign
@@ -57,13 +57,13 @@ data class ContentBarElementLyrics(
 
     @Composable
     override fun isDisplaying(): Boolean {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
-        val current_song: Song? by player.status.song_state
-        lyrics_state = current_song?.let { SongLyricsLoader.rememberItemState(it, player.context) }
+        val state: SpMp.State = LocalAppState.current
+        val current_song: Song? by state.session.status.song_state
+        lyrics_state = current_song?.let { SongLyricsLoader.rememberItemState(it, state.context) }
 
         LaunchedEffect(current_song) {
             current_song?.also { song ->
-                SongLyricsLoader.loadBySong(song, player.context)
+                SongLyricsLoader.loadBySong(song, state.context)
             }
         }
 
@@ -72,9 +72,9 @@ data class ContentBarElementLyrics(
 
     @Composable
     override fun ElementContent(vertical: Boolean, slot: LayoutSlot?, bar_size: DpSize, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
-        val current_song: Song? by player.status.song_state
-        val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(player.database, true)
+        val state: SpMp.State = LocalAppState.current
+        val current_song: Song? by state.session.status.song_state
+        val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(state.database, true)
 
         if (onPreviewClick != null) {
             IconButton(onPreviewClick, modifier) {
@@ -102,7 +102,7 @@ data class ContentBarElementLyrics(
             }
 
             val getTime: () -> Long = {
-                (player.controller?.current_position_ms ?: 0) + (lyrics_sync_offset ?: 0)
+                (state.session.controller?.current_position_ms ?: 0) + (lyrics_sync_offset ?: 0)
             }
 
             if (vertical) {

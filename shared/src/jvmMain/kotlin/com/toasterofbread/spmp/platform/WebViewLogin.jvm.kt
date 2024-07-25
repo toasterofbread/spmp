@@ -1,6 +1,9 @@
 package com.toasterofbread.spmp.platform
 
+import LocalAppContext
 import LocalPlayerState
+import LocalTheme
+import LocalUiState
 import SpMp.isDebugBuild
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.fadeIn
@@ -28,10 +31,11 @@ import com.multiplatform.webview.web.WebContent
 import com.multiplatform.webview.web.WebView
 import com.multiplatform.webview.web.WebViewNavigator
 import com.multiplatform.webview.web.WebViewState
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.model.state.UiState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
 import kotlinx.coroutines.CoroutineScope
@@ -53,7 +57,9 @@ actual fun WebViewLogin(
     user_agent: String?,
     onRequestIntercepted: suspend (WebViewRequest, openUrl: (String) -> Unit, getCookies: suspend (String) -> List<Pair<String, String>>) -> Unit
 ) {
-    val player: PlayerState = LocalPlayerState.current
+    val context: AppContext = LocalAppContext.current
+    val theme: ThemeValues = LocalTheme.current
+    val ui_state: UiState = LocalUiState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     var initialised: Boolean by remember { mutableStateOf(false) }
@@ -63,7 +69,7 @@ actual fun WebViewLogin(
     var restart_required: Boolean by remember { mutableStateOf(false) }
 
     LaunchedEffect(Unit) {
-        initWebViewLogin(player.context) { progress, message ->
+        initWebViewLogin(context) { progress, message ->
             init_progress = progress
             init_message = message
         }.fold(
@@ -98,8 +104,8 @@ actual fun WebViewLogin(
 
             InitProgressIndicator(
                 init_progress,
-                colour = player.theme.accent,
-                track_colour = player.theme.accent.copy(alpha = 0.5f)
+                colour = theme.accent,
+                track_colour = theme.accent.copy(alpha = 0.5f)
             )
         }
         return
@@ -197,13 +203,13 @@ actual fun WebViewLogin(
                         if (!show) {
                             if (Platform.DESKTOP.isCurrent())
                                 offset {
-                                    IntOffset(0, player.screen_size.height.roundToPx() + 100)
+                                    IntOffset(0, ui_state.screen_size.height.roundToPx() + 100)
                                 }
                             else drawWithContent {}
                         }
                         else if (Platform.DESKTOP.isCurrent()) {
                             offset {
-                                IntOffset(0, (player.getNowPlayingExpansionOffset(this).notNaN() + minimised_now_playing_height).roundToPx())
+                                IntOffset(0, (ui_state.player_state.getExpansionOffset(this).notNaN() + minimised_now_playing_height).roundToPx())
                             }
                         }
                         else this

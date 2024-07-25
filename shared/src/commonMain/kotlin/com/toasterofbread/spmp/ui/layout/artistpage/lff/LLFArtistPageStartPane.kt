@@ -51,7 +51,7 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistInfoDialog
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistSubscribeButton
@@ -69,7 +69,7 @@ fun LFFArtistStartPane(
     item_layouts: List<ArtistLayout>?,
     apply_filter: Boolean
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     val start_padding: Dp = content_padding.calculateStartPadding(LocalLayoutDirection.current)
     val primary_shape: Shape = RoundedCornerShape(15.dp)
@@ -114,10 +114,10 @@ fun LFFArtistStartPane(
 
                         Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                        val shuffle_playlist_id: String? by artist.ShufflePlaylistId.observe(player.database)
+                        val shuffle_playlist_id: String? by artist.ShufflePlaylistId.observe(state.database)
                         if (shuffle_playlist_id != null) {
                             ShapedIconButton(
-                                { player.playMediaItem(artist, shuffle = true) },
+                                { state.session.playMediaItem(artist, shuffle = true) },
                                 icon_button_colours,
                                 shape = icon_button_shape
                             ) {
@@ -144,7 +144,7 @@ fun LFFArtistStartPane(
 
                 LaunchedEffect(edited_title) {
                     if (editing_title) {
-                        artist.setActiveTitle(edited_title, player.context)
+                        artist.setActiveTitle(edited_title, state.context)
                     }
                 }
 
@@ -173,7 +173,7 @@ fun LFFArtistStartPane(
                                 },
                                 Modifier.fillMaxWidth().appTextField(),
                                 text_style = title_style,
-                                background_colour = current_accent_colour.blendWith(player.theme.background, 0.2f),
+                                background_colour = current_accent_colour.blendWith(state.theme.background, 0.2f),
                                 shape = primary_shape,
                                 content_padding = title_padding
                             )
@@ -181,10 +181,10 @@ fun LFFArtistStartPane(
                     }
                 }
 
-                val subscriber_count: Int? = artist.SubscriberCount.observe(player.database).value
+                val subscriber_count: Int? = artist.SubscriberCount.observe(state.database).value
                 Row(Modifier.padding(start = start_padding), verticalAlignment = Alignment.CenterVertically) {
                     if (subscriber_count != null) {
-                        Text(subscriber_count.toReadableSubscriberCount(player.context), style = MaterialTheme.typography.bodyLarge)
+                        Text(subscriber_count.toReadableSubscriberCount(state.context), style = MaterialTheme.typography.bodyLarge)
                     }
                     else {
                         InfoButtons(artist)
@@ -192,7 +192,7 @@ fun LFFArtistStartPane(
 
                     Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                    player.context.ytapi.user_auth_state?.also { auth_state ->
+                    state.context.ytapi.user_auth_state?.also { auth_state ->
                         ArtistSubscribeButton(artist, auth_state)
                     }
 
@@ -217,7 +217,7 @@ fun LFFArtistStartPane(
                 Spacer(Modifier.height(20.dp).fillMaxWidth())
 
                 for (item_layout in item_layouts ?: emptyList()) {
-                    val layout: AppMediaItemLayout = item_layout.rememberMediaItemLayout(player.database).layout
+                    val layout: AppMediaItemLayout = item_layout.rememberMediaItemLayout(state.database).layout
                     if ((layout.title as? YoutubeUiString)?.getYoutubeStringId() != YoutubeUILocalisation.StringID.ARTIST_ROW_ARTISTS) {
                         continue
                     }
@@ -243,12 +243,12 @@ fun LFFArtistStartPane(
                 Spacer(Modifier.height(5.dp).fillMaxWidth())
 
                 val long_description: Boolean = scroll_state.canScrollForward || scroll_state.canScrollBackward
-                val description: String? by artist.Description.observe(player.database)
+                val description: String? by artist.Description.observe(state.database)
 
                 if (!long_description) {
                     description?.also { desc ->
                         if (desc.isNotBlank()) {
-                            LinkifyText(player.context, desc, current_accent_colour, Modifier.padding(start = start_padding), style = MaterialTheme.typography.bodyLarge)
+                            LinkifyText(state.context, desc, current_accent_colour, Modifier.padding(start = start_padding), style = MaterialTheme.typography.bodyLarge)
                         }
                     }
                 }
@@ -275,7 +275,7 @@ fun LFFArtistStartPane(
                         )
 
                         if (desc.isNotBlank()) {
-                            LinkifyText(player.context, desc, current_accent_colour, Modifier.padding(start = start_padding), style = MaterialTheme.typography.bodyLarge)
+                            LinkifyText(state.context, desc, current_accent_colour, Modifier.padding(start = start_padding), style = MaterialTheme.typography.bodyLarge)
                         }
                     }
                 }
@@ -288,7 +288,7 @@ fun LFFArtistStartPane(
 
 @Composable
 private fun InfoButtons(artist: Artist) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     var show_info: Boolean by remember { mutableStateOf(false) }
     if (show_info) {
@@ -297,20 +297,20 @@ private fun InfoButtons(artist: Artist) {
 
     val artist_url: String = artist.observeUrl()
 
-    if (player.context.canShare()) {
+    if (state.context.canShare()) {
         IconButton({
-            player.context.shareText(
+            state.context.shareText(
                 artist_url,
-                artist.getActiveTitle(player.database) ?: ""
+                artist.getActiveTitle(state.database) ?: ""
             )
         }) {
             Icon(Icons.Outlined.Share, null)
         }
     }
 
-    if (player.context.canOpenUrl()) {
+    if (state.context.canOpenUrl()) {
         IconButton({
-            player.context.openUrl(artist_url)
+            state.context.openUrl(artist_url)
         }) {
             Icon(Icons.Outlined.OpenInNew, null)
         }

@@ -19,12 +19,12 @@ import PlatformIO
 import com.toasterofbread.spmp.db.persistentqueue.PersistentQueueMetadata
 import dev.toastbits.composekit.platform.lazyAssert
 
-internal class PersistentQueueHandler(val player: PlayerServicePlayer, val context: AppContext) {
+internal class PersistentQueueHandler(val state: PlayerServicePlayer, val context: AppContext) {
     private var persistent_queue_loaded: Boolean = false
     private val queue_lock = Mutex()
 
     private fun getPersistentQueueMetadata(): PersistentQueueMetadata =
-        PersistentQueueMetadata(0, player.current_song_index.toLong(), player.current_position_ms)
+        PersistentQueueMetadata(0, state.current_song_index.toLong(), state.current_position_ms)
 
     suspend fun savePersistentQueue() {
         if (!persistent_queue_loaded || !context.settings.system.PERSISTENT_QUEUE.get() || ProjectBuildConfig.DISABLE_PERSISTENT_QUEUE == true) {
@@ -35,8 +35,8 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
         val metadata: PersistentQueueMetadata
 
         withContext(Dispatchers.Main) {
-            for (i in 0 until player.song_count) {
-                val song: Song? = player.getSong(i)
+            for (i in 0 until state.song_count) {
+                val song: Song? = state.getSong(i)
                 if (song != null) {
                     songs.add(song)
                 }
@@ -73,7 +73,7 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
             return
         }
 
-        if (player.song_count > 0) {
+        if (state.song_count > 0) {
             println("loadPersistentQueue: Skipping, queue already populated")
             persistent_queue_loaded = true
             return
@@ -139,15 +139,15 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
             withContext(Dispatchers.Main) {
                 println("loadPersistentQueue: Adding ${songs.size} songs to $metadata")
 
-                player.apply {
-                    if (player.song_count == 0) {
+                state.apply {
+                    if (song_count == 0) {
                         clearQueue(save = false)
                         addMultipleToQueue(songs, 0)
 
                         if (metadata != null) {
-                            player.seekToSong(metadata.queue_index.toInt())
-                            player.seekTo(metadata.playback_position_ms)
-                            player.pause()
+                            seekToSong(metadata.queue_index.toInt())
+                            seekTo(metadata.playback_position_ms)
+                            pause()
                         }
                     }
                 }

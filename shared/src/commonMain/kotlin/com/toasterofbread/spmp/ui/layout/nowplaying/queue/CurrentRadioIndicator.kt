@@ -28,7 +28,9 @@ import com.toasterofbread.spmp.model.radio.RadioState
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import LocalSessionState
+import com.toasterofbread.spmp.model.state.SessionState
 import com.toasterofbread.spmp.ui.layout.radiobuilder.getReadable
 import dev.toastbits.ytmkt.endpoint.RadioBuilderModifier
 import org.jetbrains.compose.resources.stringResource
@@ -42,10 +44,10 @@ internal fun CurrentRadioIndicator(
     modifier: Modifier = Modifier,
     getAllSelectableItems: () -> List<MultiSelectItem>
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val horizontal_padding: Dp = 15.dp
 
-    val radio_state: RadioState? = player.controller?.radio_instance?.state
+    val radio_state: RadioState? = state.session.controller?.radio_instance?.state
 
     val filters: List<List<RadioBuilderModifier>>? = radio_state?.filters
     var show_radio_info: Boolean by remember { mutableStateOf(false) }
@@ -158,20 +160,20 @@ private fun FiltersRow(
     modifier: Modifier = Modifier,
     content_padding: PaddingValues = PaddingValues(),
 ) {
-    val player = LocalPlayerState.current
+    val session_state: SessionState = LocalSessionState.current
     LazyRow(
         modifier,
         horizontalArrangement = Arrangement.spacedBy(15.dp),
         contentPadding = content_padding
     ) {
-        val current_filter_index: Int? = player.controller?.radio_instance?.state?.current_filter_index
+        val current_filter_index: Int? = session_state.controller?.radio_instance?.state?.current_filter_index
 
         item {
             RadioFilterChip(
                 current_filter_index == -1,
                 getAccentColour,
                 onClick = {
-                    player.withPlayer {
+                    session_state.withPlayer {
                         radio.setRadioFilter(-1)
                     }
                 },
@@ -188,7 +190,7 @@ private fun FiltersRow(
                 current_filter_index == index,
                 getAccentColour,
                 onClick = {
-                    player.withPlayer {
+                    session_state.withPlayer {
                         if (radio.instance.state.current_filter_index != index) {
                             radio.setRadioFilter(index)
                         }

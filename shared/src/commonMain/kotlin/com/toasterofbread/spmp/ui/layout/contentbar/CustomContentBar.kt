@@ -12,7 +12,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.utils.common.*
 import dev.toastbits.composekit.utils.composable.*
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
@@ -128,17 +128,17 @@ internal fun CustomBarContent(
     buttonContent: @Composable (Int, ContentBarElement, DpSize) -> Unit =
         { _, element, size -> element.Element(vertical, slot, size, Modifier.fillMaxSize()) }
 ): Boolean {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val selected_element: Int? =
         selected_element_override ?: elements.indexOfFirst { it.isSelected() }.takeIf { it != -1 }
 
     val content_colour: Color = LocalContentColor.current
     val indicator_colour: Color =
         when (background_colour) {
-            ThemeValues.Colour.BACKGROUND -> player.theme.vibrant_accent
-            ThemeValues.Colour.CARD -> player.theme.vibrant_accent
-            ThemeValues.Colour.ACCENT -> player.theme.background
-            ThemeValues.Colour.VIBRANT_ACCENT -> player.theme.background
+            ThemeValues.Colour.BACKGROUND -> state.theme.vibrant_accent
+            ThemeValues.Colour.CARD -> state.theme.vibrant_accent
+            ThemeValues.Colour.ACCENT -> state.theme.background
+            ThemeValues.Colour.VIBRANT_ACCENT -> state.theme.background
             else -> content_colour
         }
 
@@ -183,7 +183,7 @@ internal fun CustomBarContent(
             CompositionLocalProvider(
                 LocalContentColor provides
                     if (index == selected_element) indicator_colour.getContrasted()
-                    else background_colour?.get(player.theme)?.getContrasted() ?: LocalContentColor.current
+                    else background_colour?.get(state.theme)?.getContrasted() ?: LocalContentColor.current
             ) {
                 buttonContent(index, element, DpSize(this@BoxWithConstraints.maxWidth, this@BoxWithConstraints.maxHeight))
             }

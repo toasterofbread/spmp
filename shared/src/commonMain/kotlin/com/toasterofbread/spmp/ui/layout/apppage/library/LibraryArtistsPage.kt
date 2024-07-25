@@ -40,7 +40,7 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.artistpage.LocalArtistPage
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -69,14 +69,14 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
         showing_alt_content: Boolean,
         modifier: Modifier,
     ) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
         val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
         val downloads: List<DownloadStatus> by rememberSongDownloads()
         var sorted_artists: List<Pair<ArtistRef, Int>> by remember { mutableStateOf(emptyList()) }
 
         val sorted_liked_artists: List<Artist>? = liked_artists?.let {
-            library_page.sort_type.sortAndFilterItems(it, library_page.search_filter, player.database, library_page.reverse_sort)
+            library_page.sort_type.sortAndFilterItems(it, library_page.search_filter, state.database, library_page.reverse_sort)
         }
 
         LaunchedEffect(Unit) {
@@ -95,11 +95,11 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                         continue
                     }
 
-                    val artist: ArtistRef = download.song.Artists.get(player.database)?.firstOrNull() ?: continue
+                    val artist: ArtistRef = download.song.Artists.get(state.database)?.firstOrNull() ?: continue
                     val artist_index: Int = artists.indexOfFirst { it.first == artist }
 
                     if (artist_index == -1) {
-                        val exclude = filter != null && artist.getActiveTitle(player.database)?.contains(filter, true) != true
+                        val exclude = filter != null && artist.getActiveTitle(state.database)?.contains(filter, true) != true
                         artists.add(Pair(artist, if (exclude) -1 else 1))
                         continue
                     }
@@ -109,7 +109,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                         continue
                     }
 
-                    if (filter != null && artist.getActiveTitle(player.database)?.contains(filter, true) != true) {
+                    if (filter != null && artist.getActiveTitle(state.database)?.contains(filter, true) != true) {
                         artists[artist_index] = current_artist.copy(second = -1)
                     }
                     else {
@@ -120,7 +120,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                 sorted_artists =
                     sort_type.sortItems(
                         artists.filter { it.second != -1 },
-                        player.database,
+                        state.database,
                         reverse_sort
                     ) {
                         it.first
@@ -131,14 +131,14 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
         CompositionLocalProvider(LocalPlayerClickOverrides provides click_overrides.copy(
             onClickOverride = { item, index ->
                 if (showing_alt_content) {
-                    click_overrides.onMediaItemClicked(item, player)
+                    click_overrides.onMediaItemClicked(item, state)
                     return@copy
                 }
 
-                player.openAppPage(
+                state.ui.openAppPage(
                     object : AppPageWithItem() {
                         override val item: MediaItemHolder = item
-                        override val state: AppPageState = player.app_page_state
+                        override val state: AppPageState = state.ui.app_page_state
 
                         private var previous_item: MediaItemHolder? by mutableStateOf(null)
 
@@ -239,9 +239,9 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
 
     @Composable
     override fun RowOrColumnScope.SideContent(showing_alt_content: Boolean) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
         val auth_state: ApiAuthenticationState? =
-            if (showing_alt_content) player.context.ytapi.user_auth_state
+            if (showing_alt_content) state.context.ytapi.user_auth_state
             else null
 
         val liked_artists_endpoint = auth_state?.LikedArtists ?: return

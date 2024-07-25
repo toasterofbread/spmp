@@ -5,7 +5,7 @@ import com.toasterofbread.spmp.model.mediaitem.getUid
 import com.toasterofbread.spmp.model.mediaitem.toMediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.platform.getUiLanguage
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.ytmkt.model.external.ListPageBrowseIdYoutubePage
 import dev.toastbits.ytmkt.model.external.MediaItemYoutubePage
 import dev.toastbits.ytmkt.model.external.PlainYoutubePage
@@ -71,17 +71,17 @@ enum class YoutubePageType {
 }
 
 data class LambdaYoutubePage(
-    val action: (player: OldPlayerStateImpl, title: UiString?) -> Unit
+    val action: (state: SpMp.State, title: UiString?) -> Unit
 ): YoutubePage {
     override fun getBrowseParamsData(): YoutubePage.BrowseParamsData =
         throw IllegalStateException()
 }
 
-suspend fun YoutubePage.open(player: OldPlayerStateImpl, title: UiString?) {
+suspend fun YoutubePage.open(state: SpMp.State, title: UiString?) {
     when (this) {
-        is LambdaYoutubePage ->  action(player, title)
+        is LambdaYoutubePage ->  action(state, title)
         is MediaItemYoutubePage ->
-            player.openMediaItem(
+            state.ui.openMediaItem(
                 (media_item ?: browse_media_item).toMediaItemRef(),
                 true,
                 browse_params = browse_params?.let {
@@ -89,11 +89,11 @@ suspend fun YoutubePage.open(player: OldPlayerStateImpl, title: UiString?) {
                 }
             )
         is ListPageBrowseIdYoutubePage ->
-            player.openMediaItem(
+            state.ui.openMediaItem(
                 media_item.toMediaItemRef(),
                 browse_params = getBrowseParamsData()
             )
         is PlainYoutubePage ->
-            player.openViewMorePage(browse_id, title?.getString(player.context.getUiLanguage()))
+            state.ui.openViewMorePage(browse_id, title?.getString(state.context.getUiLanguage()))
     }
 }

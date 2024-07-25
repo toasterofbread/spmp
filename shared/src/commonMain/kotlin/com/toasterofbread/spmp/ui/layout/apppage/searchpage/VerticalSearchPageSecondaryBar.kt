@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.unit.Dp
 import dev.toastbits.composekit.utils.common.copy
 import dev.toastbits.composekit.utils.modifier.*
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.LargeFilterList
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
@@ -31,7 +31,7 @@ internal fun SearchAppPage.VerticalSearchSecondaryBar(
     modifier: Modifier,
     content_padding: PaddingValues
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val focus_requester: FocusRequester = remember { FocusRequester() }
 
     var show_search_bar: Boolean by remember { mutableStateOf(true) }
@@ -40,13 +40,13 @@ internal fun SearchAppPage.VerticalSearchSecondaryBar(
     val bar_width: Dp = 70.dp
     val search_button_size: Dp = 40.dp
 
-    val suggestions_width: Dp = player.screen_size.width / 2
+    val suggestions_width: Dp = state.ui.screen_size.width / 2
     val suggestions_direction: Int = if (slot.is_start) 1 else -1
     val suggestions_side_padding: Dp =
         if (slot.is_start) content_padding.calculateEndPadding(LocalLayoutDirection.current)
         else content_padding.calculateStartPadding(LocalLayoutDirection.current)
 
-    val gap: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp * (if (player.player_showing) 2 else 1)
+    val gap: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp * (if (state.player.isPlayerShowing()) 2 else 1)
 
     Column(
         modifier
@@ -65,9 +65,10 @@ internal fun SearchAppPage.VerticalSearchSecondaryBar(
 
             IconButton(
                 { show_search_bar = !show_search_bar },
-                player.nowPlayingTopOffset(
+                state.player.topOffset(
                     search_bar_offset_modifier,
                     NowPlayingTopOffsetSection.SEARCH_PAGE_BAR,
+                    apply_spacing = true,
                     displaying = show_search_bar
                 )
             ) {
@@ -94,7 +95,7 @@ internal fun SearchAppPage.VerticalSearchSecondaryBar(
                         IntOffset(0, -suggestions_height / 2)
                     }
                     .then(
-                        player.nowPlayingTopOffset(
+                        state.player.topOffset(
                             Modifier,
                             NowPlayingTopOffsetSection.SEARCH_PAGE_SUGGESTIONS,
                             displaying = show_suggestions,
@@ -124,9 +125,10 @@ internal fun SearchAppPage.VerticalSearchSecondaryBar(
                     .wrapContentHeight(unbounded = true)
                     .then(search_bar_offset_modifier)
                     .then(
-                        player.nowPlayingTopOffset(
+                        state.player.topOffset(
                             Modifier,
                             NowPlayingTopOffsetSection.SEARCH_PAGE_BAR,
+                            apply_spacing = true,
                             displaying = show_search_bar
                         )
                     )

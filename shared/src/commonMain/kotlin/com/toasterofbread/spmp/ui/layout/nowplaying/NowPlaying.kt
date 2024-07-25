@@ -1,9 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying
 
-import LocalPlayerState
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.requiredSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.runtime.*
@@ -19,27 +17,28 @@ import dev.toastbits.composekit.utils.common.*
 import dev.toastbits.composekit.utils.composable.getBottom
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.container.NowPlayingContainer
-import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTabPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.NowPlayingQueuePage
 import kotlin.math.*
 import LocalNowPlayingExpansion
+import LocalUiState
+import com.toasterofbread.spmp.model.state.UiState
 
 const val EXPANDED_THRESHOLD = 0.1f
 const val POSITION_UPDATE_INTERVAL_MS: Long = 100
 
 @Composable
 fun NowPlaying(modifier: Modifier = Modifier) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val ui_state: UiState = LocalUiState.current
     val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
     val density: Density = LocalDensity.current
     val form_factor: FormFactor by NowPlayingPage.observeFormFactor()
-    val pages: List<NowPlayingPage> = remember(form_factor) { NowPlayingPage.ALL.filter { it.shouldShow(player, form_factor) } }
+    val pages: List<NowPlayingPage> = remember(form_factor) { NowPlayingPage.ALL.filter { it.shouldShow(form_factor) } }
 
     val bottom_layout_slot: LayoutSlot =
         when (form_factor) {
@@ -47,12 +46,12 @@ fun NowPlaying(modifier: Modifier = Modifier) {
             FormFactor.PORTRAIT -> PortraitLayoutSlot.BELOW_PLAYER
         }
 
-    player.np_bottom_bar_config = bottom_layout_slot.observeConfig { LayoutSlot.BelowPlayerConfig() }
+    ui_state.player_state.np_bottom_bar_config = bottom_layout_slot.observeConfig { LayoutSlot.BelowPlayerConfig() }
 
     val show_bottom_slot_in_player: Boolean =
-        player.np_bottom_bar_config?.show_in_player == true || bottom_layout_slot.mustShow()
+        ui_state.player_state.np_bottom_bar_config?.show_in_player == true || bottom_layout_slot.mustShow()
     val show_bottom_slot_in_queue: Boolean =
-        player.np_bottom_bar_config?.show_in_queue == true || bottom_layout_slot.mustShow()
+        ui_state.player_state.np_bottom_bar_config?.show_in_queue == true || bottom_layout_slot.mustShow()
 
     BoxWithConstraints(
         modifier,
@@ -63,7 +62,7 @@ fun NowPlaying(modifier: Modifier = Modifier) {
             contentAlignment = Alignment.BottomCenter
         ) {
             AnimatedVisibility(
-                player.player_showing,
+                ui_state.player_state.isPlayerShowing(),
                 modifier,
                 exit = slideOutVertically() { it },
                 enter = slideInVertically() { it }
@@ -77,25 +76,25 @@ fun NowPlaying(modifier: Modifier = Modifier) {
                             else -> false
                         }
                     },
-                    getBottomBarHeight = { player.np_bottom_bar_height }
+                    getBottomBarHeight = { ui_state.player_state.np_bottom_bar_height }
                 )
             }
 
-            val bottom_inset: Dp = WindowInsets.getBottom(player.np_overlay_menu == null)
+            val bottom_inset: Dp = WindowInsets.getBottom(ui_state.player_state.np_overlay_menu == null)
 
-            player.np_bottom_bar_showing = bottom_layout_slot.DisplayBar(
+            ui_state.player_state.np_bottom_bar_showing = bottom_layout_slot.DisplayBar(
                 0.dp,
                 container_modifier =
                     Modifier
                         .onSizeChanged {
-                            player.np_bottom_bar_height = with (density) {
+                            ui_state.player_state.np_bottom_bar_height = with (density) {
                                 it.height.toDp() - bottom_inset
                             }
                         },
                 modifier = Modifier
                     .fillMaxWidth()
                     .offset {
-                        val bounded: Float = player.expansion.getBounded()
+                        val bounded: Float = ui_state.player_expansion.getBounded()
                         val slot_expansion: Float =
                             if (!show_bottom_slot_in_player) {
                                 if (show_bottom_slot_in_queue) (bounded - 1f).absoluteValue.coerceIn(0f..1f)
@@ -107,7 +106,7 @@ fun NowPlaying(modifier: Modifier = Modifier) {
                         IntOffset(
                             x = 0,
                             y = with (density) {
-                                ((player.np_bottom_bar_height + bottom_inset).toPx() * (1f - slot_expansion)).roundToInt()
+                                ((ui_state.player_state.np_bottom_bar_height + bottom_inset).toPx() * (1f - slot_expansion)).roundToInt()
                             }
                         )
                     },
@@ -115,7 +114,7 @@ fun NowPlaying(modifier: Modifier = Modifier) {
                     bottom = bottom_inset
                 ),
                 getParentBackgroundColour = {
-                    player.getNPBackground()
+                    ui_state.getNPBackground()
                 },
                 getBackgroundColour = { background_colour ->
                     if (background_colour.alpha >= 0.5f) {
@@ -127,14 +126,14 @@ fun NowPlaying(modifier: Modifier = Modifier) {
                         if (bounded > 1f) bounded - 1f
                         else 0f
 
-                    return@DisplayBar player.getNPBackground().blendWith(background_colour, our_ratio = min_background_alpha)
+                    return@DisplayBar ui_state.getNPBackground().blendWith(background_colour, our_ratio = min_background_alpha)
                 }
             )
 
             val bottom_bar_colour: ColourSource by bottom_layout_slot.rememberColourSource()
-            LaunchedEffect(player.np_bottom_bar_showing) {
-                player.bar_colour_state.nav_bar.setLevelColour(
-                    if (player.np_bottom_bar_showing) bottom_bar_colour
+            LaunchedEffect(ui_state.player_state.np_bottom_bar_showing) {
+                ui_state.bar_colour_state.nav_bar.setLevelColour(
+                    if (ui_state.player_state.np_bottom_bar_showing) bottom_bar_colour
                     else null,
                     BarColourState.NavBarLevel.BAR
                 )
@@ -156,15 +155,15 @@ enum class ThemeMode {
     }
 }
 
-private fun OldPlayerStateImpl.getBackgroundColourOverride(): Color {
+private fun UiState.getBackgroundColourOverride(): Color {
     val form_factor: FormFactor = FormFactor.getCurrent(this)
-    val pages: List<NowPlayingPage> = NowPlayingPage.ALL.filter { it.shouldShow(this, form_factor) }
+    val pages: List<NowPlayingPage> = NowPlayingPage.ALL.filter { it.shouldShow(form_factor) }
 
-    var current: Color? = pages.getOrNull(expansion.swipe_state.currentValue - 1)?.getPlayerBackgroundColourOverride(this)
-    var target: Color? = pages.getOrNull(expansion.swipe_state.targetValue - 1)?.getPlayerBackgroundColourOverride(this)
+    var current: Color? = pages.getOrNull(player_expansion.swipe_state.currentValue - 1)?.getPlayerBackgroundColourOverride(this)
+    var target: Color? = pages.getOrNull(player_expansion.swipe_state.targetValue - 1)?.getPlayerBackgroundColourOverride(this)
 
     val default: Color =
-        when (np_theme_mode) {
+        when (player_state.np_theme_mode) {
             ThemeMode.BACKGROUND -> theme.accent
             ThemeMode.ELEMENTS -> theme.card
             ThemeMode.NONE -> theme.card
@@ -181,21 +180,21 @@ private fun OldPlayerStateImpl.getBackgroundColourOverride(): Color {
         target = default
     }
 
-    return target!!.blendWith(current, if (expansion.swipe_state.lastVelocity < 0 ) 1f - expansion.swipe_state.progress else expansion.swipe_state.progress)
+    return target!!.blendWith(current, if (player_expansion.swipe_state.lastVelocity < 0 ) 1f - player_expansion.swipe_state.progress else player_expansion.swipe_state.progress)
 }
 
 private var derived_np_background: State<Color>? = null
-private var derived_np_background_player: OldPlayerStateImpl? = null
+private var derived_np_background_ui_state: UiState? = null
 
-fun OldPlayerStateImpl.getNPBackground(): Color {
-    if (derived_np_background == null || derived_np_background_player != this) {
+fun UiState.getNPBackground(): Color {
+    if (derived_np_background == null || derived_np_background_ui_state != this) {
         derived_np_background = derivedStateOf { getBackgroundColourOverride() }
-        derived_np_background_player = this
+        derived_np_background_ui_state = this
     }
     return derived_np_background!!.value
 }
 
-internal fun OldPlayerStateImpl.getNPOnBackground(): Color {
+internal fun UiState.getNPOnBackground(): Color {
     return getBackgroundColourOverride().getContrasted()
 //    val override: Color? = getBackgroundColourOverride()?.getPlayerBackgroundColourOverride(this)
 //    if (override != null) {
@@ -209,12 +208,12 @@ internal fun OldPlayerStateImpl.getNPOnBackground(): Color {
 //    }
 }
 
-internal fun OldPlayerStateImpl.getNPAltBackground(theme_mode: ThemeMode = np_theme_mode): Color {
+internal fun UiState.getNPAltBackground(theme_mode: ThemeMode = player_state.np_theme_mode): Color {
     return when (theme_mode) {
         ThemeMode.BACKGROUND -> getNPBackground().amplifyPercent(-0.4f, opposite_percent = -0.2f)
         else -> theme.background
     }
 }
 
-internal fun OldPlayerStateImpl.getNPAltOnBackground(): Color =
+internal fun UiState.getNPAltOnBackground(): Color =
     getNPBackground().amplifyPercent(-0.4f, opposite_percent = -0.1f)

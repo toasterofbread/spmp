@@ -1,6 +1,8 @@
 package com.toasterofbread.spmp.ui.layout.radiobuilder
 
+import LocalAppState
 import LocalPlayerState
+import LocalTheme
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.Spring
@@ -24,6 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import dev.toastbits.composekit.settings.ui.on_accent
 import dev.toastbits.composekit.settings.ui.vibrant_accent
 import dev.toastbits.composekit.utils.composable.NoRipple
@@ -53,7 +56,7 @@ import spmp.shared.generated.resources.radio_builder_modifier_filter_focus
 
 @Composable
 internal fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.SelectionType>) {
-    val player = LocalPlayerState.current
+    val theme: ThemeValues = LocalTheme.current
 
     Row(
         Modifier.fillMaxWidth(),
@@ -80,7 +83,7 @@ internal fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.Selection
                     }
                 }
 
-                RecordArc(size.value.dp, arc_angle.value, offset.value, player.theme.vibrant_accent)
+                RecordArc(size.value.dp, arc_angle.value, offset.value, theme.vibrant_accent)
             }
         }
 
@@ -118,7 +121,7 @@ internal fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.Selection
 //                    horizontalAlignment = Alignment.CenterHorizontally,
 //                    verticalArrangement = Arrangement.spacedBy(15.dp)
 //                ) {
-//                    RadioSelectionTypeAnimation(type, animate, colour = if (state.value == type) player.theme.vibrant_accent else player.theme.on_background)
+//                    RadioSelectionTypeAnimation(type, animate, colour = if (state.value == type) state.theme.vibrant_accent else state.theme.on_background)
 //                    Text(text)
 //                }
 //            }
@@ -186,7 +189,7 @@ internal fun MultiSelectRow(
     columns: Int = amount,
     shape: Shape = RoundedCornerShape(12.dp)
 ) {
-    val player = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     val rows = if (columns <= 0) 1 else ceil(amount / columns.toDouble()).toInt()
     for (row in 0 until rows) {
@@ -209,8 +212,8 @@ internal fun MultiSelectRow(
                                         { if (nullable) onSelected(null) },
                                         Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.buttonColors(
-                                            containerColor = player.theme.accent,
-                                            contentColor = player.theme.on_accent
+                                            containerColor = state.theme.accent,
+                                            contentColor = state.theme.on_accent
                                         ),
                                         contentPadding = button_padding,
                                         shape = shape
@@ -223,7 +226,7 @@ internal fun MultiSelectRow(
                                         { onSelected(i) },
                                         Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.outlinedButtonColors(
-                                            contentColor = player.theme.on_background
+                                            contentColor = state.theme.on_background
                                         ),
                                         contentPadding = button_padding,
                                         shape = shape

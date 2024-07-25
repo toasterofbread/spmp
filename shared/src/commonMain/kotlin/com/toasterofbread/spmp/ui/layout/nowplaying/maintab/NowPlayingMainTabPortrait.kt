@@ -54,7 +54,7 @@ import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverride
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.horizontal_padding
@@ -86,12 +86,12 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(
     content_padding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val density: Density = LocalDensity.current
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
     val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
 
-    val current_song: Song? by player.status.song_state
+    val current_song: Song? by state.session.status.song_state
 
     BoxWithConstraints(modifier.clipToBounds()) {
         val top_padding: Dp = content_padding.calculateTopPadding()
@@ -175,12 +175,12 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(
             ) {
                 val button_modifier: Modifier = Modifier.alpha(0.5f)
                 val side_button_padding: Dp = 20.dp
-                val show_shuffle_repeat_buttons: Boolean by player.settings.player.SHOW_REPEAT_SHUFFLE_BUTTONS.observe()
+                val show_shuffle_repeat_buttons: Boolean by state.settings.state.SHOW_REPEAT_SHUFFLE_BUTTONS.observe()
 
                 Controls(
                     current_song,
                     {
-                        player.withPlayer {
+                        state.session.withPlayer {
                             if (duration_ms <= 0) {
                                 return@withPlayer
                             }
@@ -212,7 +212,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(
                     },
                     artistRowStartContent = {
                         if (show_shuffle_repeat_buttons) {
-                            RepeatButton({ player.getNPBackground() }, button_modifier)
+                            RepeatButton({ state.ui.getNPBackground() }, button_modifier)
                         }
                         else {
                             Spacer(Modifier.height(40.dp))
@@ -234,7 +234,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        val bottom_row_colour: Color = player.getNPOnBackground().copy(alpha = 0.5f)
+                        val bottom_row_colour: Color = state.ui.getNPOnBackground().copy(alpha = 0.5f)
                         var show_volume_slider: Boolean by remember { mutableStateOf(false) }
 
                         Row(
@@ -254,7 +254,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(
                             }
                         }
 
-                        IconButton({ player.expansion.scroll(1) }) {
+                        IconButton({ state.ui.player_expansion.scroll(1) }) {
                             Icon(Icons.Default.KeyboardArrowUp, null, tint = bottom_row_colour)
                         }
 
@@ -262,7 +262,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(
                             {
                                 current_song?.let { song ->
                                     if (1f - expansion.getDisappearing() > 0f) {
-                                        click_overrides.onMediaItemAltClicked(song, player.status.m_index, player)
+                                        click_overrides.onMediaItemAltClicked(song, state.session.status.m_index, state)
                                     }
                                 }
                             }

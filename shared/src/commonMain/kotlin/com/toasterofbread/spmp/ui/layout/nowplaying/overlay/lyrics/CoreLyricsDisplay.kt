@@ -20,7 +20,7 @@ import dev.toastbits.composekit.platform.composable.platformClickable
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.HorizontalFuriganaText
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING_DP
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
@@ -38,12 +38,12 @@ fun CoreLyricsDisplay(
     enable_autoscroll: Boolean = true,
     onLineAltClick: ((Int) -> Unit)? = null
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val density: Density = LocalDensity.current
-    val lyrics_sync_offset: Long? by song.getLyricsSyncOffset(player.database, false)
+    val lyrics_sync_offset: Long? by song.getLyricsSyncOffset(state.database, false)
 
-    val romanise_furigana: Boolean by player.settings.lyrics.ROMANISE_FURIGANA.observe()
-    val add_padding: Boolean by player.settings.lyrics.EXTRA_PADDING.observe()
+    val romanise_furigana: Boolean by state.settings.lyrics.ROMANISE_FURIGANA.observe()
+    val add_padding: Boolean by state.settings.lyrics.EXTRA_PADDING.observe()
 
     var area_size: Dp by remember { mutableStateOf(0.dp) }
     val size_px: Float = with(density) { ((area_size - (NOW_PLAYING_MAIN_PADDING_DP.dp * 2) - (15.dp * getExpansion() * 2)).value * 0.9.dp).toPx() }
@@ -59,7 +59,7 @@ fun CoreLyricsDisplay(
     var tokenised_lines: List<List<SongLyrics.Term>>? by remember { mutableStateOf(null) }
 
     suspend fun getScrollOffset(follow_offset: Float? = null): Int =
-        (padding_height - static_scroll_offset - size_px * (follow_offset ?: player.settings.lyrics.FOLLOW_OFFSET.get())).toInt()
+        (padding_height - static_scroll_offset - size_px * (follow_offset ?: state.settings.lyrics.FOLLOW_OFFSET.get())).toInt()
 
     LaunchedEffect(lyrics, romanise_furigana) {
         val tokeniser: LyricsFuriganaTokeniser = createFuriganaTokeniser(romanise_furigana)
@@ -75,9 +75,9 @@ fun CoreLyricsDisplay(
 
         while (true) {
             val (range, next) = getTermRangeOfTime(
-                player.context,
+                state.context,
                 lyrics,
-                player.status.getPositionMs() + (lyrics_sync_offset ?: 0)
+                state.session.status.getPositionMs() + (lyrics_sync_offset ?: 0)
             )
 
             if (range != null) {
@@ -88,7 +88,7 @@ fun CoreLyricsDisplay(
         }
     }
 
-    val font_size_percent: Float by player.settings.lyrics.FONT_SIZE.observe()
+    val font_size_percent: Float by state.settings.lyrics.FONT_SIZE.observe()
     val font_size: TextUnit = (10 + (font_size_percent * 20)).sp
     val text_style: TextStyle = getLyricsTextStyle(font_size)
 
@@ -116,7 +116,7 @@ fun CoreLyricsDisplay(
             }
         }
 
-        val text_alignment: Int by player.settings.lyrics.TEXT_ALIGNMENT.observe()
+        val text_alignment: Int by state.settings.lyrics.TEXT_ALIGNMENT.observe()
 
         LazyColumn(
             Modifier

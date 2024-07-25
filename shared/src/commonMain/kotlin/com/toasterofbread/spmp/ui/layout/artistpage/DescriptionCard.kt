@@ -40,11 +40,11 @@ import dev.toastbits.composekit.utils.common.blendWith
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.composable.LinkifyText
 import dev.toastbits.composekit.utils.composable.NoRipple
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 
 @Composable
 fun DescriptionCard(description_text: String, expanding: Boolean = true, height: Dp = 200.dp) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     var expanded: Boolean by remember { mutableStateOf(false) }
     var can_expand: Boolean by remember { mutableStateOf(false) }
@@ -57,7 +57,7 @@ fun DescriptionCard(description_text: String, expanding: Boolean = true, height:
             .fillMaxWidth()
             .animateContentSize(),
         colors = CardDefaults.elevatedCardColors(
-            containerColor = player.theme.accent.blendWith(player.theme.background, 0.05f)
+            containerColor = state.theme.accent.blendWith(state.theme.background, 0.05f)
         )
     ) {
         Column(
@@ -90,7 +90,7 @@ fun DescriptionCard(description_text: String, expanding: Boolean = true, height:
             }
 
             LinkifyText(
-                player.context,
+                state.context,
                 description_text,
                 modifier = Modifier
                     .onSizeChanged { size ->
@@ -99,9 +99,9 @@ fun DescriptionCard(description_text: String, expanding: Boolean = true, height:
                         }
                     }
                     .animateContentSize(),
-                highlight_colour = player.theme.on_background,
+                highlight_colour = state.theme.on_background,
                 style = MaterialTheme.typography.bodyMedium.copy(
-                    color = player.theme.on_background.copy(alpha = 0.8f)
+                    color = state.theme.on_background.copy(alpha = 0.8f)
                 )
             )
 

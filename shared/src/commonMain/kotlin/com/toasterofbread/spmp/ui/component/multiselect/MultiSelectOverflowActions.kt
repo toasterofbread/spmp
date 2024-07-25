@@ -25,7 +25,7 @@ import com.toasterofbread.spmp.platform.download.rememberSongDownloads
 import com.toasterofbread.spmp.platform.getOrNotify
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.composekit.settings.ui.on_accent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
@@ -44,7 +44,7 @@ internal fun ColumnScope.MultiSelectOverflowActions(
     multiselect_context: MediaItemMultiSelectContext,
     additionalSelectedItemActions: (@Composable ColumnScope.(MediaItemMultiSelectContext) -> Unit)?
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     val selected_items = multiselect_context.selected_items
@@ -85,14 +85,14 @@ internal fun ColumnScope.MultiSelectOverflowActions(
         PlatformClickableButton(
             onClick = {
                 val songs: List<Song> = multiselect_context.getUniqueSelectedItems().filterIsInstance<Song>()
-                player.onSongDownloadRequested(songs)
+                state.ui.onSongDownloadRequested(songs)
                 multiselect_context.onActionPerformed()
             },
             onAltClick = {
                 val songs: List<Song> = multiselect_context.getUniqueSelectedItems().filterIsInstance<Song>()
-                player.onSongDownloadRequested(songs, always_show_options = true)
+                state.ui.onSongDownloadRequested(songs, always_show_options = true)
                 multiselect_context.onActionPerformed()
-                player.context.vibrateShort()
+                state.context.vibrateShort()
             }
         ) {
             Icon(Icons.Default.Download, null)
@@ -105,14 +105,14 @@ internal fun ColumnScope.MultiSelectOverflowActions(
 
 @Composable
 private fun AddToPlaylistDialog(multiselect_context: MediaItemMultiSelectContext, items: List<Song>, coroutine_scope: CoroutineScope, onFinished: () -> Unit) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     val selected_playlists: SnapshotStateList<Playlist> = remember { mutableStateListOf() }
     val button_colours = IconButtonDefaults.iconButtonColors(
-        containerColor = player.theme.accent,
-        disabledContainerColor = player.theme.accent,
-        contentColor = player.theme.on_accent,
-        disabledContentColor = player.theme.on_accent.copy(alpha = 0.5f)
+        containerColor = state.theme.accent,
+        disabledContainerColor = state.theme.accent,
+        contentColor = state.theme.on_accent,
+        disabledContentColor = state.theme.on_accent.copy(alpha = 0.5f)
     )
 
     fun onPlaylistsSelected() {
@@ -121,14 +121,14 @@ private fun AddToPlaylistDialog(multiselect_context: MediaItemMultiSelectContext
         if (selected_playlists.isNotEmpty()) {
             coroutine_scope.launch(NonCancellable) {
                 for (playlist in selected_playlists) {
-                    val editor: InteractivePlaylistEditor = playlist.getEditorOrNull(player.context).getOrNull() ?: continue
+                    val editor: InteractivePlaylistEditor = playlist.getEditorOrNull(state.context).getOrNull() ?: continue
                     for (item in items) {
                         editor.addItem(item, null)
                     }
                     editor.applyChanges()
                 }
 
-                player.context.sendToast(getString(Res.string.toast_playlist_added))
+                state.context.sendToast(getString(Res.string.toast_playlist_added))
             }
         }
 
@@ -147,14 +147,14 @@ private fun AddToPlaylistDialog(multiselect_context: MediaItemMultiSelectContext
                     {
                         coroutine_scope.launch {
                             val playlist: LocalPlaylistData =
-                                MediaItemLibrary.createLocalPlaylist(player.context).getOrNotify(player.context, "MultiSelectContextCreateLocalPlaylist")
+                                MediaItemLibrary.createLocalPlaylist(state.context).getOrNotify(state.context, "MultiSelectContextCreateLocalPlaylist")
                                 ?: return@launch
                             selected_playlists.add(playlist)
                         }
                     },
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = player.theme.accent,
-                        contentColor = player.theme.on_accent
+                        containerColor = state.theme.accent,
+                        contentColor = state.theme.on_accent
                     )
                 ) {
                     Text(stringResource(Res.string.playlist_create))
@@ -174,7 +174,7 @@ private fun AddToPlaylistDialog(multiselect_context: MediaItemMultiSelectContext
         },
         text = {
 //                CompositionLocalProvider(LocalContentColor provides context.theme.accent) {
-                PlaylistSelectMenu(selected_playlists, player.context.ytapi.user_auth_state, Modifier.height(300.dp))
+                PlaylistSelectMenu(selected_playlists, state.context.ytapi.user_auth_state, Modifier.height(300.dp))
 //                }
         }
     )

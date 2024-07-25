@@ -11,7 +11,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.utils.composable.getTop
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import com.toasterofbread.spmp.model.state.UiState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NowPlayingMainTabPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.NowPlayingQueuePage
 
@@ -23,7 +24,7 @@ abstract class NowPlayingPage {
     abstract fun Page(page_height: Dp, top_bar: NowPlayingTopBar, content_padding: PaddingValues, swipe_modifier: Modifier, modifier: Modifier)
     open fun shouldShow(form_factor: FormFactor): Boolean = true
 
-    open fun getPlayerBackgroundColourOverride(player: OldPlayerStateImpl): Color? = null
+    open fun getPlayerBackgroundColourOverride(ui_state: UiState): Color? = null
 
     companion object {
         @Composable

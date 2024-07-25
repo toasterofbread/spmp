@@ -10,7 +10,7 @@ import com.toasterofbread.spmp.model.settings.category.DiscordSettings
 import dev.toastbits.composekit.settings.ui.SettingsPage
 import dev.toastbits.composekit.platform.PreferencesProperty
 import com.toasterofbread.spmp.ui.layout.DiscordLogin
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.discord_manual_login_title
@@ -41,7 +41,7 @@ internal fun getDiscordLoginPage(discord_auth: PreferencesProperty<String>, manu
             openCustomPage: (SettingsPage) -> Unit,
             goBack: () -> Unit,
         ) {
-            val player: OldPlayerStateImpl = LocalPlayerState.current
+            val state: SpMp.State = LocalAppState.current
 
             DiscordLogin(content_padding, Modifier.fillMaxSize(), manual = manual) { auth_info ->
                 if (auth_info == null) {
@@ -58,7 +58,7 @@ internal fun getDiscordLoginPage(discord_auth: PreferencesProperty<String>, manu
                     },
                     { error ->
                         error.message?.also {
-                            player.context.sendToast(it)
+                            state.context.sendToast(it)
                         }
                     }
                 )

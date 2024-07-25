@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import LocalPlayerState
+import LocalUiState
 import dev.toastbits.composekit.settings.ui.ThemeValues
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringResource
@@ -38,7 +39,7 @@ private class PrimaryInternalContentBar(index: Int): InternalContentBar(index) {
 
     @Composable
     override fun isDisplaying(): Boolean =
-        LocalPlayerState.current.app_page.shouldShowPrimaryBarContent()
+        LocalUiState.current.app_page.shouldShowPrimaryBarContent()
 
     @Composable
     override fun BarContent(
@@ -49,7 +50,7 @@ private class PrimaryInternalContentBar(index: Int): InternalContentBar(index) {
         lazy: Boolean,
         modifier: Modifier
     ): Boolean {
-        val page: AppPage = LocalPlayerState.current.app_page
+        val page: AppPage = LocalUiState.current.app_page
         if (page.shouldShowPrimaryBarContent()) {
             if (!page.PrimaryBarContent(slot, content_padding, distance_to_page, lazy, modifier)) {
                 return false
@@ -70,7 +71,7 @@ private class SecondaryInternalContentBar(index: Int): InternalContentBar(index)
 
     @Composable
     override fun isDisplaying(): Boolean =
-        LocalPlayerState.current.app_page.shouldShowSecondaryBarContent()
+        LocalUiState.current.app_page.shouldShowSecondaryBarContent()
 
     @Composable
     override fun BarContent(
@@ -81,7 +82,7 @@ private class SecondaryInternalContentBar(index: Int): InternalContentBar(index)
         lazy: Boolean,
         modifier: Modifier
     ): Boolean {
-        val page: AppPage = LocalPlayerState.current.app_page
+        val page: AppPage = LocalUiState.current.app_page
         if (page.shouldShowSecondaryBarContent()) {
             if (!page.SecondaryBarContent(slot, content_padding, distance_to_page, lazy, modifier)) {
                 return false

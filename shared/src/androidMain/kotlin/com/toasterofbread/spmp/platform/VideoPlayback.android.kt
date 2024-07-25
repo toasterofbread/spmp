@@ -48,7 +48,7 @@ actual fun VideoPlayback(
     fill: Boolean,
     getAlpha: () -> Float
 ): Boolean {
-    val context: Context = LocalPlayerState.current.context.ctx
+    val context: Context = LocalAppContext.current.ctx
 
     val exoplayer: ExoPlayer =
         remember {
@@ -63,7 +63,7 @@ actual fun VideoPlayback(
         remember {
             PlayerView(context).apply {
                 useController = false
-                player = exoplayer
+                state = exoplayer
                 resizeMode =
                     if (fill) AspectRatioFrameLayout.RESIZE_MODE_ZOOM
                     else AspectRatioFrameLayout.RESIZE_MODE_FIT

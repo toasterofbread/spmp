@@ -1,9 +1,14 @@
 package com.toasterofbread.spmp.model.state
 
 import ProgramArguments
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
+import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.PlatformExternalPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlatformInternalPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
@@ -13,8 +18,11 @@ import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.PersistentQueueHandler
 import com.toasterofbread.spmp.service.playercontroller.PlayerStatus
+import dev.toastbits.composekit.platform.synchronized
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 class SessionStateImpl(
     private val context: AppContext,
@@ -32,31 +40,8 @@ class SessionStateImpl(
 
     override val status: PlayerStatus = PlayerStatus()
 
-    override fun withPlayer(action: PlayerServicePlayer.() -> Unit) {
-        _player?.also {
-            action(it.service_player)
-            return
-        }
-
-        coroutine_scope.launch {
-            connectService {
-                action(it.service_player)
-            }
-        }
-    }
-
-    override fun interactService(action: (player: PlayerService) -> Unit) {
-        synchronized(service_connected_listeners) {
-            _player?.also {
-                action(it)
-                return
-            }
-
-            service_connected_listeners.add {
-                action(_player!!)
-            }
-        }
-    }
+    override fun isRunningAndFocused(): Boolean =
+        controller?.has_focus == true
 
     override fun onStart() {
         SpMp.addLowMemoryListener(low_memory_listener)
@@ -88,12 +73,110 @@ class SessionStateImpl(
         _player = null
     }
 
+    override fun interactService(action: (state: PlayerService) -> Unit) {
+        synchronized(service_connected_listeners) {
+            _player?.also {
+                action(it)
+                return
+            }
+
+            service_connected_listeners.add {
+                action(_player!!)
+            }
+        }
+    }
+
+
+    override suspend fun requestServiceChange(service_companion: PlayerServiceCompanion) = withContext(Dispatchers.Default) {
+        synchronized(service_connected_listeners) {
+            service_connection?.also { connection ->
+                service_connection_companion!!.disconnect(context, connection)
+                service_connection_companion = null
+                service_connection = null
+
+                _player?.also {
+                    launch(Dispatchers.Main) {
+                        it.onDestroy()
+                    }
+                    _player = null
+                }
+            }
+
+            service_connecting = false
+        }
+
+        connectService(service_companion, onConnected = null)
+    }
+
+    override fun withPlayer(action: PlayerServicePlayer.() -> Unit) {
+        _player?.also {
+            action(it.service_player)
+            return
+        }
+
+        coroutine_scope.launch {
+            connectService {
+                action(it.service_player)
+            }
+        }
+    }
+
+    @Composable
+    override fun withPlayerComposable(action: @Composable PlayerServicePlayer.() -> Unit) {
+        LaunchedEffect(Unit) {
+            connectService(onConnected = null)
+        }
+
+        _player?.service_player?.also {
+            action(it)
+        }
+    }
+
+    override fun playMediaItem(item: MediaItem, shuffle: Boolean, at_index: Int) {
+        withPlayer {
+            coroutine_scope.launch {
+                if (item is Song) {
+                    playSong(
+                        item,
+                        start_radio = context.settings.behaviour.START_RADIO_ON_SONG_PRESS.get(),
+                        shuffle = shuffle,
+                        at_index = at_index
+                    )
+                }
+                else {
+                    startRadioAtIndex(
+                        at_index,
+                        item,
+                        shuffle = shuffle,
+                        onSuccessfulLoad = { result ->
+                            seekToSong(at_index)
+                        }
+                    )
+                }
+            }
+        }
+    }
+
+    override fun playPlaylist(playlist: Playlist, from_index: Int) {
+        withPlayer {
+            startRadioAtIndex(
+                0,
+                playlist,
+                onSuccessfulLoad = {
+                    if (from_index > 0) {
+                        seekToSong(from_index)
+                    }
+                }
+            )
+        }
+    }
+
     private var service_connecting: Boolean = false
     private var service_connected_listeners: MutableList<(PlayerService) -> Unit> = mutableListOf()
     private var service_connection: Any? = null
     private var service_connection_companion: PlayerServiceCompanion? = null
 
-    private fun getServiceCompanion(): PlayerServiceCompanion =
+    private suspend fun getServiceCompanion(): PlayerServiceCompanion =
         if (!PlatformInternalPlayerService.isServiceAttached(context) && (!PlatformInternalPlayerService.isAvailable(context, launch_arguments) || context.settings.platform.ENABLE_EXTERNAL_SERVER_MODE.get()))
             PlatformExternalPlayerService
         else PlatformInternalPlayerService

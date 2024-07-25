@@ -47,7 +47,7 @@ open class ForegroundPlayerService(
     private lateinit var _context: AppContext
 
     internal val coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
-    internal lateinit var player: ExoPlayer
+    internal lateinit var state: ExoPlayer
     internal lateinit var media_session: MediaSession
     internal lateinit var audio_sink: AudioSink
     internal var loudness_enhancer: LoudnessEnhancer? = null
@@ -79,17 +79,17 @@ open class ForegroundPlayerService(
     private val listeners: MutableList<PlayerListener> = mutableListOf()
 
     override fun addListener(listener: PlayerListener) {
-        listener.addToPlayer(player)
+        listener.addToPlayer(state)
         listeners.add(listener)
     }
     override fun removeListener(listener: PlayerListener) {
         listeners.remove(listener)
-        listener.removeFromPlayer(player)
+        listener.removeFromPlayer(state)
     }
 
     protected open fun onRadioCancelled() {}
 
-    protected open fun getNotificationPlayer(player: Player): Player = player
+    protected open fun getNotificationPlayer(state: Player): Player = state
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
@@ -158,7 +158,7 @@ open class ForegroundPlayerService(
         _context.getPrefs().removeListener(prefs_listener)
         coroutine_scope.cancel()
         service_player.release()
-        player.release()
+        state.release()
         media_session.release()
         loudness_enhancer?.release()
         SongLikedStatusListener.removeListener(song_liked_listener)
@@ -174,7 +174,7 @@ open class ForegroundPlayerService(
         super.onTaskRemoved(intent)
 
         if (
-            (!player.isPlaying && convertState(player.playbackState) != SpMsPlayerState.BUFFERING)
+            (!state.isPlaying && convertState(state.playbackState) != SpMsPlayerState.BUFFERING)
             || (
                 context.settings.behaviour.STOP_PLAYER_ON_APP_CLOSE.get()
                 && intent?.component?.packageName == packageName
@@ -207,22 +207,22 @@ open class ForegroundPlayerService(
 
     private lateinit var _service_player: PlayerServicePlayer
     override val service_player: PlayerServicePlayer get() = _service_player
-    override val state: SpMsPlayerState get() = convertState(player.playbackState)
-    override val is_playing: Boolean get() = player.isPlaying
-    override val song_count: Int get() = player.mediaItemCount
-    override val current_song_index: Int get() = player.currentMediaItemIndex
-    override val current_position_ms: Long get() = player.currentPosition
-    override val duration_ms: Long get() = player.duration
+    override val state: SpMsPlayerState get() = convertState(state.playbackState)
+    override val is_playing: Boolean get() = state.isPlaying
+    override val song_count: Int get() = state.mediaItemCount
+    override val current_song_index: Int get() = state.currentMediaItemIndex
+    override val current_position_ms: Long get() = state.currentPosition
+    override val duration_ms: Long get() = state.duration
     override val radio_instance: RadioInstance get() = service_player.radio_instance
     override var repeat_mode: SpMsPlayerRepeatMode
-        get() = SpMsPlayerRepeatMode.entries[player.repeatMode]
+        get() = SpMsPlayerRepeatMode.entries[state.repeatMode]
         set(value) {
-            player.repeatMode = value.ordinal
+            state.repeatMode = value.ordinal
         }
     override var volume: Float
-        get() = player.volume
+        get() = state.volume
         set(value) {
-            player.volume = value
+            state.volume = value
         }
     override val has_focus: Boolean
         get() = TODO()
@@ -240,19 +240,19 @@ open class ForegroundPlayerService(
     }
 
     override fun play() {
-        player.play()
+        state.play()
     }
 
     override fun pause() {
-        player.pause()
+        state.pause()
     }
 
     override fun playPause() {
-        if (player.isPlaying) {
-            player.pause()
+        if (state.isPlaying) {
+            state.pause()
         }
         else {
-            player.play()
+            state.play()
         }
     }
 
@@ -261,7 +261,7 @@ open class ForegroundPlayerService(
 
     override fun seekTo(position_ms: Long) {
         val current: Pair<Int, Long> = getSeekPosition()
-        player.seekTo(position_ms)
+        state.seekTo(position_ms)
         listeners.forEach { it.onSeeked(position_ms) }
 
         if (current != getSeekPosition()) {
@@ -271,7 +271,7 @@ open class ForegroundPlayerService(
 
     override fun seekToSong(index: Int) {
         val current: Pair<Int, Long> = getSeekPosition()
-        player.seekTo(index, 0)
+        state.seekTo(index, 0)
 
         if (current != getSeekPosition()) {
             song_seek_undo_stack.add(current)
@@ -280,7 +280,7 @@ open class ForegroundPlayerService(
 
     override fun seekToNext() {
         val current: Pair<Int, Long> = getSeekPosition()
-        player.seekToNext()
+        state.seekToNext()
 
         if (current != getSeekPosition()) {
             song_seek_undo_stack.add(current)
@@ -289,7 +289,7 @@ open class ForegroundPlayerService(
 
     override fun seekToPrevious() {
         val current: Pair<Int, Long> = getSeekPosition()
-        player.seekToPrevious()
+        state.seekToPrevious()
 
         if (current != getSeekPosition()) {
             song_seek_undo_stack.add(current)
@@ -300,15 +300,15 @@ open class ForegroundPlayerService(
         val (index: Int, position_ms: Long) = song_seek_undo_stack.removeLastOrNull() ?: return
 
         if (index != current_song_index) {
-            player.seekTo(index, position_ms)
+            state.seekTo(index, position_ms)
         }
         else {
-            player.seekTo(position_ms)
+            state.seekTo(position_ms)
         }
     }
 
     override fun getSong(): Song? {
-        return player.currentMediaItem?.getSong()
+        return state.currentMediaItem?.getSong()
     }
 
     override fun getSong(index: Int): Song? {
@@ -316,24 +316,24 @@ open class ForegroundPlayerService(
             return null
         }
 
-        return player.getMediaItemAt(index).getSong()
+        return state.getMediaItemAt(index).getSong()
     }
 
     override fun addSong(song: Song, index: Int) {
-        player.addMediaItem(index, song.buildExoMediaItem(context))
+        state.addMediaItem(index, song.buildExoMediaItem(context))
         listeners.forEach { it.onSongAdded(index, song) }
 
         service_player.session_started = true
     }
 
     override fun moveSong(from: Int, to: Int) {
-        player.moveMediaItem(from, to)
+        state.moveMediaItem(from, to)
         listeners.forEach { it.onSongMoved(from, to) }
     }
 
     override fun removeSong(index: Int) {
-        val song: Song = player.getMediaItemAt(index).getSong()
-        player.removeMediaItem(index)
+        val song: Song = state.getMediaItemAt(index).getSong()
+        state.removeMediaItem(index)
         listeners.forEach { it.onSongRemoved(index, song) }
     }
 

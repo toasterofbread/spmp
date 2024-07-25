@@ -25,25 +25,25 @@ import spmp.shared.generated.resources.s_option_wave_border_mode_line
 internal fun getPlayerCategoryItems(context: AppContext): List<SettingsItem> {
     return listOf(
         AppSliderItem(
-            context.settings.player.EXPAND_SWIPE_SENSITIVITY,
+            context.settings.state.EXPAND_SWIPE_SENSITIVITY,
             range = 0.1f .. 10f
         ),
 
         ToggleSettingsItem(
-            context.settings.player.MINI_SHOW_PREV_BUTTON
+            context.settings.state.MINI_SHOW_PREV_BUTTON
         ),
 
         ToggleSettingsItem(
-            context.settings.player.MINI_OVERSCROLL_CLEAR_ENABLED
+            context.settings.state.MINI_OVERSCROLL_CLEAR_ENABLED
         ),
 
         AppSliderItem(
-            context.settings.player.MINI_OVERSCROLL_CLEAR_TIME,
+            context.settings.state.MINI_OVERSCROLL_CLEAR_TIME,
             range = 0f .. 1f
         ),
 
         MultipleChoiceSettingsItem(
-            context.settings.player.MINI_OVERSCROLL_CLEAR_MODE
+            context.settings.state.MINI_OVERSCROLL_CLEAR_MODE
         ) { mode ->
             mode.getReadable()
         },
@@ -51,40 +51,40 @@ internal fun getPlayerCategoryItems(context: AppContext): List<SettingsItem> {
         GroupSettingsItem(null),
 
         ToggleSettingsItem(
-            context.settings.player.SHOW_REPEAT_SHUFFLE_BUTTONS,
+            context.settings.state.SHOW_REPEAT_SHUFFLE_BUTTONS,
             title_max_lines = 2
         ),
 
         ToggleSettingsItem(
-            context.settings.player.SHOW_SEEK_BAR_GRADIENT,
+            context.settings.state.SHOW_SEEK_BAR_GRADIENT,
             title_max_lines = 2
         ),
 
         ToggleSettingsItem(
-            context.settings.player.LANDSCAPE_SWAP_CONTROLS_AND_IMAGE,
+            context.settings.state.LANDSCAPE_SWAP_CONTROLS_AND_IMAGE,
             title_max_lines = 2
         ),
 
         MultipleChoiceSettingsItem(
-            context.settings.player.OVERLAY_CUSTOM_ACTION,
+            context.settings.state.OVERLAY_CUSTOM_ACTION,
         ) { action ->
             action.getReadable()
         },
 
         ToggleSettingsItem(
-            context.settings.player.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS,
+            context.settings.state.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS,
             title_max_lines = 2
         ),
 
         GroupSettingsItem(null),
 
         AppSliderItem(
-            context.settings.player.QUEUE_ITEM_SWIPE_SENSITIVITY,
+            context.settings.state.QUEUE_ITEM_SWIPE_SENSITIVITY,
             range = 0.1f .. 2f
         ),
 
         AppSliderItem(
-            context.settings.player.QUEUE_EXTRA_SIDE_PADDING,
+            context.settings.state.QUEUE_EXTRA_SIDE_PADDING,
             range = 0f .. 1f,
             min_label = "0%".toCustomResource(),
             max_label = "100%".toCustomResource(),
@@ -94,7 +94,7 @@ internal fun getPlayerCategoryItems(context: AppContext): List<SettingsItem> {
         ),
 
         MultipleChoiceSettingsItem(
-            context.settings.player.QUEUE_WAVE_BORDER_MODE,
+            context.settings.state.QUEUE_WAVE_BORDER_MODE,
         ) { mode ->
             when (mode) {
                 NowPlayingQueueWaveBorderMode.TIME -> stringResource(Res.string.s_option_wave_border_mode_time)
@@ -106,22 +106,22 @@ internal fun getPlayerCategoryItems(context: AppContext): List<SettingsItem> {
         },
 
         MultipleChoiceSettingsItem(
-            context.settings.player.QUEUE_RADIO_INFO_POSITION
+            context.settings.state.QUEUE_RADIO_INFO_POSITION
         ) { position ->
             position.getReadable()
         },
 
         ToggleSettingsItem(
-            context.settings.player.PAUSE_ON_BT_DISCONNECT
+            context.settings.state.PAUSE_ON_BT_DISCONNECT
         ),
         ToggleSettingsItem(
-            context.settings.player.RESUME_ON_BT_CONNECT
+            context.settings.state.RESUME_ON_BT_CONNECT
         ),
         ToggleSettingsItem(
-            context.settings.player.PAUSE_ON_WIRED_DISCONNECT
+            context.settings.state.PAUSE_ON_WIRED_DISCONNECT
         ),
         ToggleSettingsItem(
-            context.settings.player.RESUME_ON_WIRED_CONNECT
+            context.settings.state.RESUME_ON_WIRED_CONNECT
         )
     )
 }

@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.component
 
+import LocalAppState
 import LocalPlayerState
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
@@ -23,17 +24,17 @@ import spmp.shared.generated.resources.`edit_$x_title_dialog_title`
 
 @Composable
 fun MediaItemTitleEditDialog(item: MediaItem, modifier: Modifier = Modifier, close: () -> Unit) {
-    val player = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val coroutine_scope = rememberCoroutineScope()
 
-    var edited_title: String by remember { mutableStateOf(item.getActiveTitle(player.database) ?: "") }
+    var edited_title: String by remember { mutableStateOf(item.getActiveTitle(state.database) ?: "") }
 
     AlertDialog(
         close,
         {
             Button({
                 coroutine_scope.launchSingle {
-                    item.setActiveTitle(edited_title, player.context)
+                    item.setActiveTitle(edited_title, state.context)
                     close()
                 }
             }) {

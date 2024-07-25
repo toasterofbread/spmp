@@ -1,9 +1,12 @@
 package com.toasterofbread.spmp.model.state
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
+import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.animateTo
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.fillMaxSize
@@ -13,6 +16,7 @@ import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateListOf
@@ -31,40 +35,49 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.ui.component.multiselect.AppPageMultiSelectContext
-import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.AppPage
-import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
-import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.AppThemeManager
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.download.DownloadMethodSelectionDialog
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenu
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
+import com.toasterofbread.spmp.ui.component.multiselect.AppPageMultiSelectContext
+import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
+import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectInfoDisplayContent
+import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
 import com.toasterofbread.spmp.ui.layout.BarColourState
+import com.toasterofbread.spmp.ui.layout.apppage.AppPage
+import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
 import com.toasterofbread.spmp.ui.layout.apppage.SongAppPage
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MainPageDisplay
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
+import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.playlistpage.PlaylistAppPage
-import kotlinx.coroutines.launch
 import dev.toastbits.composekit.platform.composable.BackHandler
+import dev.toastbits.composekit.settings.ui.on_accent
 import dev.toastbits.ytmkt.model.external.YoutubePage
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 class UiStateImpl(
-    private val context: AppContext
+    private val context: AppContext,
+    private val coroutine_scope: CoroutineScope,
+    // TODO | This can probably be removed
+    override val player_state: PlayerState,
+    private val np_swipe_state: AnchoredDraggableState<Int> = PlayerStateImpl.createSwipeState(),
+    screen_size_state: State<DpSize>
 ): UiState {
     override val theme: AppThemeManager get() = context.theme
 
+    override val player_expansion: PlayerExpansionState =
+        object : PlayerExpansionState(this) {
+            override val swipe_state: AnchoredDraggableState<Int> = np_swipe_state
+        }
+
     override val app_page: AppPage get() = app_page_state.current_page
     override val app_page_state: AppPageState = AppPageState(context)
-
-    override val form_factor: FormFactor by derivedStateOf { FormFactor.getCurrent(this) }
-    override var screen_size: DpSize by mutableStateOf(DpSize.Zero)
-    override val main_multiselect_context: MediaItemMultiSelectContext = AppPageMultiSelectContext(this, context)
 
     override val bar_colour_state: BarColourState =
         object : BarColourState() {
@@ -79,6 +92,31 @@ class UiStateImpl(
             }
         }
 
+    override val screen_size: DpSize by screen_size_state
+
+    override val form_factor: FormFactor by derivedStateOf { FormFactor.getCurrent(this) }
+    override val main_multiselect_context: MediaItemMultiSelectContext = AppPageMultiSelectContext(this, context)
+
+    override val current_player_page: Int
+        get() = np_swipe_state.targetValue
+
+    override fun switchPlayerPage(page: Int) {
+        coroutine_scope.launch {
+            np_swipe_state.animateTo(page)
+        }
+    }
+
+    private var download_request_songs: List<Song>? by mutableStateOf(null)
+    private var download_request_always_show_options: Boolean by mutableStateOf(false)
+    private var download_request_callback: DownloadRequestCallback? by mutableStateOf(null)
+    private var open_np_on_song_played: Boolean = false
+
+    init {
+        coroutine_scope.launch {
+            open_np_on_song_played = context.settings.behaviour.OPEN_NP_ON_SONG_PLAYED.get()
+        }
+    }
+
     override fun addMultiselectInfoAllItemsGetter(getter: () -> List<List<MultiSelectItem>>) {
         multiselect_info_all_items_getters.add(getter)
     }
@@ -87,6 +125,10 @@ class UiStateImpl(
     }
 
     override fun openAppPage(page: AppPage?, from_current: Boolean, replace_current: Boolean) {
+        if (current_player_page != 0) {
+            switchPlayerPage(0)
+        }
+
         if (page == app_page) {
             page.onReopened()
             return
@@ -148,49 +190,8 @@ class UiStateImpl(
     }
 
     override fun onPlayActionOccurred() {
-        coroutine_scope.launch {
-            if (np_swipe_state.targetValue == 0 && context.settings.behaviour.OPEN_NP_ON_SONG_PLAYED.get()) {
-                switchNowPlayingPage(1)
-            }
-        }
-    }
-
-    override fun playMediaItem(item: MediaItem, shuffle: Boolean, at_index: Int) {
-        withPlayer {
-            coroutine_scope.launch {
-                if (item is Song) {
-                    playSong(
-                        item,
-                        start_radio = context.settings.behaviour.START_RADIO_ON_SONG_PRESS.get(),
-                        shuffle = shuffle,
-                        at_index = at_index
-                    )
-                }
-                else {
-                    startRadioAtIndex(
-                        at_index,
-                        item,
-                        shuffle = shuffle,
-                        onSuccessfulLoad = { result ->
-                            seekToSong(at_index)
-                        }
-                    )
-                }
-            }
-        }
-    }
-
-    override fun playPlaylist(playlist: Playlist, from_index: Int) {
-        withPlayer {
-            startRadioAtIndex(
-                0,
-                playlist,
-                onSuccessfulLoad = {
-                    if (from_index > 0) {
-                        seekToSong(from_index)
-                    }
-                }
-            )
+        if (current_player_page == 0 && open_np_on_song_played) {
+            switchPlayerPage(1)
         }
     }
 
@@ -211,6 +212,12 @@ class UiStateImpl(
         long_press_menu_showing = false
         long_press_menu_direct = false
         long_press_menu_data = null
+    }
+
+    override fun onSongDownloadRequested(songs: List<Song>, always_show_options: Boolean, callback: DownloadRequestCallback?) {
+        download_request_songs = songs
+        download_request_always_show_options = always_show_options
+        download_request_callback = callback
     }
 
     private var multiselect_info_display_height: Dp by mutableStateOf(0.dp)
@@ -258,7 +265,14 @@ class UiStateImpl(
                             Modifier
                                 .width(IntrinsicSize.Max)
                                 .align(Alignment.BottomEnd)
-                                .then(nowPlayingTopOffset(Modifier, NowPlayingTopOffsetSection.MULTISELECT))
+                                .then(
+                                    player_state.topOffset(
+                                        Modifier,
+                                        NowPlayingTopOffsetSection.MULTISELECT,
+                                        apply_spacing = true,
+                                        displaying = true
+                                    )
+                                )
                                 .background(background_colour, MaterialTheme.shapes.small)
                                 .padding(10.dp)
                                 .onSizeChanged {

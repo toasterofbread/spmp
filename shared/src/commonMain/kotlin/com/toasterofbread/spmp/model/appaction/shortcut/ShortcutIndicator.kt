@@ -5,7 +5,7 @@ import androidx.compose.runtime.Composable
 @Composable
 fun ShortcutIndicator() {
     TODO()
-    // val shortcut_index: Int? = remember(button_type) { getButtonShortcutButton(button_type, player) }
+    // val shortcut_index: Int? = remember(button_type) { getButtonShortcutButton(button_type, state) }
     // if (shortcut_index == null) {
     //     return@IconButton
     // }
@@ -21,8 +21,8 @@ fun ShortcutIndicator() {
     //     exit = fadeOut()
     // ) {
     //     val indicator_colour: Color =
-    //         if (button == current_button) player.theme.on_accent
-    //         else player.theme.accent
+    //         if (button == current_button) state.theme.on_accent
+    //         else state.theme.accent
 
     //     Box(
     //         Modifier.size(20.dp).background(indicator_colour, SHORTCUT_INDICATOR_SHAPE),

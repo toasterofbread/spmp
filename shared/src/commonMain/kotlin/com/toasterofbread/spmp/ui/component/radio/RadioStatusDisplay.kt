@@ -18,7 +18,7 @@ import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.radio.RadioInstance
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.theme.appHover
 
@@ -28,7 +28,7 @@ fun RadioInstance.StatusDisplay(
     expanded_modifier: Modifier = Modifier,
     disable_parent_scroll: Boolean = false
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     AlignableCrossfade(
         Triple(is_loading, load_error, isContinuationAvailable()),
@@ -47,17 +47,17 @@ fun RadioInstance.StatusDisplay(
                 expanded_content_modifier = expanded_modifier,
                 disable_parent_scroll = disable_parent_scroll,
                 onRetry = {
-                    player.controller?.service_player?.radio?.instance?.loadContinuation()
+                    state.session.controller?.service_player?.radio?.instance?.loadContinuation()
                 },
                 onDismiss = {
-                    player.controller?.service_player?.radio?.instance?.dismissLoadError()
+                    state.session.controller?.service_player?.radio?.instance?.dismissLoadError()
                 }
             )
         }
         else if (continuation_available) {
             ShapedIconButton(
                 {
-                    player.controller?.service_player?.radio?.instance?.loadContinuation()
+                    state.session.controller?.service_player?.radio?.instance?.loadContinuation()
                 },
                 modifier = Modifier
                     .width(80.dp)

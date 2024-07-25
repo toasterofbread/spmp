@@ -4,7 +4,6 @@ import LocalPlayerState
 import androidx.compose.animation.*
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -12,7 +11,6 @@ import androidx.compose.ui.*
 import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.utils.common.*
 import dev.toastbits.composekit.utils.common.launchSingle
-import dev.toastbits.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.*
@@ -33,11 +31,12 @@ import dev.toastbits.ytmkt.model.external.ItemLayoutType
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import PlatformIO
-import com.toasterofbread.spmp.model.state.FeedLoadState
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 
 internal const val ARTISTS_ROW_DEFAULT_MIN_OCCURRENCES: Int = 2
 internal const val ARTISTS_ROW_MIN_ARTISTS: Int = 4
+
+enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 
 class SongFeedAppPage(override val state: AppPageState): AppPage() {
     internal val scroll_state: LazyListState = LazyListState()
@@ -95,7 +94,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
         content_padding: PaddingValues,
         close: () -> Unit
     ) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
         val form_factor: FormFactor by FormFactor.observe()
 
         LaunchedEffect(Unit) {
@@ -111,8 +110,8 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
             artists_layout = artists_layout.copy(
                 items = populateArtistsLayout(
                     layouts,
-                    player.context.ytapi.user_auth_state?.own_channel_id,
-                    player.context
+                    state.context.ytapi.user_auth_state?.own_channel_id,
+                    state.context
                 )
             )
         }

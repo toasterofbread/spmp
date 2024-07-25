@@ -19,7 +19,7 @@ import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.apppage.library.LibraryAppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import dev.toastbits.composekit.settings.ui.on_accent
@@ -40,7 +40,7 @@ fun LibraryAppPage.LibraryIconButtonPageSelector(
     show_source_buttons: Boolean = true,
     separate_source_and_contextual: Boolean = false
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val density: Density = LocalDensity.current
 
     var bar_height: Int by remember { mutableStateOf(0) }
@@ -113,15 +113,15 @@ fun LibraryAppPage.LibraryIconButtonPageSelector(
                     vertical = slot.is_vertical,
                     selected_button = tabs.indexOf(current_tab).takeIf { it != -1 },
                     buttons = tabs,
-                    indicator_colour = player.theme.vibrant_accent,
+                    indicator_colour = state.theme.vibrant_accent,
                     scrolling = false,
                     showButton = { tab ->
                         !tab.isHidden()
                     }
                 ) { _, tab ->
                     val colour: Color =
-                        if (tab == current_tab) player.theme.on_accent
-                        else player.theme.on_background
+                        if (tab == current_tab) state.theme.on_accent
+                        else state.theme.on_background
 
                     CompositionLocalProvider(LocalContentColor provides colour) {
                         IconButton({
@@ -158,7 +158,7 @@ fun LibraryAppPage.LibraryIconButtonPageSelector(
                 vertical = slot.is_vertical,
                 selected_button = showing_alt_content.toInt(),
                 buttons = if (show_source_buttons) listOf(false, true) else emptyList(),
-                indicator_colour = player.theme.vibrant_accent,
+                indicator_colour = state.theme.vibrant_accent,
                 scrolling = false,
                 alignment = 0,
                 showButton = {
@@ -209,8 +209,8 @@ fun LibraryAppPage.LibraryIconButtonPageSelector(
                 }
             ) { _, show ->
                 val colour: Color =
-                    if (show == showing_alt_content) player.theme.on_accent
-                    else player.theme.on_background
+                    if (show == showing_alt_content) state.theme.on_accent
+                    else state.theme.on_background
 
                 CompositionLocalProvider(LocalContentColor provides colour) {
                     IconButton({ showing_alt_content = show }) {
@@ -229,7 +229,7 @@ fun LibraryAppPage.LibraryIconButtonPageSelector(
 
 @Composable
 private fun LibraryAppPage.FilterBar(modifier: Modifier = Modifier) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val focus_requester: FocusRequester = remember { FocusRequester() }
 
     LaunchedEffect(Unit) {
@@ -238,7 +238,7 @@ private fun LibraryAppPage.FilterBar(modifier: Modifier = Modifier) {
 
     Row(
         modifier
-            .background(player.theme.background.amplify(0.025f), MaterialTheme.shapes.small)
+            .background(state.theme.background.amplify(0.025f), MaterialTheme.shapes.small)
             .padding(10.dp),
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {

@@ -1,9 +1,9 @@
 package com.toasterofbread.spmp.model.mediaitem.enums
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
 import androidx.compose.material.icons.filled.MusicNote
 import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
@@ -36,9 +36,9 @@ enum class MediaItemType {
 
     fun getIcon(): ImageVector {
         return when (this) {
-            SONG     -> Icons.Filled.MusicNote
-            ARTIST   -> Icons.Filled.Person
-            PLAYLIST_REM, PLAYLIST_LOC -> Icons.Filled.PlaylistPlay
+            SONG -> Icons.Filled.MusicNote
+            ARTIST -> Icons.Filled.Person
+            PLAYLIST_REM, PLAYLIST_LOC -> Icons.AutoMirrored.Filled.PlaylistPlay
         }
     }
 

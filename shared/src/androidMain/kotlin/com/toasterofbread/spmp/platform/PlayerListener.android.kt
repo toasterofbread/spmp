@@ -46,15 +46,15 @@ actual abstract class PlayerListener {
         override fun onVolumeChanged(volume: Float) {
             this@PlayerListener.onVolumeChanged(volume)
         }
-        override fun onEvents(player: Player, events: Player.Events) {
+        override fun onEvents(state: Player, events: Player.Events) {
             onEvents()
         }
     }
 
-    internal fun addToPlayer(player: Player) {
-        player.addListener(player_listener)
+    internal fun addToPlayer(state: Player) {
+        state.addListener(player_listener)
     }
-    internal fun removeFromPlayer(player: Player) {
-        player.removeListener(player_listener)
+    internal fun removeFromPlayer(state: Player) {
+        state.removeListener(player_listener)
     }
 }

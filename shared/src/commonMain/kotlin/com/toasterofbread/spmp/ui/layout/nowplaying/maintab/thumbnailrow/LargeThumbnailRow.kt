@@ -43,7 +43,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.formatArtistTitles
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.ui.component.HorizontalLyricsLineDisplay
 import com.toasterofbread.spmp.ui.component.Thumbnail
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.nowplaying.EXPANDED_THRESHOLD
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
@@ -68,11 +68,11 @@ fun LargeThumbnailRow(
     overlayContent: (@Composable () -> Unit)? = null,
 ) {
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val density: Density = LocalDensity.current
     val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
 
-    val current_song: Song? = player.status.m_song
+    val current_song: Song? = state.session.status.m_song
     val song_title: String? by current_song?.observeActiveTitle()
     val song_artist_titles: List<String?>? = current_song?.Artists?.observePropertyActiveTitles()
 
@@ -83,16 +83,16 @@ fun LargeThumbnailRow(
     var image_size: IntSize by remember { mutableStateOf(IntSize(1, 1)) }
 
     var colourpick_callback: ColourpickCallback? by remember { mutableStateOf(null) }
-    LaunchedEffect(player.np_overlay_menu) {
+    LaunchedEffect(state.player.np_overlay_menu) {
         colourpick_callback = null
     }
 
     val main_overlay_menu: MainPlayerOverlayMenu = remember {
         MainPlayerOverlayMenu(
-            player::openNpOverlayMenu,
+            state.player::openNpOverlayMenu,
             { colourpick_callback = it },
             setThemeColour,
-            { player.screen_size.width }
+            { state.ui.screen_size.width }
         )
     }
 
@@ -111,7 +111,7 @@ fun LargeThumbnailRow(
                     opened = true
                 }
                 else if (opened) {
-                    player.openNpOverlayMenu(null)
+                    state.player.openNpOverlayMenu(null)
                 }
             }
 
@@ -175,47 +175,47 @@ fun LargeThumbnailRow(
                             .thenIf(expanded) {
                                 platformClickable(
                                     onClick = {
-                                        if (player.np_overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
+                                        if (state.player.np_overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
                                             return@platformClickable
                                         }
 
                                         coroutine_scope.launch {
-                                            player.performPressAction(
+                                            state.performPressAction(
                                                 false,
                                                 main_overlay_menu,
                                                 setThemeColour,
                                                 { colourpick_callback = it },
-                                                { player.openNpOverlayMenu(it) }
+                                                { state.player.openNpOverlayMenu(it) }
                                             )
                                         }
                                     },
                                     onAltClick = {
-                                        if (player.np_overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
+                                        if (state.player.np_overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
                                             return@platformClickable
                                         }
 
                                         coroutine_scope.launch {
-                                            player.performPressAction(
+                                            state.performPressAction(
                                                 true,
                                                 main_overlay_menu,
                                                 setThemeColour,
                                                 { colourpick_callback = it },
-                                                { player.openNpOverlayMenu(it) }
+                                                { state.player.openNpOverlayMenu(it) }
                                             )
                                         }
                                     }
                                 )
                             }
                     ) {
-                        val default_video_position: ThemeSettings.VideoPosition by player.settings.theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
-                        val song_video_position: ThemeSettings.VideoPosition? by song.VideoPosition.observe(player.database)
+                        val default_video_position: ThemeSettings.VideoPosition by state.settings.theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
+                        val song_video_position: ThemeSettings.VideoPosition? by song.VideoPosition.observe(state.database)
 
                         var video_showing: Boolean = false
 
                         if ((song_video_position ?: default_video_position) == ThemeSettings.VideoPosition.THUMBNAIL) {
                             video_showing = SongVideoPlayback(
                                 song.id,
-                                { player.status.getPositionMs() },
+                                { state.session.status.getPositionMs() },
                                 Modifier.fillMaxSize(),
                                 fill = true
                             )
@@ -225,7 +225,7 @@ fun LargeThumbnailRow(
                             song.Thumbnail(
                                 ThumbnailProvider.Quality.HIGH,
                                 Modifier.fillMaxSize(),
-                                getContentColour = { player.getNPOnBackground() },
+                                getContentColour = { state.ui.getNPOnBackground() },
                                 onLoaded = {
                                     current_thumb_image = it
                                     onThumbnailLoaded(song, it)
@@ -237,7 +237,7 @@ fun LargeThumbnailRow(
 
                 // Thumbnail overlay menu
                 androidx.compose.animation.AnimatedVisibility(
-                    player.np_overlay_menu != null || colourpick_callback != null,
+                    state.player.np_overlay_menu != null || colourpick_callback != null,
                     Modifier.fillMaxSize(),
                     enter = fadeIn(tween(OVERLAY_MENU_ANIMATION_DURATION)),
                     exit = fadeOut(tween(OVERLAY_MENU_ANIMATION_DURATION))
@@ -260,8 +260,8 @@ fun LargeThumbnailRow(
                                             }
                                         }
 
-                                        if (expansion.get() in 0.9f .. 1.1f && player.np_overlay_menu?.closeOnTap() == true) {
-                                            player.openNpOverlayMenu(null)
+                                        if (expansion.get() in 0.9f .. 1.1f && state.player.np_overlay_menu?.closeOnTap() == true) {
+                                            state.player.openNpOverlayMenu(null)
                                         }
                                     }
                                 )
@@ -287,17 +287,17 @@ fun LargeThumbnailRow(
                                 }),
                             contentAlignment = Alignment.Center
                         ) {
-                            BackHandler(player.np_overlay_menu != null, priority = 2) {
-                                player.navigateNpOverlayMenuBack()
+                            BackHandler(state.player.np_overlay_menu != null, priority = 2) {
+                                state.player.navigateNpOverlayMenuBack()
                                 colourpick_callback = null
                             }
 
-                            Crossfade(player.np_overlay_menu) { menu ->
+                            Crossfade(state.player.np_overlay_menu) { menu ->
                                 CompositionLocalProvider(LocalContentColor provides Color.White) {
                                     menu?.Menu(
-                                        { player.status.m_song },
+                                        { state.session.status.m_song },
                                         { expansion.getAbsolute() },
-                                        { player.openNpOverlayMenu(it ?: main_overlay_menu) },
+                                        { state.player.openNpOverlayMenu(it ?: main_overlay_menu) },
                                         getSeekState
                                     ) { current_thumb_image }
                                 }
@@ -322,22 +322,22 @@ fun LargeThumbnailRow(
                     Text(
                         song_title ?: "",
                         maxLines = 1,
-                        color = player.getNPOnBackground(),
+                        color = state.ui.getNPOnBackground(),
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.headlineSmall
                     )
                     Text(
-                        song_artist_titles?.let { formatArtistTitles(it, player.context) } ?: "",
+                        song_artist_titles?.let { formatArtistTitles(it, state.context) } ?: "",
                         maxLines = 1,
-                        color = player.getNPOnBackground().copy(alpha = 0.5f),
+                        color = state.ui.getNPOnBackground().copy(alpha = 0.5f),
                         overflow = TextOverflow.Ellipsis,
                         style = MaterialTheme.typography.bodyMedium
                     )
                 }
             }
 
-            val lyrics_state: SongLyricsLoader.ItemState? = current_song?.let { SongLyricsLoader.rememberItemState(it, player.context) }
-            val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(player.database, true)
+            val lyrics_state: SongLyricsLoader.ItemState? = current_song?.let { SongLyricsLoader.rememberItemState(it, state.context) }
+            val lyrics_sync_offset: Long? by current_song?.getLyricsSyncOffset(state.database, true)
 
             AnimatedVisibility(
                 lyrics_state?.lyrics?.synced == true,
@@ -350,9 +350,9 @@ fun LargeThumbnailRow(
                         HorizontalLyricsLineDisplay(
                             lyrics = lyrics,
                             getTime = {
-                                (player.controller?.current_position_ms ?: 0) + (lyrics_sync_offset ?: 0)
+                                (state.session.controller?.current_position_ms ?: 0) + (lyrics_sync_offset ?: 0)
                             },
-                            text_colour = player.getNPOnBackground().copy(alpha = 0.75f),
+                            text_colour = state.ui.getNPOnBackground().copy(alpha = 0.75f),
                             modifier = Modifier.padding(top = 5.dp)
                         )
                     }
@@ -366,7 +366,7 @@ fun LargeThumbnailRow(
     }
 }
 
-private suspend fun OldPlayerStateImpl.performPressAction(
+private suspend fun SpMp.State.performPressAction(
     long_press: Boolean,
     main_overlay_menu: PlayerOverlayMenu,
     setThemeColour: (Color) -> Unit,
@@ -374,11 +374,11 @@ private suspend fun OldPlayerStateImpl.performPressAction(
     setOverlayMenu: (PlayerOverlayMenu?) -> Unit
 ) {
     val custom_action: Boolean =
-        if (context.settings.player.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.get()) !long_press
+        if (context.settings.state.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.get()) !long_press
         else long_press
 
     val action: PlayerOverlayMenuAction =
-        if (custom_action) context.settings.player.OVERLAY_CUSTOM_ACTION.get()
+        if (custom_action) context.settings.state.OVERLAY_CUSTOM_ACTION.get()
         else PlayerOverlayMenuAction.DEFAULT
 
     when (action) {
@@ -409,8 +409,8 @@ private suspend fun OldPlayerStateImpl.performPressAction(
             setOverlayMenu(RelatedContentPlayerOverlayMenu(context.ytapi.SongRelatedContent))
         }
         PlayerOverlayMenuAction.DOWNLOAD -> {
-            status.m_song?.also { song ->
-                onSongDownloadRequested(song)
+            session.status.m_song?.also { song ->
+                ui.onSongDownloadRequested(listOf(song))
             }
         }
     }

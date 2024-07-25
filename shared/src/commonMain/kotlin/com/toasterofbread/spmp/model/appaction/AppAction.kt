@@ -1,23 +1,27 @@
 package com.toasterofbread.spmp.model.appaction
 
-import androidx.compose.foundation.layout.*
+import SpMp
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
+import androidx.compose.material.icons.filled.MoreHoriz
+import androidx.compose.material.icons.filled.MusicNote
+import androidx.compose.material.icons.filled.NearMe
+import androidx.compose.material.icons.filled.PlayArrow
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.appaction.action.playback.*
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.appaction_navigation
-import spmp.shared.generated.resources.appaction_song
-import spmp.shared.generated.resources.appaction_playback
 import spmp.shared.generated.resources.appaction_other
-import spmp.shared.generated.resources.appaction_modify_setting
+import spmp.shared.generated.resources.appaction_playback
+import spmp.shared.generated.resources.appaction_song
 
 @Serializable
 sealed interface AppAction {
@@ -25,7 +29,7 @@ sealed interface AppAction {
     fun getIcon(): ImageVector
     fun isUsableDuringTextInput(): Boolean = false
 
-    suspend fun executeAction(player: OldPlayerStateImpl)
+    suspend fun executeAction(state: SpMp.State)
 
     fun hasCustomContent(): Boolean = false
     @Composable

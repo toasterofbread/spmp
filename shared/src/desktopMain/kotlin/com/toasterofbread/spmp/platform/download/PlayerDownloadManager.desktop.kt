@@ -10,7 +10,9 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import java.util.concurrent.Executors
 
-actual class PlayerDownloadManager actual constructor(private val context: AppContext) {
+actual class PlayerDownloadManager actual constructor(
+    private val context: AppContext
+) {
     private var _downloader: SongDownloader? = null
     private val listeners: MutableList<DownloadStatusListener> = mutableListOf()
 

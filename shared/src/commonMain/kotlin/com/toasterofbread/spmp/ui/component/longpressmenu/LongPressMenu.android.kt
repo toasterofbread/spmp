@@ -48,9 +48,17 @@ import dev.toastbits.composekit.utils.composable.getBottom
 import dev.toastbits.composekit.utils.composable.getEnd
 import dev.toastbits.composekit.utils.composable.getStart
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import LocalDataase
+import LocalSettings
+import LocalTheme
+import LocalUiState
+import com.toasterofbread.spmp.db.Database
+import com.toasterofbread.spmp.model.settings.Settings
+import com.toasterofbread.spmp.model.state.UiState
 import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
@@ -64,7 +72,10 @@ internal fun AndroidLongPressMenu(
     onDismissRequest: () -> Unit,
     data: LongPressMenuData
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val ui_state: UiState = LocalUiState.current
+    val theme: ThemeValues = LocalTheme.current
+    val database: Database = LocalDataase.current
+    val settings: Settings = LocalSettings.current
     val density: Density = LocalDensity.current
 
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
@@ -135,7 +146,7 @@ internal fun AndroidLongPressMenu(
                 Modifier
                     .fillMaxWidth()
                     .requiredHeight(
-                        player.screen_size.height
+                        ui_state.screen_size.height
                     ),
                 enter = fadeIn(tween(MENU_OPEN_ANIM_MS)),
                 exit = fadeOut(tween(MENU_OPEN_ANIM_MS))
@@ -156,28 +167,28 @@ internal fun AndroidLongPressMenu(
                 enter = slideInVertically(slide_spring) { it / 2 },
                 exit = slideOutVertically(slide_spring) { it / 2 }
             ) {
-                var accent_colour: Color? = data.item.rememberThemeColour()?.contrastAgainst(player.theme.background)
+                var accent_colour: Color? = data.item.rememberThemeColour()?.contrastAgainst(theme.background)
 
                 DisposableEffect(Unit) {
-                    val theme_colour = data.item.ThemeColour.get(player.database)
+                    val theme_colour = data.item.ThemeColour.get(database)
                     if (theme_colour != null) {
-                        accent_colour = theme_colour.contrastAgainst(player.theme.background)
+                        accent_colour = theme_colour.contrastAgainst(theme.background)
                     }
 
-                    player.bar_colour_state.nav_bar.setLevelColour(CustomColourSource(player.theme.background), BarColourState.NavBarLevel.LPM)
+                    ui_state.bar_colour_state.nav_bar.setLevelColour(CustomColourSource(theme.background), BarColourState.NavBarLevel.LPM)
 
                     onDispose {
-                        player.bar_colour_state.nav_bar.setLevelColour(null, BarColourState.NavBarLevel.LPM)
+                        ui_state.bar_colour_state.nav_bar.setLevelColour(null, BarColourState.NavBarLevel.LPM)
                     }
                 }
 
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-                    val close_on_action: Boolean by player.settings.behaviour.LPM_CLOSE_ON_ACTION.observe()
+                    val close_on_action: Boolean by settings.behaviour.LPM_CLOSE_ON_ACTION.observe()
 
                     LongPressMenuContent(
                         data,
                         RoundedCornerShape(topStart = 16.dp, topEnd = 16.dp),
-                        player.theme.background,
+                        theme.background,
                         PaddingValues(
                             start = MENU_CONTENT_PADDING_DP.dp + WindowInsets.systemBars.getStart(),
                             end = MENU_CONTENT_PADDING_DP.dp + WindowInsets.systemBars.getEnd(),

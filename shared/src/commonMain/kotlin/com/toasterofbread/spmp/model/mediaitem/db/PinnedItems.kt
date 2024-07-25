@@ -19,7 +19,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -35,20 +35,20 @@ fun Database.getPinnedItems(): List<MediaItem> {
 
 @Composable
 fun rememberPinnedItems(): List<MediaItem>? {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
-    var pinned_items: List<MediaItem> by remember { mutableStateOf(player.database.getPinnedItems()) }
+    var pinned_items: List<MediaItem> by remember { mutableStateOf(state.database.getPinnedItems()) }
     var loaded_pinned_items: List<MediaItem>? by remember { mutableStateOf(null) }
 
     DisposableEffect(Unit) {
         val listener: Query.Listener = Query.Listener {
-            pinned_items = player.database.getPinnedItems()
+            pinned_items = state.database.getPinnedItems()
         }
 
-        player.database.pinnedItemQueries.getAll().addListener(listener)
+        state.database.pinnedItemQueries.getAll().addListener(listener)
 
         onDispose {
-            player.database.pinnedItemQueries.getAll().removeListener(listener)
+            state.database.pinnedItemQueries.getAll().removeListener(listener)
         }
     }
 
@@ -68,8 +68,8 @@ fun rememberPinnedItems(): List<MediaItem>? {
                     }
                     else {
                         val data: LocalPlaylistData? =
-                            item.getLocalPlaylistFile(player.context)?.let { file ->
-                                PlaylistFileConverter.loadFromFile(file, player.context)
+                            item.getLocalPlaylistFile(state.context)?.let { file ->
+                                PlaylistFileConverter.loadFromFile(file, state.context)
                             }
                         items[i] = data
                     }
@@ -86,7 +86,7 @@ fun rememberPinnedItems(): List<MediaItem>? {
 
 @Composable
 fun YtmMediaItem.observePinnedToHome(): MutableState<Boolean> {
-    val queries: PinnedItemQueries = LocalPlayerState.current.database.pinnedItemQueries
+    val queries: PinnedItemQueries = LocalAppState.current.database.pinnedItemQueries
     val query: Query<Long> = remember(this) {
         queries.countByItem(id, getType().ordinal.toLong())
     }

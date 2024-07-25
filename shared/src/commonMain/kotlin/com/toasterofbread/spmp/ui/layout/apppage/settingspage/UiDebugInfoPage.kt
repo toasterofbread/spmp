@@ -1,6 +1,8 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
+import LocalAppState
 import LocalPlayerState
+import LocalUiState
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -39,14 +41,14 @@ private fun SizeIndicator(
     show_percent_of_screen: Boolean = false,
     getHeight: @Composable Density.(AppContext) -> Any?,
 ) {
-    val player = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val density = LocalDensity.current
 
     RecomposeOnInterval(500) {
         it
 
         Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(5.dp)) {
-            val value: Any? = getHeight(density, player.context)
+            val value: Any? = getHeight(density, state.context)
 
             Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 Text(label)
@@ -58,7 +60,7 @@ private fun SizeIndicator(
                 }
 
                 if (show_percent_of_screen && value is Dp) {
-                    val height_percent: Float = value / player.screen_size.height
+                    val height_percent: Float = value / state.ui.screen_size.height
                     Text("(${height_percent.roundTo(2).toString().padEnd(4, '0')}%)")
                 }
 
@@ -91,7 +93,7 @@ fun getUiDebugInfoPage(): SettingsPage =
                 // Window height
                 ComposableSettingsItem {
                     SizeIndicator("Screen height", show_indicator = false) { context ->
-                        LocalPlayerState.current.screen_size.height
+                        LocalUiState.current.screen_size.height
                     }
                 },
 

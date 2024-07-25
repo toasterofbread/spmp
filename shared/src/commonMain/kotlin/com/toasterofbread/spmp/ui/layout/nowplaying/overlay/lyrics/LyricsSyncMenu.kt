@@ -24,7 +24,7 @@ import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.ui.component.HorizontalFuriganaText
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.composekit.utils.common.thenIf
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -45,8 +45,8 @@ fun LyricsSyncMenu(
 ) {
     require(lyrics.synced)
 
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    val service: PlayerService? = player.controller
+    val state: SpMp.State = LocalAppState.current
+    val service: PlayerService? = state.session.controller
 
     LaunchedEffect(line_index) {
         service?.seekTo(
@@ -89,7 +89,7 @@ fun LyricsSyncMenu(
                 if (line_offset == 0) {
                     PlayerControls(service) {
                         val current_time: Long = service?.current_position_ms ?: return@PlayerControls
-                        player.database.songQueries
+                        state.database.songQueries
                             .updateLyricsSyncOffsetById(
                                 lyrics.lines[line_index].getLineRange().first - current_time,
                                 song.id

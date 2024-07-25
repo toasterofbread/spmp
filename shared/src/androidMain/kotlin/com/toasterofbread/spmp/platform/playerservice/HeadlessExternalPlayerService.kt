@@ -8,7 +8,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.platform.AppContext
 import LocalProgramArguments
 import LocalPlayerState
@@ -19,11 +19,11 @@ import spmp.shared.generated.resources.loading_splash_button_launch_without_serv
 internal class HeadlessExternalPlayerService: ExternalPlayerService(plays_audio = false), PlayerService {
     @Composable
     override fun PersistentContent(requestServiceChange: (PlayerServiceCompanion) -> Unit) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
         val launch_arguments: ProgramArguments = LocalProgramArguments.current
-        val ui_only: Boolean by player.settings.platform.EXTERNAL_SERVER_MODE_UI_ONLY.observe()
+        val ui_only: Boolean by state.settings.platform.EXTERNAL_SERVER_MODE_UI_ONLY.observe()
         LaunchedEffect(ui_only) {
-            if (!ui_only && PlatformExternalPlayerService.isAvailable(player.context, launch_arguments)) {
+            if (!ui_only && PlatformExternalPlayerService.isAvailable(state.context, launch_arguments)) {
                 requestServiceChange(PlatformExternalPlayerService.Companion)
             }
         }

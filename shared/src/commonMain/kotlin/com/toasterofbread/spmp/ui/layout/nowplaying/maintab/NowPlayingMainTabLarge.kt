@@ -38,7 +38,7 @@ import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueWaveBorder
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.horizontal_padding
@@ -71,12 +71,12 @@ private fun MainTabControls(
     modifier: Modifier = Modifier,
     textRowStartContent: @Composable RowScope.() -> Unit = {}
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     Controls(
-        player.status.m_song,
+        state.session.status.m_song,
         { seek_progress ->
-            player.withPlayer {
+            state.session.withPlayer {
                 if (duration_ms <= 0) {
                     return@withPlayer
                 }
@@ -101,12 +101,12 @@ private fun MainTabControls(
 
 @Composable
 internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_bar: NowPlayingTopBar, content_padding: PaddingValues, modifier: Modifier = Modifier) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
     val layout_direction: LayoutDirection = LocalLayoutDirection.current
     val density: Density = LocalDensity.current
 
-    val swap_controls_and_image: Boolean by player.settings.player.LANDSCAPE_SWAP_CONTROLS_AND_IMAGE.observe()
+    val swap_controls_and_image: Boolean by state.settings.state.LANDSCAPE_SWAP_CONTROLS_AND_IMAGE.observe()
 
     val proportion: Float = WindowInsets.getTop() / page_height
     val proportion_exp: Float by remember { derivedStateOf {
@@ -138,7 +138,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
     val bottom_bar_height: Dp = NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT
     val inner_bottom_padding: Dp = horizontal_padding
 
-    val bar_background_colour: Color = player.theme.card
+    val bar_background_colour: Color = state.theme.card
     val stroke_colour: Color = bar_background_colour.amplify(255f)
 
     BoxWithConstraints(
@@ -196,7 +196,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                         }
                         .pointerInput(Unit) {
                             detectTapGestures {
-                                player.expansion.toggle()
+                                state.ui.player_expansion.toggle()
                             }
                         }
                 ) {
@@ -283,7 +283,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
                                         },
                                     textRowStartContent = {
                                         if (compact_mode) {
-                                            val song: Song? by player.status.song_state
+                                            val song: Song? by state.session.status.song_state
 
                                             val thumbnail_rounding: Int = song.observeThumbnailRounding()
                                             val thumbnail_shape: RoundedCornerShape = RoundedCornerShape(thumbnail_rounding)
@@ -389,36 +389,36 @@ private fun PlayerQueueTab(
     page_height: Dp,
     modifier: Modifier = Modifier
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val queue_shape: Shape = RoundedCornerShape(10.dp)
     val width: Dp by width_state
 
-    val default_background_opacity: Float by player.settings.theme.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.observe()
-    val song_background_opacity: Float? by player.status.m_song?.LandscapeQueueOpacity?.observe(player.database)
+    val default_background_opacity: Float by state.settings.theme.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.observe()
+    val song_background_opacity: Float? by state.session.status.m_song?.LandscapeQueueOpacity?.observe(state.database)
 
-    val background_opacity: Float by remember(player.status.m_song) { derivedStateOf { song_background_opacity ?: default_background_opacity } }
-    val show_shadow: Boolean by remember(player.status.m_song) { derivedStateOf { background_opacity >= 1f } }
+    val background_opacity: Float by remember(state.session.status.m_song) { derivedStateOf { song_background_opacity ?: default_background_opacity } }
+    val show_shadow: Boolean by remember(state.session.status.m_song) { derivedStateOf { background_opacity >= 1f } }
 
     Box(
         modifier
             .requiredSize(width, getHeight())
             .offset {
                 IntOffset(
-                    0,//-((1f - player.expansion.getBounded()) * (page_height - INNER_PADDING_DP.dp) / 2f).roundToPx(),
-                    (getCurrentControlsHeight() * (1f - player.expansion.getBounded())).roundToPx()
+                    0,//-((1f - state.ui.player_expansion.getBounded()) * (page_height - INNER_PADDING_DP.dp) / 2f).roundToPx(),
+                    (getCurrentControlsHeight() * (1f - state.ui.player_expansion.getBounded())).roundToPx()
                 )
             }
             .thenIf(show_shadow) {
                 songThumbnailShadow(
-                    player.status.m_song,
+                    state.session.status.m_song,
                     queue_shape,
                     apply_expansion_to_colour = false
                 ) {
-                    alpha = 1f - (1f - player.expansion.getBounded()).absoluteValue
+                    alpha = 1f - (1f - state.ui.player_expansion.getBounded()).absoluteValue
                 }
             }
     ) {
-        val np_theme_mode: ThemeMode by player.settings.theme.NOWPLAYING_THEME_MODE.observe()
+        val np_theme_mode: ThemeMode by state.settings.theme.NOWPLAYING_THEME_MODE.observe()
 
         QueueTab(
             null,
@@ -441,7 +441,7 @@ private fun PlayerQueueTab(
             ),
             getBackgroundColour = {
                 getNPAltBackground()
-                // if (player.np_theme_mode == ThemeMode.BACKGROUND) getNPAltOnBackground()
+                // if (state.np_theme_mode == ThemeMode.BACKGROUND) getNPAltOnBackground()
                 // else theme.background
             },
             getBackgroundOpacity = {

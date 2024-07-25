@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.composable.*
 import dev.toastbits.composekit.utils.modifier.bounceOnClick
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
@@ -31,12 +31,12 @@ internal fun SearchAppPage.HorizontalSearchSecondaryBar(
     modifier: Modifier,
     content_padding: PaddingValues
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     var is_focused: Boolean by remember { mutableStateOf(false) }
 
     val bar_height: Dp = 70.dp
-    val suggestions_height: Dp = player.screen_size.height
+    val suggestions_height: Dp = state.ui.screen_size.height
     val suggestions_direction: Int = if (slot.is_start) 1 else -1
 
     Box(

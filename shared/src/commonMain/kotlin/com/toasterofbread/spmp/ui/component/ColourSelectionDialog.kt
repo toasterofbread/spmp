@@ -10,7 +10,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.background
 import LocalPlayerState
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import LocalTheme
+import LocalUiState
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Text
 import androidx.compose.material3.MaterialTheme
@@ -42,6 +44,7 @@ import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.lazy.items
+import com.toasterofbread.spmp.model.state.UiState
 import dev.toastbits.composekit.settings.ui.ThemeValues
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -62,7 +65,7 @@ fun ColourSelectionDialog(
     onColourSelected: (ColourSource) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val theme: ThemeValues = LocalTheme.current
     var selecting_custom_colour: Boolean by remember { mutableStateOf(false) }
 
     AlertDialog(
@@ -82,8 +85,8 @@ fun ColourSelectionDialog(
         },
         confirmButton = {
             val button_colours: ButtonColors = ButtonDefaults.buttonColors(
-                containerColor = player.theme.background,
-                contentColor = player.theme.on_background
+                containerColor = theme.background,
+                contentColor = theme.on_background
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -115,12 +118,13 @@ private fun ThemeColourSelectionList(
     onSelected: (ColourSource) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val ui_state: UiState = LocalUiState.current
+    val theme: ThemeValues = LocalTheme.current
 
     LazyColumn(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
         items(ThemeValues.Colour.entries) { colour ->
             ColourCard(
-                colour = colour.get(player.theme),
+                colour = colour.get(theme),
                 name = colour.getReadable(),
                 onSelected = {
                     onSelected(ThemeColourSource(colour))
@@ -130,7 +134,7 @@ private fun ThemeColourSelectionList(
 
         item {
             ColourCard(
-                colour = player.getNPBackground(),
+                colour = ui_state.getNPBackground(),
                 name = stringResource(Res.string.colour_selector_dialog_player_background),
                 onSelected = {
                     onSelected(PlayerBackgroundColourSource())

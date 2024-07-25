@@ -64,7 +64,7 @@ internal fun MediaItemMultiSelectContext.MultiSelectInfoDisplay(
 @Composable
 fun MediaItemMultiSelectContext.MultiSelectInfoDisplayContent(
     modifier: Modifier,
-    background_colour: Color = LocalPlayerState.current.theme.background,
+    background_colour: Color = LocalTheme.current.background,
     getAllItems: (() -> List<List<MultiSelectItem>>)? = null
 ) {
     Column(modifier.animateContentSize()) {

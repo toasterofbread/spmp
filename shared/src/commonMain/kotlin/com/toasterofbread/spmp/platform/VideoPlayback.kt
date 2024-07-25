@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.platform
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import LocalPlayerState
 import dev.toastbits.ytmkt.model.external.YoutubeVideoFormat
 import com.toasterofbread.spmp.model.mediaitem.song.getSongFormats
@@ -26,7 +26,7 @@ fun SongVideoPlayback(
     fill: Boolean = false,
     getAlpha: () -> Float = { 1f }
 ): Boolean {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     var playback_url: String? by remember { mutableStateOf(null) }
 
     LaunchedEffect(song_id) {
@@ -35,7 +35,7 @@ fun SongVideoPlayback(
         val format: YoutubeVideoFormat =
             getSongFormats(
                 song_id,
-                player.context,
+                state.context,
                 filter = { format ->
                     format.mimeType.startsWith("video/mp4")
                 }

@@ -1,17 +1,13 @@
 package com.toasterofbread.spmp.model.appaction.shortcut
 
+import LocalAppState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.input.key.*
 import dev.toastbits.composekit.utils.common.addUnique
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.*
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
-import com.toasterofbread.spmp.model.appaction.shortcut.getDefaultShortcuts
-import kotlinx.serialization.json.Json
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlin.math.roundToLong
-import LocalPlayerState
 
 val LocalShortcutState: ProvidableCompositionLocal<ShortcutState> = compositionLocalOf { ShortcutState() }
 
@@ -34,10 +30,10 @@ class ShortcutState {
 
     @Composable
     fun ObserveState() {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
-        navigate_song_with_numbers = player.settings.shortcut.NAVIGATE_SONG_WITH_NUMBERS.observe().value
+        val state: SpMp.State = LocalAppState.current
+        navigate_song_with_numbers = state.settings.shortcut.NAVIGATE_SONG_WITH_NUMBERS.observe().value
 
-        val shortcuts: List<Shortcut>? by player.settings.shortcut.CONFIGURED_SHORTCUTS.observe()
+        val shortcuts: List<Shortcut>? by state.settings.shortcut.CONFIGURED_SHORTCUTS.observe()
         LaunchedEffect(shortcuts) {
             val keyboard_shortcuts: MutableList<Shortcut> = mutableListOf()
             val mouse_button_shortcuts: MutableList<Shortcut> = mutableListOf()
@@ -66,7 +62,7 @@ class ShortcutState {
     fun onKeyPress(
         event: KeyEvent,
         text_input_active: Boolean,
-        player: OldPlayerStateImpl
+        state: SpMp.State
     ): Boolean {
         key_detection_state?.also {
             it.invoke(event.key)
@@ -80,8 +76,8 @@ class ShortcutState {
 
             val trigger: KeyboardShortcutTrigger = shortcut.trigger as KeyboardShortcutTrigger
             if (trigger.isTriggeredBy(event)) {
-                player.coroutine_scope.launch {
-                    shortcut.action.executeAction(player)
+                state.context.coroutine_scope.launch {
+                    shortcut.action.executeAction(state)
                 }
                 return true
             }
@@ -90,7 +86,7 @@ class ShortcutState {
         if (navigate_song_with_numbers) {
             val number_index: Int = NUMBER_KEYS.indexOf(event.key)
             if (number_index != -1 && KeyboardShortcutTrigger.KeyboardModifier.entries.none { it.isPressedInEvent(event) }) {
-                player.withPlayer {
+                state.session.withPlayer {
                     val seek_target: Long = (duration_ms * (number_index.toFloat() / NUMBER_KEYS.size)).roundToLong()
                     seekTo(seek_target)
                 }
@@ -101,7 +97,7 @@ class ShortcutState {
         return false
     }
 
-    fun onButtonPress(button_code: Int, player: OldPlayerStateImpl): Boolean {
+    fun onButtonPress(button_code: Int, state: SpMp.State): Boolean {
         button_detection_state?.also {
             it.invoke(button_code)
             return true
@@ -110,8 +106,8 @@ class ShortcutState {
         for (shortcut in mouse_button_shortcuts) {
             val trigger: MouseButtonShortcutTrigger = shortcut.trigger as MouseButtonShortcutTrigger
             if (trigger.isTriggeredBy(button_code)) {
-                player.coroutine_scope.launch {
-                    shortcut.action.executeAction(player)
+                state.context.coroutine_scope.launch {
+                    shortcut.action.executeAction(state)
                 }
                 return true
             }

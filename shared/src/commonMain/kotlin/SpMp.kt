@@ -1,5 +1,6 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 
+import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.AlertDialog
@@ -13,16 +14,16 @@ import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.utils.common.thenIf
 import com.toasterofbread.spmp.ProjectBuildConfig
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import com.toasterofbread.spmp.service.playercontroller.openUri
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.RootView
 import com.toasterofbread.spmp.ui.layout.loadingsplash.LoadingSplash
@@ -30,9 +31,19 @@ import com.toasterofbread.spmp.ui.layout.loadingsplash.SplashMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.model.appaction.shortcut.LocalShortcutState
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
+import com.toasterofbread.spmp.model.settings.Settings
+import com.toasterofbread.spmp.model.state.PlayerState
+import com.toasterofbread.spmp.model.state.PlayerStateImpl
+import com.toasterofbread.spmp.model.state.SessionState
+import com.toasterofbread.spmp.model.state.SessionStateImpl
+import com.toasterofbread.spmp.model.state.UiState
+import com.toasterofbread.spmp.model.state.UiStateImpl
+import com.toasterofbread.spmp.platform.AppThemeManager
 import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
+import dev.toastbits.composekit.settings.ui.ThemeManager
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import dev.toastbits.spms.socketapi.shared.SPMS_API_VERSION
@@ -45,12 +56,35 @@ import spmp.shared.generated.resources.app_name
 import spmp.shared.generated.resources.warning_spms_api_version_mismatch
 import spmp.shared.generated.resources.`warning_spms_api_version_mismatch_$theirs_$ours`
 
-val LocalPlayerState: ProvidableCompositionLocal<OldPlayerStateImpl> = staticCompositionLocalOf { SpMp.player_state }
+val LocalAppState: ProvidableCompositionLocal<SpMp.State> = staticCompositionLocalOf { SpMp.state }
+val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.player_state }
+val LocalSessionState: ProvidableCompositionLocal<SessionState> = staticCompositionLocalOf { SpMp.session_state }
+val LocalUiState: ProvidableCompositionLocal<UiState> = staticCompositionLocalOf { SpMp.ui_state }
 val LocalProgramArguments: ProvidableCompositionLocal<ProgramArguments> = staticCompositionLocalOf { ProgramArguments() }
 
 object LocalNowPlayingExpansion {
     val current: PlayerExpansionState
-        @Composable get() = LocalPlayerState.current.expansion
+        @Composable get() = LocalUiState.current.player_expansion
+}
+
+object LocalAppContext {
+    val current: AppContext
+        @Composable get() = LocalAppState.current.context
+}
+
+object LocalDataase {
+    val current: Database
+        @Composable get() = LocalAppContext.current.database
+}
+
+object LocalTheme {
+    val current: ThemeValues
+        @Composable get() = LocalUiState.current.theme
+}
+
+object LocalSettings {
+    val current: Settings
+        @Composable get() = LocalAppContext.current.settings
 }
 
 object SpMp {
@@ -58,40 +92,100 @@ object SpMp {
 
     private lateinit var context: AppContext
 
-    var _player_state: OldPlayerStateImpl? = null
+    var _state: State? = null
         private set
-    val player_state: OldPlayerStateImpl get() = _player_state!!
+    val state: State get() = _state!!
+
+    data class State(
+        val context: AppContext,
+        val player: PlayerState,
+        val session: SessionState,
+        val ui: UiState
+    ) {
+        val settings: Settings get() = context.settings
+        val database: Database get() = context.database
+        val theme: AppThemeManager get() = ui.theme
+    }
+
+    lateinit var player_state: PlayerStateImpl
+        private set
+    lateinit var session_state: SessionStateImpl
+        private set
+    lateinit var ui_state: UiStateImpl
+        private set
 
     val prefs: PlatformPreferences get() = context.getPrefs()
 
     private val low_memory_listeners: MutableList<() -> Unit> = mutableListOf()
     private var window_fullscreen_toggler: (() -> Unit)? = null
+    private val screen_size_state: MutableState<DpSize> = mutableStateOf(DpSize.Zero)
 
     fun init(context: AppContext) {
         this.context = context
     }
 
-    suspend fun initPlayer(
+    suspend fun initState(
         launch_arguments: ProgramArguments,
         composable_coroutine_scope: CoroutineScope
-    ): OldPlayerStateImpl {
+    ): State {
         val np_theme_mode: ThemeMode = context.settings.theme.NOWPLAYING_THEME_MODE.get()
-        val swipe_sensitivity: Float = context.settings.player.EXPAND_SWIPE_SENSITIVITY.get()
-        val player: OldPlayerStateImpl = OldPlayerStateImpl(context, launch_arguments, composable_coroutine_scope, np_theme_mode, swipe_sensitivity)
-        player.onStart()
-        _player_state = player
-        return player
+        val swipe_sensitivity: Float = context.settings.state.EXPAND_SWIPE_SENSITIVITY.get()
+
+        session_state =
+            SessionStateImpl(
+                context,
+                composable_coroutine_scope,
+                launch_arguments,
+                low_memory_listener = {
+                    for (listener in low_memory_listeners) {
+                        listener.invoke()
+                    }
+                }
+            )
+
+        val np_swipe_state: AnchoredDraggableState<Int> = PlayerStateImpl.createSwipeState()
+
+        player_state =
+            PlayerStateImpl(
+                context.settings,
+                session_state,
+                composable_coroutine_scope,
+                np_theme_mode,
+                swipe_sensitivity,
+                requestFocus = { page ->
+                    ui_state.switchPlayerPage(page)
+                },
+                np_swipe_state = np_swipe_state
+            )
+
+        ui_state =
+            UiStateImpl(
+                context,
+                composable_coroutine_scope,
+                player_state,
+                np_swipe_state,
+                screen_size_state
+            )
+
+        session_state.onStart()
+        _state = State(
+            context,
+            player_state,
+            session_state,
+            ui_state
+        )
+        return state
     }
 
     fun release() {
-        _player_state?.release()
+        _state?.session?.release()
     }
 
     fun onStart() {
     }
 
     fun onStop() {
-        _player_state?.onStop()
+        _state?.session?.onStop()
     }
 
     fun toggleFullscreenWindow() {
@@ -123,7 +217,7 @@ object SpMp {
         context.theme.ApplicationTheme(context, getFontFamily(context) ?: FontFamily.Default) {
             LaunchedEffect(open_uri) {
                 if (open_uri != null) {
-                    player_state.openUri(open_uri).onFailure {
+                    state.openUri(open_uri).onFailure {
                         context.sendNotification(it)
                     }
                 }
@@ -133,7 +227,10 @@ object SpMp {
                 val ui_scale: Float by context.settings.system.UI_SCALE.observe()
 
                 CompositionLocalProvider(
+                    LocalAppState provides state,
                     LocalPlayerState provides player_state,
+                    LocalSessionState provides session_state,
+                    LocalUiState provides ui_state,
                     LocalShortcutState provides shortcut_state,
                     LocalDensity provides Density(LocalDensity.current.density * ui_scale, 1f),
                     LocalProgramArguments provides arguments
@@ -141,26 +238,26 @@ object SpMp {
                     var mismatched_server_api_version: Int? by remember { mutableStateOf(null) }
                     val splash_mode: SplashMode? = when (Platform.current) {
                         Platform.ANDROID -> {
-                            val external_server_mode: Boolean by player_state.settings.platform.ENABLE_EXTERNAL_SERVER_MODE.observe()
-                            if (!player_state.service_connected && external_server_mode) SplashMode.SPLASH
+                            val external_server_mode: Boolean by state.settings.platform.ENABLE_EXTERNAL_SERVER_MODE.observe()
+                            if (!session_state.service_connected && external_server_mode) SplashMode.SPLASH
                             else null
                         }
                         Platform.DESKTOP,
                         Platform.WEB ->
-                            if (!player_state.service_connected) SplashMode.SPLASH
+                            if (!session_state.service_connected) SplashMode.SPLASH
                             else null
                     }
 
                     LoadingSplash(
                         splash_mode,
-                        player_state.service_load_state,
+                        session_state.service_load_state,
                         requestServiceChange = { service_companion ->
-                            if (!service_companion.isAvailable(player_state.context, arguments)) {
+                            if (!service_companion.isAvailable(state.context, arguments)) {
                                 return@LoadingSplash
                             }
 
                             coroutine_scope.launch {
-                                player_state.requestServiceChange(service_companion)
+                                session_state.requestServiceChange(service_companion)
                             }
                         },
                         modifier = Modifier
@@ -177,7 +274,7 @@ object SpMp {
                             return@LaunchedEffect
                         }
 
-                        player_state.interactService { service: Any ->
+                        session_state.interactService { service: Any ->
                             if (service !is ClientServerPlayerService) {
                                 return@interactService
                             }
@@ -190,7 +287,12 @@ object SpMp {
                     }
 
                     if (splash_mode == null) {
-                        RootView(player_state)
+                        RootView(
+                            state,
+                            onScreenSizeChanged = { size ->
+                                screen_size_state.value = size
+                            }
+                        )
                     }
 
                     if (mismatched_server_api_version != null) {

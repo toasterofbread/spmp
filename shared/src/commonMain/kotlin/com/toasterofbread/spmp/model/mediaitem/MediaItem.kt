@@ -24,7 +24,7 @@ import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import dev.toastbits.ytmkt.model.external.ThumbnailProviderImpl
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmArtist
@@ -59,15 +59,15 @@ interface MediaItem: MediaItemHolder, YtmMediaItem {
 
     @Composable
     fun observeActiveTitle(): MutableState<String?> {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
-        return player.database.mediaItemQueries.activeTitleById(id)
+        val state: SpMp.State = LocalAppState.current
+        return state.database.mediaItemQueries.activeTitleById(id)
             .observeAsState(
                 key = id,
                 mapValue = {
                     it.executeAsOneOrNull()?.IFNULL?.let { formatActiveTitle(it) }
                 }
             ) { title ->
-                setActiveTitle(title, player.context)
+                setActiveTitle(title, state.context)
             }
     }
 
@@ -229,10 +229,10 @@ private fun formatActiveTitle(active_title: String): String {
 
 @Composable
 fun MediaItem.observeUrl(): String {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     var url: String by remember { mutableStateOf("") }
     LaunchedEffect(this) {
-        url = getUrl(player.context)
+        url = getUrl(state.context)
     }
     return url
 }

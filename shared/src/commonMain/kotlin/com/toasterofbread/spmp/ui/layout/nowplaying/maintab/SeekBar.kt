@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.maintab
 
-import LocalPlayerState
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.animation.core.spring
@@ -36,27 +35,34 @@ import com.github.krottv.compose.sliders.SliderValueHorizontal
 import dev.toastbits.composekit.utils.common.formatElapsedTime
 import dev.toastbits.composekit.utils.composable.RecomposeOnInterval
 import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import LocalSessionState
+import LocalUiState
+import com.toasterofbread.spmp.model.state.SessionState
+import com.toasterofbread.spmp.model.state.UiState
+import com.toasterofbread.spmp.model.state.UiStateImpl
 import com.toasterofbread.spmp.ui.layout.nowplaying.POSITION_UPDATE_INTERVAL_MS
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
+import dev.toastbits.ytmkt.uistrings.UiString
 
 @Composable
 fun SeekBar(
     seek: (Float) -> Unit,
     modifier: Modifier = Modifier,
     enabled: Boolean = true,
-    getColour: OldPlayerStateImpl.() -> Color = { getNPOnBackground() },
-    getTrackColour: OldPlayerStateImpl.() -> Color = { getNPAltOnBackground() }
+    getColour: UiState.() -> Color = { getNPOnBackground() },
+    getTrackColour: UiState.() -> Color = { getNPAltOnBackground() }
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val session_state: SessionState = LocalSessionState.current
+    val ui_state: UiState = LocalUiState.current
 
-    var position_override by remember { mutableStateOf<Float?>(null) }
-    var old_position by remember { mutableStateOf<Float?>(null) }
+    var position_override: Float? by remember { mutableStateOf<Float?>(null) }
+    var old_position: Float? by remember { mutableStateOf<Float?>(null) }
 
     fun getSliderValue(): Float {
         if (position_override != null && old_position != null) {
-            if (player.status.getProgress() != old_position) {
+            if (session_state.status.getProgress() != old_position) {
                 old_position = null
                 position_override = null
             }
@@ -64,10 +70,10 @@ fun SeekBar(
                 return position_override!!
             }
         }
-        return position_override ?: player.status.getProgress()
+        return position_override ?: session_state.status.getProgress()
     }
 
-    RecomposeOnInterval(POSITION_UPDATE_INTERVAL_MS, player.status.m_playing) { state ->
+    RecomposeOnInterval(POSITION_UPDATE_INTERVAL_MS, session_state.status.m_playing) { state ->
         state
 
         Column(modifier, verticalArrangement = Arrangement.spacedBy(5.dp)) {
@@ -77,8 +83,8 @@ fun SeekBar(
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    SeekBarTimeText(player.status.getPositionMs(), getColour(player))
-                    SeekBarTimeText(player.status.m_duration_ms, getColour(player))
+                    SeekBarTimeText(session_state.status.getPositionMs(), getColour(ui_state))
+                    SeekBarTimeText(session_state.status.m_duration_ms, getColour(ui_state))
                 }
             }
 
@@ -92,11 +98,11 @@ fun SeekBar(
                     position_override?.also {
                         seek(it)
                     }
-                    old_position = player.status.getProgress()
+                    old_position = session_state.status.getProgress()
                 },
                 thumbSizeInDp = DpSize(12.dp, 12.dp),
-                track = { a, b, _, _, e -> SeekTrack(a, b, e, getTrackColour(player), getColour(player)) },
-                thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, getColour(player), 1f) }
+                track = { a, b, _, _, e -> SeekTrack(a, b, e, getTrackColour(ui_state), getColour(ui_state)) },
+                thumb = { a, b, c, d, e -> DefaultThumb(a, b, c, d, e, getColour(ui_state), 1f) }
             )
         }
     }
@@ -129,9 +135,9 @@ private fun SeekTrack(
     progress_colour: Color,
     height: Dp = 4.dp
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val visual_progress by animateFloatAsState(progress, spring(stiffness = Spring.StiffnessLow))
-    val show_gradient: Boolean by player.settings.player.SHOW_SEEK_BAR_GRADIENT.observe()
+    val show_gradient: Boolean by state.settings.state.SHOW_SEEK_BAR_GRADIENT.observe()
 
     Canvas(
         Modifier

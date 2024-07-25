@@ -18,7 +18,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
 import dev.toastbits.composekit.utils.common.addUnique
 import dev.toastbits.composekit.utils.common.thenIf
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerHeight
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerVPadding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlaying
@@ -32,41 +32,43 @@ val MINIMISED_NOW_PLAYING_V_PADDING_DP: Float
 private val LocalFocusedTextFieldOwners: ProvidableCompositionLocal<MutableList<Any>> = staticCompositionLocalOf { mutableStateListOf() }
 
 @Composable
-fun RootView(player: OldPlayerStateImpl) {
+fun RootView(state: SpMp.State, onScreenSizeChanged: (DpSize) -> Unit) {
     val density: Density = LocalDensity.current
     Box(
         Modifier
             .fillMaxSize()
             .onSizeChanged { size ->
                 with(density) {
-                    player.screen_size = DpSize(
-                        size.width.toDp(),
-                        size.height.toDp()
+                    onScreenSizeChanged(
+                        DpSize(
+                            size.width.toDp(),
+                            size.height.toDp()
+                        )
                     )
                 }
             }
     )
 
     var window_transparency_enabled: Boolean by remember { mutableStateOf(false) }
-    val background_opacity: Float by player.settings.theme.WINDOW_BACKGROUND_OPACITY.observe()
+    val background_opacity: Float by state.settings.theme.WINDOW_BACKGROUND_OPACITY.observe()
 
     LaunchedEffect(Unit) {
-        window_transparency_enabled = player.settings.theme.ENABLE_WINDOW_TRANSPARENCY.get()
+        window_transparency_enabled = state.settings.theme.ENABLE_WINDOW_TRANSPARENCY.get()
     }
 
     Canvas(Modifier.fillMaxSize()) {
         drawRect(
-            player.theme.background.thenIf(window_transparency_enabled) { copy(alpha = background_opacity) },
+            state.theme.background.thenIf(window_transparency_enabled) { copy(alpha = background_opacity) },
             blendMode = BlendMode.SrcIn
         )
     }
 
     Box(Modifier.fillMaxSize()) {
-        player.HomePage()
+        state.ui.HomePage()
         NowPlaying(Modifier.fillMaxSize())
     }
 
-    player.PersistentContent()
+    state.ui.PersistentContent()
 }
 
 @Composable

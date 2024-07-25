@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.artistpage
 
+import LocalAppState
 import LocalPlayerState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -36,7 +37,7 @@ fun LocalArtistPage(
     content_padding: PaddingValues = PaddingValues(),
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
-    val player = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val downloads by rememberSongDownloads()
     var songs: List<Song> by remember { mutableStateOf(emptyList()) }
 
@@ -46,12 +47,12 @@ fun LocalArtistPage(
                 return@mapNotNull null
             }
 
-            val song_artists: List<ArtistRef>? = download.song.Artists.get(player.database)
+            val song_artists: List<ArtistRef>? = download.song.Artists.get(state.database)
             if (song_artists?.any { it.id == artist.id } != true) {
                 return@mapNotNull null
             }
 
-            if (isMediaItemHidden(download.song, player.context)) {
+            if (isMediaItemHidden(download.song, state.context)) {
                 return@mapNotNull null
             }
 
@@ -69,14 +70,14 @@ fun LocalArtistPage(
         LocalPlayerClickOverrides.current.copy(
             onClickOverride = { item, multiselect_key ->
                 if (multiselect_key != null) {
-                    player.withPlayer {
+                    state.session.withPlayer {
                         addMultipleToQueue(songs, clear = true)
                         seekToSong(multiselect_key)
-                        player.onPlayActionOccurred()
+                        state.ui.onPlayActionOccurred()
                     }
                 }
                 else {
-                    click_overrides.onMediaItemClicked(item, player)
+                    click_overrides.onMediaItemClicked(item, state)
                 }
             }
         )

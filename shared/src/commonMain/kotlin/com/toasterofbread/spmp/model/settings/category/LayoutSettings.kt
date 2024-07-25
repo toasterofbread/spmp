@@ -19,7 +19,8 @@ import androidx.compose.ui.graphics.Shape
 import dev.toastbits.composekit.settings.ui.SettingsPage
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
 import dev.toastbits.composekit.utils.common.thenWith
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import LocalTheme
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getLayoutCategoryItems
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBar
@@ -31,6 +32,7 @@ import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.utils.modifier.disableGestures
 import dev.toastbits.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import dev.toastbits.composekit.settings.ui.vibrant_accent
 import kotlinx.serialization.json.JsonElement
 import org.jetbrains.compose.resources.stringResource
@@ -88,7 +90,7 @@ class LayoutSettings(val context: AppContext): SettingsGroup("LAYOUT", context.g
             { getLayoutCategoryItems(context) },
             { Icons.Outlined.VerticalSplit },
             titleBarEndContent = { modifier ->
-                val player: OldPlayerStateImpl = LocalPlayerState.current
+                val theme: ThemeValues = LocalTheme.current
                 val density: Density = LocalDensity.current
                 var show_preview_options: Boolean by remember { mutableStateOf(false) }
 
@@ -138,8 +140,8 @@ class LayoutSettings(val context: AppContext): SettingsGroup("LAYOUT", context.g
                                     options_height = it.height
                                 }
                                 .platformClickable(onClick = {})
-                                .background(player.theme.background, shape)
-                                .border(1.dp, player.theme.vibrant_accent, shape)
+                                .background(theme.background, shape)
+                                .border(1.dp, theme.vibrant_accent, shape)
                                 .padding(20.dp)
                         )
                     }

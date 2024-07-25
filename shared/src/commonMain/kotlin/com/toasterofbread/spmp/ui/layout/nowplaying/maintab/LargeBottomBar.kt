@@ -25,7 +25,7 @@ import dev.toastbits.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.ui.component.HorizontalLyricsLineDisplay
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.theme.appHover
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LandscapeLayoutSlot
 import com.toasterofbread.spmp.ui.layout.contentbar.DisplayBar
@@ -38,7 +38,7 @@ internal fun LargeBottomBar(
     inset_end: Dp = Dp.Unspecified,
     inset_depth: Dp = 0.dp,
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     Row(
         modifier.alpha(0.5f),
@@ -78,7 +78,7 @@ internal fun LargeBottomBar(
                 container_modifier = Modifier.fillMaxWidth().weight(1f)
             )
 
-            IconButton({ player.expansion.toggle() }, Modifier.bounceOnClick().appHover(true)) {
+            IconButton({ state.ui.player_expansion.toggle() }, Modifier.bounceOnClick().appHover(true)) {
                 Icon(Icons.Default.KeyboardArrowDown, null)
             }
         }

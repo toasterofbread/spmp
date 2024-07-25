@@ -1,9 +1,9 @@
 package com.toasterofbread.spmp.model.mediaitem.playlist
 
 import LocalPlayerState
+import LocalTheme
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.PlaylistPlay
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
@@ -19,6 +19,8 @@ import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import PlatformIO
+import androidx.compose.material.icons.automirrored.filled.PlaylistPlay
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import dev.toastbits.composekit.settings.ui.on_accent
 
 sealed interface LocalPlaylist: Playlist {
@@ -77,8 +79,8 @@ suspend fun Playlist.downloadAsLocalPlaylist(context: AppContext, replace: Boole
 
 @Composable
 fun LocalPlaylist.LocalPlaylistDefaultThumbnail(modifier: Modifier = Modifier) {
-    val player = LocalPlayerState.current
-    Box(modifier.background { player.theme.accent }, contentAlignment = Alignment.Center) {
-        Icon(Icons.Default.PlaylistPlay, null, tint = player.theme.on_accent)
+    val theme: ThemeValues = LocalTheme.current
+    Box(modifier.background { theme.accent }, contentAlignment = Alignment.Center) {
+        Icon(Icons.AutoMirrored.Filled.PlaylistPlay, null, tint = theme.on_accent)
     }
 }

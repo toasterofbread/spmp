@@ -19,7 +19,7 @@ import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getServerGroupItems
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.platform.playerservice.LocalServer
 import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
@@ -37,13 +37,13 @@ private const val LOCAL_SERVER_AUTOSTART_DELAY_MS: Long = 100
 
 @Composable
 fun SplashExtraLoadingContent(item_modifier: Modifier) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     var show_config_dialog: Boolean by remember { mutableStateOf(false) }
 
     val button_colours: ButtonColors =
         ButtonDefaults.buttonColors(
-            containerColor = player.theme.accent,
-            contentColor = player.theme.on_accent
+            containerColor = state.theme.accent,
+            contentColor = state.theme.on_accent
         )
 
     Button(
@@ -54,16 +54,16 @@ fun SplashExtraLoadingContent(item_modifier: Modifier) {
         Text(stringResource(Res.string.loading_splash_button_configure_connection))
     }
 
-    if (player.context.canOpenUrl()) {
+    if (state.context.canOpenUrl()) {
         val server_info_url: String = stringResource(Res.string.server_info_url)
 
         ShapedIconButton(
             {
-                player.context.openUrl(server_info_url)
+                state.context.openUrl(server_info_url)
             },
             colours = IconButtonDefaults.iconButtonColors(
-                containerColor = player.theme.accent,
-                contentColor = player.theme.on_accent
+                containerColor = state.theme.accent,
+                contentColor = state.theme.on_accent
             ),
             modifier = item_modifier
         ) {
@@ -72,7 +72,7 @@ fun SplashExtraLoadingContent(item_modifier: Modifier) {
     }
 
     if (show_config_dialog) {
-        val settings_items: List<SettingsItem> = remember { getServerGroupItems(player.context) }
+        val settings_items: List<SettingsItem> = remember { getServerGroupItems(state.context) }
 
         AlertDialog(
             onDismissRequest = { show_config_dialog = false },
@@ -90,7 +90,7 @@ fun SplashExtraLoadingContent(item_modifier: Modifier) {
             text = {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     items(settings_items) { item ->
-                        item.Item(player.app_page_state.Settings.settings_interface, { _, _ -> }, {}, Modifier)
+                        item.Item(state.ui.app_page_state.Settings.settings_interface, { _, _ -> }, {}, Modifier)
                     }
                 }
             }

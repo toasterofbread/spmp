@@ -50,7 +50,7 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.ytmkt.model.external.YoutubePage
 import dev.toastbits.ytmkt.uistrings.UiString
 import kotlin.math.ceil
@@ -86,7 +86,7 @@ fun MediaItemGrid(
         return
     }
 
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     val row_count: Int = grid_params.rows?.first ?: ((if (filtered_items.size <= 3) 1 else 2) * (if (grid_params.alt_style) 2 else 1))
     val expanded_row_count: Int = grid_params.rows?.second ?: row_count
@@ -200,7 +200,7 @@ fun MediaItemGrid(
             ) {
                 Box(
                     Modifier
-                        .background(CircleShape, { player.theme.background })
+                        .background(CircleShape, { state.theme.background })
                         .padding(horizontal_padding),
                     contentAlignment = Alignment.Center
                 ) {

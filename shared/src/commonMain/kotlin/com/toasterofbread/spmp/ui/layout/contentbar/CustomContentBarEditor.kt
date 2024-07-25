@@ -17,7 +17,7 @@ import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.utils.common.*
 import dev.toastbits.composekit.utils.composable.*
 import com.toasterofbread.spmp.platform.*
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.vertical
@@ -84,7 +84,7 @@ internal abstract class CustomContentBarEditor() {
 
     @Composable
     fun Editor(initial_bar: CustomContentBar) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
         val density: Density = LocalDensity.current
 
         if (_bar == null) {
@@ -126,11 +126,11 @@ internal abstract class CustomContentBarEditor() {
                 vertical_bar,
                 Modifier
                     .fillMaxWidth()
-                    .background(player.theme.vibrant_accent.copy(alpha = 0.25f), RoundedCornerShape(16.dp))
+                    .background(state.theme.vibrant_accent.copy(alpha = 0.25f), RoundedCornerShape(16.dp))
                     .padding(15.dp),
                 alignment = -1
             ) {
-                CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
+                CompositionLocalProvider(LocalContentColor provides state.theme.on_background) {
                     if (vertical_bar) {
                         var column_height: Dp by remember { mutableStateOf(0.dp) }
                         BarPreview(
@@ -164,7 +164,7 @@ internal abstract class CustomContentBarEditor() {
 
     @Composable
     private fun SelectedElementOptions(modifier: Modifier = Modifier) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
 
         var element_index: Int by remember { mutableStateOf(selected_element ?: -1) }
         LaunchedEffect(selected_element) {
@@ -187,10 +187,10 @@ internal abstract class CustomContentBarEditor() {
                 Modifier
                     .padding(top = 20.dp)
                     .fillMaxWidth()
-                    .background(player.theme.background, RoundedCornerShape(16.dp))
+                    .background(state.theme.background, RoundedCornerShape(16.dp))
                     .padding(10.dp)
             ) {
-                CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
+                CompositionLocalProvider(LocalContentColor provides state.theme.on_background) {
                     ElementEditor(
                         element,
                         element_index,
@@ -216,10 +216,10 @@ internal abstract class CustomContentBarEditor() {
 
     @Composable
     private fun BarContentButtons(modifier: Modifier = Modifier) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
         val button_colours: ButtonColors = ButtonDefaults.buttonColors(
-            containerColor = player.theme.background,
-            contentColor = player.theme.on_background
+            containerColor = state.theme.background,
+            contentColor = state.theme.on_background
         )
 
         FlowRow(
@@ -266,7 +266,7 @@ internal abstract class CustomContentBarEditor() {
 
     @Composable
     private fun BarPreview(modifier: Modifier = Modifier, size_modifier: Modifier = Modifier) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
         val vertical_bar: Boolean = useVerticalBarLayout()
         val delete_button_offset: Dp = 42.dp
 
@@ -276,7 +276,7 @@ internal abstract class CustomContentBarEditor() {
         Box(
             modifier
                 .then(size_modifier)
-                .background(player.theme.background, RoundedCornerShape(16.dp))
+                .background(state.theme.background, RoundedCornerShape(16.dp))
         ) {
             bar.CustomBarContent(
                 scrolling = !vertical_bar,
@@ -295,9 +295,9 @@ internal abstract class CustomContentBarEditor() {
                 getSpacerElementModifier = { index, spacer -> with(spacer) {
                     Modifier
                         .clickable { onElementClicked(index) }
-                        .border(2.dp, player.theme.vibrant_accent)
+                        .border(2.dp, state.theme.vibrant_accent)
                         .thenIf(index == selected_element) {
-                            background(player.theme.vibrant_accent)
+                            background(state.theme.vibrant_accent)
                         }
                 }},
                 shouldShowButton = { true },
@@ -326,7 +326,7 @@ internal abstract class CustomContentBarEditor() {
                             }
                             .wrapContentSize(unbounded = true)
                     ) {
-                        Icon(Icons.Default.Delete, null, tint = player.theme.background)
+                        Icon(Icons.Default.Delete, null, tint = state.theme.background)
                     }
                 }
             )
@@ -339,7 +339,7 @@ internal abstract class CustomContentBarEditor() {
                         .thenIf(vertical_bar) {
                             rotate(-90f).vertical().padding(horizontal = 10.dp)
                         },
-                    color = player.theme.on_background
+                    color = state.theme.on_background
                 )
             }
         }

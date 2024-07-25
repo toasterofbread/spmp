@@ -33,7 +33,7 @@ internal fun getYoutubeMusicLoginPage(
         val login_page: LoginPage
             @Composable
             get() {
-                return LocalPlayerState.current.context.ytapi.LoginPage
+                return LocalAppContext.current.ytapi.LoginPage
             }
 
         override val scrolling: Boolean

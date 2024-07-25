@@ -18,7 +18,7 @@ import dev.toastbits.composekit.utils.composable.*
 import dev.toastbits.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.LargeFilterList
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
@@ -38,7 +38,7 @@ internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
             Platform.WEB -> 125.dp
         }
 
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     val artists: List<MediaItem>? by artists_layout?.items?.rememberFilteredYtmItems()
     var show_filters: Boolean by remember { mutableStateOf(false) }
@@ -66,8 +66,8 @@ internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
             ) {
                 val selected_colours: IconButtonColors =
                     IconButtonDefaults.iconButtonColors(
-                        containerColor = player.theme.vibrant_accent.copy(alpha = 0.85f),
-                        contentColor = player.theme.vibrant_accent.getContrasted()
+                        containerColor = state.theme.vibrant_accent.copy(alpha = 0.85f),
+                        contentColor = state.theme.vibrant_accent.getContrasted()
                     )
 
                 ShapedIconButton(
@@ -132,7 +132,7 @@ internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
                                 else fillMaxHeight()
                             }
                             .padding(horizontal = side_padding),
-                        multiselect_context = player.main_multiselect_context,
+                        multiselect_context = state.ui.main_multiselect_context,
                         apply_size = false
                     )
                 }

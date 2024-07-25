@@ -29,7 +29,7 @@ import dev.toastbits.composekit.utils.modifier.scrollWithoutClip
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.*
@@ -126,7 +126,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
 
     @Composable
     internal fun SearchButton(icon: ImageVector = Icons.Default.Search) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
         val keyboard_controller: SoftwareKeyboardController? = LocalSoftwareKeyboardController.current
 
         Crossfade(showing_search_field) { searching ->
@@ -140,8 +140,8 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                 },
                 onAltClick = {
                     if (!searching) {
-                        player.openAppPage(player.app_page_state.Search)
-                        player.context.vibrateShort()
+                        state.ui.openAppPage(state.ui.app_page_state.Search)
+                        state.context.vibrateShort()
                     }
                 }
             ) {
@@ -218,7 +218,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
         content_padding: PaddingValues,
         close: () -> Unit
     ) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
 
         MediaItemSortType.SelectionMenu(
             show_sort_type_menu,
@@ -259,8 +259,8 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                         modifier = Modifier.padding(content_padding.copy(bottom = 20.dp)),
                         message = stringResource(Res.string.error_yt_feed_parse_failed),
                         onRetry = {
-                            player.app_page_state.SongFeed.retrying = true
-                            player.openAppPage(player.app_page_state.SongFeed)
+                            state.ui.app_page_state.SongFeed.retrying = true
+                            state.ui.openAppPage(state.ui.app_page_state.SongFeed)
                         },
                         onDismiss = {
                             external_load_error = null

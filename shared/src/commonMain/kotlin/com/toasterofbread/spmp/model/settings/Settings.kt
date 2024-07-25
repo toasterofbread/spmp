@@ -9,7 +9,7 @@ class Settings(val context: AppContext, available_languages: List<Language>) {
     val system: SystemSettings = SystemSettings(context, available_languages)
     val behaviour: BehaviourSettings = BehaviourSettings(context)
     val layout: LayoutSettings = LayoutSettings(context)
-    val player: PlayerSettings = PlayerSettings(context)
+    val state: PlayerSettings = PlayerSettings(context)
     val feed: FeedSettings = FeedSettings(context)
     val theme: ThemeSettings = ThemeSettings(context)
     val lyrics: LyricsSettings = LyricsSettings(context)
@@ -31,7 +31,7 @@ class Settings(val context: AppContext, available_languages: List<Language>) {
             system,
             behaviour,
             layout,
-            player,
+            state,
             feed,
             theme,
             lyrics,

@@ -6,15 +6,15 @@ import app.cash.sqldelight.Query
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.song.toLong
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.ytmkt.model.external.SongLikedStatus
 
 @Composable
 fun rememberLocalLikedSongs(liked_status: SongLikedStatus = SongLikedStatus.LIKED): State<List<Song>?> {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     
     val query: Query<String> = remember(liked_status) {
-        player.database.songQueries.byLiked(liked_status.toLong())
+        state.database.songQueries.byLiked(liked_status.toLong())
     }
     val liked_songs: MutableState<List<Song>?> = remember { mutableStateOf(null) }
     

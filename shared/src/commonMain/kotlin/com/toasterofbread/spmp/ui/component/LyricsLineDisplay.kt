@@ -19,11 +19,12 @@ import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.utils.composable.AlignableCrossfade
 import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
 import com.toasterofbread.spmp.youtubeapi.lyrics.createFuriganaTokeniser
 import kotlinx.coroutines.delay
 import LocalPlayerState
+import LocalSettings
 
 private const val UPDATE_INTERVAL_MS = 100L
 
@@ -42,7 +43,7 @@ fun HorizontalLyricsLineDisplay(
 ) {
     require(lyrics.synced)
 
-    val show_furigana_option: Boolean by LocalPlayerState.current.settings.lyrics.DEFAULT_FURIGANA.observe()
+    val show_furigana_option: Boolean by LocalSettings.current.lyrics.DEFAULT_FURIGANA.observe()
     val current_line_state: CurrentLineState? = rememberCurrentLineState(lyrics, lyrics_linger, getTime)
 
     val lyrics_text_style: TextStyle =
@@ -211,8 +212,7 @@ private fun rememberCurrentLineState(
     linger: Boolean,
     getTime: () -> Long
 ): CurrentLineState? {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    val romanise_furigana: Boolean by player.settings.lyrics.ROMANISE_FURIGANA.observe()
+    val romanise_furigana: Boolean by LocalSettings.current.lyrics.ROMANISE_FURIGANA.observe()
 
     var state: CurrentLineState? by remember { mutableStateOf(null) }
 

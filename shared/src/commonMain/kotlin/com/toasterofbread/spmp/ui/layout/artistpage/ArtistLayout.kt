@@ -51,7 +51,7 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.composekit.settings.ui.makeVibrant
 
 private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
@@ -68,10 +68,10 @@ fun ArtistLayout(
     getAllSelectableItems: (() -> List<List<MultiSelectItem>>)? = null,
     content: LazyListScope.(accent_colour: Color?, Modifier) -> Unit
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val density: Density = LocalDensity.current
 
-    val thumbnail_provider: ThumbnailProvider? by artist.ThumbnailProvider.observe(player.database)
+    val thumbnail_provider: ThumbnailProvider? by artist.ThumbnailProvider.observe(state.database)
 
     LaunchedEffect(thumbnail_provider) {
         thumbnail_provider?.also { provider ->
@@ -79,7 +79,7 @@ fun ArtistLayout(
                 artist,
                 provider,
                 ThumbnailProvider.Quality.HIGH,
-                player.context
+                state.context
             )
         }
     }
@@ -88,7 +88,7 @@ fun ArtistLayout(
 
     val main_column_state: LazyListState = rememberLazyListState()
 
-    val background_modifier: Modifier = Modifier.background({ player.theme.background })
+    val background_modifier: Modifier = Modifier.background({ state.theme.background })
     val gradient_size = 0.35f
     var accent_colour: Color? by remember { mutableStateOf(null) }
 
@@ -114,7 +114,7 @@ fun ArtistLayout(
                     },
                 onLoaded = { thumbnail ->
                     if (accent_colour == null) {
-                        accent_colour = thumbnail?.getThemeColour()?.let { player.theme.makeVibrant(it) }
+                        accent_colour = thumbnail?.getThemeColour()?.let { state.theme.makeVibrant(it) }
                     }
                 }
             )
@@ -125,7 +125,7 @@ fun ArtistLayout(
                     .aspectRatio(1f)
                     .brushBackground {
                         Brush.verticalGradient(
-                            0f to player.theme.background,
+                            0f to state.theme.background,
                             gradient_size to Color.Transparent
                         )
                     }
@@ -157,7 +157,7 @@ fun ArtistLayout(
                                 .brushBackground {
                                     Brush.verticalGradient(
                                         1f - gradient_size to Color.Transparent,
-                                        1f to player.theme.background
+                                        1f to state.theme.background
                                     )
                                 },
                             contentAlignment = Alignment.BottomCenter

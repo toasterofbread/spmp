@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.model.appaction.action.playback
 
 import kotlinx.serialization.Serializable
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -29,12 +29,12 @@ data class SeekByTimePlaybackAppAction(
     override fun getType(): PlaybackAction.Type =
         PlaybackAction.Type.SEEK_BY_TIME
 
-    override suspend fun execute(player: OldPlayerStateImpl) {
+    override suspend fun execute(state: SpMp.State) {
         if (seek_ms == 0L) {
             return
         }
 
-        player.withPlayer{
+        state.session.withPlayer{
             seekBy(seek_ms)
         }
     }
@@ -71,8 +71,8 @@ class SeekNextPlaybackAppAction: PlaybackAction {
     override fun getType(): PlaybackAction.Type =
         PlaybackAction.Type.SEEK_NEXT
 
-    override suspend fun execute(player: OldPlayerStateImpl) {
-        player.withPlayer{
+    override suspend fun execute(state: SpMp.State) {
+        state.session.withPlayer{
             seekToNext()
         }
     }
@@ -83,8 +83,8 @@ class SeekPreviousPlaybackAppAction: PlaybackAction {
     override fun getType(): PlaybackAction.Type =
         PlaybackAction.Type.SEEK_PREVIOUS
 
-    override suspend fun execute(player: OldPlayerStateImpl) {
-        player.withPlayer{
+    override suspend fun execute(state: SpMp.State) {
+        state.session.withPlayer{
             seekToPrevious()
         }
     }
@@ -95,9 +95,9 @@ class SeekRandomPlaybackAppAction: PlaybackAction {
     override fun getType(): PlaybackAction.Type =
         PlaybackAction.Type.SEEK_RANDOM
 
-    override suspend fun execute(player: OldPlayerStateImpl) {
-        player.withPlayer{
-            seekToSong(Random.nextInt(0 until player.status.m_song_count))
+    override suspend fun execute(state: SpMp.State) {
+        state.session.withPlayer{
+            seekToSong(Random.nextInt(0 until state.session.status.m_song_count))
         }
     }
 }
@@ -107,8 +107,8 @@ class UndoSeekPlaybackAppAction: PlaybackAction {
     override fun getType(): PlaybackAction.Type =
         PlaybackAction.Type.UNDO_SEEK
 
-    override suspend fun execute(player: OldPlayerStateImpl) {
-        player.withPlayer {
+    override suspend fun execute(state: SpMp.State) {
+        state.session.withPlayer {
             undoSeek()
         }
     }

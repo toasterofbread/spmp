@@ -35,7 +35,7 @@ import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.composekit.platform.assert
 import dev.toastbits.ytmkt.endpoint.ArtistWithParamsRow
 import dev.toastbits.ytmkt.model.external.ItemLayoutType
@@ -51,13 +51,13 @@ internal fun ArtistAppPage.SFFArtistPage(
     content_padding: PaddingValues = PaddingValues(),
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
-    val own_multiselect_context = remember(multiselect_context) { if (multiselect_context != null) null else MediaItemMultiSelectContext(player.context) {} }
-    val apply_filter: Boolean by player.settings.filter.APPLY_TO_ARTIST_ITEMS.observe()
+    val own_multiselect_context = remember(multiselect_context) { if (multiselect_context != null) null else MediaItemMultiSelectContext(state.context) {} }
+    val apply_filter: Boolean by state.settings.filter.APPLY_TO_ARTIST_ITEMS.observe()
 
-    val item_layouts: List<ArtistLayout>? by artist.Layouts.observe(player.database)
+    val item_layouts: List<ArtistLayout>? by artist.Layouts.observe(state.database)
     var browse_params_rows: List<ArtistWithParamsRow>? by remember { mutableStateOf(null) }
 
     LaunchedEffect(artist.id, browse_params) {
@@ -91,10 +91,10 @@ internal fun ArtistAppPage.SFFArtistPage(
             refreshed = true
             load_error = null
             coroutine_scope.launch {
-                MediaItemLoader.loadArtist(artist.getEmptyData(), player.context)
+                MediaItemLoader.loadArtist(artist.getEmptyData(), state.context)
             }
         },
-        getAllSelectableItems = { artistPageGetAllItems(player, browse_params_rows, item_layouts) }
+        getAllSelectableItems = { artistPageGetAllItems(state, browse_params_rows, item_layouts) }
     ) { accent_colour, content_modifier ->
         if (load_error != null) {
             item {
@@ -148,11 +148,11 @@ internal fun ArtistAppPage.SFFArtistPage(
                     verticalArrangement = Arrangement.spacedBy(30.dp)
                 ) {
                     for (artist_layout in item_layouts ?: emptyList()) {
-                        val layout: AppMediaItemLayout = artist_layout.rememberMediaItemLayout(player.database).layout
+                        val layout: AppMediaItemLayout = artist_layout.rememberMediaItemLayout(state.database).layout
                         val layout_id: YoutubeUILocalisation.StringID? = (layout.title as? YoutubeUiString)?.getYoutubeStringId()
 
                         val is_singles: Boolean =
-                            player.settings.behaviour.TREAT_SINGLES_AS_SONG.observe().value
+                            state.settings.behaviour.TREAT_SINGLES_AS_SONG.observe().value
                             && layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
 
                         val is_artist_row: Boolean =
@@ -163,19 +163,19 @@ internal fun ArtistAppPage.SFFArtistPage(
                             LocalPlayerClickOverrides provides click_overrides.copy(
                                 onClickOverride = { item, multiselect_key ->
                                     if (is_singles && item is Playlist) {
-                                        onSinglePlaylistClicked(item, player, click_overrides)
+                                        onSinglePlaylistClicked(item, state, click_overrides)
                                     }
                                     else if (item !is Song) {
-                                        player.openMediaItem(item, is_artist_row)
+                                        state.ui.openMediaItem(item, is_artist_row)
                                     }
                                     else {
-                                        player.playMediaItem(item)
+                                        state.session.playMediaItem(item)
                                     }
                                 },
                                 onAltClickOverride = { item, long_press_data ->
                                     click_overrides.onMediaItemAltClicked(
                                         item,
-                                        player,
+                                        state,
                                         long_press_data =
                                             if (is_singles && item is Playlist)
                                                 long_press_data?.copy(playlist_as_song = true)
@@ -201,7 +201,7 @@ internal fun ArtistAppPage.SFFArtistPage(
                         }
                     }
 
-                    val artist_description: String? by artist.Description.observe(player.database)
+                    val artist_description: String? by artist.Description.observe(state.database)
                     artist_description?.also { description ->
                         if (description.isNotBlank()) {
                             DescriptionCard(description)
@@ -214,12 +214,12 @@ internal fun ArtistAppPage.SFFArtistPage(
 }
 
 @OptIn(DelicateCoroutinesApi::class)
-private fun onSinglePlaylistClicked(playlist: Playlist, player: OldPlayerStateImpl, click_overrides: PlayerClickOverrides) {
+private fun onSinglePlaylistClicked(playlist: Playlist, state: SpMp.State, click_overrides: PlayerClickOverrides) {
     GlobalScope.launch {
-        playlist.loadData(player.context).onSuccess { data ->
+        playlist.loadData(state.context).onSuccess { data ->
             data.items?.firstOrNull()?.also { first_item ->
                 withContext(Dispatchers.Main) {
-                    click_overrides.onMediaItemClicked(first_item, player)
+                    click_overrides.onMediaItemClicked(first_item, state)
                 }
             }
         }

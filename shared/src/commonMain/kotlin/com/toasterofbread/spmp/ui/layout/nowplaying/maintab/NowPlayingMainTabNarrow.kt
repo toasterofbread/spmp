@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.maintab
 
-import LocalPlayerState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.aspectRatio
@@ -33,7 +32,9 @@ import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import dev.toastbits.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.ui.component.Thumbnail
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import LocalSessionState
+import com.toasterofbread.spmp.model.state.SessionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.horizontal_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.top_padding
@@ -41,8 +42,8 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 
 @Composable
 internal fun NowPlayingMainTabPage.NowPlayingMainTabNarrow(page_height: Dp, top_bar: NowPlayingTopBar, content_padding: PaddingValues, vertical: Boolean, modifier: Modifier = Modifier) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    val song: Song? by player.status.song_state
+    val session_state: SessionState = LocalSessionState.current
+    val song: Song? by session_state.status.song_state
 
     RowOrColumn(
         row = !vertical,
@@ -61,15 +62,15 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabNarrow(page_height: Dp, top_
             }
             Spacer(Modifier.height(spacing))
 
-            player.PlayButton()
-            player.NextButton()
-            player.PreviousButton()
+            session_state.PlayButton()
+            session_state.NextButton()
+            session_state.PreviousButton()
             Spacer(Modifier.height(spacing))
         }
         else {
-            player.PreviousButton()
-            player.PlayButton()
-            player.NextButton()
+            session_state.PreviousButton()
+            session_state.PlayButton()
+            session_state.NextButton()
             Spacer(Modifier.width(spacing))
 
             song?.Thumbnail(ThumbnailProvider.Quality.LOW, Modifier.aspectRatio(1f)) {
@@ -126,7 +127,7 @@ fun Modifier.vertical() = layout { measurable, constraints ->
 }
 
 @Composable
-private fun OldPlayerStateImpl.PlayButton() {
+private fun SessionState.PlayButton() {
     PlayerButton(
         if (status.m_playing) Icons.Rounded.Pause else Icons.Rounded.PlayArrow,
         enabled = status.m_song != null,
@@ -137,7 +138,7 @@ private fun OldPlayerStateImpl.PlayButton() {
 }
 
 @Composable
-private fun OldPlayerStateImpl.NextButton() {
+private fun SessionState.NextButton() {
     PlayerButton(
         Icons.Rounded.SkipNext,
         enabled = status.m_has_next,
@@ -148,7 +149,7 @@ private fun OldPlayerStateImpl.NextButton() {
 }
 
 @Composable
-private fun OldPlayerStateImpl.PreviousButton() {
+private fun SessionState.PreviousButton() {
     PlayerButton(
         Icons.Rounded.SkipPrevious,
         enabled = status.m_has_previous,

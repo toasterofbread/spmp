@@ -18,7 +18,6 @@ import com.toasterofbread.spmp.ui.component.shortcut.trigger.KeyboardShortcutTri
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.getTextFieldFocusState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.isTextFieldFocused
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
 import kotlinx.coroutines.*
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.skiko.OS
@@ -70,7 +69,7 @@ fun main(args: Array<String>) {
     val enable_window_transparency: Boolean = runBlocking { context.settings.theme.ENABLE_WINDOW_TRANSPARENCY.get() }
 
     val shortcut_state: ShortcutState = ShortcutState()
-    var player: OldPlayerStateImpl? = null
+    var state: SpMp.State? = null
 
     application {
         val text_field_focus_state: Any = getTextFieldFocusState()
@@ -94,7 +93,7 @@ fun main(args: Array<String>) {
                     return@Window false
                 }
 
-                player?.also {
+                state?.also {
                     return@Window shortcut_state.onKeyPress(event, isTextFieldFocused(text_field_focus_state), it)
                 }
 
@@ -110,7 +109,7 @@ fun main(args: Array<String>) {
             var player_initialised: Boolean by remember { mutableStateOf(false) }
 
             LaunchedEffect(Unit) {
-                player = SpMp.initPlayer(arguments, player_coroutine_scope)
+                state = SpMp.initState(arguments, player_coroutine_scope)
                 player_initialised = true
 
                 window = this@Window.window
@@ -150,7 +149,7 @@ fun main(args: Array<String>) {
                 shortcut_state,
                 Modifier.onPointerEvent(PointerEventType.Press) { event ->
                     val index: Int = event.button?.index ?: return@onPointerEvent
-                    player?.also {
+                    state?.also {
                         shortcut_state.onButtonPress(index, it)
                     }
                 },

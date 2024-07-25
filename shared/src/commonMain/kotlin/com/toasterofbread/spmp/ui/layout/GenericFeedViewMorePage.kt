@@ -38,7 +38,7 @@ import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreview
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
 import com.toasterofbread.spmp.model.mediaitem.toMediaItemData
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_DEFAULT_MAX_LINES
@@ -49,19 +49,19 @@ import kotlin.math.absoluteValue
 
 @Composable
 fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(), title: String? = null) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    check(player.context.ytapi.GenericFeedViewMorePage.isImplemented())
+    val state: SpMp.State = LocalAppState.current
+    check(state.context.ytapi.GenericFeedViewMorePage.isImplemented())
 
     var items_result: Result<List<MediaItem>>? by remember { mutableStateOf(null) }
     LaunchedEffect(browse_id) {
         items_result = null
         items_result =
-            player.context.ytapi.GenericFeedViewMorePage.getGenericFeedViewMorePage(browse_id).fold(
+            state.context.ytapi.GenericFeedViewMorePage.getGenericFeedViewMorePage(browse_id).fold(
                 {
-                    val item_data: List<MediaItemData> = player.database.transactionWithResult {
+                    val item_data: List<MediaItemData> = state.database.transactionWithResult {
                         it.map {
                             val data: MediaItemData = it.toMediaItemData()
-                            data.saveToDatabase(player.database)
+                            data.saveToDatabase(state.database)
                             return@map data
                         }
                     }
@@ -75,7 +75,7 @@ fun GenericFeedViewMorePage(browse_id: String, modifier: Modifier = Modifier, co
     Column(modifier) {
         items_result?.fold(
             { items ->
-                val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext(player.context) }
+                val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext(state.context) }
 
                 val item_size: DpSize =
                     getDefaultMediaItemPreviewSize(false) +

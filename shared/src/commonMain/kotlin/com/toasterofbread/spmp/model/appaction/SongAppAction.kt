@@ -1,7 +1,8 @@
 package com.toasterofbread.spmp.model.appaction
 
+import LocalAppContext
 import kotlinx.serialization.Serializable
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
@@ -29,6 +30,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
 import LocalPlayerState
+import LocalSessionState
 import dev.toastbits.ytmkt.model.external.SongLikedStatus
 import dev.toastbits.ytmkt.endpoint.SongLikedEndpoint
 import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
@@ -65,17 +67,17 @@ data class SongAppAction(
 
     @Composable
     override fun CustomContent(onClick: (() -> Unit)?, modifier: Modifier) {
-        val song: Song = LocalPlayerState.current.status.song ?: return
+        val song: Song = LocalSessionState.current.status.song ?: return
         action.CustomContent(onClick, song, modifier)
     }
 
-    override suspend fun executeAction(player: OldPlayerStateImpl) {
-        val song: Song = player.status.song ?: return
-        val index: Int = player.status.index
+    override suspend fun executeAction(state: SpMp.State) {
+        val song: Song = state.session.status.song ?: return
+        val index: Int = state.session.status.index
         if (index < 0) {
             return
         }
-        action.execute(song, index, player)
+        action.execute(song, index, state)
     }
 
     @Composable
@@ -92,10 +94,10 @@ data class SongAppAction(
 
     @Composable
     override fun ConfigurationItems(item_modifier: Modifier, onModification: (AppAction) -> Unit) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val context: AppContext = LocalAppContext.current
 
         var show_action_selector: Boolean by remember { mutableStateOf(false) }
-        val available_actions: List<Action> = remember { Action.getAvailable(player.context) }
+        val available_actions: List<Action> = remember { Action.getAvailable(context) }
 
         LargeDropdownMenu(
             expanded = show_action_selector,
@@ -162,7 +164,7 @@ data class SongAppAction(
             when (this) {
                 TOGGLE_LIKE -> LikeDislikeButton(
                     song,
-                    LocalPlayerState.current.context.ytapi.user_auth_state,
+                    LocalAppContext.current.ytapi.user_auth_state,
                     modifier,
                     onClick = onClick
                 )
@@ -224,14 +226,14 @@ data class SongAppAction(
                 else -> true
             }
 
-        suspend fun execute(song: Song, queue_index: Int, player: OldPlayerStateImpl) {
+        suspend fun execute(song: Song, queue_index: Int, state: SpMp.State) {
             when (this) {
                 TOGGLE_LIKE -> {
-                    val set_liked_endpoint: SetSongLikedEndpoint? = player.context.ytapi.user_auth_state?.SetSongLiked
-                    val get_liked_endpoint: SongLikedEndpoint? = player.context.ytapi.user_auth_state?.SongLiked
+                    val set_liked_endpoint: SetSongLikedEndpoint? = state.context.ytapi.user_auth_state?.SetSongLiked
+                    val get_liked_endpoint: SongLikedEndpoint? = state.context.ytapi.user_auth_state?.SongLiked
                     val liked: SongLikedStatus? =
-                        SongLikedLoader.loadSongLiked(song.id, player.context, get_liked_endpoint).getOrNull()
-                        ?: song.Liked.get(player.database)
+                        SongLikedLoader.loadSongLiked(song.id, state.context, get_liked_endpoint).getOrNull()
+                        ?: song.Liked.get(state.database)
 
                     song.updateLiked(
                         when (liked) {
@@ -239,68 +241,68 @@ data class SongAppAction(
                             SongLikedStatus.NEUTRAL, null -> SongLikedStatus.LIKED
                         },
                         set_liked_endpoint,
-                        player.context
+                        state.context
                     )
                 }
                 TOGGLE_PIN -> {
-                    song.togglePinned(player.context)
+                    song.togglePinned(state.context)
                 }
                 HIDE -> {
-                    song.Hidden.set(true, player.database)
-                    player.withPlayer {
+                    song.Hidden.set(true, state.database)
+                    state.session.withPlayer {
                         removeFromQueue(queue_index)
                     }
                 }
                 START_RADIO -> {
-                    player.withPlayer {
+                    state.session.withPlayer {
                         playSong(song)
                     }
                 }
                 DOWNLOAD -> {
-                    player.onSongDownloadRequested(song) { status ->
-                        player.coroutine_scope.launch {
+                    state.ui.onSongDownloadRequested(listOf(song)) { status ->
+                        state.context.coroutine_scope.launch {
                             when (status?.status) {
                                 null -> {}
-                                DownloadStatus.Status.FINISHED -> player.context.sendToast(getString(Res.string.notif_download_finished))
-                                DownloadStatus.Status.ALREADY_FINISHED -> player.context.sendToast(getString(Res.string.notif_download_already_finished))
-                                DownloadStatus.Status.CANCELLED -> player.context.sendToast(getString(Res.string.notif_download_cancelled))
+                                DownloadStatus.Status.FINISHED -> state.context.sendToast(getString(Res.string.notif_download_finished))
+                                DownloadStatus.Status.ALREADY_FINISHED -> state.context.sendToast(getString(Res.string.notif_download_already_finished))
+                                DownloadStatus.Status.CANCELLED -> state.context.sendToast(getString(Res.string.notif_download_cancelled))
 
                                 // IDLE, DOWNLOADING, PAUSED
                                 else -> {
-                                    player.context.sendToast(getString(Res.string.notif_download_already_downloading))
+                                    state.context.sendToast(getString(Res.string.notif_download_already_downloading))
                                 }
                             }
                         }
                     }
                 }
                 OPEN_ALBUM -> {
-                    val album: Playlist = song.Album.get(player.database) ?: return
-                    player.openMediaItem(album)
+                    val album: Playlist = song.Album.get(state.database) ?: return
+                    state.ui.openMediaItem(album)
                 }
                 OPEN_RELATED -> {
-                    player.openMediaItem(song)
+                    state.ui.openMediaItem(song)
                 }
                 REMOVE_FROM_QUEUE -> {
-                    player.withPlayer {
+                    state.session.withPlayer {
                         removeFromQueue(queue_index)
                     }
                 }
                 SHARE -> {
-                    if (player.context.canShare()) {
-                        player.context.shareText(song.getUrl(player.context), song.Title.get(player.database))
+                    if (state.context.canShare()) {
+                        state.context.shareText(song.getUrl(state.context), song.Title.get(state.database))
                     }
                 }
                 OPEN_EXTERNALLY -> {
-                    if (player.context.canOpenUrl()) {
-                        player.context.openUrl(song.getUrl(player.context))
-                        player.context.vibrateShort()
+                    if (state.context.canOpenUrl()) {
+                        state.context.openUrl(song.getUrl(state.context))
+                        state.context.vibrateShort()
                     }
                 }
                 COPY_URL -> {
-                    if (player.context.canCopyText()) {
-                        player.context.copyText(song.getUrl(player.context))
-                        player.context.vibrateShort()
-                        player.context.sendToast(getString(Res.string.notif_copied_to_clipboard))
+                    if (state.context.canCopyText()) {
+                        state.context.copyText(song.getUrl(state.context))
+                        state.context.vibrateShort()
+                        state.context.sendToast(getString(Res.string.notif_copied_to_clipboard))
                     }
                 }
             }

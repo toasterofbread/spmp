@@ -23,7 +23,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.platform.AppContext
 
 suspend fun isMediaItemHidden(
@@ -45,15 +45,15 @@ fun observeIsMediaItemHidden(
     item: MediaItem,
     hidden_items: List<MediaItem>? = null
 ): State<Boolean> {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    val filter_enabled: Boolean by player.settings.filter.ENABLE.observe()
-    val filter_apply_to_artists: Boolean by player.settings.filter.APPLY_TO_ARTISTS.observe()
-    val filter_title_keywords: Set<String> by player.settings.filter.TITLE_KEYWORDS.observe()
+    val state: SpMp.State = LocalAppState.current
+    val filter_enabled: Boolean by state.settings.filter.ENABLE.observe()
+    val filter_apply_to_artists: Boolean by state.settings.filter.APPLY_TO_ARTISTS.observe()
+    val filter_title_keywords: Set<String> by state.settings.filter.TITLE_KEYWORDS.observe()
 
     return remember { derivedStateOf {
         isMediaItemHiddenImpl(
             item,
-            player.context,
+            state.context,
             filter_enabled,
             filter_apply_to_artists,
             filter_title_keywords,
@@ -95,8 +95,8 @@ private fun isMediaItemHiddenImpl(
 
 @Composable
 fun rememberHiddenItems(hidden: Boolean = true): List<MediaItem> {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    val db: Database = player.database
+    val state: SpMp.State = LocalAppState.current
+    val db: Database = state.database
 
     var hidden_songs: List<Song> by remember { mutableStateOf(
         db.songQueries.getByHidden(hidden)

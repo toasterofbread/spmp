@@ -30,7 +30,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.observeUrl
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.resources.stringResourceTODO
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_close
@@ -38,7 +38,7 @@ import spmp.shared.generated.resources.notif_copied_x_to_clipboard
 
 @Composable
 fun ArtistInfoDialog(item: MediaItem, close: () -> Unit) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     AlertDialog(
         close,
@@ -85,14 +85,14 @@ fun ArtistInfoDialog(item: MediaItem, close: () -> Unit) {
 
                         IconButton({
                             clipboard.setText(AnnotatedString(value))
-                            player.context.sendToast(notif_copied_x_to_clipboard.replace("\$x", name.lowercase()))
+                            state.context.sendToast(notif_copied_x_to_clipboard.replace("\$x", name.lowercase()))
                         }) {
                             Icon(Icons.Filled.ContentCopy, null, Modifier.size(20.dp))
                         }
 
-                        if (player.context.canShare()) {
+                        if (state.context.canShare()) {
                             IconButton({
-                                player.context.shareText(value)
+                                state.context.shareText(value)
                             }) {
                                 Icon(Icons.Filled.Share, null, Modifier.size(20.dp))
                             }

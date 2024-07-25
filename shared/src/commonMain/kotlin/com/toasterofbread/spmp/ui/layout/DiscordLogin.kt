@@ -40,7 +40,7 @@ import com.toasterofbread.spmp.platform.DiscordMeResponse
 import com.toasterofbread.spmp.platform.WebViewLogin
 import com.toasterofbread.spmp.platform.getDiscordAccountInfo
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import androidx.compose.foundation.layout.PaddingValues
 import com.toasterofbread.spmp.platform.getOrNotify
 import kotlinx.serialization.json.Json
@@ -63,7 +63,7 @@ private const val DISCORD_API_URL: String = "https://discord.com/api/"
 
 @Composable
 fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Boolean?) -> Unit) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     AlertDialog(
         { onFinished(null) },
@@ -81,9 +81,9 @@ fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Bo
         text = {
             Column {
                 LinkifyText(
-                    player.context,
+                    state.context,
                     stringResource(if (info_only) Res.string.info_discord_login else Res.string.warning_discord_login),
-                    player.theme.accent
+                    state.theme.accent
                 )
                 if (!info_only) {
                     FilledTonalButton({ onFinished(true) }, Modifier.fillMaxWidth().padding(top = 5.dp).offset(y = 20.dp)) {
@@ -97,7 +97,7 @@ fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Bo
 
 @Composable
 fun DiscordLogin(content_padding: PaddingValues, modifier: Modifier = Modifier, manual: Boolean = false, onFinished: (Result<String?>?) -> Unit) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     if (!manual && isWebViewLoginSupported()) {
         WebViewLogin(
@@ -122,7 +122,7 @@ fun DiscordLogin(content_padding: PaddingValues, modifier: Modifier = Modifier, 
     else {
         // TODO
         LaunchedEffect(Unit) {
-            player.context.openUrl(DISCORD_LOGIN_URL)
+            state.context.openUrl(DISCORD_LOGIN_URL)
         }
         DiscordManualLogin(content_padding, modifier, onFinished)
     }
@@ -140,7 +140,7 @@ private val DiscordMeResponseSaver: Saver<DiscordMeResponse?, String> =
 
 @Composable
 fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     var account_info: DiscordMeResponse? by rememberSaveable(stateSaver = DiscordMeResponseSaver) { mutableStateOf(DiscordMeResponse.EMPTY) }
     var started: Boolean by remember { mutableStateOf(false) }
@@ -151,7 +151,7 @@ fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) 
             account_info = DiscordMeResponse.EMPTY
             loading = true
             started = true
-            account_info = getDiscordAccountInfo(account_token).getOrNotify(player.context, "DiscordAccountPreview") ?: DiscordMeResponse.EMPTY
+            account_info = getDiscordAccountInfo(account_token).getOrNotify(state.context, "DiscordAccountPreview") ?: DiscordMeResponse.EMPTY
         }
         loading = false
     }

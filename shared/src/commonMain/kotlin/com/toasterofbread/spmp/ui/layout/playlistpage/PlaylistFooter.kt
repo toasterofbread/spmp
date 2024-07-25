@@ -23,7 +23,7 @@ import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.ytmkt.radio.RadioContinuation
 import kotlinx.coroutines.launch
 import LocalPlayerState
@@ -41,9 +41,9 @@ fun PlaylistAppPage.PlaylistFooter(
     onRetry: (() -> Unit)?,
     onContinue: ((RadioContinuation) -> Unit)?
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val remote_playlist: RemotePlaylist? = playlist as? RemotePlaylist
-    val continuation: RadioContinuation? = remote_playlist?.Continuation?.observe(player.database)?.value
+    val continuation: RadioContinuation? = remote_playlist?.Continuation?.observe(state.database)?.value
 
     Crossfade(
         if (load_error != null) load_error

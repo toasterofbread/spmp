@@ -10,19 +10,19 @@ import androidx.compose.runtime.remember
 import app.cash.sqldelight.Query
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 
 @Composable
 fun <T: MediaItem?> Property<T>.observePropertyActiveTitle(): State<String?>? {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    val item: MediaItem? by observe(player.database)
+    val state: SpMp.State = LocalAppState.current
+    val item: MediaItem? by observe(state.database)
     return item?.observeActiveTitle()
 }
 
 @Composable
 fun <T: MediaItem> Property<List<T>?>.observePropertyActiveTitles(): List<String?>? {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    val items: List<T>? by observe(player.database)
+    val state: SpMp.State = LocalAppState.current
+    val items: List<T>? by observe(state.database)
     return items?.map { it.observeActiveTitle().value }
 }
 

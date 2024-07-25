@@ -19,7 +19,7 @@ import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.discord_status_unknown_artist_replacement
 import spmp.shared.generated.resources.project_url
 
-internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context: AppContext) {
+internal class DiscordStatusHandler(val state: PlayerServicePlayer, val context: AppContext) {
     private var discord_rpc: DiscordStatus? = null
     private val coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
     private val status_update_lock: ReentrantLock = ReentrantLock()
@@ -63,7 +63,7 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
 
     fun updateDiscordStatus(song: Song?): Unit = with(context.database) {
         status_update_lock.withLock {
-            val status_song: Song? = song ?: player.getSong()
+            val status_song: Song? = song ?: state.getSong()
             val song_title: String? = status_song?.getActiveTitle(context.database)
 
             if (status_song == current_status_song && song_title == current_status_title) {

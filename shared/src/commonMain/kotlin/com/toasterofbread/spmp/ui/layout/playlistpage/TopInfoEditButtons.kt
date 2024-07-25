@@ -29,13 +29,13 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.downloadAsLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.uploadAsAccountPlaylist
 import com.toasterofbread.spmp.platform.getOrNotify
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import kotlinx.coroutines.launch
 import LocalPlayerState
 
 @Composable
 internal fun PlaylistAppPage.PlaylistTopInfoEditButtons(modifier: Modifier = Modifier) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     Row(modifier, verticalAlignment = Alignment.CenterVertically) {
         IconButton({
@@ -59,7 +59,7 @@ internal fun PlaylistAppPage.PlaylistTopInfoEditButtons(modifier: Modifier = Mod
         }
 
         val conversion_coroutine_scope = rememberCoroutineScope()
-        val auth_state = player.context.ytapi.user_auth_state
+        val auth_state = state.context.ytapi.user_auth_state
 
         var conversion_in_progress by remember { mutableStateOf(false) }
 
@@ -79,11 +79,11 @@ internal fun PlaylistAppPage.PlaylistTopInfoEditButtons(modifier: Modifier = Mod
                             conversion_coroutine_scope.launch {
                                 conversion_in_progress = true
 
-                                val uploaded_playlist: Playlist? = playlist.uploadAsAccountPlaylist(player.context, auth_state)
-                                    .getOrNotify(player.context, "ConvertPlaylistToAccountPlaylist")
+                                val uploaded_playlist: Playlist? = playlist.uploadAsAccountPlaylist(state.context, auth_state)
+                                    .getOrNotify(state.context, "ConvertPlaylistToAccountPlaylist")
 
                                 if (uploaded_playlist != null) {
-                                    player.openMediaItem(uploaded_playlist, replace_current = true)
+                                    state.ui.openMediaItem(uploaded_playlist, replace_current = true)
                                 }
 
                                 conversion_in_progress = false
@@ -101,11 +101,11 @@ internal fun PlaylistAppPage.PlaylistTopInfoEditButtons(modifier: Modifier = Mod
                     conversion_coroutine_scope.launch {
                         conversion_in_progress = true
 
-                        val local_playlist: LocalPlaylistData? = playlist.downloadAsLocalPlaylist(player.context)
-                            .getOrNotify(player.context, "ConvertPlaylistToLocalPlaylist")
+                        val local_playlist: LocalPlaylistData? = playlist.downloadAsLocalPlaylist(state.context)
+                            .getOrNotify(state.context, "ConvertPlaylistToLocalPlaylist")
 
                         if (local_playlist != null) {
-                            player.openMediaItem(local_playlist, replace_current = true)
+                            state.ui.openMediaItem(local_playlist, replace_current = true)
                         }
 
                         conversion_in_progress = false

@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.model.appaction.action.navigation
 
 import kotlinx.serialization.Serializable
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
@@ -16,7 +16,7 @@ class TogglePlayerNavigationAction: NavigationAction {
     override fun getIcon(): ImageVector =
         Icons.Default.KeyboardArrowUp
 
-    override suspend fun execute(player: OldPlayerStateImpl) {
-        player.expansion.toggle()
+    override suspend fun execute(state: SpMp.State) {
+        state.ui.player_expansion.toggle()
     }
 }

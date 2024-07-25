@@ -18,6 +18,7 @@ import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
 import kotlinx.coroutines.*
 import PlatformIO
+import com.toasterofbread.spmp.model.state.SessionState
 import dev.toastbits.composekit.platform.ReentrantLock
 
 @Suppress("DeferredResultUnused")
@@ -116,7 +117,7 @@ object MediaItemLibrary {
     suspend fun onSongFileAdded(download_status: DownloadStatus) {
         song_sync_loader.put(download_status.song.id, download_status)
 
-        SpMp._player_state?.interactService { service: Any ->
+        SpMp._state?.session?.interactService { service: Any ->
             if (service is ClientServerPlayerService) {
                 service.onSongFilesAdded(listOf(download_status))
             }
@@ -126,7 +127,7 @@ object MediaItemLibrary {
     suspend fun onSongFileDeleted(song: Song) {
         song_sync_loader.remove(song.id)
 
-        SpMp._player_state?.interactService { service: Any ->
+        SpMp._state?.session?.interactService { service: Any ->
             if (service is ClientServerPlayerService) {
                 service.onSongFilesDeleted(listOf(song))
             }

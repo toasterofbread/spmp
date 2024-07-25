@@ -572,7 +572,7 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
 
     fun customUndoableAction(action: PlayerServicePlayer.(furtherAction: (PlayerServicePlayer.() -> UndoRedoAction?) -> Unit) -> UndoRedoAction?) =
         undo_handler.customUndoableAction { a: (UndoHandler.() -> UndoRedoAction?) -> Unit ->
-            action(player) { b: PlayerServicePlayer.() -> UndoRedoAction? ->
+            action(state) { b: PlayerServicePlayer.() -> UndoRedoAction? ->
                 a {
                     b()
                 }

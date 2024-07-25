@@ -13,7 +13,7 @@ interface UndoRedoAction {
     fun redo(service: PlayerService) {}
 }
 
-internal class UndoHandler(val player: PlayerServicePlayer, val service: PlayerService) {
+internal class UndoHandler(val state: PlayerServicePlayer, val service: PlayerService) {
     private var current_action: MutableList<UndoRedoAction>? = null
     private var current_action_is_further: Boolean = false
     private val action_list: MutableList<List<UndoRedoAction>> = mutableListOf()
@@ -142,7 +142,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: PlayerS
         action_list.add(actions)
         action_head++
 
-        player.onUndoStateChanged()
+        state.onUndoStateChanged()
     }
 
     fun performAction(action: UndoRedoAction) {
@@ -164,7 +164,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: PlayerS
             for (action in action_list[action_head++]) {
                 action.redo(service)
             }
-            player.onUndoStateChanged()
+            state.onUndoStateChanged()
         }
     }
 
@@ -175,7 +175,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: PlayerS
                     action.redo(service)
                 }
             }
-            player.onUndoStateChanged()
+            state.onUndoStateChanged()
         }
     }
 
@@ -187,7 +187,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: PlayerS
             for (action in action_list[--action_head].asReversed()) {
                 action.undo(service)
             }
-            player.onUndoStateChanged()
+            state.onUndoStateChanged()
         }
     }
 
@@ -198,7 +198,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: PlayerS
                     action.undo(service)
                 }
             }
-            player.onUndoStateChanged()
+            state.onUndoStateChanged()
         }
     }
 }

@@ -36,7 +36,7 @@ import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.ytmkt.model.YtmApi
 import dev.toastbits.ytmkt.endpoint.AccountPlaylistsEndpoint
 import dev.toastbits.ytmkt.endpoint.CreateAccountPlaylistEndpoint
@@ -61,18 +61,18 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
         showing_alt_content: Boolean,
         modifier: Modifier
     ) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
-        val api: YtmApi = player.context.ytapi
+        val state: SpMp.State = LocalAppState.current
+        val api: YtmApi = state.context.ytapi
 
-        val show_likes_playlist: Boolean by player.settings.behaviour.SHOW_LIKES_PLAYLIST.observe()
+        val show_likes_playlist: Boolean by state.settings.behaviour.SHOW_LIKES_PLAYLIST.observe()
 
-        val local_playlists: List<LocalPlaylistData> = MediaItemLibrary.rememberLocalPlaylists(player.context) ?: emptyList()
-        val account_playlists: List<RemotePlaylistRef> = rememberOwnedPlaylists(api.user_auth_state?.own_channel_id, player.context)
+        val local_playlists: List<LocalPlaylistData> = MediaItemLibrary.rememberLocalPlaylists(state.context) ?: emptyList()
+        val account_playlists: List<RemotePlaylistRef> = rememberOwnedPlaylists(api.user_auth_state?.own_channel_id, state.context)
 
-        val sorted_local_playlists = library_page.sort_type.sortAndFilterItems(local_playlists, library_page.search_filter, player.database, library_page.reverse_sort)
+        val sorted_local_playlists = library_page.sort_type.sortAndFilterItems(local_playlists, library_page.search_filter, state.database, library_page.reverse_sort)
         val sorted_account_playlists = account_playlists?.let { playlists ->
             val filtered: List<RemotePlaylistRef> = if (show_likes_playlist) playlists else playlists.filter { it.id != "VLLM" }
-            library_page.sort_type.sortAndFilterItems(filtered, library_page.search_filter, player.database, library_page.reverse_sort)
+            library_page.sort_type.sortAndFilterItems(filtered, library_page.search_filter, state.database, library_page.reverse_sort)
         }
 
         val item_spacing: Dp = 15.dp
@@ -83,7 +83,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
 
         LaunchedEffect(showing_alt_content) {
             if (showing_alt_content && account_playlists.isNullOrEmpty()) {
-                val auth_state: ApiAuthenticationState = player.context.ytapi.user_auth_state ?: return@LaunchedEffect
+                val auth_state: ApiAuthenticationState = state.context.ytapi.user_auth_state ?: return@LaunchedEffect
 
                 val load_endpoint: AccountPlaylistsEndpoint = auth_state.AccountPlaylists
                 if (load_endpoint.isImplemented()) {
@@ -129,8 +129,8 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
 
     @Composable
     override fun RowOrColumnScope.SideContent(showing_alt_content: Boolean) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
-        val auth_state: ApiAuthenticationState? = player.context.ytapi.user_auth_state
+        val state: SpMp.State = LocalAppState.current
+        val auth_state: ApiAuthenticationState? = state.context.ytapi.user_auth_state
 
         val load_endpoint: AccountPlaylistsEndpoint? = auth_state?.AccountPlaylists?.implementedOrNull()
         val create_endpoint: CreateAccountPlaylistEndpoint? = auth_state?.CreateAccountPlaylist?.implementedOrNull()
@@ -157,7 +157,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
         ) {
             LoadActionIconButton({
                 if (!showing_alt_content) {
-                    MediaItemLibrary.createLocalPlaylist(player.context)
+                    MediaItemLibrary.createLocalPlaylist(state.context)
                         .onFailure {
                             load_error = it
                         }

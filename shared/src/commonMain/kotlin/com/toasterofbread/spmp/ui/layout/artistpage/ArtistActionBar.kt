@@ -47,7 +47,7 @@ import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.utils.modifier.vertical
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.observeUrl
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.composekit.settings.ui.vibrant_accent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -65,9 +65,9 @@ fun ArtistActionBar(
     play_button_size: Dp? = null,
     accent_colour: Color? = null
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
-    val shuffle_playlist_id: String? by artist.ShufflePlaylistId.observe(player.database)
+    val shuffle_playlist_id: String? by artist.ShufflePlaylistId.observe(state.database)
 
     var show_info by remember { mutableStateOf(false) }
     if (show_info) {
@@ -97,39 +97,39 @@ fun ArtistActionBar(
                     { Text(text, style = MaterialTheme.typography.labelLarge) },
                     Modifier.height(height),
                     leadingIcon = {
-                        Icon(icon, null, tint = accent_colour ?: player.theme.vibrant_accent)
+                        Icon(icon, null, tint = accent_colour ?: state.theme.vibrant_accent)
                     },
                     colors = AssistChipDefaults.assistChipColors(
-                        containerColor = player.theme.background,
-                        labelColor = player.theme.on_background,
-                        leadingIconContentColor = accent_colour ?: player.theme.vibrant_accent
+                        containerColor = state.theme.background,
+                        labelColor = state.theme.on_background,
+                        leadingIconContentColor = accent_colour ?: state.theme.vibrant_accent
                     )
                 )
             }
 
             if (play_button_size == null && shuffle_playlist_id != null) {
-                Chip(stringResource(Res.string.artist_chip_shuffle), Icons.Outlined.Shuffle) { player.playMediaItem(artist, true) }
+                Chip(stringResource(Res.string.artist_chip_shuffle), Icons.Outlined.Shuffle) { state.session.playMediaItem(artist, true) }
             }
 
             val artist_url: String = artist.observeUrl()
 
-            if (player.context.canShare()) {
+            if (state.context.canShare()) {
                 Chip(
                     stringResource(Res.string.action_share),
                     Icons.Outlined.Share
                 ) {
-                    player.context.shareText(
+                    state.context.shareText(
                         artist_url,
-                        artist.getActiveTitle(player.database) ?: ""
+                        artist.getActiveTitle(state.database) ?: ""
                     )
                 }
             }
-            if (player.context.canOpenUrl()) {
+            if (state.context.canOpenUrl()) {
                 Chip(
                     stringResource(Res.string.artist_chip_open),
                     Icons.AutoMirrored.Outlined.OpenInNew
                 ) {
-                    player.context.openUrl(artist_url)
+                    state.context.openUrl(artist_url)
                 }
             }
 
@@ -146,7 +146,7 @@ fun ArtistActionBar(
         if (play_button_size != null && shuffle_playlist_id != null) {
             Box(Modifier.requiredHeight(height)) {
                 ShapedIconButton(
-                    { player.playMediaItem(artist, true) },
+                    { state.session.playMediaItem(artist, true) },
                     IconButtonDefaults.iconButtonColors(
                         containerColor = accent_colour ?: LocalContentColor.current,
                         contentColor = (accent_colour ?: LocalContentColor.current).getContrasted()

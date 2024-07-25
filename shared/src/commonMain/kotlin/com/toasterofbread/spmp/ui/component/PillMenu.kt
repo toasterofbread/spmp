@@ -51,7 +51,10 @@ import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.composable.NoRipple
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import LocalUiState
+import com.toasterofbread.spmp.model.state.PlayerState
+import com.toasterofbread.spmp.model.state.UiState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 import kotlin.math.sign
 import dev.toastbits.composekit.utils.composable.RowOrColumn
@@ -174,14 +177,14 @@ class PillMenu(
         alongsideContent: (@Composable Action.() -> Unit)? = this.alongsideContent,
         modifier: Modifier = this.modifier,
     ) {
-        val player = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
 
         LaunchedEffect(Unit) {
-            background_colour.snapTo(_background_colour(player.context))
+            background_colour.snapTo(_background_colour(state.context))
         }
 
-        LaunchedEffect(background_colour_override, _background_colour(player.context)) {
-            background_colour.animateTo(background_colour_override ?: _background_colour(player.context))
+        LaunchedEffect(background_colour_override, _background_colour(state.context)) {
+            background_colour.animateTo(background_colour_override ?: _background_colour(state.context))
         }
 
         val params = remember(top, left, vertical, action_count, expand_state != null) {
@@ -303,7 +306,7 @@ class PillMenu(
             }
 
             if (visible) {
-                val player: OldPlayerStateImpl = LocalPlayerState.current
+                val player_state: PlayerState = LocalPlayerState.current
                 Box(
                     contentAlignment = alignment,
                     modifier = container_modifier
@@ -318,7 +321,12 @@ class PillMenu(
                         modifier
                             .height(IntrinsicSize.Max)
                             .thenIf(follow_player) {
-                                player.nowPlayingTopOffset(this, NowPlayingTopOffsetSection.PILL_MENU)
+                                player_state.topOffset(
+                                    this,
+                                    NowPlayingTopOffsetSection.PILL_MENU,
+                                    apply_spacing = true,
+                                    displaying = true
+                                )
                             },
                         Arrangement.spacedBy(10.dp)
                     ) {

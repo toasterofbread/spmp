@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.platform
 
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import androidx.compose.runtime.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -8,6 +8,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.State
 import androidx.compose.ui.unit.dp
 import LocalPlayerState
+import LocalUiState
 import com.toasterofbread.spmp.model.state.UiState
 
 enum class FormFactor {
@@ -25,10 +26,8 @@ enum class FormFactor {
 
         @Composable
         fun observe(min_portrait_ratio: Float? = null): State<FormFactor> {
-            val player: OldPlayerStateImpl = LocalPlayerState.current
-            return remember { derivedStateOf {
-                getCurrent(player)
-            } }
+            val ui_state: UiState = LocalUiState.current
+            return remember { derivedStateOf { getCurrent(ui_state) } }
         }
 
         fun getCurrent(ui_state: UiState): FormFactor {

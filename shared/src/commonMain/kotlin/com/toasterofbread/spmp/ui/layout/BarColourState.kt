@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.ui.layout
 
-import LocalPlayerState
+import LocalUiState
 import androidx.compose.runtime.*
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
@@ -21,12 +21,12 @@ abstract class BarColourState {
 
     @Composable
     fun Update() {
-        val status_bar_colour: Color? = status_bar.current_colour?.get(LocalPlayerState.current)
+        val status_bar_colour: Color? = status_bar.current_colour?.get(LocalUiState.current)
         LaunchedEffect(status_bar_colour) {
             onCurrentStatusBarColourChanged(status_bar_colour)
         }
 
-        val nav_bar_colour: Color? = nav_bar.current_colour?.get(LocalPlayerState.current)
+        val nav_bar_colour: Color? = nav_bar.current_colour?.get(LocalUiState.current)
         LaunchedEffect(nav_bar_colour) {
             onCurrentNavigationBarColourChanged(nav_bar_colour)
         }

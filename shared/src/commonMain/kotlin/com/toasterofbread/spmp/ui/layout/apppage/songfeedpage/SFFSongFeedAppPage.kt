@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.apppage.songfeedpage
 
-import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.Animatable
 import androidx.compose.animation.core.tween
@@ -23,21 +22,18 @@ import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.composekit.utils.modifier.horizontal
 import dev.toastbits.composekit.utils.modifier.vertical
 import com.toasterofbread.spmp.model.deserialise
-import com.toasterofbread.spmp.model.getString
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.layout.Layout
 import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import com.toasterofbread.spmp.model.serialise
-import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.model.MediaItemGridParams
 import com.toasterofbread.spmp.model.observe
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PinnedItemsRow
-import com.toasterofbread.spmp.model.state.FeedLoadState
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.NotImplementedMessage
+import com.toasterofbread.spmp.ui.layout.apppage.library.LibraryAppPage
 import dev.toastbits.ytmkt.model.external.ItemLayoutType
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 import dev.toastbits.ytmkt.uistrings.UiString
@@ -65,7 +61,7 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
         loadFeed(false)
     }
 
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val app_state: SpMp.State = LocalAppState.current
     val form_factor: FormFactor by FormFactor.observe()
 
     val artists_layout: AppMediaItemLayout = remember {
@@ -77,24 +73,24 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
         )
     }
 
-    val hidden_rows: Set<String> by player.settings.feed.HIDDEN_ROWS.observe()
+    val hidden_rows: Set<String> by app_state.settings.feed.HIDDEN_ROWS.observe()
     val hidden_row_titles: List<String> =
         hidden_rows.map { row_title ->
             UiString.deserialise(row_title).observe()
         }
 
-    val square_item_max_text_rows: Int by player.settings.feed.SQUARE_PREVIEW_TEXT_LINES.observe()
-    val show_download_indicators: Boolean by player.settings.feed.SHOW_SONG_DOWNLOAD_INDICATORS.observe()
+    val square_item_max_text_rows: Int by app_state.settings.feed.SQUARE_PREVIEW_TEXT_LINES.observe()
+    val show_download_indicators: Boolean by app_state.settings.feed.SHOW_SONG_DOWNLOAD_INDICATORS.observe()
 
     val grid_rows: Int by
         when (form_factor) {
-            FormFactor.PORTRAIT -> player.settings.feed.GRID_ROW_COUNT
-            FormFactor.LANDSCAPE -> player.settings.feed.LANDSCAPE_GRID_ROW_COUNT
+            FormFactor.PORTRAIT -> app_state.settings.feed.GRID_ROW_COUNT
+            FormFactor.LANDSCAPE -> app_state.settings.feed.LANDSCAPE_GRID_ROW_COUNT
         }.observe()
     val grid_rows_expanded: Int by
         when (form_factor) {
-            FormFactor.PORTRAIT -> player.settings.feed.GRID_ROW_COUNT_EXPANDED
-            FormFactor.LANDSCAPE -> player.settings.feed.LANDSCAPE_GRID_ROW_COUNT_EXPANDED
+            FormFactor.PORTRAIT -> app_state.settings.feed.GRID_ROW_COUNT_EXPANDED
+            FormFactor.LANDSCAPE -> app_state.settings.feed.LANDSCAPE_GRID_ROW_COUNT_EXPANDED
         }.observe()
 
     LaunchedEffect(Unit) {
@@ -112,8 +108,8 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
         items.addAll(
             populateArtistsLayout(
                 layouts,
-                player.context.ytapi.user_auth_state?.own_channel_id,
-                player.context
+                app_state.context.ytapi.user_auth_state?.own_channel_id,
+                app_state.context
             )
         )
     }
@@ -162,7 +158,7 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
                 onDismissRequest = { hiding_layout = null },
                 confirmButton = {
                     Button({
-                        player.settings.feed.HIDDEN_ROWS.set(
+                        app_state.settings.feed.HIDDEN_ROWS.set(
                             hidden_rows.plus(title.serialise())
                         )
 
@@ -200,7 +196,7 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
                     else null
                 val loading_continuation: Boolean = load_state != FeedLoadState.NONE
                 val horizontal_padding: PaddingValues = content_padding.horizontal
-                val show_artists_row: Boolean by player.settings.feed.SHOW_ARTISTS_ROW.observe()
+                val show_artists_row: Boolean by app_state.settings.feed.SHOW_ARTISTS_ROW.observe()
 
                 LazyColumn(
                     Modifier.graphicsLayer { alpha = state_alpha.value },
@@ -282,7 +278,7 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
                                     }
                                     else if (requestContinuation != null) {
                                         IconButton({ requestContinuation() }) {
-                                            Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = player.theme.on_background)
+                                            Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = app_state.theme.on_background)
                                         }
                                     }
                                 }
@@ -311,11 +307,11 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
                         return@LaunchedEffect
                     }
 
-                    val library = player.app_page_state.Library
+                    val library: LibraryAppPage = app_state.ui.app_page_state.Library
                     library.external_load_error = load_error
                     load_error = null
 
-                    player.openAppPage(library)
+                    app_state.ui.openAppPage(library)
                 }
             }
         }

@@ -28,7 +28,7 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -45,23 +45,23 @@ fun DownloadMethodSelectionDialog(
     always_show_options: Boolean = false,
     songs: List<Song>? = null
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
-    var download_method: DownloadMethod by player.settings.streaming.DOWNLOAD_METHOD.observe()
-    var skip_confirmation: Boolean by player.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.observe()
+    var download_method: DownloadMethod by state.settings.streaming.DOWNLOAD_METHOD.observe()
+    var skip_confirmation: Boolean by state.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.observe()
     var show: Boolean by remember { mutableStateOf(false) }
 
     var initial_download_method: DownloadMethod? by remember { mutableStateOf(null) }
     var initial_skip_confirmation: Boolean? by remember { mutableStateOf(null) }
 
     LaunchedEffect(Unit) {
-        initial_download_method = player.settings.streaming.DOWNLOAD_METHOD.get()
-        initial_skip_confirmation = player.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.get()
+        initial_download_method = state.settings.streaming.DOWNLOAD_METHOD.get()
+        initial_skip_confirmation = state.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.get()
     }
 
     fun cancel() {
-        player.settings.streaming.DOWNLOAD_METHOD.set(initial_download_method!!)
-        player.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.set(initial_skip_confirmation!!)
+        state.settings.streaming.DOWNLOAD_METHOD.set(initial_download_method!!)
+        state.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.set(initial_skip_confirmation!!)
         onCancelled()
     }
 

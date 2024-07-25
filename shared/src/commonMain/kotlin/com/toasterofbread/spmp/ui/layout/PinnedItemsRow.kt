@@ -33,14 +33,14 @@ import com.toasterofbread.spmp.model.MediaItemGridParams
 import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemGrid
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 
 @Composable
 fun PinnedItemsRow(
     modifier: Modifier = Modifier,
     multiselect_context: MediaItemMultiSelectContext? = null
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val pinned_items: List<MediaItem>? = rememberPinnedItems()
 
     var shown: Boolean by remember { mutableStateOf(false) }
@@ -83,9 +83,9 @@ fun PinnedItemsRow(
 
                             IconButton(
                                 {
-                                    player.database.transaction {
+                                    state.database.transaction {
                                         for (item in pinned_items.toList()) {
-                                            item.setPinned(false, player.context)
+                                            item.setPinned(false, state.context)
                                         }
                                     }
                                 },

@@ -49,7 +49,7 @@ import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverride
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.composekit.platform.assert
 import dev.toastbits.ytmkt.endpoint.LoadPlaylistEndpoint
 import dev.toastbits.ytmkt.model.implementedOrNull
@@ -90,14 +90,14 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
         showing_alt_content: Boolean,
         modifier: Modifier
     ) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
-        val auth_state: ApiAuthenticationState? = player.context.ytapi.user_auth_state
+        val state: SpMp.State = LocalAppState.current
+        val auth_state: ApiAuthenticationState? = state.context.ytapi.user_auth_state
 
         val downloads: List<DownloadStatus> by rememberSongDownloads()
         val local_liked_songs: List<Song>? by rememberLocalLikedSongs()
 
         val remote_likes_playlist: RemotePlaylistRef? = remember(auth_state) { if (auth_state != null) RemotePlaylistRef("LM") else null }
-        val remote_liked_songs: List<Song>? by remote_likes_playlist?.Items?.observe(player.database)
+        val remote_liked_songs: List<Song>? by remote_likes_playlist?.Items?.observe(state.database)
 
         LaunchedEffect(Unit) {
             sorted_songs = emptyList()
@@ -107,7 +107,7 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
         with(library_page) {
             LaunchedEffect(showing_alt_content, remote_likes_playlist) {
                 if (showing_alt_content) {
-                    remote_likes_playlist?.loadData(player.context, populate_data = false, force = true)
+                    remote_likes_playlist?.loadData(state.context, populate_data = false, force = true)
                 }
             }
 
@@ -123,10 +123,10 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
 
                 val filter: String? = if (search_filter?.isNotEmpty() == true) search_filter else null
                 val filtered_songs: List<Song> = songs.filter { song ->
-                    filter == null || song.getActiveTitle(player.database)?.contains(filter, true) == true
+                    filter == null || song.getActiveTitle(state.database)?.contains(filter, true) == true
                 }
 
-                sorted_songs = sort_type.sortItems(filtered_songs, player.database, reverse_sort)
+                sorted_songs = sort_type.sortItems(filtered_songs, state.database, reverse_sort)
             }
         }
 
@@ -180,7 +180,7 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
                         itemsIndexed(current_songs, { _, item -> item.id }) { index, song ->
                             CompositionLocalProvider(LocalPlayerClickOverrides provides LocalPlayerClickOverrides.current.copy(
                                 onClickOverride = { _, _ ->
-                                    onSongClicked(sorted_songs, player, song, index)
+                                    onSongClicked(sorted_songs, state, song, index)
                                 }
                             )) {
                                 MediaItemPreviewLong(
@@ -191,9 +191,9 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
                                     show_play_count = true,
                                     show_download_indicator = false,
                                     getExtraInfo = {
-                                        val ui_language: String by player.context.observeUiLanguage()
+                                        val ui_language: String by state.context.observeUiLanguage()
                                         val duration_string: String? = remember(song.id, ui_language) {
-                                            song.Duration.get(player.database)?.let { duration ->
+                                            song.Duration.get(state.database)?.let { duration ->
                                                 durationToString(duration, ui_language, true)
                                             }
                                         }
@@ -213,15 +213,15 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
 
     @Composable
     override fun RowOrColumnScope.SideContent(showing_alt_content: Boolean) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
-        val auth_state: ApiAuthenticationState? = player.context.ytapi.user_auth_state
+        val state: SpMp.State = LocalAppState.current
+        val auth_state: ApiAuthenticationState? = state.context.ytapi.user_auth_state
 
-        val load_endpoint: LoadPlaylistEndpoint? = player.context.ytapi.LoadPlaylist.implementedOrNull()
+        val load_endpoint: LoadPlaylistEndpoint? = state.context.ytapi.LoadPlaylist.implementedOrNull()
 
         AnimatedVisibility(showing_alt_content && auth_state != null && load_endpoint != null) {
             LoadActionIconButton(
                 {
-                    val result: Result<RemotePlaylistData> = RemotePlaylistRef("LM").loadData(player.context, populate_data = false, force = true)
+                    val result: Result<RemotePlaylistData> = RemotePlaylistRef("LM").loadData(state.context, populate_data = false, force = true)
                     load_error = result.exceptionOrNull()
                 }
             ) {
@@ -241,20 +241,20 @@ private fun InfoRow(songs: List<Song>, modifier: Modifier = Modifier, show_sync_
         return
     }
 
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     var total_duration_string: String? by remember { mutableStateOf(null) }
     LaunchedEffect(songs) {
         total_duration_string = null
 
         val duration: Long = songs.sumOf { song ->
-            song.Duration.get(player.database) ?: 0
+            song.Duration.get(state.database) ?: 0
         }
         if (duration == 0L) {
             return@LaunchedEffect
         }
 
-        total_duration_string = durationToString(duration, hl = player.context.getUiLanguage())
+        total_duration_string = durationToString(duration, hl = state.context.getUiLanguage())
     }
 
     Row(
@@ -279,7 +279,7 @@ private fun InfoRow(songs: List<Song>, modifier: Modifier = Modifier, show_sync_
 
 @Composable
 private fun LibrarySyncButton() {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     IconButton({
@@ -288,7 +288,7 @@ private fun LibrarySyncButton() {
         }
 
         coroutine_scope.launch {
-            MediaItemLibrary.syncLocalSongs(player.context)
+            MediaItemLibrary.syncLocalSongs(state.context)
         }
     }) {
         Crossfade(MediaItemLibrary.song_sync_in_progress) { syncing ->
@@ -302,8 +302,8 @@ private fun LibrarySyncButton() {
     }
 }
 
-private fun onSongClicked(songs: List<Song>, player: OldPlayerStateImpl, clicked_song: Song, index: Int) {
-    player.withPlayer {
+private fun onSongClicked(songs: List<Song>, state: SpMp.State, clicked_song: Song, index: Int) {
+    state.session.withPlayer {
         val ADD_BEFORE = 0
         val ADD_AFTER = 9
 

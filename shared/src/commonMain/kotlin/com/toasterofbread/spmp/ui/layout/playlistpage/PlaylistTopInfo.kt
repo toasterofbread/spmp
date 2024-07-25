@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.playlistpage
 
+import LocalAppState
 import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -49,11 +50,13 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
+import com.toasterofbread.spmp.db.Database
 import dev.toastbits.composekit.platform.composable.platformClickable
 import dev.toastbits.composekit.platform.vibrateShort
 import dev.toastbits.composekit.utils.common.getContrasted
@@ -70,19 +73,19 @@ private const val PLAYLIST_IMAGE_MIN_HEIGHT_DP: Float = 120f
 
 @Composable
 internal fun PlaylistAppPage.PlaylistTopInfo(items: List<MediaItem>?, modifier: Modifier = Modifier) {
-    val player = LocalPlayerState.current
-    val density = LocalDensity.current
-    val db = player.database
+    val state: SpMp.State = LocalAppState.current
+    val density: Density = LocalDensity.current
+    val db: Database = state.database
 
-    val shape = RoundedCornerShape(10.dp)
+    val shape: RoundedCornerShape = RoundedCornerShape(10.dp)
 
     val playlist_title: String? by playlist.observeActiveTitle()
     val playlist_image_width: Float? by playlist.ImageWidth.observe(db)
 
-    var split_position by remember(playlist) { mutableStateOf(playlist_image_width ?: 0f) }
+    var split_position: Float by remember(playlist) { mutableStateOf(playlist_image_width ?: 0f) }
     var width: Dp by remember(playlist) { mutableStateOf(0.dp) }
 
-    var show_image by remember(playlist) { mutableStateOf(true) }
+    var show_image: Boolean by remember(playlist) { mutableStateOf(true) }
     LaunchedEffect(split_position, width) {
         show_image = split_position * width >= PLAYLIST_IMAGE_MIN_HEIGHT_DP.dp
     }
@@ -103,7 +106,7 @@ internal fun PlaylistAppPage.PlaylistTopInfo(items: List<MediaItem>?, modifier: 
             },
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        var image_size by remember { mutableStateOf(IntSize.Zero) }
+        var image_size: IntSize by remember { mutableStateOf(IntSize.Zero) }
 
         // Playlist image
         AnimatedVisibility(show_image) {
@@ -112,11 +115,11 @@ internal fun PlaylistAppPage.PlaylistTopInfo(items: List<MediaItem>?, modifier: 
                     .heightIn(min = PLAYLIST_IMAGE_MIN_HEIGHT_DP.dp)
                     .fillMaxWidth(split_position)
             ) {
-                val provider_override =
+                val provider_override: ThumbnailProvider? =
                     if (edit_in_progress)
                         edited_image_url?.let { image_url ->
                             ThumbnailProvider.fromImageUrl(image_url)
-                        } ?: playlist.ThumbnailProvider.get(player.database)
+                        } ?: playlist.ThumbnailProvider.get(state.database)
                     else null
 
                 playlist.Thumbnail(
@@ -133,7 +136,7 @@ internal fun PlaylistAppPage.PlaylistTopInfo(items: List<MediaItem>?, modifier: 
                             onAltClick = {
                                 if (!edit_in_progress) {
                                     beginEdit()
-                                    player.context.vibrateShort()
+                                    state.context.vibrateShort()
                                 }
                             }
                         ),
@@ -234,7 +237,7 @@ internal fun PlaylistAppPage.PlaylistTopInfo(items: List<MediaItem>?, modifier: 
             Button(
                 {
                     if (!items.isNullOrEmpty()) {
-                        player.playMediaItem(playlist)
+                        state.session.playMediaItem(playlist)
                     }
                 },
                 Modifier.fillMaxWidth(),

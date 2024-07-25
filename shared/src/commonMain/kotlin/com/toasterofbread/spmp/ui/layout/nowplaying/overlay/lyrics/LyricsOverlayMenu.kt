@@ -1,7 +1,6 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
-import LocalPlayerState
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -12,7 +11,6 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -27,7 +25,7 @@ import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.getOrNotify
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
@@ -58,13 +56,13 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
         val song: Song = getSong() ?: return
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val app_state: SpMp.State = LocalAppState.current
         val coroutine_scope: CoroutineScope = rememberCoroutineScope()
         val scroll_state: LazyListState = rememberLazyListState()
         val pill_menu: PillMenu = remember { PillMenu(expand_state = mutableStateOf(false)) }
 
-        val lyrics_state: SongLyricsLoader.ItemState = SongLyricsLoader.rememberItemState(song, player.context)
-        var show_furigana: Boolean by player.settings.lyrics.DEFAULT_FURIGANA.observe()
+        val lyrics_state: SongLyricsLoader.ItemState = SongLyricsLoader.rememberItemState(song, app_state.context)
+        var show_furigana: Boolean by app_state.settings.lyrics.DEFAULT_FURIGANA.observe()
 
         var submenu: Submenu? by remember { mutableStateOf(null) }
         var lyrics_sync_line_index: Int? by remember { mutableStateOf(null) }
@@ -82,7 +80,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
 
         LaunchedEffect(lyrics_state) {
             getSong()?.also { song ->
-                SongLyricsLoader.loadBySong(song, player.context)
+                SongLyricsLoader.loadBySong(song, app_state.context)
             }
         }
 
@@ -202,8 +200,8 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                         if (changed) {
                             coroutine_scope.launchSingle {
                                 val result: SongLyrics? =
-                                    SongLyricsLoader.loadBySong(song, player.context)
-                                        ?.getOrNotify(player.context, "LyricsOverlayMenu lyrics search")
+                                    SongLyricsLoader.loadBySong(song, app_state.context)
+                                        ?.getOrNotify(app_state.context, "LyricsOverlayMenu lyrics search")
                             }
                         }
                         else if (loading == false && lyrics == null) {
@@ -230,7 +228,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                 }
                 else if (lyrics != null) {
                     Box(Modifier.fillMaxSize()) {
-                        val lyrics_follow_enabled: Boolean by player.settings.lyrics.FOLLOW_ENABLED.observe()
+                        val lyrics_follow_enabled: Boolean by app_state.settings.lyrics.FOLLOW_ENABLED.observe()
 
                         CoreLyricsDisplay(
                             lyrics,

@@ -62,7 +62,8 @@ import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import dev.toastbits.composekit.utils.modifier.background
 import dev.toastbits.composekit.utils.modifier.disableParentScroll
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import LocalTheme
 import com.toasterofbread.spmp.model.JsonHttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.headers
@@ -76,7 +77,11 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
 import SpMp.isDebugBuild
+import androidx.compose.material3.ButtonColors
+import com.toasterofbread.spmp.model.state.UiState
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import dev.toastbits.composekit.settings.ui.on_accent
+import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_load_retry
@@ -96,7 +101,7 @@ fun ErrorInfoDisplay(
     expanded_content_modifier: Modifier = Modifier.height(ERROR_INFO_DISPLAY_DEFAULT_EXPANDED_HEIGHT_DP.dp),
     disable_parent_scroll: Boolean = true,
     start_expanded: Boolean = false,
-    getAccentColour: @Composable OldPlayerStateImpl.() -> Color = { theme.accent },
+    getAccentColour: @Composable ThemeValues.() -> Color = { accent },
     extraButtonContent: (@Composable () -> Unit)? = null,
     onExtraButtonPressed: (() -> Unit)? = null,
     onRetry: (() -> Unit)? = null,
@@ -110,18 +115,18 @@ fun ErrorInfoDisplay(
         return
     }
 
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val theme: ThemeValues = LocalTheme.current
     val density: Density = LocalDensity.current
     var expanded: Boolean by remember { mutableStateOf(start_expanded) }
     val shape: Shape = RoundedCornerShape(20.dp)
 
-    CompositionLocalProvider(LocalContentColor provides player.theme.background) {
+    CompositionLocalProvider(LocalContentColor provides theme.background) {
         var width: Dp by remember { mutableStateOf(0.dp) }
 
         Column(
             modifier
                 .animateContentSize()
-                .background(getAccentColour(player), shape)
+                .background(getAccentColour(theme), shape)
                 .padding(horizontal = 10.dp)
                 .onSizeChanged {
                     width = with (density) { it.width.toDp() }
@@ -145,20 +150,20 @@ fun ErrorInfoDisplay(
                     Icon(
                         if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                         null,
-                        tint = player.theme.on_accent
+                        tint = theme.on_accent
                     )
                 }
 
                 WidthShrinkText(
                     message ?: pair_error?.first ?: error!!::class.simpleName ?: error!!::class.toString(),
                     modifier = Modifier.fillMaxWidth().weight(1f),
-                    style = LocalTextStyle.current.copy(color = player.theme.on_accent),
+                    style = LocalTextStyle.current.copy(color = theme.on_accent),
                     max_lines = 2
                 )
 
                 val button_colours = ButtonDefaults.buttonColors(
-                    containerColor = player.theme.background,
-                    contentColor = player.theme.on_background
+                    containerColor = theme.background,
+                    contentColor = theme.on_background
                 )
 
                 if (onExtraButtonPressed != null) {
@@ -186,8 +191,8 @@ fun ErrorInfoDisplay(
                         onDismiss,
                         shape = shape,
                         colours = IconButtonDefaults.iconButtonColors(
-                            containerColor = player.theme.background,
-                            contentColor = player.theme.on_background
+                            containerColor = theme.background,
+                            contentColor = theme.on_background
                         )
                     ) {
                         Icon(Icons.Default.Close, null)
@@ -209,7 +214,7 @@ fun ErrorInfoDisplay(
 
 @Composable
 private fun LongTextDisplay(text: String, wrap_text: Boolean, modifier: Modifier = Modifier) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val theme: ThemeValues = LocalTheme.current
     val limited_text: String = remember(text) { text.take(10000) }
 
     SelectionContainer {
@@ -218,7 +223,7 @@ private fun LongTextDisplay(text: String, wrap_text: Boolean, modifier: Modifier
             modifier
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 50.dp),
-            color = player.theme.on_background,
+            color = theme.on_background,
             softWrap = wrap_text
         )
     }
@@ -233,15 +238,16 @@ private fun ExpandedContent(
     show_throw_button: Boolean,
     modifier: Modifier = Modifier
 ) {
-    val coroutine_scope = rememberCoroutineScope()
-    val player = LocalPlayerState.current
+    val theme: ThemeValues = LocalTheme.current
+    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     var text_to_show: String? by remember { mutableStateOf(null) }
-    var wrap_text by remember { mutableStateOf(false) }
-    val button_colours = ButtonDefaults.buttonColors(
-        containerColor = player.theme.accent,
-        contentColor = player.theme.on_accent
-    )
+    var wrap_text: Boolean by remember { mutableStateOf(false) }
+    val button_colours: ButtonColors =
+        ButtonDefaults.buttonColors(
+            containerColor = theme.accent,
+            contentColor = theme.on_accent
+        )
 
     var current_error: Throwable? by remember(error) { mutableStateOf(error) }
 
@@ -250,10 +256,10 @@ private fun ExpandedContent(
             .fillMaxWidth()
             .clip(shape)
             .padding(bottom = 10.dp)
-            .background({ player.theme.background })
+            .background({ theme.background })
             .padding(10.dp)
     ) {
-        CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
+        CompositionLocalProvider(LocalContentColor provides theme.on_background) {
             Column(
                 Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -261,7 +267,7 @@ private fun ExpandedContent(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
                         stringResource(Res.string.wrap_text_switch_label),
-                        color = player.theme.on_background
+                        color = theme.on_background
                     )
                     Switch(wrap_text, { wrap_text = !wrap_text }, Modifier.padding(end = 10.dp))
 
@@ -284,7 +290,7 @@ private fun ExpandedContent(
                         colors = button_colours,
                         contentPadding = PaddingValues(0.dp),
                     ) {
-                        Text(stringResource(Res.string.upload_to_paste_dot_ee), textAlign = TextAlign.Center, style = LocalTextStyle.current.copy(color = player.theme.on_accent), softWrap = false)
+                        Text(stringResource(Res.string.upload_to_paste_dot_ee), textAlign = TextAlign.Center, style = LocalTextStyle.current.copy(color = theme.on_accent), softWrap = false)
                     }
                 }
 

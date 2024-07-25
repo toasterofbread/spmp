@@ -22,12 +22,12 @@ import dev.toastbits.composekit.utils.common.getInnerSquareSizeOfCircle
 import dev.toastbits.composekit.utils.composable.crossOut
 import dev.toastbits.composekit.utils.modifier.background
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import kotlin.math.roundToInt
 
 @Composable
 fun RepeatButton(getBackgroundColour: () -> Color, modifier: Modifier = Modifier) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     Box(
         modifier = modifier
@@ -37,8 +37,8 @@ fun RepeatButton(getBackgroundColour: () -> Color, modifier: Modifier = Modifier
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    player.controller?.repeat_mode =
-                        when (player.controller?.repeat_mode) {
+                    state.session.controller?.repeat_mode =
+                        when (state.session.controller?.repeat_mode) {
                             SpMsPlayerRepeatMode.ALL -> SpMsPlayerRepeatMode.ONE
                             SpMsPlayerRepeatMode.ONE -> SpMsPlayerRepeatMode.NONE
                             else -> SpMsPlayerRepeatMode.ALL
@@ -46,7 +46,7 @@ fun RepeatButton(getBackgroundColour: () -> Color, modifier: Modifier = Modifier
                 }
             )
             .crossOut(
-                crossed_out = player.status.m_repeat_mode == SpMsPlayerRepeatMode.NONE,
+                crossed_out = state.session.status.m_repeat_mode == SpMsPlayerRepeatMode.NONE,
                 getColour = { getBackgroundColour().getContrasted() },
             ) {
                 return@crossOut IntSize(
@@ -57,7 +57,7 @@ fun RepeatButton(getBackgroundColour: () -> Color, modifier: Modifier = Modifier
         contentAlignment = Alignment.Center
     ) {
         Icon(
-            when (player.status.m_repeat_mode) {
+            when (state.session.status.m_repeat_mode) {
                 SpMsPlayerRepeatMode.ONE -> Icons.Filled.RepeatOne
                 else -> Icons.Filled.Repeat
             },

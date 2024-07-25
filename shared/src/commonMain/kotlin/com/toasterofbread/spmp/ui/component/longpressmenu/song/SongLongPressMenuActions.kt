@@ -57,7 +57,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.rememberDownloadStatus
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
 import dev.toastbits.composekit.settings.ui.on_accent
@@ -90,7 +90,7 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
     queue_index: Int?,
     withSong: (suspend (Song) -> Unit) -> Unit,
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val density: Density = LocalDensity.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
@@ -123,13 +123,13 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                 val selected_playlists = remember { mutableStateListOf<Playlist>() }
                 PlaylistSelectMenu(
                     selected_playlists,
-                    player.context.ytapi.user_auth_state,
+                    state.context.ytapi.user_auth_state,
                     Modifier.fillMaxHeight().weight(1f)
                 )
 
                 val button_colours = IconButtonDefaults.iconButtonColors(
-                    containerColor = player.theme.accent,
-                    contentColor = player.theme.on_accent
+                    containerColor = state.theme.accent,
+                    contentColor = state.theme.on_accent
                 )
 
                 Row(
@@ -145,14 +145,14 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                     Button(
                         {
                             coroutine_scope.launch {
-                                val playlist: LocalPlaylistData = MediaItemLibrary.createLocalPlaylist(player.context).getOrNull()
+                                val playlist: LocalPlaylistData = MediaItemLibrary.createLocalPlaylist(state.context).getOrNull()
                                     ?: return@launch
                                 selected_playlists.add(playlist)
                             }
                         },
                         colors = ButtonDefaults.buttonColors(
-                            containerColor = player.theme.accent,
-                            contentColor = player.theme.on_accent
+                            containerColor = state.theme.accent,
+                            contentColor = state.theme.on_accent
                         )
                     ) {
                         Text(stringResource(Res.string.playlist_create))
@@ -165,12 +165,12 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                                     coroutine_scope.launch(NonCancellable) {
                                         for (playlist in selected_playlists) {
                                             val editor: InteractivePlaylistEditor =
-                                                playlist.getEditorOrNull(player.context).getOrNull() ?: continue
+                                                playlist.getEditorOrNull(state.context).getOrNull() ?: continue
                                             editor.addItem(song, null)
                                             editor.applyChanges()
                                         }
 
-                                        player.context.sendToast(getString(Res.string.toast_playlist_added))
+                                        state.context.sendToast(getString(Res.string.toast_playlist_added))
                                     }
                                 }
 
@@ -196,7 +196,7 @@ private fun LongPressMenuActionProvider.LPMActions(
     queue_index: Int?,
     openPlaylistInterface: () -> Unit
 ) {
-    val player = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val download: DownloadStatus? by (item as? Song)?.rememberDownloadStatus()
     val coroutine_scope = rememberCoroutineScope()
 
@@ -204,21 +204,21 @@ private fun LongPressMenuActionProvider.LPMActions(
         Icons.Default.Radio, stringResource(Res.string.lpm_action_radio),
         onClick = {
             withSong {
-                player.withPlayer {
+                state.session.withPlayer {
                     playSong(it)
                 }
             }
         },
         onAltClick = queue_index?.let { index -> {
             withSong {
-                player.withPlayer {
+                state.session.withPlayer {
                     startRadioAtIndex(index + 1, it, index, skip_first = true)
                 }
             }
         }}
     )
 
-    val lpm_increment_play_after: Boolean by player.settings.behaviour.LPM_INCREMENT_PLAY_AFTER.observe()
+    val lpm_increment_play_after: Boolean by state.settings.behaviour.LPM_INCREMENT_PLAY_AFTER.observe()
 
     ActiveQueueIndexAction(
         { distance ->
@@ -226,7 +226,7 @@ private fun LongPressMenuActionProvider.LPMActions(
         },
         onClick = { active_queue_index ->
             withSong {
-                player.withPlayer {
+                state.session.withPlayer {
                     addToQueue(
                         it,
                         active_queue_index + 1,
@@ -238,7 +238,7 @@ private fun LongPressMenuActionProvider.LPMActions(
         },
         onLongClick = { active_queue_index ->
             withSong {
-                player.withPlayer {
+                state.session.withPlayer {
                     addToQueue(
                         it,
                         active_queue_index + 1,
@@ -259,7 +259,7 @@ private fun LongPressMenuActionProvider.LPMActions(
             onClick = {
                 val song: Song = download?.song ?: return@ActionButton
                 coroutine_scope.launch {
-                    player.context.download_manager.deleteSongLocalAudioFile(song)
+                    state.context.download_manager.deleteSongLocalAudioFile(song)
                 }
             }
         )
@@ -269,13 +269,13 @@ private fun LongPressMenuActionProvider.LPMActions(
             coroutine_scope.launch {
                 when (status?.status) {
                     null -> {}
-                    DownloadStatus.Status.FINISHED -> player.context.sendToast(getString(Res.string.notif_download_finished))
-                    DownloadStatus.Status.ALREADY_FINISHED -> player.context.sendToast(getString(Res.string.notif_download_already_finished))
-                    DownloadStatus.Status.CANCELLED -> player.context.sendToast(getString(Res.string.notif_download_cancelled))
+                    DownloadStatus.Status.FINISHED -> state.context.sendToast(getString(Res.string.notif_download_finished))
+                    DownloadStatus.Status.ALREADY_FINISHED -> state.context.sendToast(getString(Res.string.notif_download_already_finished))
+                    DownloadStatus.Status.CANCELLED -> state.context.sendToast(getString(Res.string.notif_download_cancelled))
 
                     // IDLE, DOWNLOADING, PAUSED
                     else -> {
-                        player.context.sendToast(getString(Res.string.notif_download_already_downloading))
+                        state.context.sendToast(getString(Res.string.notif_download_already_downloading))
                     }
                 }
             }
@@ -286,39 +286,39 @@ private fun LongPressMenuActionProvider.LPMActions(
             stringResource(Res.string.lpm_action_download),
             onClick = {
                 withSong {
-                    player.onSongDownloadRequested(it) { status -> downloadCallback(status) }
+                    state.ui.onSongDownloadRequested(listOf(it)) { status -> downloadCallback(status) }
                 }
             },
             onAltClick = {
                 withSong {
-                    player.onSongDownloadRequested(it, always_show_options = true) { status -> downloadCallback(status) }
-                    player.context.vibrateShort()
+                    state.ui.onSongDownloadRequested(listOf(it), always_show_options = true) { status -> downloadCallback(status) }
+                    state.context.vibrateShort()
                 }
             }
         )
     }
 
     if (item is MediaItem.WithArtists) {
-        val item_artists: List<Artist>? by item.Artists.observe(player.database)
+        val item_artists: List<Artist>? by item.Artists.observe(state.database)
         item_artists?.firstOrNull()?.also { artist ->
             ActionButton(Icons.Default.Person, stringResource(Res.string.lpm_action_go_to_artist), onClick = {
-                player.openMediaItem(artist)
+                state.ui.openMediaItem(artist)
             })
         }
     }
 
     if (item is Song) {
-        val item_album: Playlist? by item.Album.observe(player.database)
+        val item_album: Playlist? by item.Album.observe(state.database)
         item_album?.also { album ->
             ActionButton(Icons.Default.Album, stringResource(Res.string.lpm_action_go_to_album), onClick = {
-                player.openMediaItem(album)
+                state.ui.openMediaItem(album)
             })
         }
     }
 
     ActionButton(MEDIA_ITEM_RELATED_CONTENT_ICON, stringResource(Res.string.lpm_action_song_related), onClick = {
         withSong {
-            player.openMediaItem(it)
+            state.ui.openMediaItem(it)
         }
     })
 }

@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.contentbar
 
-import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.height
@@ -16,12 +15,12 @@ import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.utils.common.getContrasted
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
-import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
+import LocalAppState
+import LocalUiState
+import com.toasterofbread.spmp.model.state.UiState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
 import dev.toastbits.composekit.settings.ui.ThemeValues
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.Serializable
 
@@ -43,12 +42,12 @@ sealed class ContentBar {
         getParentBackgroundColour: () -> Color? = { null },
         getBackgroundColour: (Color) -> Color = { it }
     ): Boolean {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val ui_state: UiState = LocalUiState.current
         val slot_colour_source: ColourSource by slot.rememberColourSource()
 
         var result: Boolean by remember { mutableStateOf(false) }
 
-        val background_colour: Color = getBackgroundColour(slot_colour_source.get(player))
+        val background_colour: Color = getBackgroundColour(slot_colour_source.get(ui_state))
         val parent_background_colour: Color? = getParentBackgroundColour()
 
         val actual_background_colour: Color =
@@ -114,7 +113,7 @@ fun LayoutSlot.DisplayBar(
     getBackgroundColour: (Color) -> Color = { it },
     onConfigDataChanged: (JsonElement?) -> Unit = {}
 ): Boolean {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val content_bar: ContentBar? by observeContentBar()
 
     val config_data: JsonElement? = observeConfigData()
@@ -128,7 +127,7 @@ fun LayoutSlot.DisplayBar(
         start = base_padding,
         end = base_padding,
         bottom = base_padding + (
-            if (is_vertical) player.nowPlayingBottomPadding(
+            if (is_vertical) state.player.bottomPadding(
                 include_np = true,
                 include_top_items = false
             )

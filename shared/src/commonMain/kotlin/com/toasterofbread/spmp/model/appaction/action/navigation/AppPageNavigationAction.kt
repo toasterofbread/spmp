@@ -10,7 +10,7 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.settings.category.SettingsGroup
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.SettingsAppPage
 import kotlinx.serialization.Serializable
@@ -38,13 +38,13 @@ data class AppPageNavigationAction(
     override fun getIcon(): ImageVector =
         page.getIcon()
 
-    override suspend fun execute(player: OldPlayerStateImpl) {
-        val page: AppPage = page.getPage(player, player.app_page_state) ?: return
-        player.openAppPage(page)
+    override suspend fun execute(state: SpMp.State) {
+        val page: AppPage = page.getPage(state.context, state.ui.app_page_state) ?: return
+        state.ui.openAppPage(page)
 
         if (page is SettingsAppPage && settings_group != null) {
-            val group_page: SettingsGroup.CategoryPage = player.settings.groupFromKey(settings_group)?.page ?: return
-            group_page.openPageOnInterface(player.context, page.settings_interface)
+            val group_page: SettingsGroup.CategoryPage = state.settings.groupFromKey(settings_group)?.page ?: return
+            group_page.openPageOnInterface(state.context, page.settings_interface)
         }
     }
 
@@ -62,9 +62,9 @@ data class AppPageNavigationAction(
 
     @Composable
     override fun ConfigurationItems(item_modifier: Modifier, onModification: (NavigationAction) -> Unit) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
         var show_settings_group_selector: Boolean by remember { mutableStateOf(false) }
-        val settings_pages: List<SettingsGroup.CategoryPage> = remember { player.settings.group_pages }
+        val settings_pages: List<SettingsGroup.CategoryPage> = remember { state.settings.group_pages }
 
         LargeDropdownMenu(
             expanded = show_settings_group_selector,

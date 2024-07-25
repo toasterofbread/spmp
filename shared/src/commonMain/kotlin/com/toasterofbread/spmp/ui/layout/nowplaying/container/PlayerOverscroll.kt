@@ -14,7 +14,7 @@ import androidx.compose.ui.platform.LocalDensity
 import dev.toastbits.composekit.platform.vibrateShort
 import com.toasterofbread.spmp.model.settings.category.*
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.nowplaying.container.npAnchorToDp
 import kotlinx.coroutines.delay
 
@@ -41,14 +41,14 @@ internal fun Modifier.playerOverscroll(
         }
     }
 
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    val controller: PlayerService? = player.controller
+    val state: SpMp.State = LocalAppState.current
+    val controller: PlayerService? = state.session.controller
     val density: Density = LocalDensity.current
     var player_alpha: Float by remember { mutableStateOf(1f) }
 
-    val overscroll_clear_enabled: Boolean by player.settings.player.MINI_OVERSCROLL_CLEAR_ENABLED.observe()
-    val overscroll_clear_time: Float by player.settings.player.MINI_OVERSCROLL_CLEAR_TIME.observe()
-    val overscroll_clear_mode: OverscrollClearMode by player.settings.player.MINI_OVERSCROLL_CLEAR_MODE.observe()
+    val overscroll_clear_enabled: Boolean by state.settings.state.MINI_OVERSCROLL_CLEAR_ENABLED.observe()
+    val overscroll_clear_time: Float by state.settings.state.MINI_OVERSCROLL_CLEAR_TIME.observe()
+    val overscroll_clear_mode: OverscrollClearMode by state.settings.state.MINI_OVERSCROLL_CLEAR_MODE.observe()
 
     LaunchedEffect(controller, swipe_interactions.isNotEmpty(), overscroll_clear_enabled) {
         if (!overscroll_clear_enabled || controller == null) {
@@ -78,7 +78,7 @@ internal fun Modifier.playerOverscroll(
                 player_alpha = 1f - (time_below_threshold / time_threshold).coerceIn(0f, 1f)
             }
 
-            val offset: Dp = (swipe_state.offset - anchor).npAnchorToDp(density, player.context, player.np_swipe_sensitivity)
+            val offset: Dp = (swipe_state.offset - anchor).npAnchorToDp(density, state.player.np_swipe_sensitivity)
             if (offset < -OVERSCROLL_CLEAR_DISTANCE_THRESHOLD_DP.dp) {
                 if (!triggered && time_below_threshold >= time_threshold) {
                     if (

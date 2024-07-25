@@ -69,7 +69,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
             )
         }
 
-    player = ExoPlayer.Builder(
+    state = ExoPlayer.Builder(
         this,
         renderers_factory,
         DefaultMediaSourceFactory(
@@ -111,11 +111,11 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
         .build()
 
     val player_listener: InternalPlayerServicePlayerListener = InternalPlayerServicePlayerListener(this)
-    player.addListener(player_listener)
+    state.addListener(player_listener)
 
-    player.playWhenReady = play_when_ready
-    player.pauseAtEndOfMediaItems = !playlist_auto_progress
-    player.prepare()
+    state.playWhenReady = play_when_ready
+    state.pauseAtEndOfMediaItems = !playlist_auto_progress
+    state.prepare()
 
     val controller_future: ListenableFuture<MediaController> =
         MediaController.Builder(
@@ -128,7 +128,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
         MoreExecutors.directExecutor()
     )
 
-    media_session = MediaSession.Builder(this, getNotificationPlayer(player))
+    media_session = MediaSession.Builder(this, getNotificationPlayer(state))
         .setBitmapLoader(object : BitmapLoader {
             val executor = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor())
 

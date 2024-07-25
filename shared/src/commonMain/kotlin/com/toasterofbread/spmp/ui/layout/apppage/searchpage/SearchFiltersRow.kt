@@ -9,7 +9,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.utils.composable.ScrollableRowOrColumn
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.composekit.settings.ui.on_accent
 import dev.toastbits.ytmkt.endpoint.*
 
@@ -19,7 +19,7 @@ internal fun SearchAppPage.SearchFiltersRow(
     content_padding: PaddingValues = PaddingValues(),
     lazy: Boolean
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     ScrollableRowOrColumn(
         row = true,
@@ -47,7 +47,7 @@ internal fun SearchAppPage.SearchFiltersRow(
                     val search_type: SearchType? = if (index == 0) null else SearchType.entries[index - 1]
                     Text(search_type.getReadable())
                 },
-                colors = with(player.theme) {
+                colors = with(state.theme) {
                     FilterChipDefaults.elevatedFilterChipColors(
                         containerColor = background,
                         labelColor = on_background,
@@ -56,7 +56,7 @@ internal fun SearchAppPage.SearchFiltersRow(
                     )
                 },
                 border = FilterChipDefaults.filterChipBorder(
-                    borderColor = player.theme.on_background,
+                    borderColor = state.theme.on_background,
                     enabled = true,
                     selected = selected
                 )

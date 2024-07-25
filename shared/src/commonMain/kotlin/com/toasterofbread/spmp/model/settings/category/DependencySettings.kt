@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.settings.category
 
+import LocalAppContext
 import dev.toastbits.composekit.settings.ui.item.ComposableSettingsItem
 import dev.toastbits.composekit.utils.common.thenIf
 import androidx.compose.material.icons.Icons
@@ -33,9 +34,11 @@ import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Button
 import com.toasterofbread.spmp.SpMpDeps
 import com.toasterofbread.spmp.DependencyInfo
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.platform.AppContext
 import LocalPlayerState
+import LocalTheme
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import dev.toastbits.composekit.settings.ui.vibrant_accent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -59,11 +62,11 @@ class DependencySettings(val context: AppContext): SettingsGroup("DEPENDENCY", c
             ) },
             { Icons.Outlined.LibraryBooks },
             titleBarEndContent = { modifier ->
-                val player: OldPlayerStateImpl = LocalPlayerState.current
+                val state: SpMp.State = LocalAppState.current
 
-                if (player.context.canOpenUrl()) {
+                if (context.canOpenUrl()) {
                     IconButton(
-                        { player.context.openUrl("https://github.com/toasterofbread/spmp/blob/main/buildSrc/src/main/kotlin/plugins/spmp/Dependencies.kt") },
+                        { context.openUrl("https://github.com/toasterofbread/spmp/blob/main/buildSrc/src/main/kotlin/plugins/spmp/Dependencies.kt") },
                         modifier
                     ) {
                         Icon(Icons.Default.OpenInNew, null)
@@ -88,12 +91,13 @@ private fun DependencyList(modifier: Modifier = Modifier) {
 
 @Composable
 private fun DependencyInfo(dependency: DependencyInfo, modifier: Modifier = Modifier) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val context: AppContext = LocalAppContext.current
+    val theme: ThemeValues = LocalTheme.current
 
     Column(
         modifier
             .background(
-                player.theme.vibrant_accent.copy(alpha = 0.2f),
+                theme.vibrant_accent.copy(alpha = 0.2f),
                 RoundedCornerShape(10.dp)
             )
             .padding(horizontal = 15.dp, vertical = 10.dp)
@@ -110,10 +114,10 @@ private fun DependencyInfo(dependency: DependencyInfo, modifier: Modifier = Modi
             CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.labelSmall) {
                 if (dependency.fork_url != null) {
                     Row(Modifier.align(Alignment.CenterVertically), verticalAlignment = Alignment.CenterVertically) {
-                        Text(stringResource(Res.string.dependency_list_dep_using_fork), Modifier.thenIf(player.context.canOpenUrl()) { offset(x = 10.dp) })
+                        Text(stringResource(Res.string.dependency_list_dep_using_fork), Modifier.thenIf(context.canOpenUrl()) { offset(x = 10.dp) })
 
-                        if (player.context.canOpenUrl()) {
-                            IconButton({ player.context.openUrl(dependency.fork_url) }) {
+                        if (context.canOpenUrl()) {
+                            IconButton({ context.openUrl(dependency.fork_url) }) {
                                 Icon(Icons.Default.OpenInNew, null, Modifier.size(15.dp))
                             }
                         }
@@ -133,9 +137,9 @@ private fun DependencyInfo(dependency: DependencyInfo, modifier: Modifier = Modi
                 Row(Modifier.align(Alignment.CenterVertically), verticalAlignment = Alignment.CenterVertically) {
                     Text(stringResource(Res.string.`dependency_list_dep_$license`).replace("\$license", dependency.license))
 
-                    if (player.context.canOpenUrl()) {
+                    if (context.canOpenUrl()) {
                         IconButton(
-                            { player.context.openUrl(dependency.license_url) },
+                            { context.openUrl(dependency.license_url) },
                             Modifier.offset(x = (-10).dp)
                         ) {
                             Icon(Icons.Default.OpenInNew, null, Modifier.size(18.dp))
@@ -143,9 +147,9 @@ private fun DependencyInfo(dependency: DependencyInfo, modifier: Modifier = Modi
                     }
                 }
 
-                if (player.context.canOpenUrl()) {
+                if (context.canOpenUrl()) {
                     Box(Modifier.fillMaxWidth().weight(1f), contentAlignment = Alignment.CenterEnd) {
-                        Button({ player.context.openUrl(dependency.url) }) {
+                        Button({ context.openUrl(dependency.url) }) {
                             Row(verticalAlignment = Alignment.CenterVertically) {
                                 Icon(Icons.Default.Code, null, Modifier.padding(end = 10.dp))
                                 Text(stringResource(Res.string.dependency_list_dep_view_source))

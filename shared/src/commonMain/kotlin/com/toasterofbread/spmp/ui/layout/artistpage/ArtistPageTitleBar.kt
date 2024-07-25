@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.artistpage
 
+import LocalAppState
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.background
@@ -62,7 +63,7 @@ import spmp.shared.generated.resources.`edit_$x_title_dialog_title`
 
 @Composable
 fun ArtistPageTitleBar(item: MediaItem, modifier: Modifier = Modifier) {
-    val player = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     val horizontal_padding = 20.dp
     var editing_title by remember { mutableStateOf(false) }
@@ -74,7 +75,7 @@ fun ArtistPageTitleBar(item: MediaItem, modifier: Modifier = Modifier) {
         ) {
             if (editing) {
                 var edited_title: String by remember(item) {
-                    mutableStateOf(item.getActiveTitle(player.database) ?: "")
+                    mutableStateOf(item.getActiveTitle(state.database) ?: "")
                 }
 
                 Column(Modifier.fillMaxWidth().padding(end = horizontal_padding), horizontalAlignment = Alignment.End) {
@@ -83,27 +84,27 @@ fun ArtistPageTitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                         fun Action(icon: ImageVector, action: () -> Unit) {
                             Box(
                                 Modifier
-                                    .background(player.theme.accent, CircleShape)
+                                    .background(state.theme.accent, CircleShape)
                                     .size(42.dp)
                                     .padding(8.dp)
                                     .clickable(onClick = action),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(icon, null, tint = player.theme.on_accent)
+                                Icon(icon, null, tint = state.theme.on_accent)
                             }
                         }
 
                         Action(Icons.Filled.Close) { editing_title = false }
                         Action(Icons.Filled.Refresh) {
-                            edited_title = player.database.mediaItemQueries.customTitleById(item.id).executeAsOne().custom_title ?: ""
+                            edited_title = state.database.mediaItemQueries.customTitleById(item.id).executeAsOne().custom_title ?: ""
                         }
                         Action(Icons.Filled.Done) {
-                            player.database.mediaItemQueries.updateTitleById(edited_title, item.id)
+                            state.database.mediaItemQueries.updateTitleById(edited_title, item.id)
                             editing_title = false
                         }
                     }
 
-                    val field_colour: Color = player.theme.on_accent
+                    val field_colour: Color = state.theme.on_accent
                     OutlinedTextField(
                         edited_title,
                         onValueChange = { text ->
@@ -116,7 +117,7 @@ fun ArtistPageTitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                         },
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Done),
                         keyboardActions = KeyboardActions(onDone = {
-                            player.database.mediaItemQueries.updateTitleById(edited_title, item.id)
+                            state.database.mediaItemQueries.updateTitleById(edited_title, item.id)
                             editing_title = false
                         }),
                         colors = OutlinedTextFieldDefaults.colors(
@@ -138,7 +139,7 @@ fun ArtistPageTitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                         .combinedClickable(
                             onClick = {},
                             onLongClick = {
-                                player.context.vibrateShort()
+                                state.context.vibrateShort()
                                 editing_title = true
                             }
                         )
@@ -153,16 +154,16 @@ fun ArtistPageTitleBar(item: MediaItem, modifier: Modifier = Modifier) {
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 if (item is Artist) {
-                    val subscriber_count: Int = item.SubscriberCount.observe(player.database).value ?: 0
+                    val subscriber_count: Int = item.SubscriberCount.observe(state.database).value ?: 0
                     if (subscriber_count > 0) {
-                        Text(subscriber_count.toReadableSubscriberCount(player.context), style = MaterialTheme.typography.labelLarge)
+                        Text(subscriber_count.toReadableSubscriberCount(state.context), style = MaterialTheme.typography.labelLarge)
                     }
                 }
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
                 if (item is Artist && !item.isForItem()) {
-                    player.context.ytapi.user_auth_state?.also { auth_state ->
+                    state.context.ytapi.user_auth_state?.also { auth_state ->
                         ArtistSubscribeButton(item, auth_state)
                     }
                 }

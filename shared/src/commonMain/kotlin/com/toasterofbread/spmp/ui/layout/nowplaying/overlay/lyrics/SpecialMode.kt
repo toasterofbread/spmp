@@ -1,5 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
+import LocalAppState
+import LocalDataase
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Row
@@ -41,14 +43,14 @@ internal enum class SpecialMode {
 
 @Composable
 internal fun SpecialModeMenu(special_mode: SpecialMode?, song: Song, setMode: (SpecialMode?) -> Unit) {
-    val player = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     Crossfade(
         special_mode,
         Modifier
             .fillMaxWidth()
             .padding(15.dp)
-            .background(RoundedCornerShape(16.dp)) { player.theme.accent }
+            .background(RoundedCornerShape(16.dp)) { state.theme.accent }
             .padding(horizontal = 10.dp)
     ) { mode ->
         val button_width = 40.dp
@@ -57,10 +59,10 @@ internal fun SpecialModeMenu(special_mode: SpecialMode?, song: Song, setMode: (S
             Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            CompositionLocalProvider(LocalContentColor provides player.theme.on_accent) {
+            CompositionLocalProvider(LocalContentColor provides state.theme.on_accent) {
                 when (mode) {
                     SpecialMode.ADJUST_SYNC -> {
-                        var sync_offset: Long? by song.LyricsSyncOffset.observe(LocalPlayerState.current.database)
+                        var sync_offset: Long? by song.LyricsSyncOffset.observe(LocalDataase.current)
 
                         IconButton({
                             sync_offset = (sync_offset ?: 0) - 100
@@ -105,7 +107,7 @@ internal fun SpecialModeMenu(special_mode: SpecialMode?, song: Song, setMode: (S
                         WidthShrinkText(
                             stringResource(Res.string.lyrics_sync_long_press_line),
                             Modifier.fillMaxWidth().weight(1f),
-                            style = LocalTextStyle.current.copy(color = player.theme.on_accent)
+                            style = LocalTextStyle.current.copy(color = state.theme.on_accent)
                         )
                     }
 

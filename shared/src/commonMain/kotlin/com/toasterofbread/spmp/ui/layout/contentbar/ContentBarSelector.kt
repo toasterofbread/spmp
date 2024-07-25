@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.contentbar
 
-import LocalPlayerState
 import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
@@ -23,34 +22,33 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
 import dev.toastbits.composekit.platform.composable.*
 import dev.toastbits.composekit.utils.common.*
 import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.modifier.background
 import dev.toastbits.composekit.utils.composable.NoRipple
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import LocalTheme
+import LocalUiState
+import com.toasterofbread.spmp.model.state.UiState
 import com.toasterofbread.spmp.ui.component.*
-import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.observeContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.rememberColourSource
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.vertical
 import com.toasterofbread.spmp.ui.theme.appHover
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import dev.toastbits.composekit.settings.ui.vibrant_accent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_close
 import spmp.shared.generated.resources.content_bar_empty
 import spmp.shared.generated.resources.action_cancel
-import spmp.shared.generated.resources.content_bar_empty
 import spmp.shared.generated.resources.content_bar_selection
 import spmp.shared.generated.resources.content_bar_selection_list_built_in
 import spmp.shared.generated.resources.content_bar_selection_list_custom
@@ -65,7 +63,8 @@ internal fun ContentBarSelector(
     content_padding: PaddingValues = PaddingValues(),
     base_content_padding: PaddingValues = PaddingValues()
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val ui_state: UiState = LocalUiState.current
+    val theme: ThemeValues = LocalTheme.current
     val density: Density = LocalDensity.current
     val slot_colour_source: ColourSource by slot.rememberColourSource()
 
@@ -88,12 +87,12 @@ internal fun ContentBarSelector(
             modifier
                 .clipToBounds()
                 .fillMaxSize()
-                .background(player.theme.background)
+                .background(theme.background)
                 .padding(content_padding)
-                .border(1.dp, player.theme.vibrant_accent)
+                .border(1.dp, theme.vibrant_accent)
                 .padding(base_content_padding)
         ) {
-            CompositionLocalProvider(LocalContentColor provides player.theme.background.getContrasted()) {
+            CompositionLocalProvider(LocalContentColor provides theme.background.getContrasted()) {
                 Row(
                     Modifier
                         .thenIf(slot.is_vertical) {
@@ -115,7 +114,7 @@ internal fun ContentBarSelector(
 
                     // Text(slot.getName())
 
-                    val colour_button_background_colour: Color = slot_colour_source.get(player)
+                    val colour_button_background_colour: Color = slot_colour_source.get(ui_state)
 
                     ConfigButton(
                         Modifier
@@ -147,7 +146,7 @@ private fun ContentBarSelectorMainRow(
     rotate_modifier: Modifier,
     modifier: Modifier = Modifier
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val ui_state: UiState = LocalUiState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
     val content_bar: ContentBar? by slot.observeContentBar()
 
@@ -159,8 +158,8 @@ private fun ContentBarSelectorMainRow(
             state,
             slot,
             size_modifier = Modifier
-                .widthIn(min = player.screen_size.width * 0.8f)
-                .heightIn(max = player.screen_size.height * 0.8f),
+                .widthIn(min = ui_state.screen_size.width * 0.8f)
+                .heightIn(max = ui_state.screen_size.height * 0.8f),
             onSelected = { bar ->
                 show_bar_selector = false
                 coroutine_scope.launch {
@@ -228,7 +227,7 @@ private fun ContentBarSelectorMainRow(
 @Composable
 private fun ConfigButton(
     modifier: Modifier = Modifier,
-    background_colour: Color = LocalPlayerState.current.theme.accent,
+    background_colour: Color = LocalTheme.current.accent,
     border_colour: Color? = null,
     content: @Composable RowScope.() -> Unit
 ) {
@@ -254,7 +253,7 @@ private fun BarSelectorPopup(
     modifier: Modifier = Modifier,
     size_modifier: Modifier = Modifier
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val theme: ThemeValues = LocalTheme.current
 
     AlertDialog(
         onDismissed,
@@ -263,8 +262,8 @@ private fun BarSelectorPopup(
             Button(
                 onDismissed,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = player.theme.background,
-                    contentColor = player.theme.on_background
+                    containerColor = theme.background,
+                    contentColor = theme.on_background
                 ),
                 modifier = Modifier.appHover(true)
             ) {
@@ -313,7 +312,8 @@ internal fun CustomBarsContentBarList(
     lazy: Boolean = false,
     bar_background_colour: Color? = null
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val ui_state: UiState = LocalUiState.current
+    val theme: ThemeValues = LocalTheme.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     ContentBarList(
@@ -321,7 +321,7 @@ internal fun CustomBarsContentBarList(
         stringResource(Res.string.content_bar_selection_list_custom),
         modifier,
         topContent = {
-            val background_colour: Color = player.theme.vibrant_accent
+            val background_colour: Color = theme.vibrant_accent
             CompositionLocalProvider(LocalContentColor provides background_colour.getContrasted()) {
                 ContentBarPreview(
                     stringResource(Res.string.content_bar_selection_create_new),
@@ -342,7 +342,7 @@ internal fun CustomBarsContentBarList(
                 IconButton(
                     {
                         state.onCustomBarEditRequested(state.custom_bars[index])
-                        player.switchNowPlayingPage(0)
+                        ui_state.switchPlayerPage(0)
                         onDismissed()
                     }
                 ) {
@@ -379,8 +379,8 @@ internal fun ContentBarList(
     buttonEndContent: @Composable (Modifier, Int) -> Unit = { _, _ -> },
     onSelected: ((Int) -> Unit)?
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    val custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
+    val state: SpMp.State = LocalAppState.current
+    val custom_bars: List<CustomContentBar> by state.settings.layout.CUSTOM_BARS.observe()
     val bars: List<ContentBar> = remember(bar_references, custom_bars) {
         bar_references.mapNotNull { it.getBar(custom_bars) }
     }
@@ -471,7 +471,7 @@ private fun Modifier.contentBarPreview(
     border_colour: Color? = null,
     interactive: Boolean = true
 ): Modifier {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val theme: ThemeValues = LocalTheme.current
     val shape: Shape = RoundedCornerShape(20.dp)
 
     return (
@@ -486,7 +486,7 @@ private fun Modifier.contentBarPreview(
         .thenWith(border_colour) {
             border(1.dp, it, shape)
         }
-        .background(shape) { background_colour ?: player.theme.background }
+        .background(shape) { background_colour ?: theme.background }
         .padding(10.dp)
     )
 }

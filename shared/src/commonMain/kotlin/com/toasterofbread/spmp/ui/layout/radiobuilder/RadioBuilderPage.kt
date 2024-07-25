@@ -32,7 +32,7 @@ import dev.toastbits.composekit.platform.composable.BackHandler
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.WaveBorder
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.ytmkt.endpoint.RadioBuilderArtist
 import dev.toastbits.ytmkt.endpoint.RadioBuilderEndpoint
 import kotlinx.coroutines.Dispatchers
@@ -54,8 +54,8 @@ fun RadioBuilderPage(
     var artists_result: Result<List<RadioBuilderArtist>>? by remember { mutableStateOf(null) }
     var selected_artists: Set<Int>? by remember { mutableStateOf(null) }
 
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    val builder_endpoint: RadioBuilderEndpoint = player.context.ytapi.RadioBuilder
+    val state: SpMp.State = LocalAppState.current
+    val builder_endpoint: RadioBuilderEndpoint = state.context.ytapi.RadioBuilder
     check(builder_endpoint.isImplemented())
 
     LaunchedEffect(Unit) {

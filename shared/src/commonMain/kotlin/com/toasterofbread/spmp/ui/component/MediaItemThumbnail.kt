@@ -33,12 +33,12 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistDefaultThumbnail
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider.Companion.fromImageUrl
 import kotlinx.coroutines.CoroutineScope
 
 private suspend inline fun MediaItem.loadThumb(
-    player: OldPlayerStateImpl,
+    state: SpMp.State,
     target_quality: Quality,
     base_provider: ThumbnailProvider?,
     disable_cache: Boolean,
@@ -46,8 +46,8 @@ private suspend inline fun MediaItem.loadThumb(
 ) {
     var provider: ThumbnailProvider? = base_provider
     if (provider == null) {
-        loadData(player.context)
-        provider = ThumbnailProvider.get(player.database)
+        loadData(state.context)
+        provider = ThumbnailProvider.get(state.database)
     }
 
     if (provider != null) {
@@ -56,7 +56,7 @@ private suspend inline fun MediaItem.loadThumb(
                 this@loadThumb,
                 provider,
                 quality,
-                player.context,
+                state.context,
                 disable_cache_read = disable_cache,
                 disable_cache_write = disable_cache
             )
@@ -82,12 +82,12 @@ fun MediaItem.Thumbnail(
 ) {
     require(this !is LocalPlaylistRef) { "LocalPlaylistRef must be loaded and passed as a LocalPlaylistData" }
 
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     var loading: Boolean by remember { mutableStateOf(true) }
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
-    val custom_image_url: State<String?>? = (this as? Playlist)?.CustomImageUrl?.observe(player.database)
-    val thumbnail_provider: ThumbnailProvider? by ThumbnailProvider.observe(player.database)
+    val custom_image_url: State<String?>? = (this as? Playlist)?.CustomImageUrl?.observe(state.database)
+    val thumbnail_provider: ThumbnailProvider? by ThumbnailProvider.observe(state.database)
 
     fun getThumbnailProvider(): ThumbnailProvider? =
         provider_override ?: custom_image_url?.value?.let { fromImageUrl(it) } ?: thumbnail_provider
@@ -113,7 +113,7 @@ fun MediaItem.Thumbnail(
         coroutine_scope.launchSingle {
             loading = true
             image = null
-            loadThumb(player, target_quality, getThumbnailProvider(), disable_cache) { loaded_image, quality ->
+            loadThumb(state, target_quality, getThumbnailProvider(), disable_cache) { loaded_image, quality ->
                 image = Pair(loaded_image, quality)
                 onLoaded?.invoke(loaded_image)
             }
@@ -130,7 +130,7 @@ fun MediaItem.Thumbnail(
 
         coroutine_scope.launchSingle {
             loading = true
-            loadThumb(player, target_quality, getThumbnailProvider(), disable_cache) { loaded_image, quality ->
+            loadThumb(state, target_quality, getThumbnailProvider(), disable_cache) { loaded_image, quality ->
                 image = Pair(loaded_image, quality)
                 onLoaded?.invoke(loaded_image)
             }

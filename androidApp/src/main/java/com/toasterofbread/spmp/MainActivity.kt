@@ -94,7 +94,7 @@ class MainActivity: ComponentActivity() {
             var player_initialised: Boolean by remember { mutableStateOf(false) }
 
             LaunchedEffect(Unit) {
-                SpMp.initPlayer(launch_arguments, player_coroutine_scope)
+                SpMp.initState(launch_arguments, player_coroutine_scope)
                 player_initialised = true
             }
 

@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.artistpage
 
+import LocalAppState
 import LocalPlayerState
 import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.animation.Crossfade
@@ -21,8 +22,10 @@ import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.updateSubscribed
 import com.toasterofbread.spmp.model.mediaitem.loader.ArtistSubscribedLoader
+import com.toasterofbread.spmp.model.mediaitem.loader.ItemStateLoader
 import com.toasterofbread.spmp.resources.getStringTODO
 import dev.toastbits.composekit.platform.assert
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 @Composable
@@ -33,18 +36,18 @@ fun ArtistSubscribeButton(
     getAccentColour: (() -> Color)? = null,
     icon_modifier: Modifier = Modifier
 ) {
-    val player = LocalPlayerState.current
-    val coroutine_scope = rememberCoroutineScope()
+    val state: SpMp.State = LocalAppState.current
+    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
-    val subscribed_state = ArtistSubscribedLoader.rememberItemState(artist.id)
-    val artist_subscribed: Boolean? by artist.Subscribed.observe(player.database)
+    val subscribed_state: ItemStateLoader.ItemState<Boolean> = ArtistSubscribedLoader.rememberItemState(artist.id)
+    val artist_subscribed: Boolean? by artist.Subscribed.observe(state.database)
 
     LaunchedEffect(artist.id) {
         assert(!artist.isForItem()) { artist.toString() }
 
         if (artist.id != auth_state.own_channel_id) {
             coroutine_scope.launch {
-                ArtistSubscribedLoader.loadArtistSubscribed(artist, player.context)
+                ArtistSubscribedLoader.loadArtistSubscribed(artist, state.context)
             }
         }
     }
@@ -57,10 +60,10 @@ fun ArtistSubscribeButton(
             ShapedIconButton(
                 {
                     coroutine_scope.launch {
-                        val result: Result<Unit> = artist.updateSubscribed(!subscribed, auth_state.SetSubscribedToArtist, player.context)
+                        val result: Result<Unit> = artist.updateSubscribed(!subscribed, auth_state.SetSubscribedToArtist, state.context)
                         if (result.isFailure) {
-                            val artist_title: String? = artist.getActiveTitle(player.database)
-                            player.context.sendToast(
+                            val artist_title: String? = artist.getActiveTitle(state.database)
+                            state.context.sendToast(
                                 getStringTODO(
                                     if (!subscribed) "Subscribing to $artist_title failed"
                                     else "Unsubscribing from $artist_title failed"

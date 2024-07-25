@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.maintab
 
+import LocalAppState
 import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -15,7 +16,7 @@ import com.github.krottv.compose.sliders.SliderValueHorizontal
 
 @Composable
 internal fun VolumeSlider(colour: Color, modifier: Modifier = Modifier, reverse: Boolean = false) {
-    val player = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     var layout_direction = LocalLayoutDirection.current
     if (reverse) {
@@ -26,8 +27,8 @@ internal fun VolumeSlider(colour: Color, modifier: Modifier = Modifier, reverse:
 
     CompositionLocalProvider(LocalLayoutDirection provides layout_direction) {
         SliderValueHorizontal(
-            value = player.status.m_volume,
-            onValueChange = { player.controller?.volume = it },
+            value = state.session.status.m_volume,
+            onValueChange = { state.session.controller?.volume = it },
             thumbSizeInDp = DpSize(12.dp, 12.dp),
             track = { a, b, c, d, e ->
                 DefaultTrack(

@@ -31,7 +31,7 @@ import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import LocalPlayerState
@@ -125,14 +125,14 @@ internal fun getSystemCategoryItems(context: AppContext, available_languages: Li
                 context.settings.system.UI_SCALE.set(1f)
             }
         ) {
-            val player: OldPlayerStateImpl = LocalPlayerState.current
+            val state: SpMp.State = LocalAppState.current
 
             Row(verticalAlignment = Alignment.CenterVertically) {
                 ItemTitleText(context.settings.system.UI_SCALE.getName(), theme, Modifier.weight(1f))
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                var ui_scale: Float by player.settings.system.UI_SCALE.observe()
+                var ui_scale: Float by state.settings.system.UI_SCALE.observe()
 
                 ShapedIconButton({
                     ui_scale = (ui_scale - 0.1f).coerceAtLeast(0.1f)

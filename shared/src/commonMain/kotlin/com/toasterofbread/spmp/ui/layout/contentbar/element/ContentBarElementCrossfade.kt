@@ -37,7 +37,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.Dp
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarElementSelector
@@ -114,7 +114,7 @@ data class ContentBarElementCrossfade(
 
     @Composable
     override fun SubConfigurationItems(item_modifier: Modifier, onModification: (ContentBarElement) -> Unit) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
         var show_element_selector: Boolean by remember { mutableStateOf(false) }
 
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -148,8 +148,8 @@ data class ContentBarElementCrossfade(
                     ContentBarElementSelector(
                         button_colours =
                             ButtonDefaults.buttonColors(
-                                containerColor = player.theme.on_background,
-                                contentColor = player.theme.background
+                                containerColor = state.theme.on_background,
+                                contentColor = state.theme.background
                             )
                     ) { type ->
                         onModification(copy(elements = elements + listOf(type.createElement())))

@@ -38,7 +38,7 @@ import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.toRemotePlaylistData
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
@@ -65,9 +65,9 @@ fun FilterSelectionPage(
     content_padding: PaddingValues,
     modifier: Modifier = Modifier
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
-    val builder_endpoint = player.context.ytapi.RadioBuilder
+    val builder_endpoint = state.context.ytapi.RadioBuilder
     check(builder_endpoint.isImplemented())
 
     var is_loading by remember { mutableStateOf(false) }
@@ -105,7 +105,7 @@ fun FilterSelectionPage(
                 preview_loading = true
             }
             else if (preview_playlist?.id == radio_token) {
-                player.withPlayer {
+                state.session.withPlayer {
                     startRadioAtIndex(0, preview_playlist)
                 }
                 return
@@ -126,7 +126,7 @@ fun FilterSelectionPage(
 
                             withContext(Dispatchers.PlatformIO) {
                                 setRadioMetadata(playlist_data, artists, selected_artists)
-                                playlist_data.saveToDatabase(player.database)
+                                playlist_data.saveToDatabase(state.database)
                             }
 
                             if (preview) {
@@ -134,7 +134,7 @@ fun FilterSelectionPage(
                             }
                             else {
                                 withContext(Dispatchers.Main) {
-                                    player.withPlayer {
+                                    state.session.withPlayer {
                                         startRadioAtIndex(0, playlist_data)
                                     }
                                 }
@@ -175,7 +175,7 @@ fun FilterSelectionPage(
                                     .platformClickable(
                                         onAltClick = {
                                             show_error = !show_error
-                                            player.context.vibrateShort()
+                                            state.context.vibrateShort()
                                         }
                                     )
                             )
@@ -192,13 +192,13 @@ fun FilterSelectionPage(
                     }
                     else if (loading) {
                         Box(Modifier.fillMaxSize().padding(content_padding), contentAlignment = Alignment.Center) {
-                            SubtleLoadingIndicator { player.theme.on_background }
+                            SubtleLoadingIndicator { state.theme.on_background }
                         }
                     }
                     else {
                         val items = playlist?.items
                         if (items != null) {
-                            val multiselect_context = remember { MediaItemMultiSelectContext(player.context) {} }
+                            val multiselect_context = remember { MediaItemMultiSelectContext(state.context) {} }
 
                             DisposableEffect(multiselect_context.is_active) {
                                 action_buttons_visible = !multiselect_context.is_active
@@ -233,13 +233,13 @@ fun FilterSelectionPage(
             ) {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     val icon_button_colours = IconButtonDefaults.iconButtonColors(
-                        containerColor = player.theme.accent,
-                        contentColor = player.theme.on_accent
+                        containerColor = state.theme.accent,
+                        contentColor = state.theme.on_accent
                     )
                     ShapedIconButton({ loadRadio(false) }, colours = icon_button_colours) {
                         Crossfade(is_loading) { loading ->
                             if (loading) {
-                                SubtleLoadingIndicator(getColour = { player.theme.on_accent })
+                                SubtleLoadingIndicator(getColour = { state.theme.on_accent })
                             }
                             else {
                                 Icon(Icons.Filled.PlayArrow, null)

@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
-import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.layout.*
@@ -8,7 +7,6 @@ import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
@@ -18,8 +16,7 @@ import dev.toastbits.composekit.utils.composable.*
 import dev.toastbits.composekit.utils.composable.getTop
 import dev.toastbits.composekit.utils.modifier.background
 import com.toasterofbread.spmp.platform.*
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
-import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
@@ -27,10 +24,10 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 
 @Composable
 fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val density: Density = LocalDensity.current
     val form_factor: FormFactor by FormFactor.observe()
-    val horizontal_padding: Dp by animateDpAsState(player.getDefaultHorizontalPadding())
+    val horizontal_padding: Dp by animateDpAsState(state.getDefaultHorizontalPadding())
 
     val side_bar_modifier: Modifier = Modifier.zIndex(1f)
 
@@ -41,7 +38,7 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
             LandscapeSideBars(true, side_bar_modifier)
         }
 
-        Crossfade(player.app_page, Modifier.fillMaxWidth().weight(1f)) { page ->
+        Crossfade(state.ui.app_page, Modifier.fillMaxWidth().weight(1f)) { page ->
             Box {
                 val upper_bar_slot: LayoutSlot
                 val lower_bar_slot: LayoutSlot
@@ -60,7 +57,7 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                 var lower_bar_height: Dp by remember { mutableStateOf(0.dp) }
 
                 var _upper_bar_displaying: Boolean by remember { mutableStateOf(false) }
-                val upper_bar_displaying = _upper_bar_displaying || player.main_multiselect_context.is_active
+                val upper_bar_displaying = _upper_bar_displaying || state.ui.main_multiselect_context.is_active
                 var lower_bar_displaying: Boolean by remember { mutableStateOf(false) }
 
                 val highest_slot: LayoutSlot? =
@@ -71,18 +68,18 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                 val highest_colour: ColourSource? by highest_slot?.rememberColourSource()
 
                 LaunchedEffect(highest_colour) {
-                    player.bar_colour_state.status_bar.setLevelColour(highest_colour, BarColourState.StatusBarLevel.BAR)
+                    state.ui.bar_colour_state.status_bar.setLevelColour(highest_colour, BarColourState.StatusBarLevel.BAR)
                 }
 
                 DisposableEffect(Unit) {
                     onDispose {
-                        player.bar_colour_state.status_bar.setLevelColour(null, BarColourState.StatusBarLevel.BAR)
+                        state.ui.bar_colour_state.status_bar.setLevelColour(null, BarColourState.StatusBarLevel.BAR)
                     }
                 }
 
                 Column(Modifier.zIndex(1f)) {
-                    CompositionLocalProvider(LocalContentColor provides (highest_colour?.get(player)?.getContrasted() ?: player.theme.on_background)) {
-                        player.main_multiselect_context.InfoDisplay(
+                    CompositionLocalProvider(LocalContentColor provides (highest_colour?.get(state.ui)?.getContrasted() ?: state.theme.on_background)) {
+                        state.ui.main_multiselect_context.InfoDisplay(
                             Modifier
                                 .fillMaxWidth()
                                 .onSizeChanged {
@@ -91,7 +88,7 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                                 .zIndex(1f),
                             content_modifier =
                                 Modifier
-                                    .background { highest_colour?.get(player) ?: player.theme.background }
+                                    .background { highest_colour?.get(state.ui) ?: state.theme.background }
                                     .padding(top = top_padding),
                             show_alt_content = true,
                             altContent = {
@@ -121,7 +118,7 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                     )
                 }
 
-                val vertical_padding: Dp = player.getDefaultVerticalPadding()
+                val vertical_padding: Dp = state.getDefaultVerticalPadding()
                 val top_bar_padding: Dp = (
                     if (!upper_bar_displaying && !lower_bar_displaying) top_padding
                     else (
@@ -134,15 +131,19 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                     Column {
                         with(page) {
                             Page(
-                                player.main_multiselect_context,
+                                state.ui.main_multiselect_context,
                                 Modifier,
                                 PaddingValues(
                                     top = vertical_padding + top_bar_padding,
-                                    bottom = player.nowPlayingBottomPadding(true) + vertical_padding + bottom_padding,
+                                    bottom =
+                                        state.player.bottomPadding(
+                                            include_np = true,
+                                            include_top_items = true
+                                        ) + vertical_padding + bottom_padding,
                                     start = horizontal_padding + WindowInsets.getStart(),
                                     end = horizontal_padding + WindowInsets.getEnd()
                                 )
-                            ) { player.navigateBack() }
+                            ) { state.ui.navigateBack() }
                         }
                     }
 
@@ -153,8 +154,13 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                         }
 
                     Box(
-                        player
-                            .nowPlayingTopOffset(Modifier, NowPlayingTopOffsetSection.LAYOUT_SLOT, apply_spacing = false)
+                        state.player
+                            .topOffset(
+                                Modifier,
+                                NowPlayingTopOffsetSection.LAYOUT_SLOT,
+                                apply_spacing = false,
+                                displaying = true
+                            )
                             .fillMaxWidth()
                             .align(Alignment.BottomEnd)
                     ) {

@@ -19,7 +19,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.toLyricsReference
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.ytmkt.model.external.SongLikedStatus
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
 import kotlinx.coroutines.Dispatchers
@@ -175,13 +175,13 @@ interface Song: MediaItem.WithArtists {
 
     @Composable
     fun getLyricsSyncOffset(database: Database, is_topbar: Boolean): State<Long> {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
-        val controller: PlayerService = player.controller ?: return mutableStateOf(0)
+        val state: SpMp.State = LocalAppState.current
+        val controller: PlayerService = state.session.controller ?: return mutableStateOf(0)
 
         val internal_offset: Long? by LyricsSyncOffset.observe(database)
-        val settings_delay: Float by player.settings.lyrics.SYNC_DELAY.observe()
-        val settings_delay_topbar: Float by player.settings.lyrics.SYNC_DELAY_TOPBAR.observe()
-        val settings_delay_bt: Float by player.settings.lyrics.SYNC_DELAY_BLUETOOTH.observe()
+        val settings_delay: Float by state.settings.lyrics.SYNC_DELAY.observe()
+        val settings_delay_topbar: Float by state.settings.lyrics.SYNC_DELAY_TOPBAR.observe()
+        val settings_delay_bt: Float by state.settings.lyrics.SYNC_DELAY_BLUETOOTH.observe()
 
         return remember(controller, is_topbar) { derivedStateOf {
             var delay: Float = settings_delay
@@ -231,8 +231,8 @@ private data class SongThumbnailProvider(val id: String): ThumbnailProvider {
 
 @Composable
 fun Song?.observeThumbnailRounding(): Int {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    val default: Float by player.settings.theme.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING.observe()
-    val corner_rounding: Float? = this?.ThumbnailRounding?.observe(player.database)?.value
+    val state: SpMp.State = LocalAppState.current
+    val default: Float by state.settings.theme.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING.observe()
+    val corner_rounding: Float? = this?.ThumbnailRounding?.observe(state.database)?.value
     return ((corner_rounding ?: default) * 50f).roundToInt()
 }

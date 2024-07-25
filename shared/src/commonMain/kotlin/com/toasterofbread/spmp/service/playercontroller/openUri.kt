@@ -6,10 +6,12 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import com.toasterofbread.spmp.model.state.SessionState
+import com.toasterofbread.spmp.model.state.UiState
 import com.toasterofbread.spmp.ui.layout.apppage.searchpage.SearchAppPage
 
-suspend fun OldPlayerStateImpl.openUri(uri_string: String): Result<Unit> {
+suspend fun SpMp.State.openUri(uri_string: String): Result<Unit> {
     fun failure(reason: String): Result<Unit> = Result.failure(RuntimeException("$reason ($uri_string)"))
 
     val uri: URI = parseURI(uri_string)
@@ -38,8 +40,8 @@ suspend fun OldPlayerStateImpl.openUri(uri_string: String): Result<Unit> {
             val q_end: Int = uri.query.indexOfOrNull("&", q_start) ?: uri.query.length
             val query: String = uri.query.substring(q_start, q_end)
 
-            val search_page: SearchAppPage = app_page_state.Search
-            openAppPage(search_page)
+            val search_page: SearchAppPage = ui.app_page_state.Search
+            ui.openAppPage(search_page)
 
             search_page.performSearch(query)
         }
@@ -71,15 +73,15 @@ private fun parseURI(uri: String): URI {
     return URI(host, path, query)
 }
 
-private suspend fun OldPlayerStateImpl.openItem(item: MediaItem) {
+private suspend fun SpMp.State.openItem(item: MediaItem) {
     item.loadData(context, populate_data = false, force = true)
 
-    withPlayer {
+    session.withPlayer {
         if (item is Song) {
-            playMediaItem(item)
+            session.playMediaItem(item)
         }
         else {
-            openMediaItem(item)
+            ui.openMediaItem(item)
         }
     }
 }

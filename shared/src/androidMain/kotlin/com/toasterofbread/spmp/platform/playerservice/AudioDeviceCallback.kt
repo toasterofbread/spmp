@@ -27,34 +27,34 @@ internal class PlayerAudioDeviceCallback(
     }
 
     override fun onAudioDevicesAdded(addedDevices: Array<AudioDeviceInfo>) {
-        if (service.player.isPlaying || !service.paused_by_device_disconnect) {
+        if (service.state.isPlaying || !service.paused_by_device_disconnect) {
             return
         }
 
-        val resume_on_bt: Boolean = service.context.settings.player.RESUME_ON_BT_CONNECT.get()
-        val resume_on_wired: Boolean = service.context.settings.player.RESUME_ON_WIRED_CONNECT.get()
+        val resume_on_bt: Boolean = service.context.settings.state.RESUME_ON_BT_CONNECT.get()
+        val resume_on_wired: Boolean = service.context.settings.state.RESUME_ON_WIRED_CONNECT.get()
 
         for (device in addedDevices) {
             if ((resume_on_bt && isBluetoothAudio(device)) || (resume_on_wired && isWiredAudio(device))) {
-                service.player.play()
+                service.state.play()
                 break
             }
         }
     }
 
     override fun onAudioDevicesRemoved(removedDevices: Array<AudioDeviceInfo>) {
-        if (!service.player.isPlaying && service.player.playbackState == Player.STATE_READY) {
+        if (!service.state.isPlaying && service.state.playbackState == Player.STATE_READY) {
             return
         }
 
-        val pause_on_bt: Boolean = service.context.settings.player.PAUSE_ON_BT_DISCONNECT.get()
-        val pause_on_wired: Boolean = service.context.settings.player.PAUSE_ON_WIRED_DISCONNECT.get()
+        val pause_on_bt: Boolean = service.context.settings.state.PAUSE_ON_BT_DISCONNECT.get()
+        val pause_on_wired: Boolean = service.context.settings.state.PAUSE_ON_WIRED_DISCONNECT.get()
 
         for (device in removedDevices) {
             if ((pause_on_bt && isBluetoothAudio(device)) || (pause_on_wired && isWiredAudio(device))) {
                 service.device_connection_changed_playing_status = true
                 service.paused_by_device_disconnect = true
-                service.player.pause()
+                service.state.pause()
                 break
             }
         }

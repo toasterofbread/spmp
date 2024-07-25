@@ -19,7 +19,7 @@ import dev.toastbits.composekit.utils.composable.PlatformClickableIconButton
 import dev.toastbits.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.theme.appHover
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -32,8 +32,8 @@ internal object NowPlayingMainTabActionButtons {
             return
         }
 
-        val player: OldPlayerStateImpl = LocalPlayerState.current
-        val auth_state: ApiAuthenticationState? = player.context.ytapi.user_auth_state
+        val state: SpMp.State = LocalAppState.current
+        val auth_state: ApiAuthenticationState? = state.context.ytapi.user_auth_state
 
         LikeDislikeButton(
             song,
@@ -45,17 +45,17 @@ internal object NowPlayingMainTabActionButtons {
 
     @Composable
     fun RadioButton(song: Song?, modifier: Modifier = Modifier, colour: Color = LocalContentColor.current) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
 
         IconButton(
             {
                 if (song != null) {
-                    player.withPlayer {
+                    state.session.withPlayer {
                         undoableAction {
                             startRadioAtIndex(current_song_index + 1, song, current_song_index, skip_first = true)
                         }
                     }
-                    player.expansion.scrollTo(2.coerceIn(player.expansion.getPageRange()))
+                    state.ui.player_expansion.scrollTo(2.coerceIn(state.ui.player_expansion.getPageRange()))
                 }
             },
             modifier.bounceOnClick().appHover(true)
@@ -66,11 +66,11 @@ internal object NowPlayingMainTabActionButtons {
 
     @Composable
     fun ShuffleButton(modifier: Modifier = Modifier, colour: Color = LocalContentColor.current) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
 
         IconButton(
             {
-                player.withPlayer {
+                state.session.withPlayer {
                     undoableAction {
                         shuffleQueue(start = current_song_index + 1)
                     }
@@ -84,8 +84,8 @@ internal object NowPlayingMainTabActionButtons {
 
     @Composable
     fun OpenExternalButton(song: Song?, modifier: Modifier = Modifier) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
-        if (!(player.context.canShare() || player.context.canOpenUrl())) {
+        val state: SpMp.State = LocalAppState.current
+        if (!(state.context.canShare() || state.context.canOpenUrl())) {
             return
         }
 
@@ -97,24 +97,24 @@ internal object NowPlayingMainTabActionButtons {
             onClick = {
                 val url: String = song_url ?: return@PlatformClickableIconButton
 
-                if (player.context.canShare()) {
-                    player.context.shareText(url, song.getActiveTitle(player.database))
+                if (state.context.canShare()) {
+                    state.context.shareText(url, song.getActiveTitle(state.database))
                 }
-                else if (player.context.canOpenUrl()) {
-                    player.context.openUrl(url)
+                else if (state.context.canOpenUrl()) {
+                    state.context.openUrl(url)
                 }
             },
             onAltClick = {
                 song_url?.also {
                     clipboard.setText(AnnotatedString((it)))
-                    player.context.vibrateShort()
-                    player.context.sendToast(notif_copied_to_clipboard)
+                    state.context.vibrateShort()
+                    state.context.sendToast(notif_copied_to_clipboard)
                 }
             },
             modifier = modifier.bounceOnClick().appHover(true)
         ) {
             Icon(
-                if (player.context.canShare()) Icons.Rounded.Share
+                if (state.context.canShare()) Icons.Rounded.Share
                 else Icons.Rounded.OpenInNew,
                 null
             )
@@ -123,18 +123,18 @@ internal object NowPlayingMainTabActionButtons {
 
     @Composable
     fun DownloadButton(song: Song?, modifier: Modifier = Modifier) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
 
         PlatformClickableIconButton(
             onClick = {
                 song?.also {
-                    player.onSongDownloadRequested(it)
+                    state.ui.onSongDownloadRequested(listOf(it))
                 }
             },
             onAltClick = {
                 song?.also {
-                    player.onSongDownloadRequested(it, always_show_options = true)
-                    player.context.vibrateShort()
+                    state.ui.onSongDownloadRequested(listOf(it), always_show_options = true)
+                    state.context.vibrateShort()
                 }
             },
             modifier = modifier.bounceOnClick().appHover(true)

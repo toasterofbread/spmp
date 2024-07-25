@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.model.appaction.action.playback
 
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
@@ -29,7 +29,7 @@ import spmp.shared.generated.resources.appaction_playback_action_undo_seek
 @Serializable
 sealed interface PlaybackAction {
     fun getType(): Type
-    suspend fun execute(player: OldPlayerStateImpl)
+    suspend fun execute(state: SpMp.State)
 
     @Composable
     fun ConfigurationItems(item_modifier: Modifier, onModification: (PlaybackAction) -> Unit) {}

@@ -46,7 +46,7 @@ import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.getMediaNotificationImageMaxOffset
 import com.toasterofbread.spmp.platform.playerservice.getMediaNotificationImageSize
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import kotlin.math.roundToInt
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.compose.resources.stringResource
@@ -67,7 +67,7 @@ actual class NotifImagePlayerOverlayMenu: PlayerOverlayMenu() {
         getCurrentSongThumb: () -> ImageBitmap?,
     ) {
         val song: Song = getSong() ?: return
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
 
         Column(
             Modifier.fillMaxSize(),
@@ -78,7 +78,7 @@ actual class NotifImagePlayerOverlayMenu: PlayerOverlayMenu() {
             val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
             var size_and_max_offset: Triple<ImageBitmap, IntSize, IntOffset>? by remember { mutableStateOf(null) }
-            val song_notif_offset: IntOffset? by song.NotificationImageOffset.observe(player.database)
+            val song_notif_offset: IntOffset? by song.NotificationImageOffset.observe(state.database)
 
             val offset_x: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) }
             val offset_y: Animatable<Float, AnimationVector1D> = remember { Animatable(0f) }
@@ -176,7 +176,7 @@ actual class NotifImagePlayerOverlayMenu: PlayerOverlayMenu() {
                             song.NotificationImageOffset.set(
                                 if (x != null || y != null) IntOffset( x ?: 0, y ?: 0)
                                 else null,
-                                player.database
+                                state.database
                             )
                         }) {
                             Icon(Icons.Default.Done, null)

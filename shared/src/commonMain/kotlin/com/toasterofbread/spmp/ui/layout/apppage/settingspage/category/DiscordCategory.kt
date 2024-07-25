@@ -36,7 +36,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getDiscordAuthItem
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import LocalProgramArguments
 import ProgramArguments
 import LocalPlayerState
@@ -94,13 +94,13 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
 
         ComposableSettingsItem {
             val program_arguments: ProgramArguments = LocalProgramArguments.current
-            val player: OldPlayerStateImpl = LocalPlayerState.current
+            val state: SpMp.State = LocalAppState.current
 
             if (program_arguments.is_flatpak) {
                 LinkifyText(
                     context,
                     stringResource(Res.string.`info_flatpak_discord_$url`).replace("\$url", stringResource(Res.string.flatpak_documentation_url) + " "),
-                    player.theme.vibrant_accent
+                    state.theme.vibrant_accent
                 )
             }
         },

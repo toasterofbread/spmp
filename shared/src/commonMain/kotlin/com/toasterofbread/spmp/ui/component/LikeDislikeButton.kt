@@ -29,7 +29,7 @@ import dev.toastbits.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.theme.appHover
 import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
 import dev.toastbits.ytmkt.endpoint.SongLikedEndpoint
@@ -48,15 +48,15 @@ fun LikeDislikeButton(
     val get_liked_endpoint: SongLikedEndpoint? = auth_state?.SongLiked
     val set_liked_endpoint: SetSongLikedEndpoint? = auth_state?.SetSongLiked
 
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     val loading: Boolean = SongLikedLoader.rememberItemState(song.id).loading
-    val liked_status: SongLikedStatus? by song.Liked.observe(player.database)
+    val liked_status: SongLikedStatus? by song.Liked.observe(state.database)
     val rotation: Float by animateFloatAsState(if (liked_status == SongLikedStatus.DISLIKED) 180f else 0f)
 
     LaunchedEffect(song.id) {
-        SongLikedLoader.loadSongLiked(song.id, player.context, get_liked_endpoint).onFailure {
+        SongLikedLoader.loadSongLiked(song.id, state.context, get_liked_endpoint).onFailure {
             it.printStackTrace()
         }
     }
@@ -77,7 +77,7 @@ fun LikeDislikeButton(
                         SongLikedStatus.NEUTRAL, null -> SongLikedStatus.LIKED
                     },
                     set_liked_endpoint,
-                    player.context
+                    state.context
                 )
             }
         },
@@ -86,7 +86,7 @@ fun LikeDislikeButton(
                 return@PlatformClickableIconButton
             }
 
-            player.context.vibrateShort()
+            state.context.vibrateShort()
             coroutine_scope.launchSingle {
                 song.updateLiked(
                     when (liked_status) {
@@ -94,7 +94,7 @@ fun LikeDislikeButton(
                         SongLikedStatus.DISLIKED -> SongLikedStatus.LIKED
                     },
                     set_liked_endpoint,
-                    player.context
+                    state.context
                 )
             }
         },

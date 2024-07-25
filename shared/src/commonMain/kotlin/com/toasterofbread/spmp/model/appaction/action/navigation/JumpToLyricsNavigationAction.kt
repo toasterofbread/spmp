@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.model.appaction.action.navigation
 
 import kotlinx.serialization.Serializable
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -17,7 +17,7 @@ class JumpToLyricsNavigationAction: NavigationAction {
     override fun getIcon(): ImageVector =
         Icons.Default.Lyrics
 
-    override suspend fun execute(player: OldPlayerStateImpl) {
-        player.openNowPlayingPlayerOverlayMenu(PlayerOverlayMenu.getLyricsMenu())
+    override suspend fun execute(state: SpMp.State) {
+        state.player.openNpOverlayMenu(PlayerOverlayMenu.getLyricsMenu())
     }
 }

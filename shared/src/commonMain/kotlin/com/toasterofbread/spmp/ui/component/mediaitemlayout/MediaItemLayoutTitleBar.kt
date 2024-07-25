@@ -45,7 +45,7 @@ import com.toasterofbread.spmp.model.mediaitem.layout.open
 import com.toasterofbread.spmp.model.mediaitem.layout.shouldShowTitleBar
 import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.ytmkt.model.external.YoutubePage
 import dev.toastbits.ytmkt.uistrings.UiString
 import kotlinx.coroutines.CoroutineScope
@@ -62,7 +62,7 @@ fun TitleBar(
     font_size: TextUnit? = null,
     scrollable_state: ScrollableState? = null
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     AnimatedVisibility(
@@ -75,8 +75,8 @@ fun TitleBar(
         var subtitle_string: String? by remember { mutableStateOf(null) }
 
         LaunchedEffect(layout_params) {
-            title_string = layout_params.title?.getString(player.context)
-            subtitle_string = layout_params.subtitle?.getString(player.context)
+            title_string = layout_params.title?.getString(state.context)
+            subtitle_string = layout_params.subtitle?.getString(state.context)
         }
 
         Row(
@@ -91,7 +91,7 @@ fun TitleBar(
                 modifier = modifier.weight(1f)
             ) {
                 subtitle_string?.also { subtitle ->
-                    WidthShrinkText(subtitle, style = layout_params.getTitleTextStyle(MaterialTheme.typography.titleSmall.copy(color = player.theme.on_background)))
+                    WidthShrinkText(subtitle, style = layout_params.getTitleTextStyle(MaterialTheme.typography.titleSmall.copy(color = state.theme.on_background)))
                 }
 
                 title_string?.also { title ->
@@ -101,7 +101,7 @@ fun TitleBar(
                         style = MaterialTheme.typography.headlineMedium.let { style ->
                             layout_params.getTitleTextStyle(
                                 style.copy(
-                                    color = player.theme.on_background,
+                                    color = state.theme.on_background,
                                     fontSize = font_size ?: style.fontSize
                                 )
                             )
@@ -114,7 +114,7 @@ fun TitleBar(
                 if (layout_params.view_more != null) {
                     IconButton({
                         coroutine_scope.launch {
-                            layout_params.view_more.open(player, layout_params.title)
+                            layout_params.view_more.open(state, layout_params.title)
                         }
                     }) {
                         Icon(Icons.Default.MoreHoriz, null)

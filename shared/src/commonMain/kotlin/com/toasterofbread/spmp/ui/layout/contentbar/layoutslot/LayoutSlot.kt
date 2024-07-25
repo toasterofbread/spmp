@@ -15,7 +15,7 @@ import dev.toastbits.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBar
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.settings.ui.ThemeValues
@@ -67,9 +67,9 @@ sealed interface LayoutSlot {
 
 @Composable
 fun LayoutSlot.observeContentBar(): State<ContentBar?> {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    val slots: Map<String, ContentBarReference?> by getSlotsProperty(player.context).observe()
-    val custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
+    val state: SpMp.State = LocalAppState.current
+    val slots: Map<String, ContentBarReference?> by getSlotsProperty(state.context).observe()
+    val custom_bars: List<CustomContentBar> by state.settings.layout.CUSTOM_BARS.observe()
 
     return remember(this) { derivedStateOf {
         if (!slots.contains(getKey())) {
@@ -81,15 +81,15 @@ fun LayoutSlot.observeContentBar(): State<ContentBar?> {
 
 @Composable
 fun LayoutSlot.observeConfigData(): JsonElement? {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    val slot_configs: Map<String, JsonElement> by player.settings.layout.SLOT_CONFIGS.observe()
+    val state: SpMp.State = LocalAppState.current
+    val slot_configs: Map<String, JsonElement> by state.settings.layout.SLOT_CONFIGS.observe()
     return remember(slot_configs, this) { slot_configs[getKey()] }
 }
 
 @Composable
 inline fun <reified T> LayoutSlot.observeConfig(noinline getDefault: @DisallowComposableCalls () -> T): T {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    val slot_configs: Map<String, JsonElement> by player.settings.layout.SLOT_CONFIGS.observe()
+    val state: SpMp.State = LocalAppState.current
+    val slot_configs: Map<String, JsonElement> by state.settings.layout.SLOT_CONFIGS.observe()
     return remember(slot_configs, this) {
         val config_data: JsonElement = slot_configs[getKey()] ?: return@remember getDefault()
         return@remember Json.decodeFromJsonElement(config_data)

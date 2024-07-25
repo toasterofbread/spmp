@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.playlist
 
+import LocalAppContext
 import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -45,8 +46,8 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
 
     @Composable
     override fun observeActiveTitle(): MutableState<String?> {
-        val player = LocalPlayerState.current
-        val state: MutableState<String?> = remember(this) { mutableStateOf(getActiveTitle(player.database)) }
+        val context: AppContext = LocalAppContext.current
+        val state: MutableState<String?> = remember(this) { mutableStateOf(getActiveTitle(context.database)) }
         var launched: Boolean by remember(this) { mutableStateOf(false) }
 
         LaunchedEffect(this, state.value) {
@@ -56,7 +57,7 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
             }
 
             setDataActiveTitle(state.value ?: "")
-            setActiveTitle(state.value, player.context)
+            setActiveTitle(state.value, context)
         }
         return state
     }

@@ -28,7 +28,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.toInfoString
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.longpressmenu.artist.ArtistLongPressMenuInfo
 import com.toasterofbread.spmp.ui.component.longpressmenu.playlist.PlaylistLongPressMenuInfo
 import com.toasterofbread.spmp.ui.component.longpressmenu.song.SongLongPressMenuInfo
@@ -50,7 +50,7 @@ internal fun ColumnScope.LongPressMenuInfoActions(
     getAccentColour: () -> Color,
     onAction: () -> Unit,
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     Column(
@@ -65,16 +65,16 @@ internal fun ColumnScope.LongPressMenuInfoActions(
     }
 
     // Share
-    if (player.context.canShare()) {
+    if (state.context.canShare()) {
         LongPressMenuActionProvider.ActionButton(
             Icons.Filled.Share,
             stringResource(Res.string.lpm_action_share),
             getAccentColour,
             onClick = {
                 coroutine_scope.launch {
-                    player.context.shareText(
-                        data.item.getUrl(player.context),
-                        if (data.item is Song) data.item.getActiveTitle(player.database) else null
+                    state.context.shareText(
+                        data.item.getUrl(state.context),
+                        if (data.item is Song) data.item.getActiveTitle(state.database) else null
                     )
                 }
             },
@@ -83,14 +83,14 @@ internal fun ColumnScope.LongPressMenuInfoActions(
     }
 
     // Open
-    if (player.context.canOpenUrl()) {
+    if (state.context.canOpenUrl()) {
         LongPressMenuActionProvider.ActionButton(
             Icons.Filled.OpenWith,
             stringResource(Res.string.lpm_action_open_external),
             getAccentColour,
             onClick = {
                 coroutine_scope.launch {
-                    player.context.openUrl(data.item.getUrl(player.context))
+                    state.context.openUrl(data.item.getUrl(state.context))
                 }
             },
             onAction = onAction
@@ -101,7 +101,7 @@ internal fun ColumnScope.LongPressMenuInfoActions(
         Row(
             Modifier.clickable {
                 val item_data = data.item.getEmptyData()
-                item_data.populateData(item_data, player.database)
+                item_data.populateData(item_data, state.database)
                 println(item_data.toInfoString())
             },
             horizontalArrangement = Arrangement.spacedBy(20.dp),
@@ -115,7 +115,7 @@ internal fun ColumnScope.LongPressMenuInfoActions(
 
 @Composable
 internal fun ColumnScope.LongPressMenuActions(data: LongPressMenuData, background_colour: Color, getAccentColour: () -> Color, onAction: () -> Unit) {
-    val player = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     // Data-provided actions
     data.Actions(
@@ -134,7 +134,7 @@ internal fun ColumnScope.LongPressMenuActions(data: LongPressMenuData, backgroun
         stringResource(Res.string.lpm_action_hide),
         getAccentColour,
         onClick = {
-            data.item.Hidden.set(true, player.database)
+            data.item.Hidden.set(true, state.database)
         },
         onAction = onAction
     )

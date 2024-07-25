@@ -10,7 +10,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.platform.vibrateShort
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import com.toasterofbread.spmp.model.state.UiState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import org.burnoutcrew.reorderable.ReorderableItem
@@ -20,12 +21,12 @@ fun LazyListScope.QueueItems(
     song_items: SnapshotStateList<QueueTabItem>,
     queue_list_state: ReorderableLazyListState,
     multiselect_context: MediaItemMultiSelectContext,
-    player: OldPlayerStateImpl,
+    state: SpMp.State,
     getPlayingKey: () -> Int?,
     setPlayingKey: (Int?) -> Unit,
     item_modifier: Modifier = Modifier,
-    getItemColour: OldPlayerStateImpl.() -> Color = { getNPAltOnBackground() },
-    getCurrentItemColour: OldPlayerStateImpl.() -> Color = { getNPBackground() }
+    getItemColour: UiState.() -> Color = { getNPAltOnBackground() },
+    getCurrentItemColour: UiState.() -> Color = { getNPBackground() }
 ) {
     val items: List<QueueTabItem> = song_items.toList()
     items(items.size, { items[it].key }) { index ->
@@ -33,8 +34,8 @@ fun LazyListScope.QueueItems(
         ReorderableItem(queue_list_state, item.key, item_modifier) { is_dragging ->
             LaunchedEffect(is_dragging) {
                 if (is_dragging) {
-                    player.context.vibrateShort()
-                    setPlayingKey(items.getOrNull(player.status.m_index)?.key)
+                    state.context.vibrateShort()
+                    setPlayingKey(items.getOrNull(state.session.status.m_index)?.key)
                 }
             }
 
@@ -44,13 +45,13 @@ fun LazyListScope.QueueItems(
                     index,
                     {
                         val playing_key = getPlayingKey()
-                        val current = if (playing_key != null) playing_key == item.key else player.status.m_index == index
-                        if (current) getCurrentItemColour(player)
-                        else getItemColour(player)
+                        val current = if (playing_key != null) playing_key == item.key else state.session.status.m_index == index
+                        if (current) getCurrentItemColour(state.ui)
+                        else getItemColour(state.ui)
                     },
                     multiselect_context
                 ) {
-                    player.controller?.service_player?.undoableAction {
+                    state.session.controller?.service_player?.undoableAction {
                         removeFromQueue(index)
                     }
                 }

@@ -55,7 +55,7 @@ import com.toasterofbread.spmp.platform.playerservice.getInfoUrl
 import com.toasterofbread.spmp.platform.playerservice.getName
 import com.toasterofbread.spmp.platform.playerservice.getSpMsMachineId
 import com.toasterofbread.spmp.resources.stringResourceTODO
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
 import dev.toastbits.composekit.settings.ui.vibrant_accent
@@ -90,7 +90,7 @@ fun ControlPanelServerPage(
     multiselect_context: MediaItemMultiSelectContext? = null,
     content_padding: PaddingValues = PaddingValues()
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     var service_found: Boolean by remember { mutableStateOf(false) }
@@ -103,7 +103,7 @@ fun ControlPanelServerPage(
     }
 
     LaunchedEffect(Unit) {
-        player.interactService { service: Any ->
+        state.session.interactService { service: Any ->
             service_found = true
 
             if (service !is ClientServerPlayerService) {
@@ -249,9 +249,9 @@ fun ControlPanelServerPage(
         }
 
         Row(Modifier.align(Alignment.End)) {
-            if (player.context.canOpenUrl()) {
+            if (state.context.canOpenUrl()) {
                 val server_documentation_url: String = stringResource(Res.string.server_documentation_url)
-                Button({ player.context.openUrl(server_documentation_url) }) {
+                Button({ state.context.openUrl(server_documentation_url) }) {
                     Row(
                         verticalAlignment = Alignment.CenterVertically,
                         horizontalArrangement = Arrangement.spacedBy(10.dp)
@@ -267,16 +267,16 @@ fun ControlPanelServerPage(
 
 @Composable
 private fun ClientInfoDisplay(client: SpMsClientInfo, modifier: Modifier = Modifier) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
-    val machine_id: String = remember { getSpMsMachineId(player.context) }
+    val machine_id: String = remember { getSpMsMachineId(state.context) }
 
     Card(
         modifier,
         colors = CardDefaults.cardColors(
-            containerColor = player.theme.vibrant_accent,
-            contentColor = player.theme.vibrant_accent.getContrasted()
+            containerColor = state.theme.vibrant_accent,
+            contentColor = state.theme.vibrant_accent.getContrasted()
         )
     ) {
         Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -321,19 +321,19 @@ private fun ClientInfoDisplay(client: SpMsClientInfo, modifier: Modifier = Modif
                         RichTooltip(
                             title = { Text(client.type.getName(), style = MaterialTheme.typography.titleMedium) },
                             action = {
-                                if (player.context.canOpenUrl()) {
+                                if (state.context.canOpenUrl()) {
                                     Box(Modifier.fillMaxWidth(), contentAlignment = Alignment.BottomEnd) {
                                         val info_url: String = client.type.getInfoUrl()
                                         Button(
                                             {
-                                                player.context.openUrl(info_url)
+                                                state.context.openUrl(info_url)
                                                 coroutine_scope.launch {
                                                     tooltip_state.dismiss()
                                                 }
                                             },
                                             colors = ButtonDefaults.buttonColors(
-                                                containerColor = player.theme.vibrant_accent,
-                                                contentColor = player.theme.vibrant_accent.getContrasted()
+                                                containerColor = state.theme.vibrant_accent,
+                                                contentColor = state.theme.vibrant_accent.getContrasted()
                                             )
                                         ) {
                                             Text(stringResource(Res.string.control_panel_server_client_more_info))

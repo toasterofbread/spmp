@@ -61,7 +61,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.db.Database
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -94,15 +94,15 @@ fun LyricsSearchMenu(
     modifier: Modifier = Modifier,
     close: (changed: Boolean) -> Unit,
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
-    val db: Database = player.context.database
+    val state: SpMp.State = LocalAppState.current
+    val db: Database = state.context.database
 
     val song_title: String? by song.observeActiveTitle()
     val song_artists: List<Artist>? by song.Artists.observe(db)
     val song_artist_title: String? by song_artists?.firstOrNull()?.observeActiveTitle()
 
-    val on_accent: Color = player.theme.on_accent
-    val accent: Color = player.theme.accent
+    val on_accent: Color = state.theme.on_accent
+    val accent: Color = state.theme.accent
 
     val load_lock: ReentrantLock = remember { ReentrantLock() }
     var loading by remember { mutableStateOf(false) }
@@ -129,7 +129,7 @@ fun LyricsSearchMenu(
     val artist = remember (song_artist_title) { mutableStateOf(TextFieldValue(song_artist_title ?: "")) }
     var search_state: Boolean by remember { mutableStateOf(false) }
 
-    val default_source: Int by player.settings.lyrics.DEFAULT_SOURCE.observe()
+    val default_source: Int by state.settings.lyrics.DEFAULT_SOURCE.observe()
     var selected_source: LyricsSource by remember { mutableStateOf(LyricsSource.fromIdx(default_source)) }
 
     var search_results: Pair<List<LyricsSource.SearchResult>, Int>? by remember { mutableStateOf(null) }
@@ -168,14 +168,14 @@ fun LyricsSearchMenu(
                             edit_page_open = false
                         }
                         else {
-                            player.context.sendToast(getString(Res.string.lyrics_none_found))
+                            state.context.sendToast(getString(Res.string.lyrics_none_found))
                         }
                     },
                     { SpMp.reportActionError(it) }
                 )
             }
             else if (selected_source.supportsLyricsBySong()) {
-                selected_source.getReferenceBySong(song, player.context).fold(
+                selected_source.getReferenceBySong(song, state.context).fold(
                     { lyrics_reference ->
                         if (lyrics_reference != song.Lyrics.get(db)) {
                             song.Lyrics.set(lyrics_reference, db)
@@ -215,7 +215,7 @@ fun LyricsSearchMenu(
                         var source_selector_open: Boolean by remember { mutableStateOf(false) }
                         Row(
                             Modifier
-                                .background(player.theme.accent, CircleShape)
+                                .background(state.theme.accent, CircleShape)
                                 .fillMaxWidth()
                                 .weight(1f)
                                 .padding(10.dp)
@@ -238,7 +238,7 @@ fun LyricsSearchMenu(
                                 { source_idx ->
                                     Text(LyricsSource.fromIdx(source_idx).getReadable())
                                 },
-                                selected_border_colour = player.theme.vibrant_accent
+                                selected_border_colour = state.theme.vibrant_accent
                             ) { source_idx ->
                                 selected_source = LyricsSource.fromIdx(source_idx)
                                 source_selector_open = false
@@ -250,7 +250,7 @@ fun LyricsSearchMenu(
                             {
                                 confirming_no_lyrics = !confirming_no_lyrics
                             },
-                            Modifier.background(player.theme.accent, CircleShape).fillMaxHeight().aspectRatio(1f),
+                            Modifier.background(state.theme.accent, CircleShape).fillMaxHeight().aspectRatio(1f),
                         ) {
                             Icon(
                                 Icons.Default.CommentsDisabled,
@@ -263,7 +263,7 @@ fun LyricsSearchMenu(
                             AlertDialog(
                                 onDismissRequest = { confirming_no_lyrics = false },
                                 confirmButton = {
-                                    Button({ song.Lyrics.set(LyricsReference.NONE, player.database) }) {
+                                    Button({ song.Lyrics.set(LyricsReference.NONE, state.database) }) {
                                         Text(stringResource(Res.string.action_confirm_action))
                                     }
                                 },
@@ -334,10 +334,10 @@ fun LyricsSearchMenu(
                     val selected = results.first[index]
                     val lyrics_source = results.second
 
-                    val current_lyrics = song.Lyrics.get(player.database)
+                    val current_lyrics = song.Lyrics.get(state.database)
 
                     if (selected.id != current_lyrics?.id || lyrics_source != current_lyrics.source_index) {
-                        song.Lyrics.set(LyricsReference(lyrics_source, selected.id), player.database)
+                        song.Lyrics.set(LyricsReference(lyrics_source, selected.id), state.database)
                         close(true)
                     }
                     else {
@@ -356,7 +356,7 @@ fun LyricsSearchMenu(
                 ) {
                     CircularProgressIndicator(
                         Modifier.requiredSize(22.dp),
-                        color = player.theme.accent,
+                        color = state.theme.accent,
                         strokeWidth = 3.dp
                     )
                 }
@@ -369,7 +369,7 @@ fun LyricsSearchMenu(
                         .fillMaxWidth()
                         .weight(1f),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = player.theme.accent,
+                        containerColor = state.theme.accent,
                         contentColor = on_accent
                     )
                 ) {
@@ -387,7 +387,7 @@ fun LyricsSearchMenu(
                             edit_page_open = true
                         }
                     },
-                    Modifier.background(player.theme.accent, CircleShape).requiredSize(40.dp),
+                    Modifier.background(state.theme.accent, CircleShape).requiredSize(40.dp),
                 ) {
                     Crossfade(
                         // Loading

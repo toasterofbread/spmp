@@ -7,7 +7,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.library.LibraryAppPage
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.SettingsAppPage
 import com.toasterofbread.spmp.ui.layout.apppage.songfeedpage.SongFeedAppPage
 import com.toasterofbread.spmp.ui.layout.apppage.searchpage.SearchAppPage
@@ -22,14 +22,18 @@ class AppPageState(
     val RadioBuilder = RadioBuilderAppPage(this)
     val ControlPanel = ControlPanelAppPage(this)
     val Settings = SettingsAppPage(this) {
-        LocalPlayerState.current.nowPlayingTopOffset(Modifier, NowPlayingTopOffsetSection.PAGE_BAR)
+        LocalPlayerState.current.topOffset(
+            Modifier,
+            NowPlayingTopOffsetSection.PAGE_BAR,
+            true,
+            displaying = true
+        )
     }
 
     val Default: AppPage = AppPage.Type.DEFAULT.getPage(context, this)!!
 
     var current_page: AppPage by mutableStateOf(Default)
         private set
-    private val page_listeners: MutableList<(AppPage) -> Unit> = mutableListOf()
 
     fun setPage(page: AppPage? = null, from_current: Boolean, going_back: Boolean): Boolean {
         val new_page = page ?: Default
@@ -46,21 +50,9 @@ class AppPageState(
                 )
             }
 
-            for (listener in page_listeners) {
-                listener.invoke(new_page)
-            }
-
             return true
         }
         return false
-    }
-
-    fun addPageListener(listener: (AppPage) -> Unit) {
-        page_listeners.add(listener)
-    }
-
-    fun removePageListener(listener: (AppPage) -> Unit) {
-        page_listeners.remove(listener)
     }
 
     fun getViewMorePage(browse_id: String, title: String?): AppPage = when (browse_id) {

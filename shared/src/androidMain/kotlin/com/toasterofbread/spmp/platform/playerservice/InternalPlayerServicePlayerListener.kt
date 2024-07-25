@@ -18,7 +18,7 @@ class InternalPlayerServicePlayerListener(
         service.updatePlayerCustomActions()
 
         if (service.loudness_enhancer == null) {
-            service.loudness_enhancer = LoudnessEnhancer(service.player.audioSessionId)
+            service.loudness_enhancer = LoudnessEnhancer(service.state.audioSessionId)
         }
 
         service.loudness_enhancer?.update(song, service.context)

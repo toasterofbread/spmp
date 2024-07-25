@@ -24,7 +24,10 @@ import dev.toastbits.composekit.utils.composable.getTop
 import dev.toastbits.composekit.utils.composable.getBottom
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import LocalUiState
+import com.toasterofbread.spmp.model.state.PlayerState
+import com.toasterofbread.spmp.model.state.UiState
 import com.toasterofbread.spmp.ui.layout.nowplaying.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
@@ -43,15 +46,16 @@ fun NowPlayingContainer(
     getBottomBarHeight: () -> Dp,
     modifier: Modifier = Modifier,
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val ui_state: UiState = LocalUiState.current
+    val player_state: PlayerState = LocalPlayerState.current
     val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     val swipe_state: AnchoredDraggableState<Int> = expansion.swipe_state
     val top_bar: NowPlayingTopBar = remember { NowPlayingTopBar() }
-    val bottom_inset: Dp = WindowInsets.getBottom(player.np_overlay_menu == null)
+    val bottom_inset: Dp = WindowInsets.getBottom(player_state.np_overlay_menu == null)
 
-    val page_height: Dp by remember(bottom_inset) { derivedStateOf { player.screen_size.height } }
+    val page_height: Dp by remember(bottom_inset) { derivedStateOf { ui_state.screen_size.height } }
     if (page_height <= 0.dp) {
         return
     }
@@ -96,7 +100,7 @@ fun NowPlayingContainer(
 
                 IntOffset(
                     0,
-                    (-swipe_state.offset.npAnchorToDp(this, player.context, player.np_swipe_sensitivity) - bottom_padding).roundToPx()
+                    (-swipe_state.offset.npAnchorToDp(this, player_state.np_swipe_sensitivity) - bottom_padding).roundToPx()
                 )
             }
             .then(swipe_modifier)
@@ -112,7 +116,7 @@ fun NowPlayingContainer(
             }
             .playerOverscroll(swipe_state, swipe_interaction_source)
     ) {
-        CompositionLocalProvider(LocalContentColor provides player.getNPOnBackground()) {
+        CompositionLocalProvider(LocalContentColor provides ui_state.getNPOnBackground()) {
             Box {
                 val page_heights: List<Dp> =
                     pages.mapIndexed { index, page ->

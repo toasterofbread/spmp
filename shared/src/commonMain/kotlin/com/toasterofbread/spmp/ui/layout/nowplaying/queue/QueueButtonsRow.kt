@@ -26,7 +26,7 @@ import dev.toastbits.composekit.platform.vibrateShort
 import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.composable.TextOrIconButton
 import dev.toastbits.composekit.utils.modifier.bounceOnClick
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.appHover
 import org.jetbrains.compose.resources.stringResource
@@ -42,7 +42,7 @@ fun QueueButtonsRow(
     scrollToItem: (Int) -> Unit
 ) {
     val padding: Dp = 10.dp
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val button_colour: Color = getButtonColour()
 
     Row(
@@ -62,7 +62,7 @@ fun QueueButtonsRow(
                 text = stringResource(Res.string.queue_clear),
                 icon = Icons.Default.Clear,
                 onClick = {
-                    player.controller?.service_player?.undoableAction {
+                    state.session.controller?.service_player?.undoableAction {
                         if (multiselect_context.is_active) {
                             for (item in multiselect_context.getSelectedItems().sortedByDescending { it.second!! }) {
                                 removeFromQueue(item.second!!)
@@ -70,7 +70,7 @@ fun QueueButtonsRow(
                             multiselect_context.onActionPerformed()
                         }
                         else {
-                            clearQueue(keep_current = player.status.m_song_count > 1)
+                            clearQueue(keep_current = state.session.status.m_song_count > 1)
                         }
                     }
                 },
@@ -86,7 +86,7 @@ fun QueueButtonsRow(
                 text = stringResource(Res.string.queue_shuffle),
                 icon = Icons.Default.Shuffle,
                 onClick = {
-                    player.controller?.service_player?.undoableAction {
+                    state.session.controller?.service_player?.undoableAction {
                         if (multiselect_context.is_active) {
                             shuffleQueueIndices(multiselect_context.getSelectedItems().map { it.second!! })
                         }
@@ -97,14 +97,14 @@ fun QueueButtonsRow(
                 },
                 onAltClick = if (multiselect_context.is_active) null else ({
                     if (!multiselect_context.is_active) {
-                        player.controller?.service_player?.undoableAction {
+                        state.session.controller?.service_player?.undoableAction {
                             if (current_song_index > 0) {
                                 moveSong(current_song_index, 0)
                                 scrollToItem(0)
                             }
                             shuffleQueue(start = 1)
                         }
-                        player.context.vibrateShort()
+                        state.context.vibrateShort()
                     }
                 }),
                 modifier = button_modifier,
@@ -117,7 +117,7 @@ fun QueueButtonsRow(
         }
 
         val undo_background: Color = animateColorAsState(
-            if (player.status.m_undo_count != 0) LocalContentColor.current
+            if (state.session.status.m_undo_count != 0) LocalContentColor.current
             else LocalContentColor.current.copy(alpha = 0.3f)
         ).value
 
@@ -129,14 +129,14 @@ fun QueueButtonsRow(
                 )
                 .clip(CircleShape)
                 .platformClickable(
-                    enabled = player.status.m_undo_count != 0 || player.status.m_redo_count != 0,
+                    enabled = state.session.status.m_undo_count != 0 || state.session.status.m_redo_count != 0,
                     onClick = {
-                        player.controller?.service_player?.undo()
-                        player.context.vibrateShort()
+                        state.session.controller?.service_player?.undo()
+                        state.context.vibrateShort()
                     },
                     onAltClick = {
-                        player.controller?.service_player?.redo()
-                        player.context.vibrateShort()
+                        state.session.controller?.service_player?.redo()
+                        state.context.vibrateShort()
                     }
                 )
                 .size(40.dp),

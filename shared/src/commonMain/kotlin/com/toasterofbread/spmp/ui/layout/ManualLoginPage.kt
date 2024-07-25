@@ -39,7 +39,7 @@ import androidx.compose.ui.unit.sp
 import dev.toastbits.composekit.utils.composable.Marquee
 import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import dev.toastbits.composekit.utils.modifier.horizontal
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 import kotlinx.coroutines.CoroutineScope
@@ -60,7 +60,7 @@ fun ManualLoginPage(
     content_padding: PaddingValues = PaddingValues(),
     onFinished: suspend (String?) -> Pair<String, String>?,
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val density: Density = LocalDensity.current
 
     Box(modifier) {
@@ -87,7 +87,7 @@ fun ManualLoginPage(
 
                     if (login_url != null) {
                         IconButton({
-                            player.context.openUrl(login_url)
+                            state.context.openUrl(login_url)
                         }) {
                             Icon(Icons.Default.OpenInNew, null)
                         }
@@ -147,19 +147,21 @@ fun ManualLoginPage(
 
             Spacer(
                 Modifier.height(
-                    (player.screen_size.height - info_entry_position + content_padding.calculateBottomPadding()).coerceAtLeast(0.dp)
+                    (state.ui.screen_size.height - info_entry_position + content_padding.calculateBottomPadding()).coerceAtLeast(0.dp)
                 )
             )
         }
 
         InfoEntry(
             entry_label,
-            player.nowPlayingTopOffset(
+            state.player.topOffset(
                 Modifier
                     .fillMaxWidth()
                     .align(Alignment.BottomCenter)
                     .padding(bottom = 20.dp),
-                NowPlayingTopOffsetSection.PAGE_BAR
+                NowPlayingTopOffsetSection.PAGE_BAR,
+                apply_spacing = true,
+                displaying = true
             )
             .onGloballyPositioned {
                 info_entry_position = with (density) {

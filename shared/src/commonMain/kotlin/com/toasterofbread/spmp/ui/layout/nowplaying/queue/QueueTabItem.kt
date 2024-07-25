@@ -39,7 +39,7 @@ import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverride
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.theme.appHover
 import dev.toastbits.ytmkt.uistrings.durationToString
 import org.burnoutcrew.reorderable.ReorderableLazyListState
@@ -101,26 +101,26 @@ class QueueTabItem(val song: Song, val key: Int) {
 
     @Composable
     private fun getLPMTitle(index: Int): String? {
-        val player = LocalPlayerState.current
-        val playing_index = player.status.m_index
+        val state: SpMp.State = LocalAppState.current
+        val playing_index = state.session.status.m_index
         if (index == playing_index) {
             return stringResource(Res.string.lpm_song_now_playing)
         }
 
-        val service = player.controller ?: return null
+        val service = state.session.controller ?: return null
 
         var delta = 0L
         val indices = if (index < playing_index) index + 1 .. playing_index else playing_index until index
         for (i in indices) {
             val duration =
-                service.getSong(i)?.Duration?.observe(player.database)?.value
+                service.getSong(i)?.Duration?.observe(state.database)?.value
                 ?: return null
             delta += duration
         }
 
         val `lpm_song_played_$x_ago`: String = stringResource(Res.string.`lpm_song_played_$x_ago`)
         val `lpm_song_playing_in_$x`: String = stringResource(Res.string.`lpm_song_playing_in_$x`)
-        val ui_langauge: String by player.context.observeUiLanguage()
+        val ui_langauge: String by state.context.observeUiLanguage()
 
         return remember(delta, ui_langauge) {
             (
@@ -139,12 +139,12 @@ class QueueTabItem(val song: Song, val key: Int) {
         multiselect_context: MediaItemMultiSelectContext,
         requestRemove: () -> Unit
     ) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
         val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
-        val max_offset: Float = with(LocalDensity.current) { player.screen_size.width.toPx() }
+        val max_offset: Float = with(LocalDensity.current) { state.ui.screen_size.width.toPx() }
         val swipe_state: AnchoredDraggableState<Int> = queueElementSwipeState(requestRemove, max_offset)
-        val swipe_sensitivity: Float by player.settings.player.QUEUE_ITEM_SWIPE_SENSITIVITY.observe()
+        val swipe_sensitivity: Float by state.settings.state.QUEUE_ITEM_SWIPE_SENSITIVITY.observe()
 
         TouchSlopScope({
             touchSlop * 2f * (2.1f - swipe_sensitivity)
@@ -186,7 +186,7 @@ class QueueTabItem(val song: Song, val key: Int) {
                     )
                 }
 
-                val radio_item_index: Int? = player.controller?.radio_instance?.state?.item_queue_index
+                val radio_item_index: Int? = state.session.controller?.radio_instance?.state?.item_queue_index
                 if (radio_item_index == index) {
                     Icon(Icons.Default.Radio, null, Modifier.size(20.dp))
                 }
@@ -209,7 +209,7 @@ class QueueTabItem(val song: Song, val key: Int) {
                 Platform.DESKTOP.only {
                     Row(Modifier.alpha(0.8f)) {
                         IconButton({
-                            click_overrides.onMediaItemClicked(song, player, multiselect_key = index)
+                            click_overrides.onMediaItemClicked(song, state, multiselect_key = index)
                         }) {
                             Icon(Icons.Default.PlayArrow, null)
                         }

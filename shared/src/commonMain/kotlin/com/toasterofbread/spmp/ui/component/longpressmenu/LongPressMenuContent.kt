@@ -68,7 +68,7 @@ import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
@@ -86,7 +86,7 @@ internal fun LongPressMenuContent(
     modifier: Modifier = Modifier,
     onAction: () -> Unit
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     @Composable
@@ -172,7 +172,7 @@ internal fun LongPressMenuContent(
                             Modifier.platformClickable(
                                 onAltClick = {
                                     show_title_edit_dialog = !show_title_edit_dialog
-                                    player.context.vibrateShort()
+                                    state.context.vibrateShort()
                                 }
                             )
                         ) {
@@ -186,13 +186,13 @@ internal fun LongPressMenuContent(
 
                         // Artist
                         if (data.item is MediaItem.WithArtists) {
-                            val item_artists: List<Artist>? by data.item.Artists.observe(player.database)
+                            val item_artists: List<Artist>? by data.item.Artists.observe(state.database)
                             item_artists?.firstOrNull()?.also { artist ->
                                 Marquee {
                                     CompositionLocalProvider(LocalPlayerClickOverrides provides click_overrides.copy(
                                         onClickOverride = { item, _ ->
                                             onAction()
-                                            click_overrides.onMediaItemClicked(item, player)
+                                            click_overrides.onMediaItemClicked(item, state)
                                         }
                                     )) {
                                         MediaItemPreviewLong(artist)
@@ -284,7 +284,7 @@ internal fun LongPressMenuContent(
                                 LongPressMenuInfoActions(
                                     data,
                                     MENU_ITEM_SPACING.dp,
-                                    { getAccentColour() ?: player.theme.accent },
+                                    { getAccentColour() ?: state.theme.accent },
                                     onAction = onAction
                                 )
                             }
@@ -295,7 +295,7 @@ internal fun LongPressMenuContent(
                                         main_actions_showing = false
                                     }
                                 }
-                                LongPressMenuActions(data, background_colour, { getAccentColour() ?: player.theme.accent }, onAction = onAction)
+                                LongPressMenuActions(data, background_colour, { getAccentColour() ?: state.theme.accent }, onAction = onAction)
                             }
                         }
                     }

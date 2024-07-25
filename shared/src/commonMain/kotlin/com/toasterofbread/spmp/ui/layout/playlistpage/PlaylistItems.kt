@@ -21,7 +21,7 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getLongPressMenuData
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import dev.toastbits.composekit.utils.common.getValue
@@ -40,7 +40,7 @@ internal fun PlaylistAppPage.PlaylistItems(
 ) {
     list_scope.itemsIndexed(sorted_items ?: emptyList()) { index, item ->
         val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
 
         val long_press_menu_data = remember(item) {
             item.getLongPressMenuData(multiselect_context)
@@ -49,15 +49,15 @@ internal fun PlaylistAppPage.PlaylistItems(
         CompositionLocalProvider(LocalPlayerClickOverrides provides click_overrides.copy(
             onClickOverride = { _, _ ->
                 if (sort_type == MediaItemSortType.NATIVE && current_filter == null) {
-                    player.playPlaylist(playlist, index)
-                    player.onPlayActionOccurred()
+                    state.session.playPlaylist(playlist, index)
+                    state.ui.onPlayActionOccurred()
                 }
                 else {
                     sorted_items?.also { items ->
-                        player.withPlayer {
+                        state.session.withPlayer {
                             addMultipleToQueue(items.filterIsInstance<Song>(), clear = true)
                             seekToSong(index)
-                            player.onPlayActionOccurred()
+                            state.ui.onPlayActionOccurred()
                         }
                     }
                 }
@@ -73,8 +73,8 @@ internal fun PlaylistAppPage.PlaylistItems(
                         show_artist = true,
                         show_type = false,
                         getExtraInfo = {
-                            val item_duration: Long? by (item as? Song)?.Duration?.observe(player.database)
-                            val ui_language: String by player.context.observeUiLanguage()
+                            val item_duration: Long? by (item as? Song)?.Duration?.observe(state.database)
+                            val ui_language: String by state.context.observeUiLanguage()
                             remember(item_duration, ui_language) {
                                 listOfNotNull(
                                     item_duration?.let { duration ->

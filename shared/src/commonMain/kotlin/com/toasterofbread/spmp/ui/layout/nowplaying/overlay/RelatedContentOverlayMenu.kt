@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.SongRelatedPage
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import dev.toastbits.ytmkt.endpoint.SongRelatedContentEndpoint
 
@@ -34,7 +34,7 @@ class RelatedContentPlayerOverlayMenu(
         getCurrentSongThumb: () -> ImageBitmap?
     ) {
         val song: Song = getSong() ?: return
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
 
         Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomEnd) {
             SongRelatedPage(
@@ -45,11 +45,11 @@ class RelatedContentPlayerOverlayMenu(
                 description_text_style = MaterialTheme.typography.bodyMedium,
                 close = { openMenu(null) },
                 content_padding = PaddingValues(10.dp),
-                accent_colour = player.getNPBackground()
+                accent_colour = state.ui.getNPBackground()
             )
 
             val pill_menu: PillMenu = remember { PillMenu(
-                _background_colour = { player.getNPBackground() }
+                _background_colour = { state.ui.getNPBackground() }
             ) }
             pill_menu.PillMenu(
                 1,

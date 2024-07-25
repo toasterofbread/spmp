@@ -34,7 +34,7 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getArtistThumbShape
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getLongPressMenuData
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.platform.FormFactor
 import dev.toastbits.ytmkt.endpoint.RadioBuilderArtist
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider as YtmThumbnailProvider
@@ -49,7 +49,7 @@ internal fun RadioArtistSelector(
     modifier: Modifier = Modifier,
     onFinished: (List<Int>?) -> Unit
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val form_factor: FormFactor by FormFactor.observe()
     val selected_artists: MutableList<Int> = remember { mutableStateListOf() }
 
@@ -91,7 +91,7 @@ internal fun RadioArtistSelector(
     Crossfade(radio_artists) { artists ->
         if (artists == null) {
             Box(modifier, contentAlignment = Alignment.Center) {
-                SubtleLoadingIndicator(getColour = { player.theme.on_background })
+                SubtleLoadingIndicator(getColour = { state.theme.on_background })
             }
         }
         else {
@@ -138,7 +138,7 @@ internal fun RadioArtistSelector(
                                         }
                                     },
                                     onLongClick = {
-                                        player.showLongPressMenu(long_press_menu_data)
+                                        state.ui.showLongPressMenu(long_press_menu_data)
                                     }
                                 )
                                 .aspectRatio(0.8f),
@@ -150,7 +150,7 @@ internal fun RadioArtistSelector(
                                     Box(
                                         Modifier
                                             .size(thumb_size + selected_border_size * border_expansion.value)
-                                            .border(1.dp, player.theme.on_background, getArtistThumbShape())
+                                            .border(1.dp, state.theme.on_background, getArtistThumbShape())
                                     )
                                 }
 
@@ -167,7 +167,7 @@ internal fun RadioArtistSelector(
                             Text(
                                 artist.name ?: "",
                                 fontSize = 12.sp,
-                                color = player.theme.on_background,
+                                color = state.theme.on_background,
                                 maxLines = 1,
                                 lineHeight = 14.sp,
                                 overflow = TextOverflow.Ellipsis

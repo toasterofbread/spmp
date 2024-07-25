@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.component.longpressmenu
 
+import LocalAppState
 import LocalPlayerState
 import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.runtime.Composable
@@ -57,7 +58,7 @@ data class LongPressMenuData(
 
     @Composable
     fun Actions(provider: LongPressMenuActionProvider, spacing: Dp) {
-        val player = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
 
         with(provider) {
             if (item is Song || (item is Playlist && playlist_as_song)) {
@@ -67,8 +68,8 @@ data class LongPressMenuData(
                             callback(item)
                         }
                         else if (item is Playlist) {
-                            item.loadData(player.context).onSuccess {
-                                item.Items.get(player.database)?.firstOrNull()?.also { item ->
+                            item.loadData(state.context).onSuccess {
+                                item.Items.get(state.database)?.firstOrNull()?.also { item ->
                                     callback(item)
                                 }
                             }
@@ -93,7 +94,7 @@ data class LongPressMenuData(
 
     @Composable
     fun SideButton(modifier: Modifier, background: Color) {
-        val auth_state: ApiAuthenticationState? = LocalPlayerState.current.context.ytapi.user_auth_state
+        val auth_state: ApiAuthenticationState? = LocalAppContext.current.ytapi.user_auth_state
 
         when (item) {
             is Song -> LikeDislikeButton(item, auth_state, modifier) { background.getContrasted() }

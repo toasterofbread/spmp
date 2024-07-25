@@ -33,7 +33,7 @@ import com.toasterofbread.spmp.model.mediaitem.layout.*
 import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.platform.*
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
@@ -195,7 +195,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
             setFilter(null)
         }
 
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
         val focus_manager: FocusManager = LocalFocusManager.current
         val keyboard_controller: SoftwareKeyboardController? = LocalSoftwareKeyboardController.current
         val focus_state: MutableState<Boolean> = remember { mutableStateOf(false) }

@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.youtubemusiclogin
 
-import LocalPlayerState
 import PlatformIO
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Column
@@ -27,7 +26,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.youtubeapi.AccountSwitcherEndpoint
 import com.toasterofbread.spmp.youtubeapi.YTMLogin
 import dev.toastbits.composekit.utils.composable.LinkifyText
@@ -70,7 +69,7 @@ class YoutubeMusicLoginPage(val api: YoutubeiApi): LoginPage() {
         content_padding: PaddingValues,
         onFinished: (Result<ApiAuthenticationState>?) -> Unit
     ) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val app_state: SpMp.State = LocalAppState.current
         val coroutine_scope: CoroutineScope = rememberCoroutineScope()
         val manual: Boolean = confirm_param == true
 
@@ -129,7 +128,7 @@ class YoutubeMusicLoginPage(val api: YoutubeiApi): LoginPage() {
             }
 
             coroutine_scope.launch {
-                onFinished(YTMLogin.completeLogin(player.context, final_headers, api))
+                onFinished(YTMLogin.completeLogin(app_state.context, final_headers, api))
             }
         }
 
@@ -141,12 +140,12 @@ class YoutubeMusicLoginPage(val api: YoutubeiApi): LoginPage() {
                 ) { account ->
                     coroutine_scope.launch(Dispatchers.PlatformIO) {
                         account_selection_data = null
-                        onFinished(YTMLogin.completeLoginWithAccount(player.context, state.headers, account, api))
+                        onFinished(YTMLogin.completeLoginWithAccount(app_state.context, state.headers, account, api))
                     }
                 }
             }
             else if (!manual && isWebViewLoginSupported()) {
-                val v_padding: Dp = player.getDefaultVerticalPadding()
+                val v_padding: Dp = app_state.getDefaultVerticalPadding()
                 YoutubeMusicWebviewLogin(
                     api,
                     MUSIC_LOGIN_URL,
@@ -194,7 +193,7 @@ class YoutubeMusicLoginPage(val api: YoutubeiApi): LoginPage() {
 
     @Composable
     override fun LoginConfirmationDialog(info_only: Boolean, manual_only: Boolean, onFinished: (param: Any?) -> Unit) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
 
         AlertDialog(
             { onFinished(null) },
@@ -211,7 +210,7 @@ class YoutubeMusicLoginPage(val api: YoutubeiApi): LoginPage() {
             title = if (info_only) null else ({ Text(stringResource(Res.string.prompt_confirm_action)) }),
             text = {
                 Column {
-                    LinkifyText(player.context, stringResource(if (info_only) Res.string.info_ytm_login else Res.string.warning_ytm_login), player.theme.accent)
+                    LinkifyText(state.context, stringResource(if (info_only) Res.string.info_ytm_login else Res.string.warning_ytm_login), state.theme.accent)
                     if (!info_only && !manual_only) {
                         FilledTonalButton({ onFinished(true) }, Modifier.fillMaxWidth().padding(top = 5.dp).offset(y = 20.dp)) {
                             Text(stringResource(Res.string.action_login_manually))

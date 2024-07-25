@@ -8,7 +8,7 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.platform.FormFactor
 
 fun getSongThumbShape(): Shape =
-    if (FormFactor.getCurrent(SpMp.player_state).is_large) RoundedCornerShape(4.dp)
+    if (FormFactor.getCurrent(SpMp.ui_state).is_large) RoundedCornerShape(4.dp)
     else RoundedCornerShape(10.dp)
 
 fun getArtistThumbShape(): Shape = RoundedCornerShape(50)

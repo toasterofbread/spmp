@@ -13,9 +13,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Waves
 import androidx.compose.foundation.layout.padding
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import LocalPlayerState
+import LocalSessionState
 import dev.toastbits.composekit.utils.common.thenIf
 
 @Serializable
@@ -29,11 +30,11 @@ data class ContentBarElementVisualiser(
 
     @Composable
     override fun isDisplaying(): Boolean =
-        LocalPlayerState.current.status.m_song != null
+        LocalSessionState.current.status.m_song != null
 
     @Composable
     override fun ElementContent(vertical: Boolean, slot: LayoutSlot?, bar_size: DpSize, onPreviewClick: (() -> Unit)?, modifier: Modifier) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val state: SpMp.State = LocalAppState.current
 
         if (onPreviewClick != null) {
             IconButton(onPreviewClick) {
@@ -41,7 +42,7 @@ data class ContentBarElementVisualiser(
             }
         }
         else {
-            player.controller?.Visualiser(
+            state.session.controller?.Visualiser(
                 LocalContentColor.current,
                 modifier.thenIf(!vertical) {
                     padding(horizontal = 10.dp)

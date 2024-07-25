@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.isUnspecified
 import com.toasterofbread.spmp.model.settings.Settings
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
@@ -32,27 +33,23 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.container.npAnchorToDp
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
+import dev.toastbits.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.utils.composable.getEnd
+import dev.toastbits.composekit.utils.composable.getStart
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 class PlayerStateImpl(
     settings: Settings,
     private val session_state: SessionState,
-    private val ui_state: UiState,
     private val coroutine_scope: CoroutineScope,
     initial_theme_mode: ThemeMode,
-    initial_swipe_sensitivity: Float
+    initial_swipe_sensitivity: Float,
+    private val requestFocus: (page: Int) -> Unit,
+    private val np_swipe_state: AnchoredDraggableState<Int> = createSwipeState()
 ): PlayerState {
     override var hide_player: Boolean by mutableStateOf(false)
     override fun isPlayerShowing(): Boolean = session_state.session_started && !hide_player
-
-    init {
-        ui_state.app_page_state.addPageListener {
-            if (np_swipe_state.targetValue != 0) {
-                switchNowPlayingPage(0)
-            }
-        }
-    }
 
     override var np_theme_mode: ThemeMode by mutableStateOf(initial_theme_mode)
         private set
@@ -72,18 +69,6 @@ class PlayerStateImpl(
     private val np_overlay_menu_queue: MutableList<PlayerOverlayMenu> = mutableListOf()
     override var np_overlay_menu: PlayerOverlayMenu? by mutableStateOf(null)
 
-    override val expansion: PlayerExpansionState =
-        object : PlayerExpansionState(this, ui_state) {
-            override val swipe_state: AnchoredDraggableState<Int>
-                get() = np_swipe_state
-        }
-
-    override fun switchNowPlayingPage(page: Int) {
-        coroutine_scope.launch {
-            np_swipe_state.animateTo(page)
-        }
-    }
-
     override fun navigateNpOverlayMenuBack() {
         np_overlay_menu = np_overlay_menu_queue.removeLastOrNull()
     }
@@ -99,14 +84,14 @@ class PlayerStateImpl(
             np_overlay_menu_queue.add(it)
         }
         np_overlay_menu = menu
-        expansion.scrollTo(1)
+        requestFocus(1)
     }
 
-    override fun getNowPlayingExpansionOffset(density: Density): Dp =
+    override fun getExpansionOffset(density: Density): Dp =
         -np_swipe_state.offset.npAnchorToDp(density, np_swipe_sensitivity)
 
     @Composable
-    override fun nowPlayingTopOffset(
+    override fun topOffset(
         base: Modifier,
         section: NowPlayingTopOffsetSection,
         apply_spacing: Boolean,
@@ -177,7 +162,7 @@ class PlayerStateImpl(
     }
 
     @Composable
-    override fun nowPlayingBottomPadding(
+    override fun bottomPadding(
         include_np: Boolean,
         include_top_items: Boolean
     ): Dp {
@@ -249,31 +234,13 @@ class PlayerStateImpl(
             return@sumOf acc.toDouble()
         }.dp
 
-    private var np_swipe_state: AnchoredDraggableState<Int> by mutableStateOf(createSwipeState())
-    private var now_playing_top_offset_items: MutableMap<NowPlayingTopOffsetSection, MutableList<TopOffsetItem?>> = mutableStateMapOf()
+    private val now_playing_top_offset_items: MutableMap<NowPlayingTopOffsetSection, MutableList<TopOffsetItem?>> = mutableStateMapOf()
+
     private data class TopOffsetItem(
         val height: Dp,
         val apply_spacing: Boolean = true,
         val displaying: Boolean = true
     )
-
-    private fun createSwipeState(
-        anchors: DraggableAnchors<Int> = DraggableAnchors {},
-        snap_animation_spec: AnimationSpec<Float> = tween(),
-        decay_animation_spec: DecayAnimationSpec<Float> = exponentialDecay()
-    ): AnchoredDraggableState<Int> =
-        AnchoredDraggableState(
-            initialValue = 0,
-            anchors = anchors,
-            positionalThreshold = { total_distance ->
-                total_distance * 0.2f
-            },
-            velocityThreshold = {
-                1f
-            },
-            snapAnimationSpec = snap_animation_spec,
-            decayAnimationSpec = decay_animation_spec
-        )
 
     private val prefs_listner: PlatformPreferencesListener =
         PlatformPreferencesListener { prefs, key ->
@@ -281,8 +248,8 @@ class PlayerStateImpl(
                 settings.theme.NOWPLAYING_THEME_MODE.key -> coroutine_scope.launch {
                     np_theme_mode = settings.theme.NOWPLAYING_THEME_MODE.get()
                 }
-                settings.player.EXPAND_SWIPE_SENSITIVITY.key -> coroutine_scope.launch {
-                    np_swipe_sensitivity = settings.player.EXPAND_SWIPE_SENSITIVITY.get()
+                settings.state.EXPAND_SWIPE_SENSITIVITY.key -> coroutine_scope.launch {
+                    np_swipe_sensitivity = settings.state.EXPAND_SWIPE_SENSITIVITY.get()
                 }
             }
         }
@@ -290,4 +257,27 @@ class PlayerStateImpl(
     init {
         settings.context.getPrefs().addListener(prefs_listner)
     }
+
+    companion object {
+        fun createSwipeState(
+            anchors: DraggableAnchors<Int> = DraggableAnchors {},
+            snap_animation_spec: AnimationSpec<Float> = tween(),
+            decay_animation_spec: DecayAnimationSpec<Float> = exponentialDecay()
+        ): AnchoredDraggableState<Int> =
+            AnchoredDraggableState(
+                initialValue = 0,
+                anchors = anchors,
+                positionalThreshold = { total_distance ->
+                    total_distance * 0.2f
+                },
+                velocityThreshold = {
+                    1f
+                },
+                snapAnimationSpec = snap_animation_spec,
+                decayAnimationSpec = decay_animation_spec
+            )
+    }
 }
+
+fun Dp.notUnspecified(): Dp =
+    if (this.isUnspecified) 0.dp else this

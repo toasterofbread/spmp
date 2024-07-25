@@ -7,7 +7,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import dev.toastbits.composekit.utils.common.indexOfOrNull
 import com.toasterofbread.spmp.ui.layout.ManualLoginPage
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState
 import io.ktor.http.Headers
 import io.ktor.http.HeadersBuilder
@@ -28,7 +28,7 @@ internal fun YoutubeMusicManualLogin(
     modifier: Modifier = Modifier,
     onFinished: (Result<Headers>?) -> Unit
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     ManualLoginPage(

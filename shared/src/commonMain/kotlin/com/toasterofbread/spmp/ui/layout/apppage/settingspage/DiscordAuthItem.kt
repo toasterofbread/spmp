@@ -28,7 +28,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.DiscordAccountPreview
 import com.toasterofbread.spmp.ui.layout.DiscordLoginConfirmation
 import com.toasterofbread.spmp.platform.DiscordStatus
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.composekit.settings.ui.on_accent
 import dev.toastbits.composekit.settings.ui.vibrant_accent
 import kotlinx.serialization.json.JsonElement
@@ -145,7 +145,7 @@ fun getDiscordAuthItem(
                 return@LargeToggleSettingsItem
             }
 
-            val player: OldPlayerStateImpl = LocalPlayerState.current
+            val state: SpMp.State = LocalAppState.current
             var show_info_dialog: Boolean by remember { mutableStateOf(false) }
 
             if (show_info_dialog) {
@@ -158,8 +158,8 @@ fun getDiscordAuthItem(
                 { show_info_dialog = !show_info_dialog },
                 shape = CircleShape,
                 colours = IconButtonDefaults.iconButtonColors(
-                    containerColor = if (enabled) player.theme.background else player.theme.vibrant_accent,
-                    contentColor = if (enabled) player.theme.on_background else player.theme.on_accent
+                    containerColor = if (enabled) state.theme.background else state.theme.vibrant_accent,
+                    contentColor = if (enabled) state.theme.on_background else state.theme.on_accent
                 )
             ) {
                 Icon(

@@ -15,7 +15,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.playerservice.PlatformInternalPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlatformExternalPlayerService
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import LocalProgramArguments
 import ProgramArguments
 import org.jetbrains.compose.resources.stringResource
@@ -143,7 +143,7 @@ private fun getWebGroupItems(context: AppContext): List<SettingsItem> =
 
 @Composable
 private fun getLocalServerUnavailabilityReason(): String? {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val launch_arguments: ProgramArguments = LocalProgramArguments.current
-    return PlatformInternalPlayerService.getUnavailabilityReason(player.context, launch_arguments)
+    return PlatformInternalPlayerService.getUnavailabilityReason(state.context, launch_arguments)
 }

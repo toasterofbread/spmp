@@ -30,7 +30,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.SettingsAppPage
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
@@ -55,7 +55,7 @@ private val GESTURES: List<Triple<ImageVector, StringResource, List<StringResour
 
 @Composable
 fun ProjectInfoDialog(modifier: Modifier = Modifier, close: () -> Unit) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     AlertDialog(
         close,
@@ -78,13 +78,13 @@ fun ProjectInfoDialog(modifier: Modifier = Modifier, close: () -> Unit) {
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Text(stringResource(Res.string.`project_info_dialog_project_$author`).replace("\$author", stringResource(Res.string.project_author)), Modifier.align(Alignment.CenterVertically))
 
-                            if (player.context.canOpenUrl()) {
+                            if (state.context.canOpenUrl()) {
                                 Box(
                                     Modifier.fillMaxWidth().weight(1f).align(Alignment.CenterVertically),
                                     contentAlignment = Alignment.CenterEnd
                                 ) {
                                     val donation_url: String = stringResource(Res.string.donation_url)
-                                    FilledTonalButton({ player.context.openUrl(donation_url) }) {
+                                    FilledTonalButton({ state.context.openUrl(donation_url) }) {
                                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                                             Icon(Icons.Default.LocalCafe, null)
                                             Text(stringResource(Res.string.project_info_dialog_project_donate_button), softWrap = false)
@@ -97,13 +97,13 @@ fun ProjectInfoDialog(modifier: Modifier = Modifier, close: () -> Unit) {
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                             Text(stringResource(Res.string.`project_info_dialog_project_$license`).replace("\$license", stringResource(Res.string.project_license)), Modifier.align(Alignment.CenterVertically))
 
-                            if (player.context.canOpenUrl()) {
+                            if (state.context.canOpenUrl()) {
                                 Box(
                                     Modifier.fillMaxWidth().weight(1f).align(Alignment.CenterVertically),
                                     contentAlignment = Alignment.CenterEnd
                                 ) {
                                     val project_url: String = stringResource(Res.string.project_url)
-                                    FilledTonalButton({ player.context.openUrl(project_url) }) {
+                                    FilledTonalButton({ state.context.openUrl(project_url) }) {
                                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                                             Icon(painterResource(Res.drawable.ic_github), null)
                                             Text(stringResource(Res.string.project_info_dialog_project_source_button), softWrap = false)
@@ -115,11 +115,11 @@ fun ProjectInfoDialog(modifier: Modifier = Modifier, close: () -> Unit) {
 
                         FilledTonalButton(
                             {
-                                val settings_page: SettingsAppPage = player.app_page_state.Settings
-                                player.settings.deps.page!!.openPageOnInterface(player.context, settings_page.settings_interface)
+                                val settings_page: SettingsAppPage = state.ui.app_page_state.Settings
+                                state.settings.deps.page!!.openPageOnInterface(state.context, settings_page.settings_interface)
 
-                                if (player.app_page != settings_page) {
-                                    player.openAppPage(settings_page)
+                                if (state.ui.app_page != settings_page) {
+                                    state.ui.openAppPage(settings_page)
                                 }
 
                                 close()

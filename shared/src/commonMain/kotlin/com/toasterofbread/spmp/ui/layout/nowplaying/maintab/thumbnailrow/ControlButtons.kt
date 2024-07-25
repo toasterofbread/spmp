@@ -15,7 +15,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -29,39 +29,39 @@ fun ThumbnailRowControlButtons(
     show_prev_button: Boolean = true,
     rounded_icons: Boolean = true
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
 
     if (show_prev_button) {
-        IconButton({ player.controller?.seekToPrevious() }, button_modifier) {
+        IconButton({ state.session.controller?.seekToPrevious() }, button_modifier) {
             Image(
                 if (rounded_icons) Icons.Rounded.SkipPrevious else Icons.Default.SkipPrevious,
                 null,
                 image_modifier,
-                colorFilter = ColorFilter.tint(player.getNPOnBackground())
+                colorFilter = ColorFilter.tint(state.ui.getNPOnBackground())
             )
         }
     }
 
-    IconButton({ player.controller?.playPause() }, button_modifier) {
+    IconButton({ state.session.controller?.playPause() }, button_modifier) {
         Image(
-            if (player.status.m_playing) {
+            if (state.session.status.m_playing) {
                 if (rounded_icons) Icons.Rounded.Pause else Icons.Default.Pause
             }
             else {
                 if (rounded_icons) Icons.Rounded.PlayArrow else Icons.Default.PlayArrow
             },
-            stringResource(if (player.status.m_playing) Res.string.media_pause else Res.string.media_play),
+            stringResource(if (state.session.status.m_playing) Res.string.media_pause else Res.string.media_play),
             image_modifier,
-            colorFilter = ColorFilter.tint(player.getNPOnBackground())
+            colorFilter = ColorFilter.tint(state.ui.getNPOnBackground())
         )
     }
 
-    IconButton({ player.controller?.seekToNext() }, button_modifier) {
+    IconButton({ state.session.controller?.seekToNext() }, button_modifier) {
         Image(
             if (rounded_icons) Icons.Rounded.SkipNext else Icons.Default.SkipNext,
             null,
             image_modifier,
-            colorFilter = ColorFilter.tint(player.getNPOnBackground())
+            colorFilter = ColorFilter.tint(state.ui.getNPOnBackground())
         )
     }
 }

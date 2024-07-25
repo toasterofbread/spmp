@@ -7,13 +7,13 @@ import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 
 class PlayerStatus internal constructor() {
-    private var player: PlayerService? = null
+    private var state: PlayerService? = null
 
     internal fun setPlayer(new_player: PlayerService) {
-        player?.removeListener(player_listener)
+        state?.removeListener(player_listener)
         new_player.addListener(player_listener)
 
-        player = new_player
+        state = new_player
 
         m_playing = playing
         m_duration_ms = duration_ms
@@ -29,7 +29,7 @@ class PlayerStatus internal constructor() {
     }
 
     fun getProgress(): Float {
-        val p = player ?: return 0f
+        val p = state ?: return 0f
 
         val duration = p.duration_ms
         if (duration <= 0f) {
@@ -39,22 +39,22 @@ class PlayerStatus internal constructor() {
         return p.current_position_ms.toFloat() / duration
     }
 
-    fun getPositionMs(): Long = player?.current_position_ms ?: 0
+    fun getPositionMs(): Long = state?.current_position_ms ?: 0
 
-    private val _song_state: MutableState<Song?> = mutableStateOf(player?.getSong())
+    private val _song_state: MutableState<Song?> = mutableStateOf(state?.getSong())
     val song_state: State<Song?> get() = _song_state
 
-    val playing: Boolean get() = player?.is_playing ?: false
-    val duration_ms: Long get() = player?.duration_ms ?: -1
-    val song: Song? get() = player?.getSong()
-    val index: Int get() = player?.current_song_index ?: -1
-    val repeat_mode: SpMsPlayerRepeatMode get() = player?.repeat_mode ?: SpMsPlayerRepeatMode.NONE
+    val playing: Boolean get() = state?.is_playing ?: false
+    val duration_ms: Long get() = state?.duration_ms ?: -1
+    val song: Song? get() = state?.getSong()
+    val index: Int get() = state?.current_song_index ?: -1
+    val repeat_mode: SpMsPlayerRepeatMode get() = state?.repeat_mode ?: SpMsPlayerRepeatMode.NONE
     val has_next: Boolean get() = true
     val has_previous: Boolean get() = true
-    val volume: Float get() = player?.volume ?: -1f
-    val song_count: Int get() = player?.song_count ?: -1
-    val undo_count: Int get() = player?.service_player?.undo_count ?: -1
-    val redo_count: Int get() = player?.service_player?.redo_count ?: -1
+    val volume: Float get() = state?.volume ?: -1f
+    val song_count: Int get() = state?.song_count ?: -1
+    val undo_count: Int get() = state?.service_player?.undo_count ?: -1
+    val redo_count: Int get() = state?.service_player?.redo_count ?: -1
 
     var m_playing: Boolean by mutableStateOf(playing)
         private set
@@ -124,7 +124,7 @@ class PlayerStatus internal constructor() {
                 m_volume = volume
                 m_song_count = song_count
 
-                player?.also { p ->
+                state?.also { p ->
                     if (m_index > p.service_player.active_queue_index) {
                         p.service_player.active_queue_index = m_index
                     }

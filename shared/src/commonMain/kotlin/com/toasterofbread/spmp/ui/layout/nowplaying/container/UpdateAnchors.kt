@@ -6,7 +6,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.platform.LocalDensity
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.platform.AppContext
@@ -21,11 +21,11 @@ internal fun UpdateAnchors(
 ) {
     require(pages.isNotEmpty())
 
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val density: Density = LocalDensity.current
     val minimised_now_playing_height: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
 
-    val swipe_sensitivity: Float by player.settings.player.EXPAND_SWIPE_SENSITIVITY.observe()
+    val swipe_sensitivity: Float by state.settings.state.EXPAND_SWIPE_SENSITIVITY.observe()
 
     LaunchedEffect(page_height, pages.size, minimised_now_playing_height, swipe_sensitivity) {
         val sensitivity: Float = processSwipeSensitivity(swipe_sensitivity)
@@ -55,7 +55,7 @@ internal fun UpdateAnchors(
 }
 
 //fun Float.npAnchorToPx(density: Density): Float =
-//    this / processSwipeSensitivity(context.settings.player.EXPAND_SWIPE_SENSITIVITY.get())
+//    this / processSwipeSensitivity(context.settings.state.EXPAND_SWIPE_SENSITIVITY.get())
 fun Float.npAnchorToDp(density: Density, sensitivity: Float): Dp =
     with (density) { (this@npAnchorToDp / processSwipeSensitivity(sensitivity)).toDp() }
 

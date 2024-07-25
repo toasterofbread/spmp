@@ -32,7 +32,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import LocalPlayerState
@@ -47,7 +47,7 @@ import spmp.shared.generated.resources.playlist_empty
 internal fun PlaylistAppPage.ThumbnailSelectionDialog(
     close: () -> Unit
 ) {
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     var url_input_mode: Boolean by remember { mutableStateOf(false) }
     var url_input: String by remember(url_input_mode) { mutableStateOf("") }
 
@@ -110,7 +110,7 @@ internal fun PlaylistAppPage.ThumbnailSelectionDialog(
                     )
                 }
                 else {
-                    val items: List<MediaItem>? by playlist.Items.observe(player.database)
+                    val items: List<MediaItem>? by playlist.Items.observe(state.database)
                     if (items.isNullOrEmpty()) {
                         Text(stringResource(Res.string.playlist_empty), Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                     }
@@ -119,7 +119,7 @@ internal fun PlaylistAppPage.ThumbnailSelectionDialog(
                             LocalPlayerClickOverrides.current.copy(
                                 onClickOverride = { item, _ ->
                                     setEditedImageUrl(
-                                        item.ThumbnailProvider.get(player.database)
+                                        item.ThumbnailProvider.get(state.database)
                                             ?.getThumbnailUrl(ThumbnailProvider.Quality.HIGH)
                                     )
                                     close()

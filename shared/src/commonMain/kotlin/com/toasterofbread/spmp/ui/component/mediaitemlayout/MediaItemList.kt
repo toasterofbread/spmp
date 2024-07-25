@@ -25,7 +25,7 @@ import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverride
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
 import dev.toastbits.ytmkt.model.external.YoutubePage
 import dev.toastbits.ytmkt.uistrings.UiString
 
@@ -61,7 +61,7 @@ fun MediaItemList(
         return
     }
 
-    val player: OldPlayerStateImpl = LocalPlayerState.current
+    val state: SpMp.State = LocalAppState.current
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     Column(
@@ -78,7 +78,7 @@ fun MediaItemList(
             click_overrides.copy(
                 onClickOverride = { item, index ->
                     if (list_params.play_as_list && item is Song) {
-                        player.withPlayer {
+                        state.session.withPlayer {
                             undoableAction {
                                 val songs: List<Song> = filtered_items.filterIsInstance<Song>()
                                 addMultipleToQueue(songs, clear = true)
@@ -89,7 +89,7 @@ fun MediaItemList(
                         }
                     }
                     else {
-                        click_overrides.onMediaItemClicked(item, player)
+                        click_overrides.onMediaItemClicked(item, state)
                     }
                 }
             )

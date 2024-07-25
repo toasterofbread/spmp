@@ -35,9 +35,9 @@ private fun clearStorage() {
 //     loading_message: String?,
 //     onRequestIntercepted: suspend (WebViewRequest, openUrl: (String) -> Unit) -> Unit
 // ) {
-//     val player: PlayerState = LocalPlayerState.current
+//     val state: PlayerState = LocalPlayerState.current
 //     var web_view: WebView? by remember { mutableStateOf(null) }
-//     val is_dark: Boolean by remember { derivedStateOf { player.theme.background.isDark() } }
+//     val is_dark: Boolean by remember { derivedStateOf { state.theme.background.isDark() } }
 
 //     var requested_url: String? by remember { mutableStateOf(null) }
 //     OnChangedEffect(requested_url) {

@@ -64,7 +64,17 @@ import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
 import com.toasterofbread.spmp.ui.layout.BarColourState
-import com.toasterofbread.spmp.model.state.OldPlayerStateImpl
+import LocalAppState
+import LocalDataase
+import LocalSessionState
+import LocalSettings
+import LocalTheme
+import LocalUiState
+import com.toasterofbread.spmp.db.Database
+import com.toasterofbread.spmp.model.settings.Settings
+import com.toasterofbread.spmp.model.state.SessionState
+import com.toasterofbread.spmp.model.state.UiState
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -81,7 +91,11 @@ internal fun DesktopLongPressMenu(
     data: LongPressMenuData
 ) {
     BoxWithConstraints(Modifier.fillMaxSize()) {
-        val player: OldPlayerStateImpl = LocalPlayerState.current
+        val session_state: SessionState = LocalSessionState.current
+        val ui_state: UiState = LocalUiState.current
+        val theme: ThemeValues = LocalTheme.current
+        val database: Database = LocalDataase.current
+        val settings: Settings = LocalSettings.current
         val density: Density = LocalDensity.current
 
         val coroutine_scope: CoroutineScope = rememberCoroutineScope()
@@ -147,7 +161,7 @@ internal fun DesktopLongPressMenu(
                             offset_x.snapOrAnimateTo(x.toPx(), snap)
                         }
                         launch {
-                            val y: Dp = maxHeight - menu_height - padding - (if (player.session_started) minimised_now_playing_height else 0.dp)
+                            val y: Dp = maxHeight - menu_height - padding - (if (session_state.session_started) minimised_now_playing_height else 0.dp)
                             offset_y.snapOrAnimateTo(y.toPx(), snap)
                         }
                     }
@@ -175,13 +189,13 @@ internal fun DesktopLongPressMenu(
             updatePosition()
         }
 
-        OnChangedEffect(menu_width, menu_height, player.session_started) {
+        OnChangedEffect(menu_width, menu_height, session_state.session_started) {
             updatePosition()
         }
 
         if (show_dialog) {
             val fade_tween: FiniteAnimationSpec<Float> = tween(100)
-            val keep_on_background_scroll: Boolean by player.settings.behaviour.DESKTOP_LPM_KEEP_ON_BACKGROUND_SCROLL.observe()
+            val keep_on_background_scroll: Boolean by settings.behaviour.DESKTOP_LPM_KEEP_ON_BACKGROUND_SCROLL.observe()
 
             AnimatedVisibility(
                 show_background,
@@ -211,17 +225,17 @@ internal fun DesktopLongPressMenu(
                 enter = fadeIn(fade_tween),
                 exit = fadeOut(fade_tween)
             ) {
-                var accent_colour: Color? = data.item.rememberThemeColour()?.contrastAgainst(player.theme.background)
+                var accent_colour: Color? = data.item.rememberThemeColour()?.contrastAgainst(theme.background)
 
                 DisposableEffect(Unit) {
-                    val theme_colour = data.item.ThemeColour.get(player.database)
+                    val theme_colour = data.item.ThemeColour.get(database)
                     if (theme_colour != null) {
                         accent_colour = theme_colour
                     }
 
-                    player.bar_colour_state.nav_bar.setLevelColour(CustomColourSource(player.theme.background), BarColourState.NavBarLevel.LPM)
+                    ui_state.bar_colour_state.nav_bar.setLevelColour(CustomColourSource(theme.background), BarColourState.NavBarLevel.LPM)
                     onDispose {
-                        player.bar_colour_state.nav_bar.setLevelColour(null, BarColourState.NavBarLevel.LPM)
+                        ui_state.bar_colour_state.nav_bar.setLevelColour(null, BarColourState.NavBarLevel.LPM)
                     }
                 }
 
@@ -273,8 +287,8 @@ internal fun DesktopLongPressMenu(
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        val background_colour: Color = player.theme.accent.blendWith(player.theme.background, 0.1f)
-                        val close_on_action: Boolean by player.settings.behaviour.LPM_CLOSE_ON_ACTION.observe()
+                        val background_colour: Color = theme.accent.blendWith(theme.background, 0.1f)
+                        val close_on_action: Boolean by settings.behaviour.LPM_CLOSE_ON_ACTION.observe()
 
                         LongPressMenuContent(
                             data,
@@ -287,7 +301,7 @@ internal fun DesktopLongPressMenu(
                                 bottom = MENU_CONTENT_PADDING_DP.dp + WindowInsets.systemBars.getBottom()
                             ),
                             { accent_colour },
-                            modifier = Modifier.border(2.dp, player.theme.on_background.copy(alpha = 0.1f), shape),
+                            modifier = Modifier.border(2.dp, theme.on_background.copy(alpha = 0.1f), shape),
                             onAction = {
                                 if (show_background && close_on_action) {
                                     close()

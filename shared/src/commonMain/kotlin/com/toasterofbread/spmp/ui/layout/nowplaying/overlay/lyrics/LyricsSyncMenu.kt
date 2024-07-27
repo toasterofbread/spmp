@@ -23,10 +23,12 @@ import androidx.compose.ui.draw.alpha
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.HorizontalFuriganaText
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.composekit.utils.common.thenIf
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.lyrics_sync_press_button_when_line_begins
 
 private const val SONG_SEEK_MS: Long = 5000L
 private val SYNC_MENU_LYRICS_SHOW_RANGE: IntRange = -3 .. 0
@@ -73,7 +75,7 @@ fun LyricsSyncMenu(
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if (line_offset == 0) {
-                    Text(getString("lyrics_sync_press_button_when_line_begins"))
+                    Text(stringResource(Res.string.lyrics_sync_press_button_when_line_begins))
                 }
 
                 HorizontalFuriganaText(

@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.model.mediaitem
 import LocalPlayerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.GridView
-import androidx.compose.material.icons.rounded.GridView
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.ui.graphics.Color
@@ -25,7 +24,6 @@ import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.toImageBitmap
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import dev.toastbits.ytmkt.model.external.ThumbnailProviderImpl
@@ -33,9 +31,18 @@ import dev.toastbits.ytmkt.model.external.mediaitem.YtmArtist
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.withContext
-import java.net.URL
+import kotlinx.coroutines.*
+import io.ktor.client.HttpClient
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.call.body
+import io.ktor.client.request.get
+import PlatformIO
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import com.toasterofbread.spmp.platform.toImageBitmap
 
 private const val DEFAULT_CONNECT_TIMEOUT: Int = 10000
 val MEDIA_ITEM_RELATED_CONTENT_ICON: ImageVector get() = Icons.Default.GridView
@@ -47,7 +54,7 @@ interface MediaItem: MediaItemHolder, YtmMediaItem {
     override fun toString(): String
     fun getHolder(): MediaItemHolder = this
     fun getType(): MediaItemType
-    fun getURL(context: AppContext): String
+    suspend fun getUrl(context: AppContext): String
     fun getReference(): MediaItemRef
 
     @Composable
@@ -64,7 +71,7 @@ interface MediaItem: MediaItemHolder, YtmMediaItem {
             }
     }
 
-    suspend fun setActiveTitle(value: String?, context: AppContext) = withContext(Dispatchers.IO) {
+    suspend fun setActiveTitle(value: String?, context: AppContext) = withContext(Dispatchers.PlatformIO) {
         CustomTitle.set(value, context.database)
     }
 
@@ -98,15 +105,10 @@ interface MediaItem: MediaItemHolder, YtmMediaItem {
         return MediaItemLoader.loadUnknown(data, context, save = save)
     }
 
-    suspend fun downloadThumbnailData(url: String): Result<ImageBitmap> = withContext(Dispatchers.IO) {
+    suspend fun downloadThumbnailData(url: String, client: HttpClient): Result<ImageBitmap> = withContext(Dispatchers.PlatformIO) {
         return@withContext runCatching {
-            val connection = URL(url).openConnection()
-            connection.connectTimeout = DEFAULT_CONNECT_TIMEOUT
-
-            val stream = connection.getInputStream()
-            val bytes = stream.readBytes()
-            stream.close()
-
+            val response: HttpResponse = client.get(url)
+            val bytes: ByteArray = response.body()
             return@runCatching bytes.toImageBitmap()
         }
     }
@@ -223,4 +225,14 @@ private fun formatActiveTitle(active_title: String): String {
         return active_title.replace('ㅤ', '\u200b')
     }
     return active_title
+}
+
+@Composable
+fun MediaItem.observeUrl(): String {
+    val player: PlayerState = LocalPlayerState.current
+    var url: String by remember { mutableStateOf("") }
+    LaunchedEffect(this) {
+        url = getUrl(player.context)
+    }
+    return url
 }

@@ -31,12 +31,17 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import LocalPlayerState
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_cancel
+import spmp.shared.generated.resources.playlist_select_image
+import spmp.shared.generated.resources.playlist_image_url_field_label
+import spmp.shared.generated.resources.playlist_empty
 
 @Composable
 internal fun PlaylistAppPage.ThumbnailSelectionDialog(
@@ -51,7 +56,7 @@ internal fun PlaylistAppPage.ThumbnailSelectionDialog(
         confirmButton = {
             Row {
                 Button(close) {
-                    Text(getString("action_cancel"))
+                    Text(stringResource(Res.string.action_cancel))
                 }
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
@@ -88,7 +93,7 @@ internal fun PlaylistAppPage.ThumbnailSelectionDialog(
             }
         },
         title = {
-            Text(getString("playlist_select_image"), style = MaterialTheme.typography.headlineSmall)
+            Text(stringResource(Res.string.playlist_select_image), style = MaterialTheme.typography.headlineSmall)
         },
         text = {
             Crossfade(url_input_mode) { selecting_url ->
@@ -100,14 +105,14 @@ internal fun PlaylistAppPage.ThumbnailSelectionDialog(
                         },
                         Modifier.appTextField(),
                         label = {
-                            Text(getString("playlist_image_url_field_label"))
+                            Text(stringResource(Res.string.playlist_image_url_field_label))
                         }
                     )
                 }
                 else {
                     val items: List<MediaItem>? by playlist.Items.observe(player.database)
                     if (items.isNullOrEmpty()) {
-                        Text(getString("playlist_empty"), Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                        Text(stringResource(Res.string.playlist_empty), Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
                     }
                     else {
                         CompositionLocalProvider(LocalPlayerClickOverrides provides

@@ -31,8 +31,8 @@ import com.toasterofbread.spmp.model.serialise
 import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.model.MediaItemGridParams
+import com.toasterofbread.spmp.model.observe
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PinnedItemsRow
 import com.toasterofbread.spmp.service.playercontroller.FeedLoadState
@@ -41,6 +41,12 @@ import com.toasterofbread.spmp.ui.component.NotImplementedMessage
 import dev.toastbits.ytmkt.model.external.ItemLayoutType
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 import dev.toastbits.ytmkt.uistrings.UiString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_confirm_action
+import spmp.shared.generated.resources.action_deny_action
+import spmp.shared.generated.resources.prompt_confirm_action
+import spmp.shared.generated.resources.`prompt_hide_feed_rows_with_$title`
 
 @Composable
 internal fun SongFeedAppPage.SFFSongFeedAppPage(
@@ -72,11 +78,10 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
     }
 
     val hidden_rows: Set<String> by player.settings.feed.HIDDEN_ROWS.observe()
-    val hidden_row_titles: List<String> = remember(hidden_rows) {
+    val hidden_row_titles: List<String> =
         hidden_rows.map { row_title ->
-            UiString.deserialise(row_title).getString(player.context)
+            UiString.deserialise(row_title).observe()
         }
-    }
 
     val square_item_max_text_rows: Int by player.settings.feed.SQUARE_PREVIEW_TEXT_LINES.observe()
     val show_download_indicators: Boolean by player.settings.feed.SHOW_SONG_DOWNLOAD_INDICATORS.observe()
@@ -163,23 +168,23 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
 
                         hiding_layout = null
                     }) {
-                        Text(getString("action_confirm_action"))
+                        Text(stringResource(Res.string.action_confirm_action))
                     }
                 },
                 dismissButton = {
                     Button({
                         hiding_layout = null
                     }) {
-                        Text(getString("action_deny_action"))
+                        Text(stringResource(Res.string.action_deny_action))
                     }
                 },
                 title = {
-                    Text(getString("prompt_confirm_action"))
+                    Text(stringResource(Res.string.prompt_confirm_action))
                 },
                 text = {
                     Text(
-                        getString("prompt_hide_feed_rows_with_\$title")
-                            .replace("\$title", title.getString(player.context))
+                        stringResource(Res.string.`prompt_hide_feed_rows_with_$title`)
+                            .replace("\$title", title.observe())
                     )
                 }
             )
@@ -226,10 +231,10 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
                             return@items
                         }
 
-                        val is_hidden: Boolean = remember(layout.title, hidden_row_titles) {
-                            layout.title?.let { layout_title ->
-                                val title: String = layout_title.getString(player.context)
-                                hidden_row_titles.any { it == title }
+                        val title: String? = layout.title?.observe()
+                        val is_hidden: Boolean = remember(title, hidden_row_titles) {
+                            title?.let { layout_title ->
+                                hidden_row_titles.any { it == layout_title }
                             } ?: false
                         }
 

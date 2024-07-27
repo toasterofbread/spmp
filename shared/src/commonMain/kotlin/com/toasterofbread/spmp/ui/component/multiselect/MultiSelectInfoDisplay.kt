@@ -16,12 +16,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.Color
 import dev.toastbits.composekit.platform.composable.BackHandler
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect_context.MultiSelectGeneralActions
 import com.toasterofbread.spmp.ui.component.multiselect_context.MultiSelectOverflowActions
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.multiselect_x_items_selected
+import spmp.shared.generated.resources.action_close
 
 @Composable
 internal fun MediaItemMultiSelectContext.MultiSelectInfoDisplay(
@@ -65,7 +68,7 @@ fun MediaItemMultiSelectContext.MultiSelectInfoDisplayContent(
     getAllItems: (() -> List<List<MultiSelectItem>>)? = null
 ) {
     Column(modifier.animateContentSize()) {
-        val title_text: String = getString("multiselect_x_items_selected").replace("\$x", selected_items.size.toString())
+        val title_text: String = stringResource(Res.string.multiselect_x_items_selected).replace("\$x", selected_items.size.toString())
 
         var wave_border_offset: Float by remember { mutableStateOf(0f) }
         LaunchedEffect(Unit) {
@@ -164,7 +167,7 @@ fun MediaItemMultiSelectContext.MultiSelectInfoDisplayContent(
                     onDismissRequest = { show_overflow_menu = false },
                     confirmButton = {
                         Button({ show_overflow_menu = false }) {
-                            Text(getString("action_close"))
+                            Text(stringResource(Res.string.action_close))
                         }
                     },
                     title = {

@@ -12,11 +12,25 @@ import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.utils.common.thenWith
 import dev.toastbits.composekit.utils.composable.*
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import kotlinx.serialization.*
 import kotlinx.serialization.json.JsonObject
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.content_bar_element_builtin_config_size_mode
+import spmp.shared.generated.resources.content_bar_element_builtin_config_size
+import spmp.shared.generated.resources.content_bar_element_builtin_config_hide_bar_when_empty
+import spmp.shared.generated.resources.content_bar_element_type_button
+import spmp.shared.generated.resources.content_bar_element_type_spacer
+import spmp.shared.generated.resources.content_bar_element_type_lyrics
+import spmp.shared.generated.resources.content_bar_element_type_visualiser
+import spmp.shared.generated.resources.content_bar_element_type_pinned_items
+import spmp.shared.generated.resources.content_bar_element_type_content_bar
+import spmp.shared.generated.resources.content_bar_element_builtin_config_size_mode_fill
+import spmp.shared.generated.resources.content_bar_element_builtin_config_size_mode_static
+import spmp.shared.generated.resources.content_bar_element_builtin_config_size_mode_percentage
+import spmp.shared.generated.resources.content_bar_element_type_crossfade
 
 private const val SIZE_DP_STEP: Float = 10f
 private const val MIN_SIZE_DP: Float = 10f
@@ -116,7 +130,7 @@ sealed class ContentBarElement {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                getString("content_bar_element_builtin_config_size_mode"),
+                stringResource(Res.string.content_bar_element_builtin_config_size_mode),
                 Modifier.align(Alignment.CenterVertically),
                 softWrap = false
             )
@@ -132,7 +146,7 @@ sealed class ContentBarElement {
                 horizontalArrangement = Arrangement.SpaceBetween
             ) {
                 Text(
-                    getString("content_bar_element_builtin_config_size"),
+                    stringResource(Res.string.content_bar_element_builtin_config_size),
                     Modifier.align(Alignment.CenterVertically),
                     softWrap = false
                 )
@@ -179,7 +193,7 @@ sealed class ContentBarElement {
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                getString("content_bar_element_builtin_config_hide_bar_when_empty"),
+                stringResource(Res.string.content_bar_element_builtin_config_hide_bar_when_empty),
                 Modifier.align(Alignment.CenterVertically),
                 softWrap = false
             )
@@ -214,15 +228,16 @@ sealed class ContentBarElement {
                 else -> true
             }
 
+        @Composable
         fun getName(): String =
             when (this) {
-                BUTTON -> getString("content_bar_element_type_button")
-                SPACER -> getString("content_bar_element_type_spacer")
-                LYRICS -> getString("content_bar_element_type_lyrics")
-                VISUALISER -> getString("content_bar_element_type_visualiser")
-                PINNED_ITEMS -> getString("content_bar_element_type_pinned_items")
-                CONTENT_BAR -> getString("content_bar_element_type_content_bar")
-                CROSSFADE -> getString("content_bar_element_type_crossfade")
+                BUTTON -> stringResource(Res.string.content_bar_element_type_button)
+                SPACER -> stringResource(Res.string.content_bar_element_type_spacer)
+                LYRICS -> stringResource(Res.string.content_bar_element_type_lyrics)
+                VISUALISER -> stringResource(Res.string.content_bar_element_type_visualiser)
+                PINNED_ITEMS -> stringResource(Res.string.content_bar_element_type_pinned_items)
+                CONTENT_BAR -> stringResource(Res.string.content_bar_element_type_content_bar)
+                CROSSFADE -> stringResource(Res.string.content_bar_element_type_crossfade)
             }
 
         fun getIcon(): ImageVector =
@@ -253,11 +268,12 @@ sealed class ContentBarElement {
         STATIC,
         PERCENTAGE;
 
+        @Composable
         fun getName(): String =
             when (this) {
-                FILL -> getString("content_bar_element_builtin_config_size_mode_fill")
-                STATIC -> getString("content_bar_element_builtin_config_size_mode_static")
-                PERCENTAGE -> getString("content_bar_element_builtin_config_size_mode_percentage")
+                FILL -> stringResource(Res.string.content_bar_element_builtin_config_size_mode_fill)
+                STATIC -> stringResource(Res.string.content_bar_element_builtin_config_size_mode_static)
+                PERCENTAGE -> stringResource(Res.string.content_bar_element_builtin_config_size_mode_percentage)
             }
 
         fun getStep(): Int =

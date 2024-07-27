@@ -25,13 +25,15 @@ import com.toasterofbread.spmp.model.mediaitem.fromUid
 import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.radio.RadioState
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.radiobuilder.getReadable
 import dev.toastbits.ytmkt.endpoint.RadioBuilderModifier
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.radio_filter_all
 
 @Composable
 internal fun CurrentRadioIndicator(
@@ -193,9 +195,10 @@ private fun FiltersRow(
                     }
                 }
             ) {
+                @Suppress("SimplifiableCallChain")
                 Text(
-                    filter?.joinToString("|") { it.getReadable() }
-                        ?: getString("radio_filter_all")
+                    filter?.map { it.getReadable() }?.joinToString("|")
+                        ?: stringResource(Res.string.radio_filter_all)
                 )
             }
         }

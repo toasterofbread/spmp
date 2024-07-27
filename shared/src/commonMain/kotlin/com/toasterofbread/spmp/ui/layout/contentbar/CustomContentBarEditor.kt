@@ -4,7 +4,6 @@ import LocalPlayerState
 import androidx.compose.animation.*
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.lazy.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
@@ -12,21 +11,28 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.rotate
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import dev.toastbits.composekit.platform.composable.platformClickableWithOffset
-import dev.toastbits.composekit.settings.ui.Theme
 import dev.toastbits.composekit.utils.common.*
 import dev.toastbits.composekit.utils.composable.*
 import com.toasterofbread.spmp.platform.*
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.vertical
+import dev.toastbits.composekit.settings.ui.ThemeValues
+import dev.toastbits.composekit.settings.ui.vibrant_accent
 import kotlin.math.roundToInt
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.content_bar_editor_pick_template
+import spmp.shared.generated.resources.content_bar_editor_no_elements_added
+import spmp.shared.generated.resources.`content_bar_editor_configure_element_$x`
+import spmp.shared.generated.resources.content_bar_editor_move_element
+import spmp.shared.generated.resources.content_bar_editor_add_element
+import spmp.shared.generated.resources.content_bar_editor_bar_name
+import spmp.shared.generated.resources.content_bar_editor_bar_size
 
 private const val BAR_SIZE_DP_STEP: Float = 10f
 private const val PREVIEW_BAR_SIZE_DP: Float = 60f
@@ -252,7 +258,7 @@ internal abstract class CustomContentBarEditor() {
                     modifier = Modifier.align(Alignment.CenterVertically)
                 ) {
                     Icon(Icons.Default.ViewQuilt, null, Modifier.padding(end = 10.dp))
-                    Text(getString("content_bar_editor_pick_template"), softWrap = false)
+                    Text(stringResource(Res.string.content_bar_editor_pick_template), softWrap = false)
                 }
             }
         }
@@ -275,7 +281,7 @@ internal abstract class CustomContentBarEditor() {
             bar.CustomBarContent(
                 scrolling = !vertical_bar,
                 vertical = vertical_bar,
-                background_colour = Theme.Colour.BACKGROUND,
+                background_colour = ThemeValues.Colour.BACKGROUND,
                 content_padding = PaddingValues(),
                 apply_size = false,
                 always_display = true,
@@ -327,7 +333,7 @@ internal abstract class CustomContentBarEditor() {
 
             if (bar.elements.isEmpty()) {
                 Text(
-                    getString("content_bar_editor_no_elements_added"),
+                    stringResource(Res.string.content_bar_editor_no_elements_added),
                     Modifier
                         .align(Alignment.Center)
                         .thenIf(vertical_bar) {
@@ -356,7 +362,7 @@ internal abstract class CustomContentBarEditor() {
                 verticalArrangement = Arrangement.spacedBy(5.dp)
             ) {
                 WidthShrinkText(
-                    getString("content_bar_editor_configure_element_\$x").replace("\$x", (index + 1).toString()),
+                    stringResource(Res.string.`content_bar_editor_configure_element_$x`).replace("\$x", (index + 1).toString()),
                     Modifier.align(Alignment.CenterVertically),
                     style = MaterialTheme.typography.headlineSmall
                 )
@@ -367,7 +373,7 @@ internal abstract class CustomContentBarEditor() {
                     horizontalArrangement = Arrangement.spacedBy(5.dp)
                 ) {
                     Text(
-                        getString("content_bar_editor_move_element"),
+                        stringResource(Res.string.content_bar_editor_move_element),
                         Modifier.align(Alignment.CenterVertically),
                         softWrap = false
                     )
@@ -405,7 +411,7 @@ private fun BarConfig(bar: CustomContentBar, onEdit: (CustomContentBar) -> Unit)
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(30.dp)
         ) {
-            Text(getString("content_bar_editor_bar_name"))
+            Text(stringResource(Res.string.content_bar_editor_bar_name))
 
             TextField(
                 bar.bar_name,
@@ -420,7 +426,7 @@ private fun BarConfig(bar: CustomContentBar, onEdit: (CustomContentBar) -> Unit)
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            Text(getString("content_bar_editor_bar_size"))
+            Text(stringResource(Res.string.content_bar_editor_bar_size))
             Spacer(Modifier.fillMaxWidth().weight(1f))
 
             IconButton({

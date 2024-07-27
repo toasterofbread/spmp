@@ -6,7 +6,6 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.sa
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.ytmkt.model.external.PlaylistEditor
-import java.io.IOException
 
 class LocalPlaylistEditor(
     val playlist: LocalPlaylist,
@@ -68,17 +67,23 @@ class LocalPlaylistEditor(
         data.items = items
         param_data?.items = items
 
-        val file: PlatformFile = MediaItemLibrary.getLocalPlaylistFile(playlist, context)
+        val file: PlatformFile =
+            MediaItemLibrary.getLocalPlaylistFile(playlist, context)
+            ?: return Result.success(Unit)
+
         return data.saveToFile(file, context)
     }
 
     override suspend fun performDeletion(): Result<Unit> {
-        val file: PlatformFile = MediaItemLibrary.getLocalPlaylistFile(playlist, context)
+        val file: PlatformFile =
+            MediaItemLibrary.getLocalPlaylistFile(playlist, context)
+            ?: return Result.success(Unit)
+
         if (file.delete()) {
             return Result.success(Unit)
         }
         else {
-            return Result.failure(IOException("Failed to delete file at ${file.absolute_path}"))
+            return Result.failure(RuntimeException("Failed to delete file at ${file.absolute_path}"))
         }
     }
 }

@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.song
 
-import dev.toastbits.composekit.utils.common.lazyAssert
+import dev.toastbits.composekit.platform.lazyAssert
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider

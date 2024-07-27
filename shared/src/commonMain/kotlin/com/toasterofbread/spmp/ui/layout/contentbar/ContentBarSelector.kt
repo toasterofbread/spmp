@@ -30,7 +30,6 @@ import dev.toastbits.composekit.utils.common.*
 import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.modifier.background
 import dev.toastbits.composekit.utils.composable.NoRipple
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.*
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
@@ -40,9 +39,22 @@ import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.rememberColourSource
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.vertical
 import com.toasterofbread.spmp.ui.theme.appHover
+import dev.toastbits.composekit.settings.ui.vibrant_accent
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.Json
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_close
+import spmp.shared.generated.resources.content_bar_empty
+import spmp.shared.generated.resources.action_cancel
+import spmp.shared.generated.resources.content_bar_empty
+import spmp.shared.generated.resources.content_bar_selection
+import spmp.shared.generated.resources.content_bar_selection_list_built_in
+import spmp.shared.generated.resources.content_bar_selection_list_custom
+import spmp.shared.generated.resources.content_bar_selection_create_new
 
 @Composable
 internal fun ContentBarSelector(
@@ -136,6 +148,7 @@ private fun ContentBarSelectorMainRow(
     modifier: Modifier = Modifier
 ) {
     val player: PlayerState = LocalPlayerState.current
+    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
     val content_bar: ContentBar? by slot.observeContentBar()
 
     var show_bar_selector: Boolean by remember { mutableStateOf(false) }
@@ -150,7 +163,9 @@ private fun ContentBarSelectorMainRow(
                 .heightIn(max = player.screen_size.height * 0.8f),
             onSelected = { bar ->
                 show_bar_selector = false
-                state.onBarSelected(slot, bar)
+                coroutine_scope.launch {
+                    state.onBarSelected(slot, bar)
+                }
             },
             onDismissed = {
                 show_bar_selector = false
@@ -163,7 +178,7 @@ private fun ContentBarSelectorMainRow(
             onDismissRequest = { show_slot_config = false },
             confirmButton = {
                 Button({ show_slot_config = false }) {
-                    Text(getString("action_close"))
+                    Text(stringResource(Res.string.action_close))
                 }
             },
             title = { Text(slot.getName()) },
@@ -204,7 +219,7 @@ private fun ContentBarSelectorMainRow(
                 Text(bar.getName(), lineHeight = 10.sp)
             }
             else {
-                Text(getString("content_bar_empty"))
+                Text(stringResource(Res.string.content_bar_empty))
             }
         }
     }
@@ -253,17 +268,17 @@ private fun BarSelectorPopup(
                 ),
                 modifier = Modifier.appHover(true)
             ) {
-                Text(getString("action_cancel"))
+                Text(stringResource(Res.string.action_cancel))
             }
         },
         dismissButton = {
             Button({ onSelected(null) }) {
                 Icon(Icons.Default.Close, null)
-                Text(getString("content_bar_empty"))
+                Text(stringResource(Res.string.content_bar_empty))
             }
         },
         title = {
-            Text(getString("content_bar_selection"))
+            Text(stringResource(Res.string.content_bar_selection))
         },
         text = {
             FlowRow(
@@ -273,7 +288,7 @@ private fun BarSelectorPopup(
             ) {
                 ContentBarList(
                     state.built_in_bars,
-                    getString("content_bar_selection_list_built_in")
+                    stringResource(Res.string.content_bar_selection_list_built_in)
                 ) {
                     onSelected(state.built_in_bars[it])
                 }
@@ -299,22 +314,25 @@ internal fun CustomBarsContentBarList(
     bar_background_colour: Color? = null
 ) {
     val player: PlayerState = LocalPlayerState.current
+    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     ContentBarList(
         state.custom_bars,
-        getString("content_bar_selection_list_custom"),
+        stringResource(Res.string.content_bar_selection_list_custom),
         modifier,
         topContent = {
             val background_colour: Color = player.theme.vibrant_accent
             CompositionLocalProvider(LocalContentColor provides background_colour.getContrasted()) {
                 ContentBarPreview(
-                    getString("content_bar_selection_create_new"),
+                    stringResource(Res.string.content_bar_selection_create_new),
                     null,
                     Icons.Default.Add,
                     Modifier
                         .contentBarPreview(background_colour = background_colour)
                         .clickable {
-                            state.createCustomBar()
+                            coroutine_scope.launch {
+                                state.createCustomBar()
+                            }
                         }
                 )
             }
@@ -333,7 +351,9 @@ internal fun CustomBarsContentBarList(
 
                 IconButton(
                     {
-                        state.deleteCustomBar(state.custom_bars[index])
+                        coroutine_scope.launch {
+                            state.deleteCustomBar(state.custom_bars[index])
+                        }
                     }
                 ) {
                     Icon(Icons.Default.Delete, null)
@@ -362,7 +382,7 @@ internal fun ContentBarList(
     val player: PlayerState = LocalPlayerState.current
     val custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
     val bars: List<ContentBar> = remember(bar_references, custom_bars) {
-        bar_references.mapNotNull { it.getBar(player.context, custom_bars) }
+        bar_references.mapNotNull { it.getBar(custom_bars) }
     }
 
     Column(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {

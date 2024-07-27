@@ -12,6 +12,16 @@ import java.io.IOException
 import javax.imageio.ImageIO
 import dev.toastbits.composekit.utils.common.sortedByHue
 
+actual fun createImageBitmapUtil(): ImageBitmapUtil? = DesktopImageBitmapUtil()
+
+class DesktopImageBitmapUtil(): ImageBitmapUtil {
+    override fun scale(image: ImageBitmap, width: Int, height: Int): ImageBitmap =
+        image.scale(width, height)
+
+    override fun generatePalette(image: ImageBitmap, max_amount: Int): List<Color> =
+        image.generatePalette(max_amount)
+}
+
 actual fun ByteArray.toImageBitmap(): ImageBitmap =
     Image.makeFromEncoded(this).toComposeImageBitmap()
 
@@ -39,7 +49,7 @@ fun ImageBitmap.toScaledBufferedImage(width: Int, height: Int): BufferedImage {
     return buffered
 }
 
-actual fun ImageBitmap.scale(width: Int, height: Int): ImageBitmap {
+fun ImageBitmap.scale(width: Int, height: Int): ImageBitmap {
     val scaled = toScaledBufferedImage(width, height)
     val stream = ByteArrayOutputStream()
     try {
@@ -51,7 +61,7 @@ actual fun ImageBitmap.scale(width: Int, height: Int): ImageBitmap {
     return this
 }
 
-actual fun ImageBitmap.generatePalette(max_amount: Int): List<Color> {
+fun ImageBitmap.generatePalette(max_amount: Int): List<Color> {
     require(max_amount in 2..256)
 
     val scaled = toScaledBufferedImage(50, 50)

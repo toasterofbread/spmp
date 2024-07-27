@@ -10,6 +10,16 @@ import androidx.palette.graphics.Palette
 import java.io.ByteArrayOutputStream
 import dev.toastbits.composekit.utils.common.sortedByHue
 
+actual fun createImageBitmapUtil(): ImageBitmapUtil? = AndroidImageBitmapUtil()
+
+class AndroidImageBitmapUtil(): ImageBitmapUtil {
+    override fun scale(image: ImageBitmap, width: Int, height: Int): ImageBitmap =
+        image.scale(width, height)
+
+    override fun generatePalette(image: ImageBitmap, max_amount: Int): List<Color> =
+        image.generatePalette(max_amount)
+}
+
 actual fun ByteArray.toImageBitmap(): ImageBitmap =
     BitmapFactory.decodeByteArray(this, 0, size).asImageBitmap()
 
@@ -25,7 +35,7 @@ actual fun ImageBitmap.crop(x: Int, y: Int, width: Int, height: Int): ImageBitma
 actual fun ImageBitmap.getPixel(x: Int, y: Int): Color =
     Color(asAndroidBitmap().getPixel(x, y))
 
-actual fun ImageBitmap.scale(width: Int, height: Int): ImageBitmap =
+fun ImageBitmap.scale(width: Int, height: Int): ImageBitmap =
     Bitmap.createScaledBitmap(this.asAndroidBitmap(), width, height, false).asImageBitmap()
 
 fun Palette.getColour(type: Int): Color? {
@@ -47,7 +57,7 @@ fun Palette.getColour(type: Int): Color? {
     return Color(colour)
 }
 
-actual fun ImageBitmap.generatePalette(max_amount: Int): List<Color> {
+fun ImageBitmap.generatePalette(max_amount: Int): List<Color> {
     require(max_amount >= 0)
 
     val palette = Palette.from(this.asAndroidBitmap()).clearFilters().generate()

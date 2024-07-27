@@ -148,8 +148,8 @@ internal fun ArtistAppPage.LFFArtistEndPane(
                             }
 
                             val is_singles: Boolean =
-                                player.settings.behaviour.TREAT_SINGLES_AS_SONG.get()
-                                    && layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
+                                player.settings.behaviour.TREAT_SINGLES_AS_SONG.observe().value
+                                && layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
 
                             val is_artist_row: Boolean =
                                 layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES || layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_OTHER

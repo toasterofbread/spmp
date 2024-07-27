@@ -22,6 +22,8 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.library.LibraryAppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
+import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.settings.ui.vibrant_accent
 import dev.toastbits.composekit.utils.common.*
 import dev.toastbits.composekit.utils.composable.*
 import dev.toastbits.composekit.utils.modifier.*

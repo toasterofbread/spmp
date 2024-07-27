@@ -1,19 +1,34 @@
 package com.toasterofbread.spmp.platform.playerservice
 
+import androidx.compose.runtime.Composable
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import dev.toastbits.spms.server.SpMs
+import dev.toastbits.spms.getMachineId
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.warning_server_unavailable
+import spmp.shared.generated.resources.server_missing_files_splitter
 
 private const val POLL_INTERVAL: Long = 100
 private const val CLIENT_REPLY_ATTEMPTS: Int = 10
 
 actual object LocalServer {
-    private fun createServer(): SpMs = SpMs(headless = false, enable_gui = false)
+    private fun createServer(): SpMs =
+        SpMs(
+            headless = false,
+            enable_gui = false,
+            machine_id = getMachineId()!!
+        )
 
+    actual fun isAvailable(): Boolean =
+        SpMs.isAvailable(headless = false)
+
+    @Composable
     actual fun getLocalServerUnavailabilityReason(): String? {
         val server: SpMs =
             try {
@@ -23,7 +38,13 @@ actual object LocalServer {
                 val split_message: List<String> = e.cause?.message?.split(" ") ?: emptyList()
                 val missing_files: List<String> = split_message.filter { it.endsWith(".so") || it.endsWith(".dll") }
 
-                return getString("warning_server_unavailable") + missing_files.joinToString(getString("server_missing_files_splitter"))
+                return stringResource(Res.string.warning_server_unavailable) + missing_files.joinToString(stringResource(Res.string.server_missing_files_splitter))
+            }
+            catch (e: UnsatisfiedLinkError) {
+                val message: String = e.message ?: "NO MESSAGE"
+                val end_index: Int = message.indexOf("in java.library.path")
+                val missing_files: List<String> = listOf(message.substring(3, end_index))
+                return stringResource(Res.string.warning_server_unavailable) + missing_files.joinToString(stringResource(Res.string.server_missing_files_splitter))
             }
 
         server.release()
@@ -34,7 +55,12 @@ actual object LocalServer {
         context: AppContext,
         port: Int
     ): Job {
-        val server: SpMs = SpMs(headless = false, enable_gui = false)
+        val server: SpMs =
+            SpMs(
+                headless = false,
+                enable_gui = false,
+                machine_id = getMachineId()!!
+            )
 
         server.bind(port)
 

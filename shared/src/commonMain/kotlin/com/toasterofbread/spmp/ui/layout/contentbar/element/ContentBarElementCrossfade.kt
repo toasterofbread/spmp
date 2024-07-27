@@ -37,7 +37,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.Dp
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
@@ -46,6 +45,9 @@ import com.toasterofbread.spmp.ui.theme.appHover
 import dev.toastbits.composekit.platform.composable.platformClickable
 import dev.toastbits.composekit.platform.PlatformContext
 import dev.toastbits.composekit.utils.composable.AlignableCrossfade
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.content_bar_element_content_bar_config_bar
 
 @Serializable
 data class ContentBarElementCrossfade(
@@ -115,17 +117,9 @@ data class ContentBarElementCrossfade(
         val player: PlayerState = LocalPlayerState.current
         var show_element_selector: Boolean by remember { mutableStateOf(false) }
 
-        val internal_bars: List<ContentBarReference> = remember {
-            InternalContentBar.ALL.map { bar ->
-                ContentBarReference.ofInternalBar(bar)
-            } + CustomContentBarTemplate.entries.map { template ->
-                ContentBarReference.ofTemplate(template)
-            }
-        }
-
         Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             Text(
-                getString("content_bar_element_content_bar_config_bar"),
+                stringResource(Res.string.content_bar_element_content_bar_config_bar),
                 softWrap = false
             )
 

@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.queue
 
 import LocalPlayerState
+import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.foundation.gestures.Orientation
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -33,7 +34,7 @@ import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.modifier.background
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.getUiLanguage
-import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -44,6 +45,11 @@ import dev.toastbits.ytmkt.uistrings.durationToString
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorder
 import kotlin.math.roundToInt
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.lpm_song_now_playing
+import spmp.shared.generated.resources.`lpm_song_played_$x_ago`
+import spmp.shared.generated.resources.`lpm_song_playing_in_$x`
 
 @Composable
 fun TouchSlopScope(getTouchSlop: ViewConfiguration.() -> Float, content: @Composable (ViewConfiguration) -> Unit) {
@@ -77,7 +83,8 @@ class QueueTabItem(val song: Song, val key: Int) {
                 },
                 positionalThreshold = { it * 0.2f },
                 velocityThreshold = { with (density) { 100.dp.toPx() } },
-                animationSpec = tween()
+                snapAnimationSpec = tween(),
+                decayAnimationSpec = exponentialDecay()
             )
         }
         var removed by remember { mutableStateOf(false) }
@@ -97,7 +104,7 @@ class QueueTabItem(val song: Song, val key: Int) {
         val player = LocalPlayerState.current
         val playing_index = player.status.m_index
         if (index == playing_index) {
-            return getString("lpm_song_now_playing")
+            return stringResource(Res.string.lpm_song_now_playing)
         }
 
         val service = player.controller ?: return null
@@ -111,11 +118,15 @@ class QueueTabItem(val song: Song, val key: Int) {
             delta += duration
         }
 
-        return remember(delta) {
+        val `lpm_song_played_$x_ago`: String = stringResource(Res.string.`lpm_song_played_$x_ago`)
+        val `lpm_song_playing_in_$x`: String = stringResource(Res.string.`lpm_song_playing_in_$x`)
+        val ui_langauge: String by player.context.observeUiLanguage()
+
+        return remember(delta, ui_langauge) {
             (
-                if (index < playing_index) getString("lpm_song_played_\$x_ago")
-                else getString("lpm_song_playing_in_\$x")
-            ).replace("\$x", durationToString(delta, player.context.getUiLanguage(), true))
+                if (index < playing_index) `lpm_song_played_$x_ago`
+                else `lpm_song_playing_in_$x`
+            ).replace("\$x", durationToString(delta, ui_langauge, true))
         }
     }
 

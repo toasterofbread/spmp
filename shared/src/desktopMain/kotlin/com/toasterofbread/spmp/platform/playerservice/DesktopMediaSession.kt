@@ -4,12 +4,12 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
 import com.toasterofbread.spmp.platform.PlayerListener
-import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.db.Database
 import dev.toastbits.mediasession.MediaSession
 import dev.toastbits.mediasession.MediaSessionMetadata
 import dev.toastbits.mediasession.MediaSessionPlaybackStatus
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
+import kotlinx.coroutines.launch
 
 internal fun createDesktopMediaSession(service: PlayerService): MediaSession? {
     val session: MediaSession? =
@@ -96,17 +96,19 @@ private fun MediaSession.onSongChanged(song: Song?, service: PlayerService) {
     val album: Playlist? = song?.Album?.get(db)
     val album_items: List<Song>? = album?.Items?.get(db)
 
-    setMetadata(
-        MediaSessionMetadata(
-            length_ms = service.duration_ms,
-            art_url = song?.ThumbnailProvider?.get(db)?.getThumbnailUrl(ThumbnailProvider.Quality.HIGH),
-            album = album?.getActiveTitle(db),
-            album_artists = album?.Artists?.get(db)?.firstOrNull()?.getActiveTitle(db)?.let { listOf(it) },
-            artist = song?.Artists?.get(db)?.firstOrNull()?.getActiveTitle(db),
-            title = song?.getActiveTitle(db),
-            url = song?.getURL(service.context),
-            use_count = song?.getPlayCount(db),
-            track_number = album_items?.indexOfFirst { it.id == song?.id }
+    service.context.coroutine_scope.launch {
+        setMetadata(
+            MediaSessionMetadata(
+                length_ms = service.duration_ms,
+                art_url = song?.ThumbnailProvider?.get(db)?.getThumbnailUrl(ThumbnailProvider.Quality.HIGH),
+                album = album?.getActiveTitle(db),
+                album_artists = album?.Artists?.get(db)?.firstOrNull()?.getActiveTitle(db)?.let { listOf(it) },
+                artist = song?.Artists?.get(db)?.firstOrNull()?.getActiveTitle(db),
+                title = song?.getActiveTitle(db),
+                url = song?.getUrl(service.context),
+                use_count = song?.getPlayCount(db),
+                track_number = album_items?.indexOfFirst { it.id == song?.id }
+            )
         )
-    )
+    }
 }

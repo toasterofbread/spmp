@@ -13,6 +13,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import dev.toastbits.ytmkt.endpoint.RadioBuilderModifier
 import dev.toastbits.ytmkt.radio.RadioContinuation
 import kotlinx.coroutines.*
+import PlatformIO
 
 internal typealias RadioFilter = List<RadioBuilderModifier>
 
@@ -87,7 +88,7 @@ abstract class RadioInstance(val context: AppContext) {
         is_loading = true
         load_error = null
 
-        coroutine_scope.launchSingle(Dispatchers.IO) {
+        coroutine_scope.launchSingle(Dispatchers.PlatformIO) {
             val load_result: Result<RadioLoadResult?> = current_state.loadContinuation(context)
 
             val processed_songs: List<Song>? =
@@ -178,18 +179,18 @@ abstract class RadioInstance(val context: AppContext) {
         is_loading = false
     }
 
-    private fun processLoadedSongs(songs: List<Song>): List<Song> {
-        val filtered: List<Song> =
-            context.database.transactionWithResult {
-                songs.filter { song ->
-                    if (song is MediaItemData) {
-                        song.saveToDatabase(context.database, subitems_uncertain = true)
-                    }
-                    return@filter !isMediaItemHidden(song, context)
+    private suspend fun processLoadedSongs(songs: List<Song>): List<Song> {
+        context.database.transaction {
+            for (song in songs) {
+                if (song is MediaItemData) {
+                    song.saveToDatabase(context.database, subitems_uncertain = true)
                 }
             }
+        }
 
-        return filtered
+        return songs.filter { song ->
+            !isMediaItemHidden(song, context)
+        }
     }
 
     override fun toString(): String =

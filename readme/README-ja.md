@@ -101,7 +101,7 @@ Pull requestと機能の提案は歓迎です！これは僕の初めてのCompo
 - [KizzyRPC](https://github.com/dead8309/KizzyRPC): Discordステータス機能
 - [ComposeReorderable](https://github.com/aclassen/ComposeReorderable): 曲キューなどの順序変更可能なリスト
 - [compose-color-picker](https://github.com/godaddy/compose-color-picker): テーマエディター内のカラーセレクター
-- [Catppuccin](https://github.com/catppuccin/java): テーマがアプリのにオプションに含まれています
+- [Catppuccin](https://github.com/d1snin/catppuccin-kotlin): テーマがアプリのにオプションに含まれています
 
 ## 免責事項
 このプロジェクトおよびその内容は、YouTube、Google LLC、またはそれらの関連会社といかなる関連性も持っておらず、それらによって承認されたものではありません。

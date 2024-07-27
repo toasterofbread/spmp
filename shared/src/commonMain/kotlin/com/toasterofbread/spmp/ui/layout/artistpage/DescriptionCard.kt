@@ -40,7 +40,6 @@ import dev.toastbits.composekit.utils.common.blendWith
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.composable.LinkifyText
 import dev.toastbits.composekit.utils.composable.NoRipple
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 
 @Composable

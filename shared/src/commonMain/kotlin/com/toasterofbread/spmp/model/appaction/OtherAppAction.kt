@@ -16,11 +16,18 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.resources.getString
 import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.composable.onWindowBackPressed
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.appaction_config_other_action
+import spmp.shared.generated.resources.appaction_other_action_navigate_back
+import spmp.shared.generated.resources.appaction_other_action_toggle_fullscreen
+import spmp.shared.generated.resources.appaction_other_action_reload_page
+import spmp.shared.generated.resources.appaction_other_action_increase_ui_scale
+import spmp.shared.generated.resources.appaction_other_action_decrease_ui_scale
 
 @Serializable
 data class OtherAppAction(
@@ -76,7 +83,7 @@ data class OtherAppAction(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                getString("appaction_config_other_action"),
+                stringResource(Res.string.appaction_config_other_action),
                 Modifier.align(Alignment.CenterVertically),
                 softWrap = false
             )
@@ -99,13 +106,14 @@ data class OtherAppAction(
             val AVAILABLE: List<Action> get() = entries.filter { it.isAvailable() }
         }
 
+        @Composable
         fun getName(): String =
             when (this) {
-                NAVIGATE_BACK -> getString("appaction_other_action_navigate_back")
-                TOGGLE_FULLSCREEN -> getString("appaction_other_action_toggle_fullscreen")
-                RELOAD_PAGE -> getString("appaction_other_action_reload_page")
-                INCREASE_UI_SCALE -> getString("appaction_other_action_increase_ui_scale")
-                DECREASE_UI_SCALE -> getString("appaction_other_action_decrease_ui_scale")
+                NAVIGATE_BACK -> stringResource(Res.string.appaction_other_action_navigate_back)
+                TOGGLE_FULLSCREEN -> stringResource(Res.string.appaction_other_action_toggle_fullscreen)
+                RELOAD_PAGE -> stringResource(Res.string.appaction_other_action_reload_page)
+                INCREASE_UI_SCALE -> stringResource(Res.string.appaction_other_action_increase_ui_scale)
+                DECREASE_UI_SCALE -> stringResource(Res.string.appaction_other_action_decrease_ui_scale)
             }
 
         fun getIcon(): ImageVector =

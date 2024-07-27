@@ -8,11 +8,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.platform.AppContext
 import LocalProgramArguments
 import LocalPlayerState
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.loading_splash_button_launch_without_server
 
 internal class HeadlessExternalPlayerService: ExternalPlayerService(plays_audio = false), PlayerService {
     @Composable
@@ -39,7 +41,7 @@ internal class HeadlessExternalPlayerService: ExternalPlayerService(plays_audio 
                 },
                 item_modifier
             ) {
-                Text(getString("loading_splash_button_launch_without_server"))
+                Text(stringResource(Res.string.loading_splash_button_launch_without_server))
             }
         }
     }

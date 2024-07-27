@@ -6,6 +6,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import dev.toastbits.composekit.platform.ReentrantLock
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Deferred
@@ -13,8 +14,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
+import dev.toastbits.composekit.platform.synchronized
 
 internal abstract class ListenerLoader<K, V>: BasicLoader<K, V>() {
     protected abstract val listeners: MutableList<Listener<K, V>>
@@ -94,7 +94,7 @@ internal abstract class ItemStateLoader<K, V>: ListenerLoader<K, V>() {
 }
 
 internal abstract class Loader<V> {
-    protected val lock = ReentrantLock()
+    protected val lock: ReentrantLock = ReentrantLock()
 
     abstract class LoadJob<V> {
         private var awaiting_count: Int = 0

@@ -1,11 +1,9 @@
 package com.toasterofbread.spmp.ui.layout.contentbar.layoutslot
 
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.InternalContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBarTemplate
 import com.toasterofbread.spmp.platform.AppContext
-import dev.toastbits.composekit.settings.ui.Theme
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
@@ -16,11 +14,20 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.Switch
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.layout_slot_portrait_upper_top_bar
+import spmp.shared.generated.resources.layout_slot_portrait_lower_top_bar
+import spmp.shared.generated.resources.layout_slot_portrait_above_player
+import spmp.shared.generated.resources.layout_slot_portrait_below_player
+import spmp.shared.generated.resources.layout_slot_portrait_player_top
+import spmp.shared.generated.resources.layout_slot_config_portrait_player_top_show_in_queue
 
 enum class PortraitLayoutSlot: LayoutSlot {
     UPPER_TOP_BAR,
@@ -44,13 +51,14 @@ enum class PortraitLayoutSlot: LayoutSlot {
 
     override fun getKey(): String = name
 
+    @Composable
     override fun getName(): String =
         when (this) {
-            UPPER_TOP_BAR -> getString("layout_slot_portrait_upper_top_bar")
-            LOWER_TOP_BAR -> getString("layout_slot_portrait_lower_top_bar")
-            ABOVE_PLAYER -> getString("layout_slot_portrait_above_player")
-            BELOW_PLAYER -> getString("layout_slot_portrait_below_player")
-            PLAYER_TOP -> getString("layout_slot_portrait_player_top")
+            UPPER_TOP_BAR -> stringResource(Res.string.layout_slot_portrait_upper_top_bar)
+            LOWER_TOP_BAR -> stringResource(Res.string.layout_slot_portrait_lower_top_bar)
+            ABOVE_PLAYER -> stringResource(Res.string.layout_slot_portrait_above_player)
+            BELOW_PLAYER -> stringResource(Res.string.layout_slot_portrait_below_player)
+            PLAYER_TOP -> stringResource(Res.string.layout_slot_portrait_player_top)
         }
 
     override fun getDefaultContentBar(): ContentBar? =
@@ -62,12 +70,12 @@ enum class PortraitLayoutSlot: LayoutSlot {
             PLAYER_TOP -> CustomContentBarTemplate.LYRICS.getContentBar()
         }
 
-    override fun getDefaultBackgroundColour(theme: Theme): ColourSource =
+    override fun getDefaultBackgroundColour(theme: ThemeValues): ColourSource =
         when (this) {
-            UPPER_TOP_BAR -> ThemeColourSource(Theme.Colour.BACKGROUND)
-            LOWER_TOP_BAR -> ThemeColourSource(Theme.Colour.BACKGROUND)
+            UPPER_TOP_BAR -> ThemeColourSource(ThemeValues.Colour.BACKGROUND)
+            LOWER_TOP_BAR -> ThemeColourSource(ThemeValues.Colour.BACKGROUND)
             ABOVE_PLAYER -> CustomColourSource(Color.Transparent)
-            BELOW_PLAYER -> ThemeColourSource(Theme.Colour.ACCENT)
+            BELOW_PLAYER -> ThemeColourSource(ThemeValues.Colour.ACCENT)
             PLAYER_TOP -> CustomColourSource(Color.Transparent)
         }
 
@@ -99,7 +107,7 @@ enum class PortraitLayoutSlot: LayoutSlot {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(getString("layout_slot_config_portrait_player_top_show_in_queue"))
+            Text(stringResource(Res.string.layout_slot_config_portrait_player_top_show_in_queue))
 
             Switch(
                 config.show_in_queue,

@@ -60,9 +60,11 @@ import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.composable.getStart
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.playlist_chip_play
 
 private const val PLAYLIST_IMAGE_MIN_HEIGHT_DP: Float = 120f
 
@@ -84,7 +86,7 @@ internal fun PlaylistAppPage.PlaylistTopInfo(items: List<MediaItem>?, modifier: 
     LaunchedEffect(split_position, width) {
         show_image = split_position * width >= PLAYLIST_IMAGE_MIN_HEIGHT_DP.dp
     }
-    
+
     Row(
         modifier
             .height(IntrinsicSize.Max)
@@ -243,7 +245,7 @@ internal fun PlaylistAppPage.PlaylistTopInfo(items: List<MediaItem>?, modifier: 
                 shape = shape
             ) {
                 Icon(Icons.Default.PlayArrow, null)
-                Text(getString("playlist_chip_play"))
+                Text(stringResource(Res.string.playlist_chip_play))
             }
         }
     }

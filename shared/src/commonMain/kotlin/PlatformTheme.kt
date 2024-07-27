@@ -1,5 +1,5 @@
 import androidx.compose.runtime.Composable
-import dev.toastbits.composekit.settings.ui.Theme
+import dev.toastbits.composekit.settings.ui.ThemeValues
 
 @Composable
-internal expect fun PlatformTheme(theme: Theme, content: @Composable () -> Unit)
+internal expect fun PlatformTheme(theme: ThemeValues, content: @Composable () -> Unit)

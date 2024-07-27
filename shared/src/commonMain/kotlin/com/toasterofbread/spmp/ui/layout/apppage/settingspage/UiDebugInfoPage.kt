@@ -27,8 +27,10 @@ import dev.toastbits.composekit.settings.ui.item.ComposableSettingsItem
 import dev.toastbits.composekit.utils.common.roundTo
 import dev.toastbits.composekit.utils.composable.RecomposeOnInterval
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.s_subpage_ui_debug_info
 
 @Composable
 private fun SizeIndicator(
@@ -77,7 +79,7 @@ private fun SizeIndicator(
 
 fun getUiDebugInfoPage(): SettingsPage =
     SettingsPageWithItems(
-        { getString("s_subpage_ui_debug_info") },
+        { stringResource(Res.string.s_subpage_ui_debug_info) },
         {
             listOf(
                 ComposableSettingsItem {

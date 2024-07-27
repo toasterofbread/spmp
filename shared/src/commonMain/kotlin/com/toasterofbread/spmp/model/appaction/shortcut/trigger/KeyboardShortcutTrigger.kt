@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.ui.component.shortcut.trigger
 import kotlinx.serialization.Serializable
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
 import com.toasterofbread.spmp.model.appaction.shortcut.LocalShortcutState
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.ShortcutTrigger
 import androidx.compose.ui.input.key.*
 import androidx.compose.ui.Modifier
@@ -15,6 +14,14 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Switch
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.shortcut_key_config_selected_key
+import spmp.shared.generated.resources.shortcut_key_config_detecting_key
+import spmp.shared.generated.resources.shortcut_key_modifier_ctrl
+import spmp.shared.generated.resources.shortcut_key_modifier_alt
+import spmp.shared.generated.resources.shortcut_key_modifier_shift
+import spmp.shared.generated.resources.shortcut_key_config_none_selected
 
 @Serializable
 data class KeyboardShortcutTrigger(
@@ -72,7 +79,7 @@ data class KeyboardShortcutTrigger(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                getString("shortcut_key_config_selected_key"),
+                stringResource(Res.string.shortcut_key_config_selected_key),
                 Modifier.align(Alignment.CenterVertically)
             )
 
@@ -80,7 +87,7 @@ data class KeyboardShortcutTrigger(
                 detecting_key = !detecting_key
             }) {
                 if (detecting_key) {
-                    Text(getString("shortcut_key_config_detecting_key"))
+                    Text(stringResource(Res.string.shortcut_key_config_detecting_key))
                 }
                 else {
                     Text(key.getName())
@@ -123,11 +130,12 @@ data class KeyboardShortcutTrigger(
                 SHIFT -> event.isShiftPressed
             }
 
+        @Composable
         fun getName(): String =
             when (this) {
-                CTRL -> getString("shortcut_key_modifier_ctrl")
-                ALT -> getString("shortcut_key_modifier_alt")
-                SHIFT -> getString("shortcut_key_modifier_shift")
+                CTRL -> stringResource(Res.string.shortcut_key_modifier_ctrl)
+                ALT -> stringResource(Res.string.shortcut_key_modifier_alt)
+                SHIFT -> stringResource(Res.string.shortcut_key_modifier_shift)
             }
 
         companion object {
@@ -142,9 +150,10 @@ data class KeyboardShortcutTrigger(
     }
 }
 
+@Composable
 private fun Key?.getName(): String {
     if (this == null) {
-        return getString("shortcut_key_config_none_selected")
+        return stringResource(Res.string.shortcut_key_config_none_selected)
     }
 
     val name: String = toString().removePrefix("Key: ")

@@ -24,11 +24,32 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
+import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.settings.ui.vibrant_accent
 import dev.toastbits.composekit.utils.composable.NoRipple
-import com.toasterofbread.spmp.resources.getString
 import dev.toastbits.ytmkt.endpoint.RadioBuilderModifier
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.radio_builder_modifier_selection_type
+import spmp.shared.generated.resources.radio_builder_modifier_variety
+import spmp.shared.generated.resources.radio_builder_modifier_filter_a
+import spmp.shared.generated.resources.radio_builder_modifier_filter_b
+import spmp.shared.generated.resources.radio_builder_modifier_variety_low
+import spmp.shared.generated.resources.radio_builder_modifier_variety_medium
+import spmp.shared.generated.resources.radio_builder_modifier_variety_high
+import spmp.shared.generated.resources.radio_builder_modifier_selection_type_familiar
+import spmp.shared.generated.resources.radio_builder_modifier_selection_type_blend
+import spmp.shared.generated.resources.radio_builder_modifier_selection_type_discover
+import spmp.shared.generated.resources.radio_builder_modifier_filter_a_popular
+import spmp.shared.generated.resources.radio_builder_modifier_filter_a_hidden
+import spmp.shared.generated.resources.radio_builder_modifier_filter_a_new
+import spmp.shared.generated.resources.radio_builder_modifier_filter_pump_up
+import spmp.shared.generated.resources.radio_builder_modifier_filter_chill
+import spmp.shared.generated.resources.radio_builder_modifier_filter_upbeat
+import spmp.shared.generated.resources.radio_builder_modifier_filter_downbeat
+import spmp.shared.generated.resources.radio_builder_modifier_filter_focus
 
 @Composable
 internal fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.SelectionType>) {
@@ -69,7 +90,7 @@ internal fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.Selection
                 .weight(1f),
             verticalArrangement = Arrangement.spacedBy(5.dp)
         ) {
-            Text(getString("radio_builder_modifier_selection_type"))
+            Text(stringResource(Res.string.radio_builder_modifier_selection_type))
 
             MultiSelectRow(
                 amount = RadioBuilderModifier.SelectionType.entries.size,
@@ -107,7 +128,7 @@ internal fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.Selection
 @Composable
 internal fun ArtistVarietyRow(state: MutableState<RadioBuilderModifier.Variety>) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        Text(getString("radio_builder_modifier_variety"))
+        Text(stringResource(Res.string.radio_builder_modifier_variety))
         MultiSelectRow(
             RadioBuilderModifier.Variety.entries.size,
             isSelected = { state.value.ordinal == it },
@@ -122,7 +143,7 @@ internal fun ArtistVarietyRow(state: MutableState<RadioBuilderModifier.Variety>)
 @Composable
 internal fun FilterARow(state: MutableState<RadioBuilderModifier.FilterA?>) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        Text(getString("radio_builder_modifier_filter_a"))
+        Text(stringResource(Res.string.radio_builder_modifier_filter_a))
         MultiSelectRow(
             RadioBuilderModifier.FilterA.entries.size,
             isSelected = { state.value?.ordinal == it },
@@ -138,7 +159,7 @@ internal fun FilterARow(state: MutableState<RadioBuilderModifier.FilterA?>) {
 @Composable
 internal fun FilterBRow(state: MutableState<RadioBuilderModifier.FilterB?>) {
     Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
-        Text(getString("radio_builder_modifier_filter_b"))
+        Text(stringResource(Res.string.radio_builder_modifier_filter_b))
         MultiSelectRow(
             RadioBuilderModifier.FilterB.entries.size,
             isSelected = { state.value?.ordinal == it },
@@ -159,7 +180,7 @@ internal fun MultiSelectRow(
     arrangement: Arrangement.Horizontal = Arrangement.spacedBy(10.dp),
     isSelected: (Int) -> Boolean,
     onSelected: (Int?) -> Unit,
-    getText: (Int) -> String,
+    getText: @Composable (Int) -> String,
     nullable: Boolean = false,
     button_padding: PaddingValues = ButtonDefaults.ContentPadding,
     columns: Int = amount,
@@ -219,25 +240,26 @@ internal fun MultiSelectRow(
     }
 }
 
+@Composable
 fun RadioBuilderModifier.getReadable(): String =
-    getString(
+    stringResource(
         when (this) {
-            RadioBuilderModifier.Variety.LOW -> "radio_builder_modifier_variety_low"
-            RadioBuilderModifier.Variety.MEDIUM -> "radio_builder_modifier_variety_medium"
-            RadioBuilderModifier.Variety.HIGH -> "radio_builder_modifier_variety_high"
-            RadioBuilderModifier.SelectionType.FAMILIAR -> "radio_builder_modifier_selection_type_familiar"
-            RadioBuilderModifier.SelectionType.BLEND -> "radio_builder_modifier_selection_type_blend"
-            RadioBuilderModifier.SelectionType.DISCOVER -> "radio_builder_modifier_selection_type_discover"
-            RadioBuilderModifier.FilterA.POPULAR -> "radio_builder_modifier_filter_a_popular"
-            RadioBuilderModifier.FilterA.HIDDEN -> "radio_builder_modifier_filter_a_hidden"
-            RadioBuilderModifier.FilterA.NEW -> "radio_builder_modifier_filter_a_new"
-            RadioBuilderModifier.FilterB.PUMP_UP -> "radio_builder_modifier_filter_pump_up"
-            RadioBuilderModifier.FilterB.CHILL -> "radio_builder_modifier_filter_chill"
-            RadioBuilderModifier.FilterB.UPBEAT -> "radio_builder_modifier_filter_upbeat"
-            RadioBuilderModifier.FilterB.DOWNBEAT -> "radio_builder_modifier_filter_downbeat"
-            RadioBuilderModifier.FilterB.FOCUS -> "radio_builder_modifier_filter_focus"
+            RadioBuilderModifier.Variety.LOW -> Res.string.radio_builder_modifier_variety_low
+            RadioBuilderModifier.Variety.MEDIUM -> Res.string.radio_builder_modifier_variety_medium
+            RadioBuilderModifier.Variety.HIGH -> Res.string.radio_builder_modifier_variety_high
+            RadioBuilderModifier.SelectionType.FAMILIAR -> Res.string.radio_builder_modifier_selection_type_familiar
+            RadioBuilderModifier.SelectionType.BLEND -> Res.string.radio_builder_modifier_selection_type_blend
+            RadioBuilderModifier.SelectionType.DISCOVER -> Res.string.radio_builder_modifier_selection_type_discover
+            RadioBuilderModifier.FilterA.POPULAR -> Res.string.radio_builder_modifier_filter_a_popular
+            RadioBuilderModifier.FilterA.HIDDEN -> Res.string.radio_builder_modifier_filter_a_hidden
+            RadioBuilderModifier.FilterA.NEW -> Res.string.radio_builder_modifier_filter_a_new
+            RadioBuilderModifier.FilterB.PUMP_UP -> Res.string.radio_builder_modifier_filter_pump_up
+            RadioBuilderModifier.FilterB.CHILL -> Res.string.radio_builder_modifier_filter_chill
+            RadioBuilderModifier.FilterB.UPBEAT -> Res.string.radio_builder_modifier_filter_upbeat
+            RadioBuilderModifier.FilterB.DOWNBEAT -> Res.string.radio_builder_modifier_filter_downbeat
+            RadioBuilderModifier.FilterB.FOCUS -> Res.string.radio_builder_modifier_filter_focus
 
-            RadioBuilderModifier.Internal.ARTIST -> throw IllegalAccessError(toString())
+            RadioBuilderModifier.Internal.ARTIST -> throw RuntimeException(toString())
         }
     )
 

@@ -4,6 +4,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
 import dev.toastbits.composekit.utils.common.synchronizedBlock
+import dev.toastbits.composekit.platform.assert
+import dev.toastbits.composekit.platform.synchronized
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 
 interface UndoRedoAction {

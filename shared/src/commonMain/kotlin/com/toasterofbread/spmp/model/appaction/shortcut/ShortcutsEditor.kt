@@ -24,12 +24,14 @@ import dev.toastbits.composekit.utils.composable.StickyHeightColumn
 import dev.toastbits.composekit.platform.composable.ScrollBarLazyRow
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.appaction.shortcut.getDefaultShortcuts
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.shortcut.ShortcutPreview
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import LocalPlayerState
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.s_key_navigate_song_with_numbers
 
 @Composable
 fun ShortcutsEditor(modifier: Modifier = Modifier) {
@@ -46,7 +48,7 @@ fun ShortcutsEditor(modifier: Modifier = Modifier) {
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            Text(getString("s_key_navigate_song_with_numbers"), Modifier.align(Alignment.CenterVertically))
+            Text(stringResource(Res.string.s_key_navigate_song_with_numbers), Modifier.align(Alignment.CenterVertically))
 
             Switch(
                 navigate_song_with_numbers,

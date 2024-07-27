@@ -53,6 +53,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 import androidx.compose.runtime.State
+import dev.toastbits.composekit.settings.ui.vibrant_accent
 
 val NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT: Dp
     @Composable get() = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
@@ -417,11 +418,13 @@ private fun PlayerQueueTab(
                 }
             }
     ) {
+        val np_theme_mode: ThemeMode by player.settings.theme.NOWPLAYING_THEME_MODE.observe()
+
         QueueTab(
             null,
             Modifier
                 .fillMaxSize()
-                .thenIf(player.np_theme_mode != ThemeMode.BACKGROUND) {
+                .thenIf(np_theme_mode != ThemeMode.BACKGROUND) {
                     border(
                         STROKE_WIDTH_DP.dp,
                         stroke_colour,
@@ -445,7 +448,7 @@ private fun PlayerQueueTab(
                 background_opacity
             },
             getOnBackgroundColour = {
-                when (player.np_theme_mode) {
+                when (np_theme_mode) {
                     ThemeMode.BACKGROUND -> theme.vibrant_accent
                     ThemeMode.ELEMENTS -> theme.accent
                     ThemeMode.NONE -> theme.on_background

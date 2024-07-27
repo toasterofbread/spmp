@@ -19,34 +19,33 @@ data class PlayerClickOverrides(
     val onAltClickOverride: PlayerOnLongClickedAction? = null
 ) {
     fun onMediaItemClicked(item: MediaItem, player: PlayerState, multiselect_key: Int? = null) {
-        if (onClickOverride != null) {
-            onClickOverride.invoke(item, multiselect_key)
-            return
-        }
+        player.coroutine_scope.launch {
+            if (onClickOverride != null) {
+                onClickOverride.invoke(item, multiselect_key)
+                return@launch
+            }
 
-        if (item is Song) {
-            player.playMediaItem(item)
-            player.onPlayActionOccurred()
-        }
-        else if (
-            item is Playlist
-            && player.settings.behaviour.TREAT_SINGLES_AS_SONG.get()
-            && player.settings.behaviour.TREAT_ANY_SINGLE_ITEM_PLAYLIST_AS_SINGLE.get()
+            if (item is Song) {
+                player.playMediaItem(item)
+                player.onPlayActionOccurred()
+            } else if (
+                item is Playlist
+                && player.settings.behaviour.TREAT_SINGLES_AS_SONG.get()
+                && player.settings.behaviour.TREAT_ANY_SINGLE_ITEM_PLAYLIST_AS_SINGLE.get()
             ) {
-            player.coroutine_scope.launch {
-                item.loadData(player.context).onSuccess { data ->
-                    val single = data.items?.singleOrNull()
-                    if (single != null) {
-                        onMediaItemClicked(single, player)
-                    }
-                    else {
-                        player.openMediaItem(item)
+                player.coroutine_scope.launch {
+                    item.loadData(player.context).onSuccess { data ->
+                        val single = data.items?.singleOrNull()
+                        if (single != null) {
+                            onMediaItemClicked(single, player)
+                        } else {
+                            player.openMediaItem(item)
+                        }
                     }
                 }
+            } else {
+                player.openMediaItem(item)
             }
-        }
-        else {
-            player.openMediaItem(item)
         }
     }
 

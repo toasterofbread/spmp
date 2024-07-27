@@ -15,9 +15,12 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.media_pause
+import spmp.shared.generated.resources.media_play
 
 @Composable
 fun ThumbnailRowControlButtons(
@@ -47,7 +50,7 @@ fun ThumbnailRowControlButtons(
             else {
                 if (rounded_icons) Icons.Rounded.PlayArrow else Icons.Default.PlayArrow
             },
-            getString(if (player.status.m_playing) "media_pause" else "media_play"),
+            stringResource(if (player.status.m_playing) Res.string.media_pause else Res.string.media_play),
             image_modifier,
             colorFilter = ColorFilter.tint(player.getNPOnBackground())
         )

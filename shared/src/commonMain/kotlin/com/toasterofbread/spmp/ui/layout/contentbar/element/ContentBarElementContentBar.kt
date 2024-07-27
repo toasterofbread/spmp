@@ -15,7 +15,6 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.TableRows
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.PinnedItemsList
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.ui.layout.contentbar.InternalContentBar
@@ -27,6 +26,13 @@ import com.toasterofbread.spmp.ui.theme.appHover
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.serialization.Serializable
 import LocalPlayerState
+import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBar
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_cancel
+import spmp.shared.generated.resources.content_bar_selection
+import spmp.shared.generated.resources.content_bar_selection_list_built_in
+import spmp.shared.generated.resources.content_bar_element_content_bar_config_bar
 
 @Serializable
 data class ContentBarElementContentBar(
@@ -45,7 +51,8 @@ data class ContentBarElementContentBar(
     @Composable
     override fun isDisplaying(): Boolean {
         val player: PlayerState = LocalPlayerState.current
-        val content_bar: ContentBar? = remember(bar) { bar.getBar(player.context) }
+        val custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
+        val content_bar: ContentBar? = remember(bar) { bar.getBar(custom_bars) }
         return content_bar?.isDisplaying() == true
     }
 
@@ -65,7 +72,8 @@ data class ContentBarElementContentBar(
         }
 
         val player: PlayerState = LocalPlayerState.current
-        val content_bar: ContentBar? = remember(bar) { bar.getBar(player.context) }
+        val custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
+        val content_bar: ContentBar? = remember(bar) { bar.getBar(custom_bars) }
         content_bar?.BarContent(
             slot = slot,
             background_colour = null,
@@ -79,7 +87,8 @@ data class ContentBarElementContentBar(
     @Composable
     override fun SubConfigurationItems(item_modifier: Modifier, onModification: (ContentBarElement) -> Unit) {
         val player: PlayerState = LocalPlayerState.current
-        val content_bar: ContentBar = remember(bar) { bar.getBar(player.context)!! }
+        val custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
+        val content_bar: ContentBar = remember(bar) { bar.getBar(custom_bars)!! }
         var show_bar_selector: Boolean by remember { mutableStateOf(false) }
 
         val internal_bars: List<ContentBarReference> = remember {
@@ -100,16 +109,16 @@ data class ContentBarElementContentBar(
                         ),
                         modifier = Modifier.appHover(true)
                     ) {
-                        Text(getString("action_cancel"))
+                        Text(stringResource(Res.string.action_cancel))
                     }
                 },
                 title = {
-                    Text(getString("content_bar_selection"))
+                    Text(stringResource(Res.string.content_bar_selection))
                 },
                 text = {
                     ContentBarList(
                         internal_bars,
-                        getString("content_bar_selection_list_built_in")
+                        stringResource(Res.string.content_bar_selection_list_built_in)
                     ) {
                         onModification(copy(bar = internal_bars[it]))
                         show_bar_selector = false
@@ -123,7 +132,7 @@ data class ContentBarElementContentBar(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                getString("content_bar_element_content_bar_config_bar"),
+                stringResource(Res.string.content_bar_element_content_bar_config_bar),
                 Modifier.align(Alignment.CenterVertically),
                 softWrap = false
             )

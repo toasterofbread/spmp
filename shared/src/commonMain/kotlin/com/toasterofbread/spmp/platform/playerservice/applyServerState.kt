@@ -5,11 +5,12 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import kotlinx.coroutines.*
 import dev.toastbits.spms.socketapi.shared.SpMsServerState
+import PlatformIO
 
 internal suspend fun SpMsPlayerService.applyServerState(
     state: SpMsServerState,
     coroutine_scope: CoroutineScope,
-    onProgress: (String?) -> Unit = {}
+    onProgress: suspend (String?) -> Unit = {}
 ) = withContext(Dispatchers.Default) {
     onProgress(null)
 
@@ -37,7 +38,7 @@ internal suspend fun SpMsPlayerService.applyServerState(
             return@mapIndexedNotNull null
         }
 
-        coroutine_scope.launch(Dispatchers.IO) {
+        coroutine_scope.launch(Dispatchers.PlatformIO) {
             song.loadData(context, force = true, save = false).fold(
                 { items[i] = it },
                 { error ->

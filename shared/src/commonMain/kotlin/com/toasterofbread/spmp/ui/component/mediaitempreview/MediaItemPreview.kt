@@ -56,12 +56,14 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.rememberDownloadStatus
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.`mediaitem_play_count_$x_short`
 
 val MEDIA_ITEM_PREVIEW_SQUARE_FONT_SIZE_SP: Float
     @Composable get() = if (FormFactor.observe().value.is_large) 15f else 12f
@@ -98,7 +100,7 @@ fun MediaItem.loadIfLocalPlaylist(): MediaItem? {
         }
 
         state.value = null
-        state.value = PlaylistFileConverter.loadFromFile(item.getLocalPlaylistFile(context), context)
+        state.value = item.getLocalPlaylistFile(context)?.let { PlaylistFileConverter.loadFromFile(it, context) }
     }
 
     return state.value
@@ -340,13 +342,13 @@ fun MediaItemPreviewLong(
                     if (show_play_count) {
                         val play_count: Int? = loaded_item.observePlayCount(player.context)
                         InfoText(
-                            getString("mediaitem_play_count_\$x_short")
+                            stringResource(Res.string.`mediaitem_play_count_$x_short`)
                                 .replace("\$x", play_count?.toString() ?: "?")
                         )
                     }
 
                     if (show_type) {
-                        InfoText(loaded_item.getType().getReadable(false))
+                        InfoText(stringResource(loaded_item.getType().getReadable(false)))
                     }
 
                     for (info in extra_info) {

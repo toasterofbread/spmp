@@ -22,6 +22,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.updateSubscribed
 import com.toasterofbread.spmp.model.mediaitem.loader.ArtistSubscribedLoader
 import com.toasterofbread.spmp.resources.getStringTODO
+import dev.toastbits.composekit.platform.assert
 import kotlinx.coroutines.launch
 
 @Composable
@@ -56,13 +57,15 @@ fun ArtistSubscribeButton(
             ShapedIconButton(
                 {
                     coroutine_scope.launch {
-                        val result = artist.updateSubscribed(!subscribed, auth_state.SetSubscribedToArtist, player.context)
+                        val result: Result<Unit> = artist.updateSubscribed(!subscribed, auth_state.SetSubscribedToArtist, player.context)
                         if (result.isFailure) {
                             val artist_title: String? = artist.getActiveTitle(player.database)
-                            player.context.sendToast(getStringTODO(
-                                if (!subscribed) "Subscribing to $artist_title failed"
-                                else "Unsubscribing from $artist_title failed"
-                            ))
+                            player.context.sendToast(
+                                getStringTODO(
+                                    if (!subscribed) "Subscribing to $artist_title failed"
+                                    else "Unsubscribing from $artist_title failed"
+                                )
+                            )
                         }
                     }
                 },

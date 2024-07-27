@@ -18,9 +18,12 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_close
+import spmp.shared.generated.resources.s_cat_search
 
 @Composable
 fun SearchSettingsDialog(modifier: Modifier = Modifier, close: () -> Unit) {
@@ -31,13 +34,13 @@ fun SearchSettingsDialog(modifier: Modifier = Modifier, close: () -> Unit) {
         onDismissRequest = close,
         confirmButton = {
             Button(close) {
-                Text(getString("action_close"))
+                Text(stringResource(Res.string.action_close))
             }
         },
         title = {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Icon(Icons.Default.Search, null)
-                Text(getString("s_cat_search"))
+                Text(stringResource(Res.string.s_cat_search))
             }
         },
         text = {

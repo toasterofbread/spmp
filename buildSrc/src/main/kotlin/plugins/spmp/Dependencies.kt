@@ -1,8 +1,10 @@
 package plugin.spmp
 
-import org.gradle.language.ComponentDependencies
-
 class SpMpDeps(extra: Map<String, Any>) {
+    companion object {
+        const val OUTPUT_DIR: String = "generated/sources/dependencyList/main/com/toasterofbread/spmp"
+    }
+
     fun get(artifact: String, dependency_id: String = artifact): String {
         return artifact + ":" + getVersion(dependency_id)
     }
@@ -24,7 +26,7 @@ class SpMpDeps(extra: Map<String, Any>) {
     val dependencies: Map<String, DependencyInfo> =
         mapOf(
             "dev.toastbits:spms" to DependencyInfo(
-                version = "0.4.0-alpha4",
+                version = "0.3.1-wasm2",
                 name = "spmp-server",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/spmp-server",
@@ -32,7 +34,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/toasterofbread/spmp-server/blob/6dde651ffc102d604ac7ecd5ac7471b1572fd2e6/LICENSE"
             ),
             "dev.toastbits.composekit" to DependencyInfo(
-                version = "1ad09f6101",
+                version = "e83119148b",
                 name = "ComposeKit",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/composekit",
@@ -40,7 +42,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/toasterofbread/ComposeKit/blob/136f216e65395660255d3270af9b79c90ae2254c/LICENSE"
             ),
             "dev.toastbits.ytmkt" to DependencyInfo(
-                version = "0.2.3",
+                version = "0.3.0",
                 name = "ytm-kt",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/ytm-kt",
@@ -54,6 +56,14 @@ class SpMpDeps(extra: Map<String, Any>) {
                 url = "https://github.com/toasterofbread/mediasession-kt",
                 license = "Apache-2.0",
                 license_url = "https://github.com/toasterofbread/mediasession-kt/blob/fd4c5e876e2782dbe856b886f5b8dc083c26293c/LICENSE"
+            ),
+            "dev.toastbits.kana-kt" to DependencyInfo(
+                version = "c891811875",
+                name = "kana-kt",
+                author = "toasterofbread",
+                url = "https://github.com/toasterofbread/kana-kt",
+                license = "Apache-2.0",
+                license_url = "https://github.com/toasterofbread/kana-kt/blob/2f8dc077096f3d344649fe91caa6b079194e6718/LICENSE"
             ),
 
             "org.ketbrains.kotlin" to DependencyInfo(
@@ -112,16 +122,16 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license = "Apache-2.0",
                 license_url = "https://github.com/andree-surya/moji4j/blob/ea0168f125da8791e951eab7cdf18b06a7db705b/README.md"
             ),
-            "org.jsoup:jsoup" to DependencyInfo(
-                version = "1.16.1",
-                name = "jsoup",
-                author = "jhy",
-                url = "https://github.com/jhy/jsoup",
-                license = "MIT",
-                license_url = "https://github.com/jhy/jsoup/blob/1f1f72d1e89821c630dcfc35e1a0a7f653cc877b/LICENSE"
+            "com.mohamedrejeb.ksoup" to DependencyInfo(
+                version = "0.4.0",
+                name = "Ksoup",
+                author = "MohamedRejeb",
+                url = "https://github.com/MohamedRejeb/Ksoup",
+                license = "Apache-2.0",
+                license_url = "https://github.com/MohamedRejeb/Ksoup/blob/5f07e799c95e518d80caf70fc586ddcc649e1315/LICENSE"
             ),
             "com.github.toasterofbread.ComposeReorderable" to DependencyInfo(
-                version = "e9ef693f63",
+                version = "434c321a8f",
                 name = "ComposeReorderable",
                 author = "aclassen",
                 url = "https://github.com/aclassen/ComposeReorderable",
@@ -137,14 +147,6 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license = "CC BY 2.5",
                 license_url = "https://creativecommons.org/licenses/by/2.5/"
             ),
-            "com.github.catppuccin:java" to DependencyInfo(
-                version = "v1.0.0",
-                name = "Catppuccin Java",
-                author = "Catppuccin",
-                url = "https://github.com/catppuccin/java",
-                license = "MIT",
-                license_url = "https://github.com/catppuccin/java/blob/0b034e33c90585812d5287196bdfe930ab306914/LICENSE"
-            ),
             "com.github.paramsen:noise" to DependencyInfo(
                 version = "2.0.0",
                 name = "Noise",
@@ -153,13 +155,13 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license = "Apache-2.0",
                 license_url = "https://github.com/paramsen/noise/blob/0cccb4caaa0c7d31b5c76ec6e61805f937c4399e/LICENSE"
             ),
-            "org.kobjects.ktxml:core" to DependencyInfo(
-                version = "0.2.3",
-                name = "KtXml",
-                author = "kobjects",
-                url = "https://github.com/kobjects/ktxml",
+            "io.github.pdvrieze.xmlutil" to DependencyInfo(
+                version = "0.90.1",
+                name = "XmlUtil",
+                author = "pdvrieze",
+                url = "https://github.com/pdvrieze/xmlutil",
                 license = "Apache-2.0",
-                license_url = "https://github.com/kobjects/ktxml/blob/428b7c1023c752354472c62b6f03490651458beb/LICENSE"
+                license_url = "https://github.com/pdvrieze/xmlutil/blob/0c9e14016b9cfc1682642a8d6ad40ae64cf6ef6f/COPYING"
             ),
             "org.bitbucket.ijabz:jaudiotagger" to DependencyInfo(
                 version = "v3.0.1",
@@ -187,7 +189,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/zeromq/jeromq/blob/30b2bf4e1c7332108497db7e4125cd8b15113ea4/LICENSE"
             ),
             "media.kamel:kamel-image" to DependencyInfo(
-                version = "0.9.4",
+                version = "1.0.0-beta.6",
                 name = "Kamel",
                 author = "Kamel-Media",
                 url = "https://github.com/Kamel-Media/Kamel",
@@ -195,7 +197,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/Kamel-Media/Kamel/blob/6eb1dd7fea43beb2e30d8e5d162b2b5e212e5950/LICENSE"
             ),
             "io.ktor" to DependencyInfo(
-                version = "2.3.9",
+                version = "3.0.0-beta-2",
                 name = "Ktor",
                 author = "JetBrains",
                 url = "https://github.com/ktorio/ktor",
@@ -294,6 +296,15 @@ class SpMpDeps(extra: Map<String, Any>) {
                 url = "https://github.com/dzolnai/ExoVisualizer",
                 license = "MIT",
                 license_url = "https://github.com/dzolnai/ExoVisualizer/blob/720e1b127b900aece546b8e88aed65db50379f0a/LICENSE"
+            ),
+            "com.github.toasterofbread.kotori" to DependencyInfo(
+                version = "f30ce74e20",
+                name = "Kotori",
+                author = "wanasit",
+                url = "https://github.com/wanasit/kotori",
+                license = "MIT",
+                license_url = "https://github.com/wanasit/kotori/blob/7ca4f352e6bf4fb314828d36a217953ec5006b20/LICENSE",
+                fork_url = "https://github.com/toasterofbread/kotori"
             )
         )
 }

@@ -96,7 +96,7 @@ fun NowPlayingContainer(
 
                 IntOffset(
                     0,
-                    (-swipe_state.offset.npAnchorToDp(this, player.context) - bottom_padding).roundToPx()
+                    (-swipe_state.offset.npAnchorToDp(this, player.context, player.np_swipe_sensitivity) - bottom_padding).roundToPx()
                 )
             }
             .then(swipe_modifier)

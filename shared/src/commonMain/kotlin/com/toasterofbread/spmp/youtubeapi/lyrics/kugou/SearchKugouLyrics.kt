@@ -3,8 +3,6 @@ package com.toasterofbread.spmp.youtubeapi.lyrics.kugou
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.JsonHttpClient
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -42,7 +40,7 @@ internal suspend fun searchKugouLyrics(
 }
 
 @Serializable
-private data class KugouSearchResponse(
+internal data class KugouSearchResponse(
     val status: Int,
     val data: Data
 ) {

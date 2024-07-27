@@ -34,7 +34,6 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.toRemotePlaylistData
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
@@ -42,6 +41,9 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.ytmkt.endpoint.LikedAlbumsEndpoint
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.library_no_liked_albums
 
 internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
@@ -49,7 +51,7 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
 
     override fun isHidden(): Boolean =
         SpMp.player_state.context.ytapi.user_auth_state == null
-    
+
     private var load_error: Throwable? by mutableStateOf(null)
     private var liked_albums: List<RemotePlaylistData>? by mutableStateOf(null)
     private var loaded: Boolean by mutableStateOf(true)
@@ -64,12 +66,12 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
     ) {
         val player: PlayerState = LocalPlayerState.current
         val auth_state: ApiAuthenticationState = player.context.ytapi.user_auth_state ?: return
-        
+
         val load_endpoint: LikedAlbumsEndpoint = auth_state.LikedAlbums
         if (!load_endpoint.isImplemented()) {
             return
         }
-        
+
         val sorted_liked_albums: List<RemotePlaylistData> =
             library_page.sort_type.sortAndFilterItems(liked_albums ?: emptyList(), library_page.search_filter, player.database, library_page.reverse_sort)
 
@@ -111,12 +113,12 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
     override fun RowOrColumnScope.SideContent(showing_alt_content: Boolean) {
         val player: PlayerState = LocalPlayerState.current
         val auth_state: ApiAuthenticationState = player.context.ytapi.user_auth_state ?: return
-        
+
         val load_endpoint: LikedAlbumsEndpoint = auth_state.LikedAlbums
         if (!load_endpoint.isImplemented()) {
             return
         }
-        
+
         Row(verticalAlignment = Alignment.CenterVertically) {
             LoadActionIconButton(
                 {
@@ -135,17 +137,17 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
             }
         }
     }
-    
+
     private fun LazyGridScope.PlaylistItems(
         items: List<Playlist>,
         multiselect_context: MediaItemMultiSelectContext? = null
     ) {
         if (items.isEmpty() && loaded) {
             spanItem {
-                Text(getString("library_no_liked_albums"), Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+                Text(stringResource(Res.string.library_no_liked_albums), Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
             }
         }
-    
+
         items(items) { playlist ->
             MediaItemPreviewSquare(
                 playlist,
@@ -156,7 +158,7 @@ internal class LibraryAlbumsPage(context: AppContext): LibrarySubPage(context) {
                 multiselect_context = multiselect_context
             )
         }
-    
+
         spanItem {
             Spacer(Modifier.height(15.dp))
         }

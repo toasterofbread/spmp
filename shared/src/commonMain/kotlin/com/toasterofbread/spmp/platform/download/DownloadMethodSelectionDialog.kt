@@ -28,9 +28,14 @@ import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_cancel
+import spmp.shared.generated.resources.action_download_start
+import spmp.shared.generated.resources.download_method_select_title
+import spmp.shared.generated.resources.s_key_skip_download_method_confirmation
 
 @Composable
 fun DownloadMethodSelectionDialog(
@@ -46,12 +51,17 @@ fun DownloadMethodSelectionDialog(
     var skip_confirmation: Boolean by player.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.observe()
     var show: Boolean by remember { mutableStateOf(false) }
 
-    val initial_download_method: DownloadMethod = remember { player.settings.streaming.DOWNLOAD_METHOD.get() }
-    val initial_skip_confirmation: Boolean = remember { player.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.get() }
+    var initial_download_method: DownloadMethod? by remember { mutableStateOf(null) }
+    var initial_skip_confirmation: Boolean? by remember { mutableStateOf(null) }
+
+    LaunchedEffect(Unit) {
+        initial_download_method = player.settings.streaming.DOWNLOAD_METHOD.get()
+        initial_skip_confirmation = player.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.get()
+    }
 
     fun cancel() {
-        player.settings.streaming.DOWNLOAD_METHOD.set(initial_download_method)
-        player.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.set(initial_skip_confirmation)
+        player.settings.streaming.DOWNLOAD_METHOD.set(initial_download_method!!)
+        player.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.set(initial_skip_confirmation!!)
         onCancelled()
     }
 
@@ -77,18 +87,18 @@ fun DownloadMethodSelectionDialog(
             Button({
                 cancel()
             }) {
-                Text(getString("action_cancel"))
+                Text(stringResource(Res.string.action_cancel))
             }
         },
         confirmButton = {
             Button({ onSelected(download_method) }) {
-                Text(getString("action_download_start"))
+                Text(stringResource(Res.string.action_download_start))
             }
         },
         title = {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                 Icon(Icons.Default.Download, null)
-                WidthShrinkText(getString("download_method_select_title"))
+                WidthShrinkText(stringResource(Res.string.download_method_select_title))
             }
         },
         text = {
@@ -134,7 +144,7 @@ fun DownloadMethodSelectionDialog(
                         }
                     )
 
-                    Text(getString("s_key_skip_download_method_confirmation"), Modifier.fillMaxWidth().weight(1f))
+                    Text(stringResource(Res.string.s_key_skip_download_method_confirmation), Modifier.fillMaxWidth().weight(1f))
                 }
             }
         }

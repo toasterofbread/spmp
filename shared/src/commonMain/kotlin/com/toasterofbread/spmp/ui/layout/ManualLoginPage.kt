@@ -22,6 +22,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -38,10 +39,15 @@ import androidx.compose.ui.unit.sp
 import dev.toastbits.composekit.utils.composable.Marquee
 import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import dev.toastbits.composekit.utils.modifier.horizontal
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.manual_login_desktop_browser_may_be_needed
+import spmp.shared.generated.resources.action_close
 
 @Composable
 fun ManualLoginPage(
@@ -52,7 +58,7 @@ fun ManualLoginPage(
     login_url: String? = null,
     desktop_browser_needed: Boolean = true,
     content_padding: PaddingValues = PaddingValues(),
-    onFinished: (String?) -> Pair<String, String>?,
+    onFinished: suspend (String?) -> Pair<String, String>?,
 ) {
     val player: PlayerState = LocalPlayerState.current
     val density: Density = LocalDensity.current
@@ -73,7 +79,7 @@ fun ManualLoginPage(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     if (desktop_browser_needed) {
                         Text(
-                            getString("manual_login_desktop_browser_may_be_needed"),
+                            stringResource(Res.string.manual_login_desktop_browser_may_be_needed),
                             style = MaterialTheme.typography.bodyMedium,
                             fontWeight = FontWeight.Bold
                         )
@@ -166,7 +172,8 @@ fun ManualLoginPage(
 }
 
 @Composable
-private fun InfoEntry(label: String, modifier: Modifier = Modifier, onFinished: (String?) -> Pair<String, String>?) {
+private fun InfoEntry(label: String, modifier: Modifier = Modifier, onFinished: suspend (String?) -> Pair<String, String>?) {
+    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
     var headers_value by remember { mutableStateOf("") }
 
     var parse_error: Pair<String, String>? by remember { mutableStateOf(null) }
@@ -178,7 +185,11 @@ private fun InfoEntry(label: String, modifier: Modifier = Modifier, onFinished: 
         modifier,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        IconButton({ parse_error = onFinished(null) }) {
+        IconButton({
+            coroutine_scope.launch {
+                parse_error = onFinished(null)
+            }
+        }) {
             Icon(Icons.Default.Close, null)
         }
 
@@ -192,7 +203,11 @@ private fun InfoEntry(label: String, modifier: Modifier = Modifier, onFinished: 
             singleLine = true
         )
 
-        IconButton({ parse_error = onFinished(headers_value) }) {
+        IconButton({
+            coroutine_scope.launch {
+                parse_error = onFinished(headers_value)
+            }
+        }) {
             Icon(Icons.Default.Done, null)
         }
     }
@@ -204,7 +219,7 @@ private fun ErrorDialog(error: Pair<String, String>, close: () -> Unit) {
         onDismissRequest = close,
         confirmButton = {
             Button(close) {
-                Text(getString("action_close"))
+                Text(stringResource(Res.string.action_close))
             }
         },
         title = {

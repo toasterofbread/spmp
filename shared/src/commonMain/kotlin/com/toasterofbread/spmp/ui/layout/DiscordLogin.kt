@@ -40,7 +40,6 @@ import com.toasterofbread.spmp.platform.DiscordMeResponse
 import com.toasterofbread.spmp.platform.WebViewLogin
 import com.toasterofbread.spmp.platform.getDiscordAccountInfo
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import androidx.compose.foundation.layout.PaddingValues
 import com.toasterofbread.spmp.platform.getOrNotify
@@ -50,6 +49,14 @@ import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.encodeToString
 import io.kamel.image.KamelImage
 import io.kamel.image.asyncPainterResource
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_confirm_action
+import spmp.shared.generated.resources.action_deny_action
+import spmp.shared.generated.resources.prompt_confirm_action
+import spmp.shared.generated.resources.action_login_manually
+import spmp.shared.generated.resources.info_discord_login
+import spmp.shared.generated.resources.warning_discord_login
 
 private const val DISCORD_LOGIN_URL: String = "https://discord.com/login"
 private const val DISCORD_API_URL: String = "https://discord.com/api/"
@@ -57,30 +64,30 @@ private const val DISCORD_API_URL: String = "https://discord.com/api/"
 @Composable
 fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Boolean?) -> Unit) {
     val player: PlayerState = LocalPlayerState.current
-    
+
     AlertDialog(
         { onFinished(null) },
         confirmButton = {
             FilledTonalButton({
                 onFinished(if (info_only) null else false)
             }) {
-                Text(getString("action_confirm_action"))
+                Text(stringResource(Res.string.action_confirm_action))
             }
         },
         dismissButton = if (info_only) null else ({
-            TextButton({ onFinished(null) }) { Text(getString("action_deny_action")) }
+            TextButton({ onFinished(null) }) { Text(stringResource(Res.string.action_deny_action)) }
         }),
-        title = if (info_only) null else ({ Text(getString("prompt_confirm_action")) }),
+        title = if (info_only) null else ({ Text(stringResource(Res.string.prompt_confirm_action)) }),
         text = {
             Column {
                 LinkifyText(
-                    player.context, 
-                    getString(if (info_only) "info_discord_login" else "warning_discord_login"), 
+                    player.context,
+                    stringResource(if (info_only) Res.string.info_discord_login else Res.string.warning_discord_login),
                     player.theme.accent
                 )
                 if (!info_only) {
                     FilledTonalButton({ onFinished(true) }, Modifier.fillMaxWidth().padding(top = 5.dp).offset(y = 20.dp)) {
-                        Text(getString("action_login_manually"))
+                        Text(stringResource(Res.string.action_login_manually))
                     }
                 }
             }

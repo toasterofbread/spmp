@@ -1,28 +1,27 @@
 package com.toasterofbread.spmp.platform.playerservice
 
-import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.ensureActive
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import org.zeromq.ZMQ.Socket
-import org.zeromq.ZMsg
 import dev.toastbits.spms.socketapi.shared.SpMsClientHandshake
-import dev.toastbits.spms.socketapi.shared.SpMsSocketApi
 import dev.toastbits.spms.socketapi.shared.SpMsServerHandshake
-import java.util.concurrent.TimeoutException
+import dev.toastbits.spms.zmq.ZmqSocket
 import kotlin.time.Duration
+import PlatformIO
+import org.jetbrains.compose.resources.getString
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.`loading_splash_connecting_to_server_at_$x`
 
-internal suspend fun Socket.tryConnectToServer(
+internal suspend fun ZmqSocket.tryConnectToServer(
     server_url: String,
     handshake: SpMsClientHandshake,
     json: Json,
     log: (String) -> Unit = { println(it) },
     setLoadState: ((PlayerServiceLoadState) -> Unit)? = null
-): SpMsServerHandshake = withContext(Dispatchers.IO) {
-    val first_loading_message: String = getString("loading_splash_connecting_to_server_at_\$x").replace("\$x", server_url.split("://", limit = 2).last())
+): SpMsServerHandshake = withContext(Dispatchers.PlatformIO) {
+    val first_loading_message: String = getString(Res.string.`loading_splash_connecting_to_server_at_$x`).replace("\$x", server_url.split("://", limit = 2).last())
     setLoadState?.invoke(PlayerServiceLoadState(true, first_loading_message))
 
     log("Connecting to server at $server_url...")
@@ -39,20 +38,21 @@ internal suspend fun Socket.tryConnectToServer(
         break
     }
 
-    val handshake_message: ZMsg = ZMsg()
+    val handshake_message: MutableList<String> = mutableListOf()
     handshake_message.add(json.encodeToString(handshake))
 
     log("Sending handshake message to server at $server_url...")
-    check(handshake_message.send(this@tryConnectToServer))
+    sendStringMultipart(handshake_message)
 
     log("Waiting for reply from server at $server_url...")
 
-    val reply: ZMsg = recvMsg(with (Duration) { 500.milliseconds }) ?: throw NullPointerException("No reply from server")
+    val reply: List<String> =
+        recvStringMultipart(with (Duration) { 500.milliseconds })
+        ?: throw NullPointerException("No reply from server")
 
-    val joined_reply: List<String> = SpMsSocketApi.decode(reply.map { it.data.decodeToString() })
-    val server_handshake_data: String = joined_reply.first()
+    val server_handshake_data: String = reply.first()
 
-    log("Received reply handshake from server with the following content:\n$joined_reply")
+    log("Received reply handshake from server with the following content:\n$reply")
 
     val server_handshake: SpMsServerHandshake
     try {
@@ -63,11 +63,4 @@ internal suspend fun Socket.tryConnectToServer(
     }
 
     return@withContext server_handshake
-}
-
-private fun Socket.recvMsg(timeout: Duration?): ZMsg? {
-    receiveTimeOut = timeout?.inWholeMilliseconds?.toInt() ?: -1
-    val msg: ZMsg? = ZMsg.recvMsg(this)
-    receiveTimeOut = -1
-    return msg
 }

@@ -27,12 +27,20 @@ import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.getOrNotify
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import kotlinx.coroutines.CoroutineScope
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_close
+import spmp.shared.generated.resources.lyrics_info_key_source
+import spmp.shared.generated.resources.lyrics_info_key_id
+import spmp.shared.generated.resources.lyrics_info_key_sync_type
+import spmp.shared.generated.resources.lyrics_info_key_local_file
+import spmp.shared.generated.resources.lyrics_loading
+import spmp.shared.generated.resources.lyrics_no_lyrics_set_for_song
 
 private enum class Submenu {
     SEARCH, SYNC
@@ -56,7 +64,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
         val pill_menu: PillMenu = remember { PillMenu(expand_state = mutableStateOf(false)) }
 
         val lyrics_state: SongLyricsLoader.ItemState = SongLyricsLoader.rememberItemState(song, player.context)
-        var show_furigana: Boolean by remember { mutableStateOf(player.settings.lyrics.DEFAULT_FURIGANA.get()) }
+        var show_furigana: Boolean by player.settings.lyrics.DEFAULT_FURIGANA.observe()
 
         var submenu: Submenu? by remember { mutableStateOf(null) }
         var lyrics_sync_line_index: Int? by remember { mutableStateOf(null) }
@@ -97,7 +105,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                     onDismissRequest = { show_lyrics_info = false },
                     confirmButton = {
                         Button({ show_lyrics_info = false }) {
-                            Text(getString("action_close"))
+                            Text(stringResource(Res.string.action_close))
                         }
                     },
                     text = {
@@ -123,14 +131,12 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                                     }
 
                                     Item(
-                                        getString("lyrics_info_key_source"),
-                                        remember(lyrics.source_idx) {
-                                            LyricsSource.fromIdx(lyrics.source_idx).getReadable()
-                                        }
+                                        stringResource(Res.string.lyrics_info_key_source),
+                                        LyricsSource.fromIdx(lyrics.source_idx).getReadable()
                                     )
-                                    Item(getString("lyrics_info_key_id"), lyrics.id)
-                                    Item(getString("lyrics_info_key_sync_type"), lyrics.sync_type.getReadable())
-                                    Item(getString("lyrics_info_key_local_file"), lyrics.reference.local_file?.absolute_path.toString())
+                                    Item(stringResource(Res.string.lyrics_info_key_id), lyrics.id)
+                                    Item(stringResource(Res.string.lyrics_info_key_sync_type), lyrics.sync_type.getReadable())
+                                    Item(stringResource(Res.string.lyrics_info_key_local_file), lyrics.reference.local_file?.absolute_path.toString())
                                 }
                             }
                         }
@@ -161,7 +167,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                                     .offset(y = (-5).dp)
                                     .clickable(
                                         remember { MutableInteractionSource() },
-                                        rememberRipple(bounded = false, radius = 20.dp),
+                                        LocalIndication.current,
                                         onClick = {
                                             show_furigana = !show_furigana
                                             is_open = !is_open
@@ -255,12 +261,12 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                 }
                 else if (loading == true) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        SubtleLoadingIndicator(message = getString("lyrics_loading"))
+                        SubtleLoadingIndicator(message = stringResource(Res.string.lyrics_loading))
                     }
                 }
                 else if (loading == null) {
                     Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-                        Text(getString("lyrics_no_lyrics_set_for_song"), style = MaterialTheme.typography.bodyLarge)
+                        Text(stringResource(Res.string.lyrics_no_lyrics_set_for_song), style = MaterialTheme.typography.bodyLarge)
                     }
                 }
             }

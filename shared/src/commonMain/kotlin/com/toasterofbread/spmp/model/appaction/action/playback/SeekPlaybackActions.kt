@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.model.appaction.action.playback
 
 import kotlinx.serialization.Serializable
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.resources.getString
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
@@ -17,6 +16,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.Alignment
 import kotlin.random.Random
 import kotlin.random.nextInt
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.appaction_config_playback_seek_to_time_seek_ms
 
 private const val SEEK_AMOUNT_STEP_MS: Long = 500
 
@@ -44,7 +46,7 @@ data class SeekByTimePlaybackAppAction(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                getString("appaction_config_playback_seek_to_time_seek_ms"),
+                stringResource(Res.string.appaction_config_playback_seek_to_time_seek_ms),
                 Modifier.align(Alignment.CenterVertically),
                 softWrap = false
             )

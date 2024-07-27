@@ -17,7 +17,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.lpm_action_play_shuffled_after_x_songs
 
 @Composable
 fun ColumnScope.PlaylistLongPressMenuInfo(playlist: Playlist, getAccentColour: () -> Color) {
@@ -33,7 +35,7 @@ fun ColumnScope.PlaylistLongPressMenuInfo(playlist: Playlist, getAccentColour: (
         }
     }
 
-    Item(Icons.Default.SubdirectoryArrowRight, getString("lpm_action_play_shuffled_after_x_songs"))
+    Item(Icons.Default.SubdirectoryArrowRight, stringResource(Res.string.lpm_action_play_shuffled_after_x_songs))
 
     Spacer(
         Modifier

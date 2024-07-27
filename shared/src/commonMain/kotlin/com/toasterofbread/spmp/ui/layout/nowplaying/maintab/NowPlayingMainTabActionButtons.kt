@@ -13,14 +13,17 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
+import com.toasterofbread.spmp.model.mediaitem.observeUrl
 import dev.toastbits.composekit.platform.vibrateShort
 import dev.toastbits.composekit.utils.composable.PlatformClickableIconButton
 import dev.toastbits.composekit.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.theme.appHover
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.notif_copied_to_clipboard
 
 internal object NowPlayingMainTabActionButtons {
     @Composable
@@ -28,7 +31,7 @@ internal object NowPlayingMainTabActionButtons {
         if (song == null) {
             return
         }
-        
+
         val player: PlayerState = LocalPlayerState.current
         val auth_state: ApiAuthenticationState? = player.context.ytapi.user_auth_state
 
@@ -39,11 +42,11 @@ internal object NowPlayingMainTabActionButtons {
             getColour = { colour }
         )
     }
-    
+
     @Composable
     fun RadioButton(song: Song?, modifier: Modifier = Modifier, colour: Color = LocalContentColor.current) {
         val player: PlayerState = LocalPlayerState.current
-        
+
         IconButton(
             {
                 if (song != null) {
@@ -60,11 +63,11 @@ internal object NowPlayingMainTabActionButtons {
             Icon(Icons.Rounded.Radio, null, tint = colour)
         }
     }
-    
+
     @Composable
     fun ShuffleButton(modifier: Modifier = Modifier, colour: Color = LocalContentColor.current) {
         val player: PlayerState = LocalPlayerState.current
-        
+
         IconButton(
             {
                 player.withPlayer {
@@ -78,20 +81,21 @@ internal object NowPlayingMainTabActionButtons {
             Icon(Icons.Rounded.Shuffle, null, tint = colour)
         }
     }
-    
+
     @Composable
     fun OpenExternalButton(song: Song?, modifier: Modifier = Modifier) {
         val player: PlayerState = LocalPlayerState.current
-
         if (!(player.context.canShare() || player.context.canOpenUrl())) {
             return
         }
 
         val clipboard: ClipboardManager = LocalClipboardManager.current
-        
+        val notif_copied_to_clipboard: String = stringResource(Res.string.notif_copied_to_clipboard)
+        val song_url: String? = song?.observeUrl()
+
         PlatformClickableIconButton(
             onClick = {
-                val url: String = song?.getURL(player.context) ?: return@PlatformClickableIconButton
+                val url: String = song_url ?: return@PlatformClickableIconButton
 
                 if (player.context.canShare()) {
                     player.context.shareText(url, song.getActiveTitle(player.database))
@@ -101,10 +105,10 @@ internal object NowPlayingMainTabActionButtons {
                 }
             },
             onAltClick = {
-                song?.getURL(player.context)?.also {
+                song_url?.also {
                     clipboard.setText(AnnotatedString((it)))
                     player.context.vibrateShort()
-                    player.context.sendToast(getString("notif_copied_to_clipboard"))
+                    player.context.sendToast(notif_copied_to_clipboard)
                 }
             },
             modifier = modifier.bounceOnClick().appHover(true)
@@ -116,11 +120,11 @@ internal object NowPlayingMainTabActionButtons {
             )
         }
     }
-    
+
     @Composable
     fun DownloadButton(song: Song?, modifier: Modifier = Modifier) {
         val player: PlayerState = LocalPlayerState.current
-        
+
         PlatformClickableIconButton(
             onClick = {
                 song?.also {

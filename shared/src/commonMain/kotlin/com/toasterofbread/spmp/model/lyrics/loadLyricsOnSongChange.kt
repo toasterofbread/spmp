@@ -8,11 +8,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
-import dev.toastbits.composekit.utils.common.launchSingle
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.launch
 
 @Composable
 fun loadLyricsOnSongChange(song: Song?, context: AppContext, load_lyrics: Boolean = true): SongLyrics? {
@@ -41,7 +42,8 @@ fun loadLyricsOnSongChange(song: Song?, context: AppContext, load_lyrics: Boolea
             lyrics = null
 
             if (load_lyrics) {
-                coroutine_scope.launchSingle {
+                coroutine_scope.coroutineContext.cancelChildren()
+                coroutine_scope.launch {
                     val result: Result<SongLyrics>? =
                         if (reference != null) SongLyricsLoader.loadByLyrics(reference, context)
                         else SongLyricsLoader.loadBySong(song, context)
@@ -69,7 +71,8 @@ fun loadLyricsOnSongChange(song: Song?, context: AppContext, load_lyrics: Boolea
                         lyrics = loaded_lyrics
                     }
                     else if (load_lyrics) {
-                        coroutine_scope.launchSingle {
+                        coroutine_scope.coroutineContext.cancelChildren()
+                        coroutine_scope.launch {
                             val result: Result<SongLyrics>? = SongLyricsLoader.loadBySong(song, context)
                             result?.onSuccess {
                                 lyrics = it

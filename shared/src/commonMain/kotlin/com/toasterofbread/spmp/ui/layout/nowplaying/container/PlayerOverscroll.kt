@@ -78,7 +78,7 @@ internal fun Modifier.playerOverscroll(
                 player_alpha = 1f - (time_below_threshold / time_threshold).coerceIn(0f, 1f)
             }
 
-            val offset: Dp = (swipe_state.offset - anchor).npAnchorToDp(density, player.context)
+            val offset: Dp = (swipe_state.offset - anchor).npAnchorToDp(density, player.context, player.np_swipe_sensitivity)
             if (offset < -OVERSCROLL_CLEAR_DISTANCE_THRESHOLD_DP.dp) {
                 if (!triggered && time_below_threshold >= time_threshold) {
                     if (

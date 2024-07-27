@@ -26,8 +26,6 @@ import com.anggrayudi.storage.extension.count
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.ui.component.uploadErrorToPasteEe
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import com.toasterofbread.spmp.model.JsonHttpClient
@@ -49,6 +47,11 @@ import kotlinx.serialization.json.put
 import org.jetbrains.compose.resources.painterResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.error_message_generic
+import spmp.shared.generated.resources.wrap_text_switch_label
+import spmp.shared.generated.resources.upload_to_paste_dot_ee
 
 private const val LOGCAT_LINES_TO_DISPLAY: Int = 100
 
@@ -136,7 +139,7 @@ class ErrorReportActivity : ComponentActivity() {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column {
-                            Text(getString("error_message_generic"), fontSize = 22.sp)
+                            Text(stringResource(Res.string.error_message_generic), fontSize = 22.sp)
 
                             Row {
                                 IconButton(onClick = { startActivity(share_intent) }) {
@@ -168,7 +171,7 @@ class ErrorReportActivity : ComponentActivity() {
                         Spacer(Modifier.requiredWidth(10.dp))
 
                         Column(horizontalAlignment = Alignment.End) {
-                            Text(getString("wrap_text_switch_label"))
+                            Text(stringResource(Res.string.wrap_text_switch_label))
                             Switch(checked = wrap_text, onCheckedChange = { wrap_text = it })
                         }
                     }
@@ -226,7 +229,7 @@ class ErrorReportActivity : ComponentActivity() {
                     },
                     Modifier.align(Alignment.BottomStart).padding(10.dp)
                 ) {
-                    Text(getString("upload_to_paste_dot_ee"))
+                    Text(stringResource(Res.string.upload_to_paste_dot_ee))
                 }
             }
         }

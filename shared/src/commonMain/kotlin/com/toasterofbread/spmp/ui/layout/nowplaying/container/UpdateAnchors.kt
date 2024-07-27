@@ -56,8 +56,8 @@ internal fun UpdateAnchors(
 
 //fun Float.npAnchorToPx(density: Density): Float =
 //    this / processSwipeSensitivity(context.settings.player.EXPAND_SWIPE_SENSITIVITY.get())
-fun Float.npAnchorToDp(density: Density, context: AppContext): Dp =
-    with (density) { (this@npAnchorToDp / processSwipeSensitivity(context.settings.player.EXPAND_SWIPE_SENSITIVITY.get())).toDp() }
+fun Float.npAnchorToDp(density: Density, context: AppContext, sensitivity: Float): Dp =
+    with (density) { (this@npAnchorToDp / processSwipeSensitivity(sensitivity)).toDp() }
 
 private fun processSwipeSensitivity(sensitivity: Float): Float =
     1f / sensitivity

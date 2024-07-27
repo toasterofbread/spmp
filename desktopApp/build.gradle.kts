@@ -12,6 +12,7 @@ import java.util.Properties
 
 plugins {
     kotlin("multiplatform")
+    kotlin("plugin.compose")
     id("org.jetbrains.compose")
 }
 
@@ -20,7 +21,7 @@ enum class OS {
 }
 
 val local_properties_path: String = "local.properties"
-val strings_file: File = rootProject.file("shared/src/commonMain/resources/assets/values/strings.xml")
+val strings_file: File = rootProject.file("shared/src/commonMain/composeResources/values/strings.xml")
 
 fun getString(key: String): String {
     val reader = strings_file.reader()
@@ -57,9 +58,10 @@ kotlin {
         val jvmMain by getting  {
             dependencies {
                 implementation(compose.desktop.currentOs)
+                implementation(compose.components.resources)
                 implementation(project(":shared"))
 
-                implementation(deps.get("dev.toastbits.composekit:library-desktop"))
+                implementation(deps.get("dev.toastbits.composekit:library"))
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.4")
 

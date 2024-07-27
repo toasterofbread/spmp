@@ -6,12 +6,18 @@ import dev.toastbits.ytmkt.uistrings.localised.UILanguages
 import dev.toastbits.ytmkt.uistrings.localised.matchesLanguage
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
 import io.ktor.client.statement.HttpResponse
-import java.nio.charset.Charset
-import java.util.Base64
+import io.ktor.utils.io.charsets.Charset
+import io.ktor.utils.io.charsets.CharsetDecoder
+import io.ktor.utils.io.charsets.Charsets
+import io.ktor.utils.io.charsets.decode
+import io.ktor.utils.io.charsets.forName
+import kotlinx.io.Buffer
+import kotlinx.io.Source
 import kotlinx.serialization.Serializable
+import kotlin.io.encoding.Base64
+import kotlin.io.encoding.ExperimentalEncodingApi
 
 private const val START_SKIP_LINES: Int = 0
 
@@ -129,6 +135,7 @@ private fun parseTimeString(string: String): Long {
     return time
 }
 
+@OptIn(ExperimentalEncodingApi::class)
 private suspend fun HttpClient.downloadSearchCandidate(
     candidate: KugouHashSearchResponse.Candidate
 ): Result<String> = runCatching {
@@ -149,8 +156,9 @@ private suspend fun HttpClient.downloadSearchCandidate(
         throw RuntimeException(download_response.info)
     }
 
-    val bytes = Base64.getDecoder().decode(download_response.content)
-    return@runCatching String(bytes, Charset.forName(download_response.charset))
+    val bytes: ByteArray = Base64.decode(download_response.content)
+    val decoder: CharsetDecoder = Charsets.forName(download_response.charset).newDecoder()
+    return@runCatching decoder.decode(Buffer().apply { write(bytes) })
 }
 
 @Serializable
@@ -162,15 +170,16 @@ private class KugouSearchCandidateDownloadResponse(
 )
 
 @Serializable
-private class KugouHashSearchResponse(
+internal class KugouHashSearchResponse(
     val status: Int,
     val errmsg: String,
     val candidates: List<Candidate>
 ) {
     @Serializable
-    class Candidate(
+    data class Candidate(
         val id: String,
         val accesskey: String
     )
+
     fun getBestCandidate(): Candidate? = candidates.firstOrNull()
 }

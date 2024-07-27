@@ -17,7 +17,9 @@ import kotlin.Unit
 import dev.toastbits.ytmkt.endpoint.SongFeedFilterChip
 import LocalPlayerState
 import com.toasterofbread.spmp.model.getString
+import com.toasterofbread.spmp.model.observe
 import dev.toastbits.composekit.platform.composable.ScrollBarLazyRow
+import dev.toastbits.composekit.settings.ui.on_accent
 import dev.toastbits.composekit.utils.composable.ScrollableRowOrColumn
 
 @Composable
@@ -48,7 +50,7 @@ internal fun SongFeedAppPage.SFFSongFeedPagePrimaryBar(
                     selectFilterChip(index)
                 },
                 {
-                    Text(chip.text.getString(player.context))
+                    Text(chip.text.observe())
                 },
                 colors = with(player.theme) {
                     FilterChipDefaults.elevatedFilterChipColors(

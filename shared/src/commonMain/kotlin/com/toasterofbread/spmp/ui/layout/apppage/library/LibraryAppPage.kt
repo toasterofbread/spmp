@@ -29,13 +29,18 @@ import dev.toastbits.composekit.utils.modifier.scrollWithoutClip
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.apppage.library.pageselector.*
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.library_local
+import spmp.shared.generated.resources.library_account
+import spmp.shared.generated.resources.error_yt_feed_parse_failed
 
 abstract class LibrarySubPage(val context: AppContext) {
     abstract fun getIcon(): ImageVector
@@ -47,10 +52,10 @@ abstract class LibrarySubPage(val context: AppContext) {
     open fun nativeSortTypeLabel(): String? = null
 
     open fun canShowAltContent(): Boolean = false
-    open fun getAltContentButtons(): Pair<Pair<String, ImageVector>, Pair<String, ImageVector>> =
+    open fun getAltContentButtons(): Pair<Pair<StringResource, ImageVector>, Pair<StringResource, ImageVector>> =
         Pair(
-            Pair(getString("library_local"), Icons.Default.Inventory2),
-            Pair(getString("library_account"), Icons.Default.Cloud)
+            Pair(Res.string.library_local, Icons.Default.Inventory2),
+            Pair(Res.string.library_account, Icons.Default.Cloud)
         )
 
     @Composable
@@ -183,7 +188,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
     }
 
     @Composable
-    override fun shouldShowSecondaryBarContent(): Boolean = 
+    override fun shouldShowSecondaryBarContent(): Boolean =
         FormFactor.observe().value != FormFactor.LANDSCAPE
 
     @Composable
@@ -252,7 +257,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
                         it,
                         isDebugBuild(),
                         modifier = Modifier.padding(content_padding.copy(bottom = 20.dp)),
-                        message = getString("error_yt_feed_parse_failed"),
+                        message = stringResource(Res.string.error_yt_feed_parse_failed),
                         onRetry = {
                             player.app_page_state.SongFeed.retrying = true
                             player.openAppPage(player.app_page_state.SongFeed)

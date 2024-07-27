@@ -1,15 +1,19 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.lyrics.kugou.loadKugouLyrics
 import com.toasterofbread.spmp.youtubeapi.lyrics.kugou.searchKugouLyrics
 import com.toasterofbread.spmp.platform.getUiLanguage
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.lyrics_source_kugou
 
 internal class KugouLyricsSource(source_idx: Int): LyricsSource(source_idx) {
-    override fun getReadable(): String = getString("lyrics_source_kugou")
+    @Composable
+    override fun getReadable(): String = stringResource(Res.string.lyrics_source_kugou)
     override fun getColour(): Color = Color(0xFF50A6FB)
     override fun getUrlOfId(id: String): String? = null
 

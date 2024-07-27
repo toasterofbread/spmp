@@ -32,7 +32,6 @@ import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.library.rememberLocalPlaylists
 import com.toasterofbread.spmp.model.mediaitem.playlist.*
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MEDIA_ITEM_PREVIEW_SQUARE_LINE_HEIGHT_SP
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
@@ -42,6 +41,9 @@ import dev.toastbits.ytmkt.model.YtmApi
 import dev.toastbits.ytmkt.endpoint.AccountPlaylistsEndpoint
 import dev.toastbits.ytmkt.endpoint.CreateAccountPlaylistEndpoint
 import dev.toastbits.ytmkt.model.implementedOrNull
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.library_no_playlists
 
 internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
@@ -99,7 +101,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
             horizontalArrangement = Arrangement.spacedBy(item_spacing)
         ) {
             spanItem {
-                LibraryPageTitle(MediaItemType.PLAYLIST_LOC.getReadable(true))
+                LibraryPageTitle(stringResource(MediaItemType.PLAYLIST_LOC.getReadable(true)))
             }
 
             load_error?.also { error ->
@@ -179,7 +181,7 @@ private fun LazyGridScope.PlaylistItems(
 ) {
     if (items.isEmpty()) {
         spanItem {
-            Text(getString("library_no_playlists"), Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
+            Text(stringResource(Res.string.library_no_playlists), Modifier.fillMaxWidth(), textAlign = TextAlign.Center)
         }
     }
 

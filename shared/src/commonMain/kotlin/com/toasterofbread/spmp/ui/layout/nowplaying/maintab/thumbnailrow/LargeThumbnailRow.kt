@@ -50,6 +50,8 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.*
 import com.toasterofbread.spmp.platform.SongVideoPlayback
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlin.math.absoluteValue
 
 internal typealias ColourpickCallback = (Color?) -> Unit
@@ -65,11 +67,12 @@ fun LargeThumbnailRow(
     thumbnail_modifier: Modifier = Modifier,
     overlayContent: (@Composable () -> Unit)? = null,
 ) {
+    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
     val player: PlayerState = LocalPlayerState.current
-    val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
     val density: Density = LocalDensity.current
-    val current_song: Song? = player.status.m_song
+    val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
 
+    val current_song: Song? = player.status.m_song
     val song_title: String? by current_song?.observeActiveTitle()
     val song_artist_titles: List<String?>? = current_song?.Artists?.observePropertyActiveTitles()
 
@@ -176,25 +179,30 @@ fun LargeThumbnailRow(
                                             return@platformClickable
                                         }
 
-                                        player.performPressAction(
-                                            false,
-                                            main_overlay_menu,
-                                            setThemeColour,
-                                            { colourpick_callback = it },
-                                            { player.openNpOverlayMenu(it) }
-                                        )
+                                        coroutine_scope.launch {
+                                            player.performPressAction(
+                                                false,
+                                                main_overlay_menu,
+                                                setThemeColour,
+                                                { colourpick_callback = it },
+                                                { player.openNpOverlayMenu(it) }
+                                            )
+                                        }
                                     },
                                     onAltClick = {
                                         if (player.np_overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
                                             return@platformClickable
                                         }
-                                        player.performPressAction(
-                                            true,
-                                            main_overlay_menu,
-                                            setThemeColour,
-                                            { colourpick_callback = it },
-                                            { player.openNpOverlayMenu(it) }
-                                        )
+
+                                        coroutine_scope.launch {
+                                            player.performPressAction(
+                                                true,
+                                                main_overlay_menu,
+                                                setThemeColour,
+                                                { colourpick_callback = it },
+                                                { player.openNpOverlayMenu(it) }
+                                            )
+                                        }
                                     }
                                 )
                             }
@@ -358,7 +366,7 @@ fun LargeThumbnailRow(
     }
 }
 
-private fun PlayerState.performPressAction(
+private suspend fun PlayerState.performPressAction(
     long_press: Boolean,
     main_overlay_menu: PlayerOverlayMenu,
     setThemeColour: (Color) -> Unit,

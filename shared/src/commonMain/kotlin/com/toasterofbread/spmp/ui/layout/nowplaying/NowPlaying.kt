@@ -151,6 +151,7 @@ enum class ThemeMode {
             when (Platform.current) {
                 Platform.ANDROID -> BACKGROUND
                 Platform.DESKTOP -> BACKGROUND
+                Platform.WEB -> BACKGROUND
             }
     }
 }
@@ -162,11 +163,12 @@ private fun PlayerState.getBackgroundColourOverride(): Color {
     var current: Color? = pages.getOrNull(expansion.swipe_state.currentValue - 1)?.getPlayerBackgroundColourOverride(this)
     var target: Color? = pages.getOrNull(expansion.swipe_state.targetValue - 1)?.getPlayerBackgroundColourOverride(this)
 
-    val default: Color = when (np_theme_mode) {
-        ThemeMode.BACKGROUND -> theme.accent
-        ThemeMode.ELEMENTS -> theme.card
-        ThemeMode.NONE -> theme.card
-    }
+    val default: Color =
+        when (np_theme_mode) {
+            ThemeMode.BACKGROUND -> theme.accent
+            ThemeMode.ELEMENTS -> theme.card
+            ThemeMode.NONE -> theme.card
+        }
 
     if (current == null && target == null) {
         return default

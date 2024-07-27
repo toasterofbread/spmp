@@ -15,8 +15,10 @@ import dev.toastbits.ytmkt.model.external.ItemLayoutType
 import dev.toastbits.ytmkt.uistrings.UiString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.time.Duration
-import java.time.Instant
+import kotlinx.datetime.Instant
+import kotlinx.datetime.Clock
+import kotlin.time.Duration
+import PlatformIO
 
 data class SongFeedData(
     val layouts: List<ContinuableMediaItemLayout>,
@@ -25,17 +27,17 @@ data class SongFeedData(
 )
 
 object SongFeedCache {
-    private val CACHE_LIFETIME = Duration.ofHours(3)
+    private val CACHE_LIFETIME: Duration = with (Duration) { 3.hours }
 
     suspend fun saveFeedLayouts(
         layouts: List<AppMediaItemLayout>,
         filter_chips: List<SongFeedFilterChip>?,
         continuation_token: String?,
         database: Database,
-    ) = withContext(Dispatchers.IO) {
+    ) = withContext(Dispatchers.PlatformIO) {
         database.transaction {
             database.songFeedRowQueries.clearAllFeedData()
-            val now = Instant.now().toEpochMilli()
+            val now = Clock.System.now().toEpochMilliseconds()
 
             for (row in layouts.withIndex()) {
                 val title: UiString? = row.value.title
@@ -77,17 +79,17 @@ object SongFeedCache {
         }
     }
 
-    suspend fun loadFeedLayouts(database: Database): SongFeedData? = withContext(Dispatchers.IO) {
+    suspend fun loadFeedLayouts(database: Database): SongFeedData? = withContext(Dispatchers.PlatformIO) {
         return@withContext database.transactionWithResult {
-            val oldest_usable_time = Instant.now().minusMillis(CACHE_LIFETIME.toMillis())
+            val oldest_usable_time: Instant = Clock.System.now() - CACHE_LIFETIME
             var continuation_token: String? = null
 
             val layouts = database.songFeedRowQueries
                 .getAll()
                 .executeAsList()
                 .map { row ->
-                    val creation_time = Instant.ofEpochMilli(row.creation_time)
-                    if (creation_time.isBefore(oldest_usable_time)) {
+                    val creation_time: Instant = Instant.fromEpochMilliseconds(row.creation_time)
+                    if (creation_time < oldest_usable_time) {
                         return@transactionWithResult null
                     }
 

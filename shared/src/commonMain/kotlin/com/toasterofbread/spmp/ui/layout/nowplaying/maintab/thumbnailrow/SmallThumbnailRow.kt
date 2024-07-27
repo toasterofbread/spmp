@@ -129,6 +129,9 @@ fun SmallThumbnailRow(
         // Keep thumbnail centered
         Spacer(Modifier)
 
+        val overlay_swap_long_short_press_actions: Boolean by player.settings.player.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.observe()
+        val overlay_custom_action: PlayerOverlayMenuAction by player.settings.player.OVERLAY_CUSTOM_ACTION.observe()
+
         Box(Modifier.aspectRatio(1f)) {
             fun performPressAction(long_press: Boolean) {
                 if (player.np_overlay_menu != null || expansion.get() !in 0.9f .. 1.1f) {
@@ -136,11 +139,11 @@ fun SmallThumbnailRow(
                 }
 
                 val custom_action: Boolean =
-                    if (player.settings.player.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.get()) !long_press
+                    if (overlay_swap_long_short_press_actions) !long_press
                     else long_press
 
                 val action: PlayerOverlayMenuAction =
-                    if (custom_action) player.settings.player.OVERLAY_CUSTOM_ACTION.get()
+                    if (custom_action) overlay_custom_action
                     else PlayerOverlayMenuAction.DEFAULT
 
                 when (action) {

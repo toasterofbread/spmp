@@ -44,17 +44,29 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
-import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.composekit.platform.assert
 import dev.toastbits.ytmkt.endpoint.LoadPlaylistEndpoint
 import dev.toastbits.ytmkt.model.implementedOrNull
 import dev.toastbits.ytmkt.uistrings.durationToString
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.`library_$x_songs`
+import spmp.shared.generated.resources.library_songs_downloaded
+import spmp.shared.generated.resources.library_songs_liked
+import spmp.shared.generated.resources.library_songs_liked_title
+import spmp.shared.generated.resources.library_songs_downloaded_title
+import spmp.shared.generated.resources.library_no_items_match_filter
+import spmp.shared.generated.resources.library_no_liked_songs
+import spmp.shared.generated.resources.library_no_local_songs
 
 class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
@@ -64,10 +76,10 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
     private var load_error: Throwable? by mutableStateOf(null)
 
     override fun canShowAltContent(): Boolean = true
-    override fun getAltContentButtons(): Pair<Pair<String, ImageVector>, Pair<String, ImageVector>> =
+    override fun getAltContentButtons(): Pair<Pair<StringResource, ImageVector>, Pair<StringResource, ImageVector>> =
         Pair(
-            Pair(getString("library_songs_downloaded"), Icons.Default.Download),
-            Pair(getString("library_songs_liked"), Icons.Default.Favorite)
+            Pair(Res.string.library_songs_downloaded, Icons.Default.Download),
+            Pair(Res.string.library_songs_liked, Icons.Default.Favorite)
         )
 
     @Composable
@@ -128,8 +140,8 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
                 ) {
                     item {
                         LibraryPageTitle(
-                            if (showing_alt_content) getString("library_songs_liked_title")
-                            else getString("library_songs_downloaded_title")
+                            if (showing_alt_content) stringResource(Res.string.library_songs_liked_title)
+                            else stringResource(Res.string.library_songs_downloaded_title)
                         )
                     }
 
@@ -144,9 +156,9 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
                     if (current_songs == null) {
                         item {
                             Text(
-                                if (library_page.search_filter != null) getString("library_no_items_match_filter")
-                                else if (showing_alt_content) getString("library_no_liked_songs")
-                                else getString("library_no_local_songs"),
+                                if (library_page.search_filter != null) stringResource(Res.string.library_no_items_match_filter)
+                                else if (showing_alt_content) stringResource(Res.string.library_no_liked_songs)
+                                else stringResource(Res.string.library_no_local_songs),
                                 Modifier.fillMaxWidth(),
                                 textAlign = TextAlign.Center
                             )
@@ -179,9 +191,10 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
                                     show_play_count = true,
                                     show_download_indicator = false,
                                     getExtraInfo = {
-                                        val duration_string: String? = remember(song.id) {
+                                        val ui_language: String by player.context.observeUiLanguage()
+                                        val duration_string: String? = remember(song.id, ui_language) {
                                             song.Duration.get(player.database)?.let { duration ->
-                                                durationToString(duration, player.context.getUiLanguage(), true)
+                                                durationToString(duration, ui_language, true)
                                             }
                                         }
 
@@ -249,7 +262,7 @@ private fun InfoRow(songs: List<Song>, modifier: Modifier = Modifier, show_sync_
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(5.dp)
     ) {
-        Text(getString("library_\$x_songs").replace("\$x", songs.size.toString()))
+        Text(stringResource(Res.string.`library_$x_songs`).replace("\$x", songs.size.toString()))
 
         total_duration_string?.also { duration ->
             Text("\u2022")

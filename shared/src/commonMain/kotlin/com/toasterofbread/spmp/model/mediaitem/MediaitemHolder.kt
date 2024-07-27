@@ -24,7 +24,7 @@ interface MediaItemHolder {
     val item: MediaItem?
 }
 
-private fun List<MediaItemHolder>.filterItems(
+private suspend fun List<MediaItemHolder>.filterItems(
     context: AppContext,
     apply_filter: Boolean,
     hidden_items: List<MediaItem>,
@@ -53,10 +53,10 @@ fun List<MediaItemHolder>.rememberFilteredItems(
 ): State<List<MediaItem>> {
     val player: PlayerState = LocalPlayerState.current
     val hidden_items: List<MediaItem> = rememberHiddenItems()
-    val items_state: MutableState<List<MediaItem>> = remember { mutableStateOf(filterItems(player.context, apply_filter, hidden_items, is_song_feed)) }
+    val items_state: MutableState<List<MediaItem>> = remember { mutableStateOf(emptyList()) }
 
     LaunchedEffect(this, apply_filter, hidden_items) {
-    items_state.value = filterItems(player.context, apply_filter, hidden_items, is_song_feed)
+        items_state.value = filterItems(player.context, apply_filter, hidden_items, is_song_feed)
     }
 
     return items_state

@@ -24,10 +24,13 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalDensity
@@ -60,6 +63,7 @@ fun TitleBar(
     scrollable_state: ScrollableState? = null
 ) {
     val player: PlayerState = LocalPlayerState.current
+    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     AnimatedVisibility(
         shouldShowTitleBar(layout_params, scrollable_state),
@@ -67,8 +71,13 @@ fun TitleBar(
         enter = slideInVertically(),
         exit = slideOutVertically()
     ) {
-        val title_string: String? = remember(layout_params) { layout_params.title?.getString(player.context) }
-        val subtitle_string: String? = remember(layout_params) { layout_params.subtitle?.getString(player.context) }
+        var title_string: String? by remember { mutableStateOf(null) }
+        var subtitle_string: String? by remember { mutableStateOf(null) }
+
+        LaunchedEffect(layout_params) {
+            title_string = layout_params.title?.getString(player.context)
+            subtitle_string = layout_params.subtitle?.getString(player.context)
+        }
 
         Row(
             Modifier
@@ -81,13 +90,13 @@ fun TitleBar(
                 verticalArrangement = Arrangement.Center,
                 modifier = modifier.weight(1f)
             ) {
-                if (subtitle_string != null) {
-                    WidthShrinkText(subtitle_string, style = layout_params.getTitleTextStyle(MaterialTheme.typography.titleSmall.copy(color = player.theme.on_background)))
+                subtitle_string?.also { subtitle ->
+                    WidthShrinkText(subtitle, style = layout_params.getTitleTextStyle(MaterialTheme.typography.titleSmall.copy(color = player.theme.on_background)))
                 }
 
-                if (title_string != null) {
+                title_string?.also { title ->
                     WidthShrinkText(
-                        title_string,
+                        title,
                         modifier = Modifier.fillMaxWidth(),
                         style = MaterialTheme.typography.headlineMedium.let { style ->
                             layout_params.getTitleTextStyle(
@@ -103,7 +112,11 @@ fun TitleBar(
 
             Row {
                 if (layout_params.view_more != null) {
-                    IconButton({ layout_params.view_more.open(player, layout_params.title) }) {
+                    IconButton({
+                        coroutine_scope.launch {
+                            layout_params.view_more.open(player, layout_params.title)
+                        }
+                    }) {
                         Icon(Icons.Default.MoreHoriz, null)
                     }
                 }

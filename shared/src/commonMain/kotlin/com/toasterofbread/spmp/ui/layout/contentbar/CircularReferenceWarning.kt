@@ -5,7 +5,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.material3.Text
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import com.toasterofbread.spmp.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_close
+import spmp.shared.generated.resources.content_bar_warn_circular_reference
+import spmp.shared.generated.resources.content_bar_warn_circular_reference_change_reverted
 
 @Composable
 fun CircularReferenceWarning(modifier: Modifier = Modifier, onDismiss: () -> Unit) {
@@ -13,10 +17,10 @@ fun CircularReferenceWarning(modifier: Modifier = Modifier, onDismiss: () -> Uni
         onDismissRequest = onDismiss,
         confirmButton = {
             Button(onDismiss) {
-                Text(getString("action_close"))
+                Text(stringResource(Res.string.action_close))
             }
         },
-        title = { Text(getString("content_bar_warn_circular_reference")) },
-        text = { Text(getString("content_bar_warn_circular_reference_change_reverted")) }
+        title = { Text(stringResource(Res.string.content_bar_warn_circular_reference)) },
+        text = { Text(stringResource(Res.string.content_bar_warn_circular_reference_change_reverted)) }
     )
 }

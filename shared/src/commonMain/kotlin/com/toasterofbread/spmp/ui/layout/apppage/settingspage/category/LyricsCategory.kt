@@ -3,11 +3,17 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 import dev.toastbits.composekit.settings.ui.item.DropdownSettingsItem
 import dev.toastbits.composekit.settings.ui.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
-import dev.toastbits.composekit.platform.PreferencesProperty
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.composekit.utils.common.toCustomResource
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.s_option_lyrics_follow_offset_top
+import spmp.shared.generated.resources.s_option_lyrics_follow_offset_bottom
+import spmp.shared.generated.resources.s_option_lyrics_text_alignment_start
+import spmp.shared.generated.resources.s_option_lyrics_text_alignment_center
+import spmp.shared.generated.resources.s_option_lyrics_text_alignment_end
 
 internal fun getLyricsCategoryItems(context: AppContext): List<SettingsItem> {
     return listOf(
@@ -24,7 +30,9 @@ internal fun getLyricsCategoryItems(context: AppContext): List<SettingsItem> {
 
         AppSliderItem(
             context.settings.lyrics.FOLLOW_OFFSET,
-            getString("s_option_lyrics_follow_offset_top"), getString("s_option_lyrics_follow_offset_bottom"), steps = 5,
+            Res.string.s_option_lyrics_follow_offset_top.toCustomResource(),
+            Res.string.s_option_lyrics_follow_offset_bottom.toCustomResource(),
+            steps = 5,
             getValueText = null
         ),
 
@@ -41,9 +49,9 @@ internal fun getLyricsCategoryItems(context: AppContext): List<SettingsItem> {
             3
         ) { i ->
             when (i) {
-                0 -> getString("s_option_lyrics_text_alignment_start")
-                1 -> getString("s_option_lyrics_text_alignment_center")
-                else -> getString("s_option_lyrics_text_alignment_end")
+                0 -> stringResource(Res.string.s_option_lyrics_text_alignment_start)
+                1 -> stringResource(Res.string.s_option_lyrics_text_alignment_center)
+                else -> stringResource(Res.string.s_option_lyrics_text_alignment_end)
             }
         },
 

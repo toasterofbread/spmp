@@ -20,10 +20,14 @@ import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.utils.modifier.bounceOnClick
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.theme.appHover
+import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.settings.ui.vibrant_accent
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.search_entry_field_hint
 
 internal val SEARCH_BAR_SHAPE: Shape = RoundedCornerShape(20.dp)
 internal const val SEARCH_BAR_HEIGHT_DP = 45f
@@ -91,7 +95,7 @@ internal fun SearchAppPage.SearchBar(
 
                         // Query hint
                         if (current_query.isEmpty()) {
-                            Text(getString("search_entry_field_hint"), fontSize = SEARCH_FIELD_FONT_SIZE, color = context.theme.on_accent)
+                            Text(stringResource(Res.string.search_entry_field_hint), fontSize = SEARCH_FIELD_FONT_SIZE, color = context.theme.on_accent)
                         }
 
                         // Text input

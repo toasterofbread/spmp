@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.model.mediaitem.artist
 
 import com.toasterofbread.spmp.platform.AppContext
-import dev.toastbits.composekit.utils.common.isJP
+import dev.toastbits.composekit.utils.common.isJa
 
 fun formatArtistTitles(titles: List<String?>, context: AppContext): String? {
     val filtered_titles: List<String> = titles.filterNotNull()
@@ -10,7 +10,7 @@ fun formatArtistTitles(titles: List<String?>, context: AppContext): String? {
     }
 
     val separator: String
-    if (filtered_titles.any { title -> title.any { char -> char.isJP() } }) {
+    if (filtered_titles.any { title -> title.any { char -> char.isJa() } }) {
         separator = "、"
     }
     else {

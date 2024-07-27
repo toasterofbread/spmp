@@ -68,7 +68,8 @@ fun getDefaultMediaItemPreviewSize(long: Boolean): DpSize {
                 )
             else DpSize(100.dp, 100.dp)
         }
-        Platform.DESKTOP -> {
+        Platform.DESKTOP,
+        Platform.WEB -> {
             if (long) {
                 if (form_factor.is_large) DpSize(400.dp, 75.dp)
                 else DpSize(200.dp, 50.dp)

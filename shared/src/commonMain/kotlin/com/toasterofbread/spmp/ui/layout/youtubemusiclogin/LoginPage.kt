@@ -21,6 +21,7 @@ abstract class LoginPage: ApiImplementable {
     @Composable
     abstract fun LoginConfirmationDialog(info_only: Boolean, manual_only: Boolean, onFinished: (param: Any?) -> Unit)
 
+    @Composable
     abstract fun getTitle(confirm_param: Any?): String?
     abstract fun getIcon(confirm_param: Any?): ImageVector?
 
@@ -49,6 +50,7 @@ private class UnimplementedLoginPage: LoginPage() {
     override fun LoginConfirmationDialog(info_only: Boolean, manual_only: Boolean, onFinished: (param: Any?) -> Unit) {
         throw NotImplementedError()
     }
+    @Composable
     override fun getTitle(confirm_param: Any?): String? {
         throw NotImplementedError()
     }

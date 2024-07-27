@@ -15,39 +15,48 @@ import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.utils.common.copy
 import dev.toastbits.composekit.utils.modifier.horizontal
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.controlpanelpage.ControlPanelDownloadsPage
 import com.toasterofbread.spmp.ui.layout.apppage.controlpanelpage.ControlPanelServerPage
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.control_panel_downloads_label
+import spmp.shared.generated.resources.control_panel_server_label
+import spmp.shared.generated.resources.control_panel_downloads_title
+import spmp.shared.generated.resources.control_panel_server_title
 
 class ControlPanelAppPage(override val state: AppPageState): AppPage() {
     private enum class Page {
         DOWNLOADS, SERVER;
-        
+
         val should_show: Boolean get() =
             when (this) {
                 SERVER -> Platform.DESKTOP.isCurrent()
                 else -> true
             }
-        
+
         val icon: ImageVector get() =
             when (this) {
                 DOWNLOADS -> Icons.Default.Download
                 SERVER -> Icons.Default.Cloud
             }
-        
-        val label: String get() =
-            when (this) {
-                DOWNLOADS -> getString("control_panel_downloads_label")
-                SERVER -> getString("control_panel_server_label")
-            }
 
-        val title: String get() =
-            when (this) {
-                DOWNLOADS -> getString("control_panel_downloads_title")
-                SERVER -> getString("control_panel_server_title")
-            }
-        
+        val label: String
+            @Composable
+            get() =
+                when (this) {
+                    DOWNLOADS -> stringResource(Res.string.control_panel_downloads_label)
+                    SERVER -> stringResource(Res.string.control_panel_server_label)
+                }
+
+        val title: String
+            @Composable
+            get() =
+                when (this) {
+                    DOWNLOADS -> stringResource(Res.string.control_panel_downloads_title)
+                    SERVER -> stringResource(Res.string.control_panel_server_title)
+                }
+
         @Composable
         fun Page(modifier: Modifier, multiselect_context: MediaItemMultiSelectContext, content_padding: PaddingValues) =
             when (this) {
@@ -55,7 +64,7 @@ class ControlPanelAppPage(override val state: AppPageState): AppPage() {
                 SERVER -> ControlPanelServerPage(modifier, multiselect_context, content_padding)
             }
     }
-    
+
         @Composable
     override fun ColumnScope.Page(
         multiselect_context: MediaItemMultiSelectContext,
@@ -69,9 +78,9 @@ class ControlPanelAppPage(override val state: AppPageState): AppPage() {
         ) {
             val horizontal_padding: PaddingValues = content_padding.horizontal
             var current_page: Page by remember { mutableStateOf(Page.entries.first { it.should_show }) }
-            
+
             Text(current_page.title, Modifier.padding(horizontal_padding), style = MaterialTheme.typography.displayMedium)
-            
+
             LazyRow(
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
                 contentPadding = horizontal_padding
@@ -80,7 +89,7 @@ class ControlPanelAppPage(override val state: AppPageState): AppPage() {
                     if (!page.should_show) {
                         return@items
                     }
-                    
+
                     FilterChip(
                         selected = page == current_page,
                         onClick = { current_page = page },
@@ -96,7 +105,7 @@ class ControlPanelAppPage(override val state: AppPageState): AppPage() {
                     )
                 }
             }
-            
+
             Crossfade(current_page, Modifier.fillMaxHeight().weight(1f).padding(top = 20.dp)) { page ->
                 page.Page(Modifier.fillMaxSize(), multiselect_context, content_padding.copy(top = 0.dp))
             }

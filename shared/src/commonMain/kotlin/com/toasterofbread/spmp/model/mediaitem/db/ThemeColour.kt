@@ -23,7 +23,7 @@ fun MediaItem.rememberThemeColour(): Color? {
         }
 
         for (quality in YtmThumbnailProvider.Quality.entries) {
-            val image = thumbnail_state.loaded_images[quality]?.get() ?: continue
+            val image = thumbnail_state.loaded_images[quality] ?: continue
             return@derivedStateOf image.getThemeColour()
         }
         return@derivedStateOf null

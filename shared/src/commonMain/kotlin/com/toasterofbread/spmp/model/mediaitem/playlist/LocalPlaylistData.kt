@@ -26,6 +26,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
+import dev.toastbits.composekit.platform.PlatformFile
 
 class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
     var play_count: Int = 0
@@ -69,7 +70,7 @@ class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
     }
 
     override suspend fun savePlaylist(context: AppContext) {
-        val file = MediaItemLibrary.getLocalPlaylistFile(this, context)
+        val file: PlatformFile = MediaItemLibrary.getLocalPlaylistFile(this, context) ?: return
         saveToFile(file, context)
     }
 

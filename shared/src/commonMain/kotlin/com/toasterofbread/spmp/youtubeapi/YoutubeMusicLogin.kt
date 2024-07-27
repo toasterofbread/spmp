@@ -5,7 +5,6 @@ import dev.toastbits.ytmkt.model.external.mediaitem.YtmArtist
 import dev.toastbits.ytmkt.model.internal.YoutubeAccountMenuResponse
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
@@ -13,8 +12,6 @@ import io.ktor.client.request.request
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.Headers
 import io.ktor.util.flattenEntries
-import com.toasterofbread.spmp.model.JsonHttpClient
-import com.toasterofbread.spmp.youtubeapi.SpMpYoutubeiAuthenticationState
 import com.toasterofbread.spmp.platform.AppContext
 
 object YTMLogin {
@@ -57,7 +54,7 @@ object YTMLogin {
                 account.serviceEndpoint.selectActiveIdentityEndpoint!!.supportedTokens.first { it.accountSigninToken != null }.accountSigninToken!!.signinUrl
 
             val sign_in_response: HttpResponse =
-                HttpClient(CIO).get("https://music.youtube.com/" + sign_in_url_path) {
+                HttpClient().get("https://music.youtube.com/" + sign_in_url_path) {
                     expectSuccess = true
                     headers {
                         appendAll(headers)

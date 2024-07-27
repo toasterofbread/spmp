@@ -1,23 +1,14 @@
-@file:Suppress("UNUSED_VARIABLE")
-
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.apache.commons.io.FileUtils
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.jvm.tasks.Jar
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import plugin.spmp.SpMpDeps
 import java.io.FileInputStream
-import java.net.URL
 import java.nio.file.Files.getPosixFilePermissions
 import java.nio.file.Files.setPosixFilePermissions
 import java.nio.file.attribute.PosixFilePermission
-import java.util.*
-import kotlin.NoSuchElementException
-import org.gradle.api.Project
-import java.io.File
-import java.io.FileOutputStream
-import java.util.zip.ZipFile
-import plugin.shared.CommandClass
-import plugin.spmp.SpMpDeps
+import java.util.Properties
 
 plugins {
     kotlin("multiplatform")
@@ -266,4 +257,12 @@ fun configureRunTask() {
 afterEvaluate {
     registerAppImagePackageTasks()
     configureRunTask()
+
+    tasks.named<Jar>("packageUberJarForCurrentOS") {
+        isZip64 = true
+    }
+
+    tasks.named<Jar>("packageReleaseUberJarForCurrentOS") {
+        isZip64 = true
+    }
 }

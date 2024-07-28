@@ -29,6 +29,9 @@
             jdk21
             jdk22
             android-sdk
+            appimagekit
+            appstream
+            zsync
 
             # Runtime
             libglvnd

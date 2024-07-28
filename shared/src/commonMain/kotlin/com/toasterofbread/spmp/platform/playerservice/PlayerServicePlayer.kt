@@ -473,7 +473,7 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
                 clearQueue(save = false)
             }
             else if (clear_after) {
-                clearQueue(save = false, from = index)
+                clearQueue(save = false, from = index, cancel_radio = false)
             }
 
             for (song in to_add.withIndex()) {

@@ -134,7 +134,9 @@ compose.desktop {
         buildTypes.release {
             proguard {
                 // TODO
-                isEnabled = false
+                version = "7.5.0"
+                isEnabled = true
+                configurationFiles.from(project.file("proguard-rules.pro"))
             }
         }
     }
@@ -200,8 +202,8 @@ abstract class ActuallyPackageAppImageTask: DefaultTask() {
         }
     }
 
-    fun File.addExecutePermission() {
-        if (OperatingSystem.current().isUnix()) {
+    private fun File.addExecutePermission() {
+        if (OperatingSystem.current().isUnix) {
             val permissions: MutableSet<PosixFilePermission> = getPosixFilePermissions(toPath())
             permissions.add(PosixFilePermission.OWNER_EXECUTE)
             setPosixFilePermissions(toPath(), permissions)

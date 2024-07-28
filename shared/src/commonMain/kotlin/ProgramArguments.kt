@@ -10,11 +10,10 @@ data class ProgramArguments(
     val is_flatpak: Boolean = false
 ) {
     companion object {
-        fun parse(args: Array<String>): ProgramArguments? {
-            fun onIllegalArgument(msg: String) {
-                throw IllegalArgumentException("$msg Received arguments: ${args.toList()}")
-            }
-
+        fun parse(
+            args: Array<String>,
+            onIllegalArgument: (String) -> Unit
+        ): ProgramArguments? {
             var arguments: ProgramArguments = ProgramArguments()
 
             val iterator: Iterator<String> = args.iterator()

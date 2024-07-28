@@ -46,7 +46,13 @@ fun main(args: Array<String>) {
         System.setProperty("skiko.renderApi", "SOFTWARE")
     }
 
-    val arguments: ProgramArguments = ProgramArguments.parse(args) ?: return
+    val arguments: ProgramArguments =
+        ProgramArguments.parse(
+            args,
+            onIllegalArgument = { argument ->
+                println("Ignoring unknown argument '$argument'")
+            }
+        ) ?: return
 
     SpMp.onStart()
 

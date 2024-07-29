@@ -11,11 +11,10 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.JsonHttpClient
 import com.toasterofbread.spmp.resources.getString
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
+import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.functions.Functions
-import io.github.jan.supabase.plugins.standaloneSupabaseModule
-import io.ktor.client.HttpClient
+import io.github.jan.supabase.functions.functions
 import io.ktor.client.call.body
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.get
 import io.ktor.client.request.headers
 import io.ktor.client.statement.HttpResponse
@@ -182,11 +181,13 @@ actual class DiscordStatus actual constructor(
     private data class SupabaseGetImagesResponse(val attachment_urls: List<String?>)
 
     private fun getSupabaseFunctions(): Functions =
-        standaloneSupabaseModule(
-            Functions,
-            ProjectBuildConfig.SUPABASE_URL + "/functions/v1/",
-            ProjectBuildConfig.SUPABASE_KEY
-        )
+        createSupabaseClient(
+            supabaseUrl = ProjectBuildConfig.SUPABASE_URL,
+            supabaseKey = ProjectBuildConfig.SUPABASE_KEY,
+            builder = {
+                install(Functions)
+            }
+        ).functions
 
     actual suspend fun getCustomImages(
         image_items: List<MediaItem>,

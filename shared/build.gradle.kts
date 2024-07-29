@@ -96,6 +96,8 @@ kotlin {
                 implementation(deps.get("io.github.jan-tennert.supabase:functions-kt"))
                 implementation(deps.get("io.ktor:ktor-client-cio"))
                 implementation(deps.get("dev.toastbits.compose-webview-multiplatform:compose-webview-multiplatform-android"))
+
+                runtimeOnly(deps.get("io.ktor:ktor-server-content-negotiation"))
             }
         }
 

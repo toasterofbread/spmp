@@ -1,7 +1,5 @@
 package plugin.spmp
 
-import org.gradle.language.ComponentDependencies
-
 class SpMpDeps(extra: Map<String, Any>) {
     fun get(artifact: String, dependency_id: String = artifact): String {
         return artifact + ":" + getVersion(dependency_id)
@@ -40,7 +38,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/toasterofbread/ComposeKit/blob/136f216e65395660255d3270af9b79c90ae2254c/LICENSE"
             ),
             "dev.toastbits.ytmkt" to DependencyInfo(
-                version = "0.2.3",
+                version = "0.2.6-SNAPSHOT",
                 name = "ytm-kt",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/ytm-kt",
@@ -195,7 +193,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/Kamel-Media/Kamel/blob/6eb1dd7fea43beb2e30d8e5d162b2b5e212e5950/LICENSE"
             ),
             "io.ktor" to DependencyInfo(
-                version = "2.3.9",
+                version = "3.0.0-beta-2",
                 name = "Ktor",
                 author = "JetBrains",
                 url = "https://github.com/ktorio/ktor",
@@ -246,7 +244,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/anggrayudi/SimpleStorage/blob/cdab9945ccaeb6deae3906db3af98a87bc450e5f/LICENSE"
             ),
             "io.github.jan-tennert.supabase:functions-kt" to DependencyInfo(
-                version = "1.3.2",
+                version = "2.5.3-wasm0",
                 name = "supabase-kt",
                 author = " jan-tennert",
                 url = "https://github.com/supabase-community/supabase-kt",

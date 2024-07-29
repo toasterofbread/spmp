@@ -1,5 +1,11 @@
 package plugin.spmp
 
+import org.gradle.api.Project
+import org.gradle.kotlin.dsl.extra
+
+fun Project.getDeps(): SpMpDeps =
+    SpMpDeps(extra.properties)
+
 class SpMpDeps(extra: Map<String, Any>) {
     fun get(artifact: String, dependency_id: String = artifact): String {
         return artifact + ":" + getVersion(dependency_id)

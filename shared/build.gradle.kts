@@ -1,4 +1,5 @@
 import plugin.spmp.SpMpDeps
+import plugin.spmp.getDeps
 
 plugins {
     id("generate-build-config")
@@ -19,7 +20,7 @@ kotlin {
     jvm("desktop")
 
     sourceSets {
-        val deps: SpMpDeps = SpMpDeps(extra.properties)
+        val deps: SpMpDeps = getDeps()
 
         all {
             languageSettings.apply {

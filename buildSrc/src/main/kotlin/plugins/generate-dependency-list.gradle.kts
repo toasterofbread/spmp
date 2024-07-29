@@ -1,5 +1,5 @@
 import java.io.File
-import plugin.spmp.SpMpDeps
+import plugin.spmp.getDeps
 
 val OUTPUT_PACKAGE_NAME: String = "com.toasterofbread.spmp"
 val INPUT_PACKAGE_NAME: String = "plugin.spmp"
@@ -20,7 +20,7 @@ fun Task.generateDependencyList() {
 
     val dependencies_string: StringBuilder = StringBuilder()
 
-    for ((key, dep) in SpMpDeps(project.extra.properties).dependencies) {
+    for ((key, dep) in project.getDeps().dependencies) {
         dependencies_string.append(
 """
         "$key" to DependencyInfo(

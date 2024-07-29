@@ -256,21 +256,21 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
                 return
             }
 
-            try {
-                local_server_process =
-                    LocalServer.startLocalServer(
-                        player.context,
-                        player.settings.platform.SERVER_PORT.get()
-                    )
-
-                if (!automatic && local_server_process == null) {
-                    local_server_error = RuntimeException(getString("loading_splash_local_server_command_not_set"))
+            LocalServer.startLocalServer(
+                player.context,
+                player.settings.platform.SERVER_PORT.get()
+            ).fold(
+                onSuccess = {
+                    local_server_process = it
+                    if (!automatic && local_server_process == null) {
+                        local_server_error = RuntimeException(getString("loading_splash_local_server_command_not_set"))
+                    }
+                },
+                onFailure = { e ->
+                    local_server_process = null
+                    local_server_error = e
                 }
-            }
-            catch (e: Throwable) {
-                local_server_process = null
-                local_server_error = e
-            }
+            )
         }
 
         val server_unavailability_reason: String? = remember { LocalServer.getLocalServerUnavailabilityReason() }

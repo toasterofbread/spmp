@@ -14,13 +14,6 @@
 
       runtime_jdk = pkgs.jdk22;
 
-      android-sdk = (android-nixpkgs.sdk.${system} (sdkPkgs: with sdkPkgs; [
-        cmdline-tools-latest
-        build-tools-34-0-0
-        platform-tools
-        platforms-android-34
-      ]));
-
       runtime_packages = with pkgs; [
         runtime_jdk
         libglvnd
@@ -29,17 +22,23 @@
         mpv
         vulkan-loader
       ];
-    in
-    {
-      packages."${system}".default =
-        let
-          src = pkgs.fetchurl {
-            url = "https://github.com/toasterofbread/spmp/releases/download/v0.4.0-RC1/spmp-v0.4.0-RC1-linux-x86_64.appimage";
-            hash = "sha256-Cs/oln8mW8TSzeBCoqKFDz0NYGH5aJ66DXArjA36SWI=";
-          };
 
+      android-sdk = (android-nixpkgs.sdk.${system} (sdkPkgs: with sdkPkgs; [
+        cmdline-tools-latest
+        build-tools-34-0-0
+        platform-tools
+        platforms-android-34
+      ]));
+
+      spmp_package =
+        let
           pname = "spmp";
-          version = "0.4.0-RC1";
+          version = "0.4.0-RC2";
+
+          src = pkgs.fetchurl {
+            url = "https://github.com/toasterofbread/spmp/releases/download/v${version}/spmp-v${version}-linux-x86_64.appimage";
+            hash = "sha256-zfXyvW5jynx4yD4iOMDAGeKmolhAqiQmpMLtbKBExxs=";
+          };
         in
         pkgs.stdenv.mkDerivation {
           inherit pname version;
@@ -71,6 +70,9 @@
             chmod +x $out/bin/spmp
           '';
         };
+    in
+    {
+      packages."${system}".default = spmp_package;
 
       devShells."${system}".default =
         pkgs.mkShell {
@@ -81,6 +83,9 @@
             appimagekit
             appstream
             zsync
+
+            # For testing new releases
+            spmp_package
           ] ++ runtime_packages;
 
           JAVA_21_HOME = "${pkgs.jdk21}/lib/openjdk";

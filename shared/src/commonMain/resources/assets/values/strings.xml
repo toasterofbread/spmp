@@ -268,7 +268,7 @@
     <string name="video_format_endpoint_youtubei">Youtubei</string>
     <string name="video_format_endpoint_newpipe">NewPipe</string>
 
-    <string name="error_message_generic">A error occurred</string>
+    <string name="error_message_generic">An error occurred</string>
     <string name="error_yt_feed_parse_failed">YouTube feed parsing failed</string>
     <string name="error_player_service_not_connected">Player service isn't connecting&#xA;A bug may have occurred</string>
     <string name="error_while_connecting_to_server_at_$x">An error occurred while connecting to server at $x</string>

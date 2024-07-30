@@ -204,7 +204,7 @@ abstract class ActuallyPackageAppImageTask: DefaultTask() {
 
         project.logger.lifecycle("Removing unneeded jars")
 
-        with (JarUtil) {
+        with (Utils) {
             dir.resolve("lib/app").removeUnneededJarsFromDir(project)
         }
     }
@@ -276,7 +276,13 @@ afterEvaluate {
     }
 }
 
-private object JarUtil {
+private object Utils {
+    fun runChecks(project: Project) {
+        if (System.getenv("NIX_PATH") != null && !project.hasProperty("BUILD_ON_NIX")) {
+            throw GradleException("It appears you're trying to build in a Nix environment. Desktop binaries built on Nix do not function on other systems. To build anyway, run Gradle with '-PBUILD_ON_NIX'.")
+        }
+    }
+
     fun getUnneededLibraries(): List<String> =
         listOf("javacpp", "ffmpeg")
 
@@ -296,7 +302,7 @@ private object JarUtil {
 
     fun Jar.excludeUnneededFiles() {
         val is_windows: Boolean = Os.isFamily(Os.FAMILY_WINDOWS)
-        val platforms: List<String> = JarUtil.getUnneededPlatforms(is_windows = is_windows)
+        val platforms: List<String> = Utils.getUnneededPlatforms(is_windows = is_windows)
         val libraries: List<String> = listOf("javacpp", "ffmpeg")
 
         exclude(platforms.flatMap { platform -> libraries.map { library -> "/org/bytedeco/$library/$platform/*" } })
@@ -333,9 +339,9 @@ private object JarUtil {
         val ffmpeg_version: String = deps.getVersion("org.bytedeco:ffmpeg-platform")
         val javacpp_version: String = ffmpeg_version.split('-', limit = 2)[1]
 
-        val platforms: List<String> = JarUtil.getUnneededPlatforms(is_windows = false)
+        val platforms: List<String> = Utils.getUnneededPlatforms(is_windows = false)
         val jar_prefixes: List<String> = platforms.flatMap { platform ->
-            JarUtil.getUnneededLibraries().map { library ->
+            Utils.getUnneededLibraries().map { library ->
                 val version: String =
                     when (library) {
                         "javacpp" -> javacpp_version
@@ -359,16 +365,26 @@ private object JarUtil {
 
 afterEvaluate {
     tasks.named<Jar>("packageUberJarForCurrentOS") {
-        with (JarUtil) { excludeUnneededFiles() }
+        doFirst {
+            Utils.runChecks(project)
+        }
+        with (Utils) { excludeUnneededFiles() }
     }
     tasks.named<Jar>("packageReleaseUberJarForCurrentOS") {
-        with (JarUtil) { excludeUnneededFiles() }
+        doFirst {
+            Utils.runChecks(project)
+        }
+        with (Utils) { excludeUnneededFiles() }
     }
 
     tasks.withType<AbstractJPackageTask> {
+        doFirst {
+            Utils.runChecks(project)
+        }
+
         doLast {
             val jars_directory: File = outputs.files.singleFile.resolve("spmp/lib/app")
-            with (JarUtil) {
+            with (Utils) {
                 jars_directory.removeUnneededJarsFromDir(project)
             }
         }

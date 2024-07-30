@@ -4,6 +4,7 @@ import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.tasks.Jar
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 import plugin.spmp.SpMpDeps
 import plugin.spmp.getDeps
 import java.io.FileInputStream
@@ -15,10 +16,6 @@ import java.util.Properties
 plugins {
     kotlin("multiplatform")
     id("org.jetbrains.compose")
-}
-
-enum class OS {
-    LINUX, WINDOWS;
 }
 
 val local_properties_path: String = "local.properties"
@@ -207,30 +204,8 @@ abstract class ActuallyPackageAppImageTask: DefaultTask() {
 
         project.logger.lifecycle("Removing unneeded jars")
 
-        val deps: SpMpDeps = project.getDeps()
-        val ffmpeg_version: String = deps.getVersion("org.bytedeco:ffmpeg-platform")
-        val javacpp_version: String = ffmpeg_version.split('-', limit = 2)[1]
-
-        val platforms: List<String> = JarUtil.getUnneededPlatforms(is_windows = false)
-        val jar_prefixes: List<String> = platforms.flatMap { platform ->
-            JarUtil.getUnneededLibraries().map { library ->
-                val version: String =
-                    when (library) {
-                        "javacpp" -> javacpp_version
-                        "ffmpeg" -> ffmpeg_version
-                        else -> throw NotImplementedError(library)
-                    }
-                return@map "$library-$version-$platform"
-            }
-        }
-
-        for (file in dir.resolve("lib/app").listFiles().orEmpty()) {
-            for (prefix in jar_prefixes) {
-                if (file.name.startsWith(prefix) && file.name.endsWith(".jar")) {
-                    file.delete()
-                    project.logger.lifecycle("Removing lib/app/${file.name}")
-                }
-            }
+        with (JarUtil) {
+            dir.resolve("lib/app").removeUnneededJarsFromDir(project)
         }
     }
 
@@ -353,6 +328,33 @@ private object JarUtil {
             }
         )
     }
+
+    fun File.removeUnneededJarsFromDir(project: Project, deps: SpMpDeps = project.getDeps()) {
+        val ffmpeg_version: String = deps.getVersion("org.bytedeco:ffmpeg-platform")
+        val javacpp_version: String = ffmpeg_version.split('-', limit = 2)[1]
+
+        val platforms: List<String> = JarUtil.getUnneededPlatforms(is_windows = false)
+        val jar_prefixes: List<String> = platforms.flatMap { platform ->
+            JarUtil.getUnneededLibraries().map { library ->
+                val version: String =
+                    when (library) {
+                        "javacpp" -> javacpp_version
+                        "ffmpeg" -> ffmpeg_version
+                        else -> throw NotImplementedError(library)
+                    }
+                return@map "$library-$version-$platform"
+            }
+        }
+
+        for (file in this.listFiles().orEmpty()) {
+            for (prefix in jar_prefixes) {
+                if (file.name.startsWith(prefix) && file.name.endsWith(".jar")) {
+                    file.delete()
+                    project.logger.lifecycle("Removing lib/app/${file.name}")
+                }
+            }
+        }
+    }
 }
 
 afterEvaluate {
@@ -362,4 +364,30 @@ afterEvaluate {
     tasks.named<Jar>("packageReleaseUberJarForCurrentOS") {
         with (JarUtil) { excludeUnneededFiles() }
     }
+
+    tasks.withType<AbstractJPackageTask> {
+        doLast {
+            val jars_directory: File = outputs.files.singleFile.resolve("spmp/lib/app")
+            with (JarUtil) {
+                jars_directory.removeUnneededJarsFromDir(project)
+            }
+        }
+    }
+}
+
+tasks.register<Tar>("createReleaseTarball") {
+    val dist_task: Task by tasks.named("createReleaseDistributable")
+    val dist_directory: File = dist_task.outputs.files.singleFile
+    dependsOn(dist_task)
+
+    val platform: String =
+        if (Os.isFamily(Os.FAMILY_WINDOWS)) "windows-x86_64"
+        else "linux-x86_64"
+
+    into("/") {
+        from(dist_directory)
+    }
+
+    archiveFileName = "spmp-v${getString("version_string")}-$platform.tar.gz"
+    compression = Compression.GZIP
 }

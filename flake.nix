@@ -34,21 +34,18 @@
         let
           pname = "spmp";
           version = "0.4.0-RC2";
-
-          src = pkgs.fetchurl {
-            url = "https://github.com/toasterofbread/spmp/releases/download/v${version}/spmp-v${version}-linux-x86_64.appimage";
-            hash = "sha256-zfXyvW5jynx4yD4iOMDAGeKmolhAqiQmpMLtbKBExxs=";
-          };
         in
         pkgs.stdenv.mkDerivation {
           inherit pname version;
 
-          src = pkgs.appimageTools.extract {
-            inherit src pname version;
+          src = pkgs.fetchurl {
+            url = "https://github.com/toasterofbread/spmp/releases/download/v${version}/spmp-v${version}-linux-x86_64.tar.gz";
+            hash = "sha256-yHTRTpYPJcYZmPwWsrYa+t8MWWtLZYCsGTJkQWCr7ho=";
           };
 
           nativeBuildInputs = with pkgs; [
             autoPatchelfHook
+            gnutar
           ];
 
           buildInputs = with pkgs; [
@@ -57,16 +54,18 @@
           ] ++ runtime_packages;
 
           installPhase = ''
-            mkdir -p $out/appimage
-            cp -as $src/bin $out/appimage/bin
-            cp -as $src/lib $out/appimage/lib
+            tar -xzf $src
+
+            mkdir -p $out/dist
+            mv ./bin $out/dist/bin
+            mv ./lib $out/dist/lib
 
             lib_paths=($(echo $NIX_LDFLAGS | grep -oP '(?<=-rpath\s| -L)[^ ]+'))
             lib_paths_str=$(IFS=:; echo "''${lib_paths[*]}")
 
             mkdir -p $out/bin
             echo "#!/bin/sh" >> $out/bin/spmp
-            echo "LD_LIBRARY_PATH=\"$lib_paths_str:\$LD_LIBRARY_PATH\" $out/appimage/bin/spmp" >> $out/bin/spmp
+            echo "LD_LIBRARY_PATH=\"$lib_paths_str:\$LD_LIBRARY_PATH\" $out/dist/bin/spmp" >> $out/bin/spmp
             chmod +x $out/bin/spmp
           '';
         };

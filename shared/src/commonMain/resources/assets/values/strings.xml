@@ -1,6 +1,11 @@
 <resources>
     <string name="language_name">English (GB)</string>
 
+    <!--
+        Things to update on version change:
+        - flake.nix
+        - toasterofbread/flatpak-repo
+    -->
     <string name="version_string" translatable="false">0.4.0-RC2</string>
     <string name="version_code" translatable="false">15</string>
 

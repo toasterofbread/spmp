@@ -318,11 +318,17 @@ suspend fun uploadErrorToPasteEe(
     error: Throwable? = null,
     logs: String? = null,
 ): Result<String> = runCatching {
-    val sections = mutableListOf(
-        mapOf("name" to "VERSION", "contents" to "Commit: '${ProjectBuildConfig.GIT_COMMIT_HASH}' | Tag: '${ProjectBuildConfig.GIT_TAG}'"),
-        mapOf("name" to "MESSAGE", "contents" to message),
-        mapOf("name" to "STACKTRACE", "contents" to stack_trace)
-    )
+    val sections: MutableList<Map<String, String>> =
+        mutableListOf(
+            mapOf(
+                "name" to "VERSION",
+                "contents" to
+                    if (ProjectBuildConfig.GIT_TAG != null) "Tag: ${ProjectBuildConfig.GIT_TAG}"
+                    else "Commit: ${ProjectBuildConfig.GIT_COMMIT_HASH}"
+            ),
+            mapOf("name" to "MESSAGE", "contents" to message),
+            mapOf("name" to "STACKTRACE", "contents" to stack_trace)
+        )
 
     if (logs != null) {
         sections.add(

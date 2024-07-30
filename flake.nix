@@ -33,14 +33,14 @@
       spmp_package =
         let
           pname = "spmp";
-          version = "0.4.0-RC2";
+          version = "0.4.0-RC3";
         in
         pkgs.stdenv.mkDerivation {
           inherit pname version;
 
           src = pkgs.fetchurl {
             url = "https://github.com/toasterofbread/spmp/releases/download/v${version}/spmp-v${version}-linux-x86_64.tar.gz";
-            hash = "sha256-yHTRTpYPJcYZmPwWsrYa+t8MWWtLZYCsGTJkQWCr7ho=";
+            hash = "sha256-HyG71IFfbdTracow68c1Hg6eq7M1/ZuxAHAWk1lDx/U=";
           };
 
           nativeBuildInputs = with pkgs; [
@@ -84,7 +84,7 @@
             zsync
 
             # For testing new releases
-            spmp_package
+            # spmp_package
           ] ++ runtime_packages;
 
           JAVA_21_HOME = "${pkgs.jdk21}/lib/openjdk";

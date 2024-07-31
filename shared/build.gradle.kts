@@ -50,6 +50,8 @@ kotlin {
                 implementation(compose.components.resources)
 
                 implementation(deps.get("dev.toastbits:spms"))
+                implementation(deps.get("dev.toastbits.ytmkt:ytmkt"))
+                implementation(deps.get("dev.toastbits.composekit:library"))
 
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
                 implementation(deps.get("org.apache.commons:commons-text"))
@@ -78,9 +80,6 @@ kotlin {
                 api("androidx.core:core-ktx:1.12.0")
                 api("androidx.appcompat:appcompat:1.6.1")
 
-                implementation(deps.get("dev.toastbits.composekit:library-android"))
-                implementation(deps.get("dev.toastbits.ytmkt:ytmkt-android"))
-
                 implementation("androidx.palette:palette:1.0.0")
                 implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.6.0")
@@ -104,8 +103,6 @@ kotlin {
             dependencies {
                 implementation(compose.desktop.common)
 
-                implementation(deps.get("dev.toastbits.composekit:library-desktop"))
-                implementation(deps.get("dev.toastbits.ytmkt:ytmkt-jvm"))
                 implementation(deps.get("dev.toastbits.mediasession:library-jvm"))
 
                 implementation(deps.get("app.cash.sqldelight:sqlite-driver"))

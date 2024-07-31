@@ -7,9 +7,8 @@ import dev.toastbits.composekit.settings.ui.Theme
 import dev.toastbits.composekit.settings.ui.ThemeData
 import dev.toastbits.composekit.settings.ui.item.*
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
-import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.isVideoPlaybackSupported
+import com.toasterofbread.spmp.platform.doesPlatformSupportVideoPlayback
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
@@ -65,7 +64,7 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> {
             context.settings.theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY
         ),
 
-        if (isVideoPlaybackSupported())
+        if (doesPlatformSupportVideoPlayback())
             MultipleChoiceSettingsItem(
                 context.settings.theme.NOWPLAYING_DEFAULT_VIDEO_POSITION
             ) { position ->

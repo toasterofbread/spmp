@@ -168,6 +168,10 @@
     <string name="player_overlay_menu_action_open_related">Open related</string>
     <string name="player_overlay_menu_action_download">Download</string>
 
+    <string name="song_theme_menu_section_foreground">Foreground</string>
+    <string name="song_theme_menu_section_background">Background</string>
+    <string name="song_theme_menu_section_video">Video</string>
+
     <string name="song_theme_menu_corner_radius">Corner radius</string>
     <string name="song_theme_menu_gradient_depth">Gradient depth</string>
     <string name="song_theme_menu_background_image_opacity">Background content opacity</string>

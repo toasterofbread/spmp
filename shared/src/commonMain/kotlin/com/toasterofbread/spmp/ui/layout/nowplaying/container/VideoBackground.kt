@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.container
 
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
-import com.toasterofbread.spmp.platform.isVideoPlaybackSupported
+import com.toasterofbread.spmp.platform.doesPlatformSupportVideoPlayback
 import com.toasterofbread.spmp.platform.SongVideoPlayback
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
@@ -15,7 +15,7 @@ internal fun VideoBackground(
     modifier: Modifier = Modifier,
     getAlpha: () -> Float = { 1f }
 ): Boolean {
-    if (!isVideoPlaybackSupported()) {
+    if (!doesPlatformSupportVideoPlayback()) {
         return false
     }
 

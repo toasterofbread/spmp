@@ -37,7 +37,7 @@ import kotlin.math.absoluteValue
 import android.graphics.PixelFormat
 import android.view.SurfaceView
 
-actual fun isVideoPlaybackSupported(): Boolean = true
+actual fun doesPlatformSupportVideoPlayback(): Boolean = true
 
 @OptIn(UnstableApi::class)
 @Composable

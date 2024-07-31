@@ -146,6 +146,10 @@
     <string name="player_overlay_menu_action_open_related">関係コンテンツを開く</string>
     <string name="player_overlay_menu_action_download">ダウンロード</string>
 
+    <string name="song_theme_menu_section_foreground">前景</string>
+    <string name="song_theme_menu_section_background">背景</string>
+    <string name="song_theme_menu_section_video">動画</string>
+
     <string name="song_theme_menu_corner_radius">コーナーの半径</string>
     <string name="song_theme_menu_gradient_depth">グラデーションの深さ</string>
     <string name="song_theme_menu_background_image_opacity">バックグラウンドコンテンツの不透明度</string>

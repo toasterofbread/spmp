@@ -70,7 +70,7 @@ import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.DEFAULT_THUMBNAIL_ROUNDING
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.songtheme.DEFAULT_THUMBNAIL_ROUNDING
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 
@@ -89,7 +89,9 @@ internal fun LongPressMenuContent(
 
     @Composable
     fun Thumb(modifier: Modifier) {
-        data.item.Thumbnail(ThumbnailProvider.Quality.LOW, modifier.clip(data.thumb_shape ?: RoundedCornerShape(DEFAULT_THUMBNAIL_ROUNDING)))
+        data.item.Thumbnail(ThumbnailProvider.Quality.LOW, modifier.clip(data.thumb_shape ?: RoundedCornerShape(
+            DEFAULT_THUMBNAIL_ROUNDING
+        )))
     }
 
     var show_title_edit_dialog: Boolean by remember { mutableStateOf(false) }

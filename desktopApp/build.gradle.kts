@@ -391,10 +391,12 @@ afterEvaluate {
     }
 }
 
-tasks.register<Tar>("createReleaseTarball") {
+tasks.register<Tar>("packageReleaseTarball") {
     val dist_task: Task by tasks.named("createReleaseDistributable")
-    val dist_directory: File = dist_task.outputs.files.singleFile
     dependsOn(dist_task)
+    mustRunAfter("finishPackagingReleaseAppImage")
+
+    val dist_directory: File = dist_task.outputs.files.singleFile
 
     val platform: String =
         if (Os.isFamily(Os.FAMILY_WINDOWS)) "windows-x86_64"

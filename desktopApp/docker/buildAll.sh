@@ -1,0 +1,1 @@
+./dockerBuild.sh packageReleaseAppImage packageReleaseTarball packageReleaseUberJarForCurrentOS

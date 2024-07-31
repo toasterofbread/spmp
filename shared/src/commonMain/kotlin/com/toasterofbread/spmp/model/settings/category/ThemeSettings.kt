@@ -39,7 +39,7 @@ class ThemeSettings(val context: AppContext): SettingsGroup("THEME", context.get
     val NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY: PreferencesProperty<Float> by property(
         getName = { getString("s_key_np_default_background_image_video_opacity") },
         getDescription = { null },
-        getDefaultValue = { if (Platform.DESKTOP.isCurrent()) 0.0f else 0.5f }
+        getDefaultValue = { 0.5f }
     )
     val NOWPLAYING_DEFAULT_VIDEO_POSITION: PreferencesProperty<VideoPosition> by enumProperty(
         getName = { getString("s_key_np_default_video_position") },
@@ -49,7 +49,7 @@ class ThemeSettings(val context: AppContext): SettingsGroup("THEME", context.get
     val NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY: PreferencesProperty<Float> by property(
         getName = { getString("s_key_np_default_landscape_queue_opacity") },
         getDescription = { null },
-        getDefaultValue = { 1f }
+        getDefaultValue = { 0.5f }
     )
     val NOWPLAYING_DEFAULT_SHADOW_RADIUS: PreferencesProperty<Float> by property(
         getName = { getString("s_key_np_default_shadow_radius") },

@@ -4,7 +4,7 @@ import com.toasterofbread.spmp.platform.ffmpeg.VideoPlayerFFmpeg
 import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 
-actual fun isVideoPlaybackSupported(): Boolean = true
+actual fun doesPlatformSupportVideoPlayback(): Boolean = true
 
 @Composable
 actual fun VideoPlayback(

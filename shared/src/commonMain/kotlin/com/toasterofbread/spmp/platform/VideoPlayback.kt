@@ -3,12 +3,11 @@ package com.toasterofbread.spmp.platform
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.model.mediaitem.song.Song
 import LocalPlayerState
 import dev.toastbits.ytmkt.model.external.YoutubeVideoFormat
 import com.toasterofbread.spmp.model.mediaitem.song.getSongFormats
 
-expect fun isVideoPlaybackSupported(): Boolean
+expect fun doesPlatformSupportVideoPlayback(): Boolean
 
 @Composable
 expect fun VideoPlayback(

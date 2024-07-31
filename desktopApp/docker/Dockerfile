@@ -28,4 +28,4 @@ ENV JAVA_22_HOME=/usr/lib/jvm/jdk-22.0.2-oracle-x64
 ENV JAVA_HOME=$JAVA_22_HOME
 
 WORKDIR /src
-ENTRYPOINT $GRADLE_HOME/bin/gradle --no-daemon
+ENTRYPOINT ["/src/desktopApp/docker/entryPoint.sh"]

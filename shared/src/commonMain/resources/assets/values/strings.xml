@@ -6,8 +6,8 @@
         - flake.nix
         - toasterofbread/flatpak-repo
     -->
-    <string name="version_string" translatable="false">0.4.0-RC3</string>
-    <string name="version_code" translatable="false">16</string>
+    <string name="version_string" translatable="false">0.4.0-RC4</string>
+    <string name="version_code" translatable="false">17</string>
 
     <string name="app_name" translatable="false">SpMp</string>
     <string name="app_name_debug" translatable="false">SpMp (debug)</string>

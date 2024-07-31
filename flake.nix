@@ -33,7 +33,7 @@
       spmp_package =
         let
           pname = "spmp";
-          version = "0.4.0-RC3";
+          version = "0.4.0-RC4";
         in
         pkgs.stdenv.mkDerivation {
           inherit pname version;

@@ -32,11 +32,11 @@ class SpMpDeps(extra: Map<String, Any>) {
                 name = "spmp-server",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/spmp-server",
-                license = "GPL-2.0",
+                license = "GPL-3.0",
                 license_url = "https://github.com/toasterofbread/spmp-server/blob/6dde651ffc102d604ac7ecd5ac7471b1572fd2e6/LICENSE"
             ),
             "dev.toastbits.composekit" to DependencyInfo(
-                version = "418c176707",
+                version = "d3828b3d42",
                 name = "ComposeKit",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/composekit",

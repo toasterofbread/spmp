@@ -133,7 +133,7 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
         callback: DownloadRequestCallback?
     ) {
         if (!silent && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.application_context?.requestNotficationPermission { granted ->
+            context.application_context?.requestNotificationPermission { granted ->
                 if (granted) {
                     performDownload(song, silent, custom_uri, download_lyrics, direct, callback)
                 }

@@ -100,8 +100,11 @@ abstract class SongDownloader(
         }
 
         fun getDestinationFile(extension: String): PlatformFile {
-            return custom_uri?.let { context.getUserDirectoryFile(it) }
-                ?: song_storage_dir.resolve(generatePath(extension, false))
+            if (custom_uri != null) {
+                context.getUserDirectoryFile(custom_uri)?.also { return it }
+            }
+
+            return song_storage_dir.resolve(generatePath(extension, false))
         }
 
         override fun toString(): String =

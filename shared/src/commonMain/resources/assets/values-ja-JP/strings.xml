@@ -263,6 +263,7 @@
     <string name="report_error">報告する</string>
     <string name="wrap_text_switch_label">折り返す</string>
     <string name="upload_to_paste_dot_ee">Paste.eeにアップロード</string>
+    <string name="unknown_host_name">不明</string>
 
     <string name="lpm_action_radio">ラジオを始める</string>
     <string name="lpm_action_play">再生</string>

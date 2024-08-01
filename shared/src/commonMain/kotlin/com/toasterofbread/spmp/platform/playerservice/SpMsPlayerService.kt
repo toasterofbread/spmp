@@ -16,6 +16,8 @@ import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.model.radio.RadioState
+import dev.toastbits.composekit.platform.getPlatformHostName
+import dev.toastbits.composekit.platform.getPlatformOSName
 import io.ktor.http.Headers
 import io.ktor.util.flattenEntries
 import kotlinx.coroutines.*
@@ -53,8 +55,8 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
     internal abstract fun onRadioCancelRequested()
 
     private fun getClientName(): String {
-        val os: String = Platform.getOSName()
-        var host: String = Platform.getHostName()
+        val os: String = getPlatformOSName()
+        val host: String = getPlatformHostName() ?: getString("unknown_host_name")
         return getString("app_name") + " [$os, $host]"
     }
 

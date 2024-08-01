@@ -289,6 +289,7 @@
     <string name="report_error">Report</string>
     <string name="wrap_text_switch_label">Wrap text</string>
     <string name="upload_to_paste_dot_ee">Upload to Paste.ee</string>
+    <string name="unknown_host_name">Unknown</string>
 
     <string name="lpm_action_radio">Start radio</string>
     <string name="lpm_action_play">Play</string>

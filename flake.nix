@@ -21,6 +21,7 @@
         fontconfig
         mpv
         vulkan-loader
+        xorg.libXtst
       ];
 
       android-sdk = (android-nixpkgs.sdk.${system} (sdkPkgs: with sdkPkgs; [
@@ -33,14 +34,14 @@
       spmp_package =
         let
           pname = "spmp";
-          version = "0.4.0-RC4";
+          version = "0.4.0-RC5";
         in
         pkgs.stdenv.mkDerivation {
           inherit pname version;
 
           src = pkgs.fetchurl {
             url = "https://github.com/toasterofbread/spmp/releases/download/v${version}/spmp-v${version}-linux-x86_64.tar.gz";
-            hash = "sha256-HyG71IFfbdTracow68c1Hg6eq7M1/ZuxAHAWk1lDx/U=";
+            hash = "sha256-J2nsSV9LWPa1qCjaqtygtVa/mey6pQjpzeFSS6+BeIo=";
           };
 
           nativeBuildInputs = with pkgs; [

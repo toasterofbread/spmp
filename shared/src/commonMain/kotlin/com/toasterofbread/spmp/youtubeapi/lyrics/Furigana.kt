@@ -209,7 +209,7 @@ private fun removeHiraganaReadings(term: SongLyrics.Term.Text): List<SongLyrics.
 
         val converted_hira_section: String = hira_section.toHiragana()
 
-        val index: Int = reading.indexOf(converted_hira_section, reading_head)
+        val index: Int = reading.toHiragana().indexOf(converted_hira_section, reading_head)
         if (index == -1) {
             return
         }

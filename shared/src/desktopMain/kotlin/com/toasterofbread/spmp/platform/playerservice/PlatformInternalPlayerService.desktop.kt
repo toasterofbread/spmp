@@ -3,17 +3,18 @@ package com.toasterofbread.spmp.platform.playerservice
 import ProgramArguments
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlatformBinder
-import dev.toastbits.composekit.platform.PlatformFile
 import dev.toastbits.spms.server.SpMs
 
 private class PlayerServiceBinder(val service: PlatformInternalPlayerService): PlatformBinder()
 
 actual class PlatformInternalPlayerService: ExternalPlayerService(plays_audio = false) {
-    private fun launchLocalServer() {
-        LocalServer.startLocalServer(
-            context,
-            context.settings.platform.SERVER_PORT.get()
-        )
+    private fun autoLaunchLocalServer() {
+        if (context.settings.platform.SERVER_LOCAL_START_AUTOMATICALLY.get()) {
+            LocalServer.startLocalServer(
+                context,
+                context.settings.platform.SERVER_PORT.get()
+            )
+        }
     }
 
     actual companion object: PlayerServiceCompanion {
@@ -36,12 +37,12 @@ actual class PlatformInternalPlayerService: ExternalPlayerService(plays_audio = 
                 if (instance != null)
                     instance.also {
                         it.setContext(context)
-                        it.launchLocalServer()
+                        it.autoLaunchLocalServer()
                     }
                 else
                     PlatformInternalPlayerService().also {
                         it.setContext(context)
-                        it.launchLocalServer()
+                        it.autoLaunchLocalServer()
                         it.onCreate()
                     }
             onConnected(service)

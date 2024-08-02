@@ -222,10 +222,18 @@ class PlayerState(
         }
     }
 
-    private fun getServiceCompanion(): PlayerServiceCompanion =
-        if (!PlatformInternalPlayerService.isServiceAttached(context) && (!PlatformInternalPlayerService.isAvailable(context, launch_arguments) || settings.platform.ENABLE_EXTERNAL_SERVER_MODE.get()))
-            PlatformExternalPlayerService
-        else PlatformInternalPlayerService
+    private fun getServiceCompanion(): PlayerServiceCompanion {
+        if (!PlatformInternalPlayerService.isAvailable(context, launch_arguments)) {
+            return PlatformExternalPlayerService
+        }
+        if (PlatformInternalPlayerService.isServiceAttached(context)) {
+            return PlatformInternalPlayerService
+        }
+        if (settings.platform.ENABLE_EXTERNAL_SERVER_MODE.get()) {
+            return PlatformExternalPlayerService
+        }
+        return PlatformInternalPlayerService
+    }
 
     fun onStart() {
         SpMp.addLowMemoryListener(low_memory_listener)

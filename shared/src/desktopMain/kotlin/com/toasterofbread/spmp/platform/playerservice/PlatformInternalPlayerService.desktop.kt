@@ -2,18 +2,22 @@ package com.toasterofbread.spmp.platform.playerservice
 
 import ProgramArguments
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.PlatformBinder
 import dev.toastbits.spms.server.SpMs
-
-private class PlayerServiceBinder(val service: PlatformInternalPlayerService): PlatformBinder()
 
 actual class PlatformInternalPlayerService: ExternalPlayerService(plays_audio = false) {
     private fun autoLaunchLocalServer() {
-        if (context.settings.platform.SERVER_LOCAL_START_AUTOMATICALLY.get()) {
+        if (!context.settings.platform.SERVER_LOCAL_START_AUTOMATICALLY.get()) {
+            return
+        }
+
+        try {
             LocalServer.startLocalServer(
                 context,
                 context.settings.platform.SERVER_PORT.get()
             )
+        }
+        catch (e: Throwable) {
+            e.printStackTrace()
         }
     }
 

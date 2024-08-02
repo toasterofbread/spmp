@@ -11,7 +11,7 @@ import dev.toastbits.spms.server.SpMs
 private const val POLL_INTERVAL: Long = 100
 private const val CLIENT_REPLY_ATTEMPTS: Int = 10
 
-private fun Exception.getMissingLibrariesInMessage(): List<String>? =
+fun Throwable.getMissingLibrariesInMessage(): List<String>? =
     cause?.message?.let { getLibrariesInLibraryLoadErrorMessage(it) }
     ?: message?.let { getLibrariesInLibraryLoadErrorMessage(it) }
 
@@ -46,19 +46,15 @@ actual object LocalServer {
             Result.success(SpMs(headless = false, enable_gui = false))
         }
         catch (e: Throwable) {
-            if (e !is NoClassDefFoundError && e !is UnsatisfiedLinkError) {
+            val missing_libraries: List<String> =
+                e.getMissingLibrariesInMessage()
+                ?: emptyList()
+
+            if (missing_libraries.isEmpty()) {
                 throw e
             }
 
-            e.printStackTrace()
-
-            val missing_libraries: List<String> =
-                e.cause?.message?.let { getLibrariesInLibraryLoadErrorMessage(it) }
-                ?: e.message?.let { getLibrariesInLibraryLoadErrorMessage(it) }
-                ?: emptyList()
-
             check(missing_libraries.isNotEmpty()) { "Cause: '${e.cause?.message}'\nMessage: ${e.message}" }
-
             Result.failure(MissingLibrariesException(missing_libraries))
         }
 

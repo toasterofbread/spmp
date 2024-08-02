@@ -137,6 +137,9 @@ private fun Tokenizer._mergeAndFuriganiseTerms(terms: List<SongLyrics.Term>, all
                             .flatMap {
                                 removeHiraganaReadings(it)
                             }
+                            .flatMap {
+                                removeRomajiReadings(it)
+                            }
                     }
                     .flatMap {
                         splitCombinedReading(it)
@@ -193,6 +196,10 @@ private fun splitCombinedReading(term: SongLyrics.Term.Text): List<SongLyrics.Te
     }
 }
 
+private fun removeRomajiReadings(term: SongLyrics.Term.Text): List<SongLyrics.Term.Text> {
+    return listOf(term.copy(reading = term.reading?.filter { it.isHiragana() }))
+}
+
 private fun removeHiraganaReadings(term: SongLyrics.Term.Text): List<SongLyrics.Term.Text> {
     val reading: String = term.reading ?: return listOf(term)
 
@@ -244,10 +251,7 @@ private fun removeHiraganaReadings(term: SongLyrics.Term.Text): List<SongLyrics.
         }
         else {
             checkHiraSection()
-
-            if (char.isKanji()) {
-                kanji_section += char
-            }
+            kanji_section += char
         }
     }
 

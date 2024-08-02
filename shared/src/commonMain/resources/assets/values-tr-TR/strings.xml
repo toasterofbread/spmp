@@ -588,7 +588,7 @@
     <string name="s_sub_skip_download_method_confirmation">Evet ise, indirme başlatıldığında varsayılan indirme yöntemi hemen kullanılacaktır</string>
 
     <string name="s_key_status_webhook_url">Durum webhook URL'si</string>
-    <string name="s_sub_status_webhook_url">Çalan şarkı değiştiğinde, bu URL'ye aşağıdaki formatta bir JSON post isteği gönderilecektir: `{"youtube_video_id": "<Video ID>"}`</string>
+    <string name="s_sub_status_webhook_url">Çalan şarkı değiştiğinde, bu URL'ye aşağıdaki formatta bir JSON post isteği gönderilecektir: `{"youtube_video_id": "&lt;Video ID&gt;"}`</string>
 
     <string name="s_key_status_webhook_payload">Durum webhook yükü</string>
     <string name="s_sub_status_webhook_payload">Durum webhook'una gönderilecek ek JSON verisi</string>

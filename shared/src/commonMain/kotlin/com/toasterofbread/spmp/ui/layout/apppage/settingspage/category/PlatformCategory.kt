@@ -95,7 +95,7 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
             getSubtitleOverride = {
                 getLocalServerUnavailabilityReason()
             }
-        ),
+        ).takeIf { !Platform.DESKTOP.isCurrent() },
 
         ToggleSettingsItem(context.settings.platform.EXTERNAL_SERVER_MODE_UI_ONLY).takeIf { PlatformExternalPlayerService.playsAudio() },
 

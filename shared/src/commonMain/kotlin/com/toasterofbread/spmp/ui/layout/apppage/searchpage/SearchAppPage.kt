@@ -18,6 +18,7 @@ import androidx.compose.ui.*
 import androidx.compose.ui.draw.*
 import androidx.compose.ui.focus.*
 import androidx.compose.ui.graphics.*
+import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -362,9 +363,11 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
 
     @Composable
     private fun SuggestedSearchCorrection(correction: String, modifier: Modifier = Modifier, onSelected: () -> Unit, onDismissed: () -> Unit) {
+        val shape: Shape = CircleShape
         Row(
             modifier
-                .border(2.dp, context.theme.accent, CircleShape)
+                .border(2.dp, context.theme.accent, shape)
+                .clip(shape)
                 .clickable(onClick = onSelected)
                 .padding(horizontal = 10.dp),
             verticalAlignment = Alignment.CenterVertically

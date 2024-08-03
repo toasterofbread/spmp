@@ -66,7 +66,7 @@
 
             mkdir -p $out/bin
             echo "#!/bin/sh" >> $out/bin/spmp
-            echo "LD_LIBRARY_PATH=\"$lib_paths_str:\$LD_LIBRARY_PATH\" $out/dist/bin/spmp" >> $out/bin/spmp
+            echo "LD_LIBRARY_PATH=\"$lib_paths_str:\$LD_LIBRARY_PATH\" $out/dist/bin/spmp \"$@\"" >> $out/bin/spmp
             chmod +x $out/bin/spmp
           '';
         };

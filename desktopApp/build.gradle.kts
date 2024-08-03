@@ -289,6 +289,8 @@ afterEvaluate {
 tasks.register<Tar>("packageReleaseTarball") {
     val dist_task: Task by tasks.named("createReleaseDistributable")
     dependsOn(dist_task)
+    group = dist_task.group
+
     mustRunAfter("finishPackagingReleaseAppImage")
 
     into("/") {

@@ -2,19 +2,18 @@ package com.toasterofbread.spmp.ui.component.mediaitemlayout
 
 import LocalPlayerState
 import androidx.compose.foundation.background
-import androidx.compose.foundation.combinedClickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Album
 import androidx.compose.material.icons.filled.Book
@@ -31,41 +30,45 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.layout.onSizeChanged
+import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.toastbits.composekit.utils.common.getContrasted
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import dev.toastbits.ytmkt.model.external.ThumbnailProvider
+import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.db.isMediaItemHidden
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
-import com.toasterofbread.spmp.model.mediaitem.layout.TitleBar
 import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
-import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.layout.TitleBar
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.toMediaItemRef
-import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getThumbShape
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
+import dev.toastbits.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.utils.common.getContrasted
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 
 @Composable
 fun MediaItemCard(
@@ -90,18 +93,7 @@ fun MediaItemCard(
     }
 
     Column(
-        modifier
-            .padding(10.dp)
-            .combinedClickable(
-                interactionSource = remember { MutableInteractionSource() },
-                indication = null,
-                onClick = {
-                    click_overrides.onMediaItemClicked(item, player)
-                },
-                onLongClick = {
-                    player.showLongPressMenu(long_press_menu_data)
-                }
-            ),
+        modifier.padding(10.dp),
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         Row(
@@ -117,7 +109,8 @@ fun MediaItemCard(
             Text(
                 if (item is RemotePlaylist) playlist_type?.value.getReadable(false)
                 else item.getType().getReadable(false),
-                fontSize = 15.sp
+                fontSize = 15.sp,
+                lineHeight = 15.sp
             )
 
             Icon(
@@ -149,12 +142,25 @@ fun MediaItemCard(
                 .height(IntrinsicSize.Min),
             horizontalArrangement = Arrangement.spacedBy(10.dp)
         ) {
-            Box(Modifier.width(IntrinsicSize.Min).height(IntrinsicSize.Min)) {
+            val density: Density = LocalDensity.current
+            var row_height: Dp by remember { mutableStateOf(0.dp) }
+
+            Box(
+                Modifier
+                    .heightIn(max = row_height)
+                    .aspectRatio(1f)
+                    .platformClickable(
+                        onClick = {
+                            click_overrides.onMediaItemClicked(item, player)
+                        },
+                        onAltClick = {
+                            player.showLongPressMenu(long_press_menu_data)
+                        }
+                    )
+            ) {
                 item.Thumbnail(
                     ThumbnailProvider.Quality.HIGH,
-                    Modifier
-                        .longPressMenuIcon(long_press_menu_data)
-                        .size(100.dp),
+                    Modifier.longPressMenuIcon(long_press_menu_data)
                 )
 
                 multiselect_context?.SelectableItemOverlay(item, Modifier.fillMaxSize())
@@ -162,7 +168,10 @@ fun MediaItemCard(
 
             Column(
                 Modifier
-                    .fillMaxSize()
+                    .onSizeChanged {
+                        row_height = with (density) { it.height.toDp() }
+                    }
+                    .fillMaxWidth()
                     .background(accent_colour ?: player.theme.accent, shape)
                     .padding(horizontal = 15.dp, vertical = 5.dp),
                 verticalArrangement = Arrangement.SpaceEvenly

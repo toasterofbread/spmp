@@ -5,6 +5,7 @@
         Things to update on version change:
         - flake.nix
         - toasterofbread/flatpak-repo
+        - Nix flake reference in docs
     -->
     <string name="version_string" translatable="false">0.4.0-RC5</string>
     <string name="version_code" translatable="false">18</string>

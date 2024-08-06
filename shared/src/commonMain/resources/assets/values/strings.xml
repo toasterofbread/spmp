@@ -6,6 +6,7 @@
         - flake.nix
         - toasterofbread/flatpak-repo
         - Nix flake reference in docs
+        - AUR package
     -->
     <string name="version_string" translatable="false">0.4.0-RC6</string>
     <string name="version_code" translatable="false">19</string>

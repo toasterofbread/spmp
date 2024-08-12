@@ -190,7 +190,13 @@ class FFTAudioProcessor : AudioProcessor {
 
         inputBuffer.position(limit)
 
-        processFFT(this.fftBuffer)
+        try {
+            processFFT(this.fftBuffer)
+        }
+        catch (e: Throwable) {
+            RuntimeException("Ignoring exception in processFFT", e).printStackTrace()
+            return
+        }
 
         processBuffer.flip()
         outputBuffer = this.processBuffer

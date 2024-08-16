@@ -109,11 +109,17 @@ object DesktopUtils {
         )
     }
 
-    fun File.removeUnneededJarsFromDir(project: Project, deps: SpMpDeps = project.getDeps()) {
+    fun File.removeUnneededJarsFromDir(
+        project: Project,
+        is_windows: Boolean,
+        deps: SpMpDeps = project.getDeps()
+    ) {
+        check(isDirectory) { "Directory passed to removeUnneededJarsFromDir does not exist ($absolutePath)" }
+
         val ffmpeg_version: String = deps.getVersion("org.bytedeco:ffmpeg-platform")
         val javacpp_version: String = ffmpeg_version.split('-', limit = 2)[1]
 
-        val platforms: List<String> = DesktopUtils.getUnneededPlatforms(is_windows = false)
+        val platforms: List<String> = DesktopUtils.getUnneededPlatforms(is_windows = is_windows)
         val jar_prefixes: List<String> = platforms.flatMap { platform ->
             DesktopUtils.getUnneededLibraries().map { library ->
                 val version: String =

@@ -69,9 +69,14 @@ compose.desktop {
             appResourcesRootDir.set(project.file("build/package"))
 
             packageName = rootProject.name
-            packageVersion = getString("version_string")
             version = getString("version_string")
             licenseFile.set(rootProject.file("LICENSE"))
+
+            packageVersion =
+                getString("version_string").let {
+                    if (System.getProperty("os.name").startsWith("Win")) it.makeVersionSafeForWindows()
+                    else it
+                }
 
             targetFormats(TargetFormat.AppImage, TargetFormat.Deb, TargetFormat.Exe)
 
@@ -96,9 +101,7 @@ compose.desktop {
                 shortcut = true
                 dirChooser = true
 
-                if (getString("version_string").contains("-")) {
-                    exePackageVersion = "0.0.0"
-                }
+                exePackageVersion = getString("version_string").makeVersionSafeForWindows()
             }
         } }
 
@@ -110,6 +113,10 @@ compose.desktop {
         }
     }
 }
+
+private fun String.makeVersionSafeForWindows(): String =
+    if (contains("-")) "0.0.0"
+    else this
 
 abstract class ActuallyPackageAppImageTask: DefaultTask() {
     @get:Input
@@ -183,7 +190,7 @@ abstract class ActuallyPackageAppImageTask: DefaultTask() {
         project.logger.lifecycle("Removing unneeded jars")
 
         with (DesktopUtils) {
-            dir.resolve("lib/app").removeUnneededJarsFromDir(project)
+            dir.resolve("lib/app").removeUnneededJarsFromDir(project, is_windows = false)
         }
     }
 
@@ -278,15 +285,21 @@ afterEvaluate {
         }
 
         doLast {
-            val jars_directory: File = outputs.files.singleFile.resolve("spmp/lib/app")
+            val is_windows: Boolean = OperatingSystem.current().isWindows
+            val jars_directory: File =
+                outputs.files.singleFile.resolve("spmp").run {
+                    if (is_windows) resolve("app")
+                    else resolve("lib/app")
+                }
+
             with (DesktopUtils) {
-                jars_directory.removeUnneededJarsFromDir(project)
+                jars_directory.removeUnneededJarsFromDir(project, is_windows = is_windows)
             }
         }
     }
 }
 
-tasks.register<Tar>("packageReleaseTarball") {
+private fun AbstractArchiveTask.configureReleasePackageTask(file_extension: String) {
     val dist_task: Task by tasks.named("createReleaseDistributable")
     dependsOn(dist_task)
     group = dist_task.group
@@ -298,6 +311,14 @@ tasks.register<Tar>("packageReleaseTarball") {
     }
 
     destinationDirectory = DesktopUtils.getOutputDir(project)
-    archiveFileName = DesktopUtils.getOutputFilename(project) + ".tar.gz"
+    archiveFileName = DesktopUtils.getOutputFilename(project) + file_extension
+}
+
+tasks.register<Tar>("packageReleaseTarball") {
+    configureReleasePackageTask(".tar.gz")
     compression = Compression.GZIP
+}
+
+tasks.register<Zip>("packageReleaseZip") {
+    configureReleasePackageTask(".zip")
 }

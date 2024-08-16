@@ -50,11 +50,11 @@ jobs:
     - name: Set up Gradle
       uses: gradle/gradle-build-action@v3
 
-    - name: Build exe
-      run: .\gradlew.bat desktopApp:packageReleaseExe
+    - name: Build zip
+      run: .\gradlew.bat desktopApp:packageReleaseZip
 
-    - name: Upload exe artifact
+    - name: Upload zip artifact
       uses: actions/upload-artifact@v3
       with:
         name: spmp-windows-release
-        path: desktopApp/build/compose/binaries/main-release/exe/*.exe
+        path: desktopApp/build/outputs/*.zip

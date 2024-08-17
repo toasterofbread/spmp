@@ -257,8 +257,8 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license = "MIT",
                 license_url = "https://github.com/supabase-community/supabase-kt/blob/d198a112ba7e1b11d83cd28eba74fdd863d259c3/LICENSE"
             ),
-            "dev.toastbits.compose-webview-multiplatform" to DependencyInfo(
-                version = "2d39439922",
+            "com.github.toasterofbread.compose-webview-multiplatform" to DependencyInfo(
+                version = "21331f37c1",
                 name = "WebView for JetBrains Compose Multiplatform",
                 author = "KevinnZou",
                 url = "https://github.com/KevinnZou/compose-webview-multiplatform",

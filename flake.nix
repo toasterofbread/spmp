@@ -22,6 +22,12 @@
         mpv
         vulkan-loader
         xorg.libXtst
+
+        # Webview
+        at-spi2-atk
+        cups.lib
+        mesa
+        pango
       ];
 
       android-sdk = (android-nixpkgs.sdk.${system} (sdkPkgs: with sdkPkgs; [

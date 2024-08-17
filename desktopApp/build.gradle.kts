@@ -18,6 +18,16 @@ plugins {
     id("org.jetbrains.compose")
 }
 
+repositories {
+    google()
+    mavenCentral()
+    mavenLocal()
+    maven("https://jitpack.io")
+
+    // https://github.com/KevinnZou/compose-webview-multiplatform
+    maven("https://jogamp.org/deployment/maven")
+}
+
 kotlin {
     jvmToolchain(21)
 

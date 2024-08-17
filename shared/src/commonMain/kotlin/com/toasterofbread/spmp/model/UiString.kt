@@ -5,11 +5,12 @@ import dev.toastbits.ytmkt.uistrings.UiString
 import dev.toastbits.ytmkt.uistrings.YoutubeUiString
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getUiLanguage
+import kotlinx.coroutines.runBlocking
 
 data class AppUiString(
     val string_key: String
 ): UiString {
-    override fun getString(language: String): String =
+    override suspend fun getString(language: String): String =
         com.toasterofbread.spmp.resources.getString(string_key)
 }
 
@@ -56,7 +57,7 @@ fun UiString.Companion.deserialise(data: String): UiString {
 }
 
 fun UiString.getString(context: AppContext): String =
-    getString(context.getUiLanguage())
+    runBlocking { getString(context.getUiLanguage()) }
 
 //    companion object {
 //        fun mediaItemPage(key: String, item_type: MediaItemType, context: AppContext, source_language: String = context.getDataLanguage()): UiString =

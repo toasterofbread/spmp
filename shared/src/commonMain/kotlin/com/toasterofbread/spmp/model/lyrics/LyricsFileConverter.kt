@@ -26,7 +26,7 @@ object LyricsFileConverter {
                 appendLine("[id:${lyrics.reference.id}]")
 
                 appendLine("[re:${SpMp.app_name}]")
-                appendLine("[ve:${ProjectBuildConfig.GIT_COMMIT_HASH}]")
+                appendLine("[ve:${ProjectBuildConfig.GIT_TAG ?: ProjectBuildConfig.GIT_COMMIT_HASH}]")
             }
         )
     }

@@ -1,8 +1,15 @@
 <resources>
     <string name="language_name">English (GB)</string>
 
-    <string name="version_string" translatable="false">0.4.0-beta1</string>
-    <string name="version_code" translatable="false">14</string>
+    <!--
+        Things to update on version change:
+        - flake.nix
+        - toasterofbread/flatpak-repo
+        - Nix flake reference in docs
+        - AUR package
+    -->
+    <string name="version_string" translatable="false">0.4.0</string>
+    <string name="version_code" translatable="false">20</string>
 
     <string name="app_name" translatable="false">SpMp</string>
     <string name="app_name_debug" translatable="false">SpMp (debug)</string>
@@ -778,7 +785,7 @@
     <string name="warning_discord_kizzy">SpMp uses the KizzyRPC library to set your Discord account's status. This involves using the Discord Gateway connection, which may be considered a violation of Discord's TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.</string>
     <string name="info_flatpak_discord_$url">The Flatpak version of SpMp may require additional setup to use Discord status. See $url if you have issues.</string>
 
-    <string name="webview_runtime_downloading">Downloading runtime...</string>
+    <string name="webview_runtime_downloading">Downloading browser runtime...</string>
     <string name="webview_restart_required">Please restart the application to continue</string>
 
     <string name="warning_spms_api_version_mismatch">SpMs API version mismatch</string>

@@ -1,6 +1,5 @@
+# This flake's package is tied to SpMp release binaries. It does not build from source.
 {
-  description = "SpMp development environment";
-
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
     android-nixpkgs.url = "github:HPRIOR/android-nixpkgs/516bd59caa6883d1a5dad0538af03a1f521e7764";
@@ -9,21 +8,80 @@
   outputs = { self, nixpkgs, android-nixpkgs, ... }:
     let
       system = "x86_64-linux";
-    in
-    {
-      devShells."${system}".default =
+      pkgs = import nixpkgs {
+        inherit system;
+      };
+
+      runtime_jdk = pkgs.jdk22;
+
+      runtime_packages = with pkgs; [
+        runtime_jdk
+        libglvnd
+        xorg.libX11
+        fontconfig
+        mpv
+        vulkan-loader
+        xorg.libXtst
+        apksigcopier
+
+        # Webview
+        at-spi2-atk
+        cups.lib
+        mesa
+        pango
+      ];
+
+      android-sdk = (android-nixpkgs.sdk.${system} (sdkPkgs: with sdkPkgs; [
+        cmdline-tools-latest
+        build-tools-34-0-0
+        platform-tools
+        platforms-android-34
+      ]));
+
+      spmp_package =
         let
-          pkgs = import nixpkgs {
-            inherit system;
+          pname = "spmp";
+          version = "0.4.0";
+        in
+        pkgs.stdenv.mkDerivation {
+          inherit pname version;
+
+          src = pkgs.fetchurl {
+            url = "https://github.com/toasterofbread/spmp/releases/download/v${version}/spmp-v${version}-linux-x86_64.tar.gz";
+            hash = "sha256-FImSNHHPECYOcxprut2gnx064QttZX1oEAFT4s7iUFc=";
           };
 
-          android-sdk = (android-nixpkgs.sdk.${system} (sdkPkgs: with sdkPkgs; [
-            cmdline-tools-latest
-            build-tools-34-0-0
-            platform-tools
-            platforms-android-34
-          ]));
-        in
+          nativeBuildInputs = with pkgs; [
+            autoPatchelfHook
+            gnutar
+          ];
+
+          buildInputs = with pkgs; [
+            gnome2.gnome_vfs
+            gnome2.GConf
+          ] ++ runtime_packages;
+
+          installPhase = ''
+            tar -xzf $src
+
+            mkdir -p $out/dist
+            mv ./bin $out/dist/bin
+            mv ./lib $out/dist/lib
+
+            lib_paths=($(echo $NIX_LDFLAGS | grep -oP '(?<=-rpath\s| -L)[^ ]+'))
+            lib_paths_str=$(IFS=:; echo "''${lib_paths[*]}")
+
+            mkdir -p $out/bin
+            echo "#!/bin/sh" >> $out/bin/spmp
+            echo "LD_LIBRARY_PATH=\"$lib_paths_str:\$LD_LIBRARY_PATH\" $out/dist/bin/spmp \"\$@\"" >> $out/bin/spmp
+            chmod +x $out/bin/spmp
+          '';
+        };
+    in
+    {
+      packages."${system}".default = spmp_package;
+
+      devShells."${system}".default =
         pkgs.mkShell {
           packages = with pkgs; [
             jdk21
@@ -33,13 +91,9 @@
             appstream
             zsync
 
-            # Runtime
-            libglvnd
-            xorg.libX11
-            fontconfig
-            mpv
-            vulkan-loader
-          ];
+            # For testing new releases
+            # spmp_package
+          ] ++ runtime_packages;
 
           JAVA_21_HOME = "${pkgs.jdk21}/lib/openjdk";
           JAVA_22_HOME = "${pkgs.jdk22}/lib/openjdk";

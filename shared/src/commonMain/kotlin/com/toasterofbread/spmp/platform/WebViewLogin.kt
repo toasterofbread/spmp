@@ -214,7 +214,10 @@ fun WebViewLogin(
                         }
                         else if (Platform.DESKTOP.isCurrent()) {
                             offset {
-                                IntOffset(0, (player.getNowPlayingExpansionOffset(this).notNaN() + minimised_now_playing_height).roundToPx())
+                                val min_player_height: Dp =
+                                    if (Platform.ANDROID.isCurrent()) minimised_now_playing_height
+                                    else 0.dp
+                                IntOffset(0, (player.getNowPlayingExpansionOffset(this).notNaN() + min_player_height).roundToPx())
                             }
                         }
                         else this

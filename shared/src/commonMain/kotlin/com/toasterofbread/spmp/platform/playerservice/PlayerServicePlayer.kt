@@ -513,6 +513,10 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
     }
 
     fun seekBy(delta_ms: Long) {
+        if (duration_ms < 0) {
+            return
+        }
+
         seekTo((current_position_ms + delta_ms).coerceIn(0, duration_ms))
     }
 

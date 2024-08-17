@@ -1,4 +1,3 @@
-import org.gradle.api.file.Directory
 import plugin.shared.Command
 import plugin.spmp.ProjectConfigValues
 import java.util.Properties
@@ -85,8 +84,10 @@ fun Task.buildConfig(debug_mode: Boolean) {
     )
 
     buildConfig {
-        buildConfigField("GIT_COMMIT_HASH", Command.getCurrentGitCommitHash())
-        buildConfigField("GIT_TAG", Command.getCurrentGitTag())
+        val tag_override: String? = project.properties["GIT_TAG_OVERRIDE"] as String?
+        val git_tag: String? = (tag_override ?: Command.getCurrentGitTag())?.ifBlank { null }
+        buildConfigField("GIT_TAG", git_tag)
+        buildConfigField("GIT_COMMIT_HASH", if (git_tag != null) null else Command.getCurrentGitCommitHash())
         buildConfigField("IS_DEBUG", debug_mode)
     }
 }

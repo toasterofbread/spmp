@@ -28,15 +28,15 @@ class SpMpDeps(extra: Map<String, Any>) {
     val dependencies: Map<String, DependencyInfo> =
         mapOf(
             "dev.toastbits:spms" to DependencyInfo(
-                version = "0.4.0-alpha4",
+                version = "0.4.0-beta2",
                 name = "spmp-server",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/spmp-server",
-                license = "GPL-2.0",
+                license = "GPL-3.0",
                 license_url = "https://github.com/toasterofbread/spmp-server/blob/6dde651ffc102d604ac7ecd5ac7471b1572fd2e6/LICENSE"
             ),
             "dev.toastbits.composekit" to DependencyInfo(
-                version = "a2a8731f32",
+                version = "2d2f8d5e68",
                 name = "ComposeKit",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/composekit",
@@ -44,7 +44,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/toasterofbread/ComposeKit/blob/136f216e65395660255d3270af9b79c90ae2254c/LICENSE"
             ),
             "dev.toastbits.ytmkt" to DependencyInfo(
-                version = "0.2.3",
+                version = "0.3.0",
                 name = "ytm-kt",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/ytm-kt",
@@ -199,7 +199,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/Kamel-Media/Kamel/blob/6eb1dd7fea43beb2e30d8e5d162b2b5e212e5950/LICENSE"
             ),
             "io.ktor" to DependencyInfo(
-                version = "2.3.9",
+                version = "3.0.0-beta-2",
                 name = "Ktor",
                 author = "JetBrains",
                 url = "https://github.com/ktorio/ktor",
@@ -250,15 +250,15 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/anggrayudi/SimpleStorage/blob/cdab9945ccaeb6deae3906db3af98a87bc450e5f/LICENSE"
             ),
             "io.github.jan-tennert.supabase:functions-kt" to DependencyInfo(
-                version = "1.3.2",
+                version = "2.5.3-wasm0",
                 name = "supabase-kt",
                 author = " jan-tennert",
                 url = "https://github.com/supabase-community/supabase-kt",
                 license = "MIT",
                 license_url = "https://github.com/supabase-community/supabase-kt/blob/d198a112ba7e1b11d83cd28eba74fdd863d259c3/LICENSE"
             ),
-            "dev.toastbits.compose-webview-multiplatform" to DependencyInfo(
-                version = "2d39439922",
+            "com.github.toasterofbread.compose-webview-multiplatform" to DependencyInfo(
+                version = "21331f37c1",
                 name = "WebView for JetBrains Compose Multiplatform",
                 author = "KevinnZou",
                 url = "https://github.com/KevinnZou/compose-webview-multiplatform",

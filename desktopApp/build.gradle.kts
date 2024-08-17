@@ -1,11 +1,12 @@
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.apache.tools.ant.taskdefs.condition.Os
 import org.gradle.internal.os.OperatingSystem
 import org.gradle.jvm.tasks.Jar
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 import plugin.spmp.SpMpDeps
 import plugin.spmp.getDeps
+import plugins.shared.DesktopUtils
 import java.io.FileInputStream
 import java.nio.file.Files.getPosixFilePermissions
 import java.nio.file.Files.setPosixFilePermissions
@@ -17,36 +18,14 @@ plugins {
     id("org.jetbrains.compose")
 }
 
-enum class OS {
-    LINUX, WINDOWS;
-}
+repositories {
+    google()
+    mavenCentral()
+    mavenLocal()
+    maven("https://jitpack.io")
 
-val local_properties_path: String = "local.properties"
-val strings_file: File = rootProject.file("shared/src/commonMain/resources/assets/values/strings.xml")
-
-fun getString(key: String): String {
-    val reader = strings_file.reader()
-    val parser = org.xmlpull.v1.XmlPullParserFactory.newInstance().newPullParser()
-    parser.setInput(reader)
-
-    while (parser.eventType != org.xmlpull.v1.XmlPullParser.END_DOCUMENT) {
-        if (parser.eventType != org.xmlpull.v1.XmlPullParser.START_TAG) {
-            parser.next()
-            continue
-        }
-
-        if (parser.getAttributeValue(null, "name") != key) {
-            parser.next()
-            continue
-        }
-
-        val ret = parser.nextText()
-        reader.close()
-        return ret
-    }
-
-    reader.close()
-    throw NoSuchElementException(key)
+    // https://github.com/KevinnZou/compose-webview-multiplatform
+    maven("https://jogamp.org/deployment/maven")
 }
 
 kotlin {
@@ -90,7 +69,7 @@ compose.desktop {
             javaHome = it
         }
 
-        nativeDistributions {
+        nativeDistributions { with (DesktopUtils) {
             modules(
                 "java.sql",
                 "jdk.unsupported",
@@ -100,9 +79,14 @@ compose.desktop {
             appResourcesRootDir.set(project.file("build/package"))
 
             packageName = rootProject.name
-            packageVersion = getString("version_string")
             version = getString("version_string")
             licenseFile.set(rootProject.file("LICENSE"))
+
+            packageVersion =
+                getString("version_string").let {
+                    if (System.getProperty("os.name").startsWith("Win")) it.makeVersionSafeForWindows()
+                    else it
+                }
 
             targetFormats(TargetFormat.AppImage, TargetFormat.Deb, TargetFormat.Exe)
 
@@ -127,11 +111,9 @@ compose.desktop {
                 shortcut = true
                 dirChooser = true
 
-                if (getString("version_string").contains("-")) {
-                    exePackageVersion = "0.0.0"
-                }
+                exePackageVersion = getString("version_string").makeVersionSafeForWindows()
             }
-        }
+        } }
 
         buildTypes.release {
             proguard {
@@ -141,6 +123,10 @@ compose.desktop {
         }
     }
 }
+
+private fun String.makeVersionSafeForWindows(): String =
+    if (contains("-")) "0.0.0"
+    else this
 
 abstract class ActuallyPackageAppImageTask: DefaultTask() {
     @get:Input
@@ -178,8 +164,7 @@ abstract class ActuallyPackageAppImageTask: DefaultTask() {
         val appimage_output: File = appimage_output_file.get().asFile
 
         runBlocking {
-            val runtime_file_path: String = project.file("appimage-runtime/runtime-x86_64").absolutePath
-            project.logger.lifecycle("Executing appimagetool with arch $arch, output ${appimage_output.relativeTo(project.rootDir)}, and runtime $runtime_file_path")
+            project.logger.lifecycle("Executing appimagetool with arch $arch and output ${appimage_output.relativeTo(project.rootDir)}")
             project.exec {
                 environment("ARCH", arch)
                 workingDir = appimage_dst
@@ -187,7 +172,6 @@ abstract class ActuallyPackageAppImageTask: DefaultTask() {
                 args = listOf(
                     "--verbose",
                     "--no-appstream",
-                    "--runtime-file", runtime_file_path,
                     ".", appimage_output.absolutePath
                 )
             }
@@ -213,30 +197,8 @@ abstract class ActuallyPackageAppImageTask: DefaultTask() {
 
         project.logger.lifecycle("Removing unneeded jars")
 
-        val deps: SpMpDeps = project.getDeps()
-        val ffmpeg_version: String = deps.getVersion("org.bytedeco:ffmpeg-platform")
-        val javacpp_version: String = ffmpeg_version.split('-', limit = 2)[1]
-
-        val platforms: List<String> = JarUtil.getUnneededPlatforms(is_windows = false)
-        val jar_prefixes: List<String> = platforms.flatMap { platform ->
-            JarUtil.getUnneededLibraries().map { library ->
-                val version: String =
-                    when (library) {
-                        "javacpp" -> javacpp_version
-                        "ffmpeg" -> ffmpeg_version
-                        else -> throw NotImplementedError(library)
-                    }
-                return@map "$library-$version-$platform"
-            }
-        }
-
-        for (file in dir.resolve("lib/app").listFiles().orEmpty()) {
-            for (prefix in jar_prefixes) {
-                if (file.name.startsWith(prefix) && file.name.endsWith(".jar")) {
-                    file.delete()
-                    project.logger.lifecycle("Removing lib/app/${file.name}")
-                }
-            }
+        with (DesktopUtils) {
+            dir.resolve("lib/app").removeUnneededJarsFromDir(project, is_windows = false)
         }
     }
 
@@ -264,7 +226,7 @@ fun registerAppImagePackageTasks() {
             val build_dir: File = tasks.getByName(task_name).outputs.files.toList().single()
 
             appimage_arch = "x86_64"
-            appimage_output_file = build_dir.parentFile.resolve("appimage").resolve(rootProject.name.lowercase() + "-" + getString("version_string") + ".appimage")
+            appimage_output_file = DesktopUtils.getOutputDir(project).resolve(DesktopUtils.getOutputFilename(project) + ".appimage")
 
             appimage_src_dir = projectDir.resolve("appimage")
             appimage_dst_dir = build_dir.resolve(rootProject.name)
@@ -277,20 +239,20 @@ fun registerAppImagePackageTasks() {
     }
 }
 
-fun configureRunTask() {
+fun configureRunTask() = with (DesktopUtils) {
     tasks.getByName<JavaExec>("run") {
         val local_properties: Properties = Properties().apply {
             try {
-                val file: File = rootProject.file(local_properties_path)
+                val file: File = rootProject.file(LOCAL_PROPERTIES_PATH)
                 if (file.isFile) {
                     load(FileInputStream(file))
                 }
             }
             catch (e: Throwable) {
-                RuntimeException("Ignoring exception while loading '$local_properties_path' in configureRunTask()", e).printStackTrace()
+                RuntimeException("Ignoring exception while loading '$LOCAL_PROPERTIES_PATH' in configureRunTask()", e).printStackTrace()
             }
         }
-        executable = local_properties["execTaskJavaExe"]?.toString() ?: return@getByName
+        executable(local_properties["execTaskJavaExe"]?.toString() ?: return@getByName)
     }
 }
 
@@ -307,65 +269,64 @@ afterEvaluate {
     }
 }
 
-private object JarUtil {
-    fun getUnneededLibraries(): List<String> =
-        listOf("javacpp", "ffmpeg")
+afterEvaluate {
+    tasks.named<Jar>("packageUberJarForCurrentOS") {
+        destinationDirectory = DesktopUtils.getOutputDir(project)
+        archiveFileName = DesktopUtils.getOutputFilename(project) + "-debug.jar"
+        doFirst {
+            DesktopUtils.runChecks(project)
+        }
+        with (DesktopUtils) { excludeUnneededFiles() }
+    }
+    tasks.named<Jar>("packageReleaseUberJarForCurrentOS") {
+        destinationDirectory = DesktopUtils.getOutputDir(project)
+        archiveFileName = DesktopUtils.getOutputFilename(project) + ".jar"
+        doFirst {
+            DesktopUtils.runChecks(project)
+        }
+        with (DesktopUtils) { excludeUnneededFiles() }
+    }
 
-    fun getUnneededPlatforms(is_windows: Boolean): List<String> =
-        listOf(
-            if (is_windows) "linux-x86_64"
-            else "windows-x86_64",
-            "linux-arm64",
-            "linux-ppc64le",
-            "android-arm64",
-            "android-x86_64",
-            "macosx-arm64",
-            "macosx-x86_64",
-            "ios-arm64",
-            "ios-x86_64"
-        )
+    tasks.withType<AbstractJPackageTask> {
+        doFirst {
+            DesktopUtils.runChecks(project)
+        }
 
-    fun Jar.excludeUnneededFiles() {
-        val is_windows: Boolean = Os.isFamily(Os.FAMILY_WINDOWS)
-        val platforms: List<String> = JarUtil.getUnneededPlatforms(is_windows = is_windows)
-        val libraries: List<String> = listOf("javacpp", "ffmpeg")
-
-        exclude(platforms.flatMap { platform -> libraries.map { library -> "/org/bytedeco/$library/$platform/*" } })
-
-        val unneeded_sqlite_architectures: List<String> =
-            listOf(
-                "arm",
-                "armv6",
-                "armv7",
-                "aarch64",
-                "x86",
-                "ppc64"
-            )
-        val unneeded_sqlite_platforms: List<String> =
-            listOf(
-                if (is_windows) "Linux"
-                else "Windows",
-                "Linux-Android",
-                "Linux-Musl",
-                "FreeBSD",
-                "Mac"
-            )
-
-        exclude(
-            unneeded_sqlite_architectures.flatMap { arch ->
-                unneeded_sqlite_platforms.map { platform ->
-                    "/org/sqlite/native/$platform/$arch/*"
+        doLast {
+            val is_windows: Boolean = OperatingSystem.current().isWindows
+            val jars_directory: File =
+                outputs.files.singleFile.resolve("spmp").run {
+                    if (is_windows) resolve("app")
+                    else resolve("lib/app")
                 }
+
+            with (DesktopUtils) {
+                jars_directory.removeUnneededJarsFromDir(project, is_windows = is_windows)
             }
-        )
+        }
     }
 }
 
-afterEvaluate {
-    tasks.named<Jar>("packageUberJarForCurrentOS") {
-        with (JarUtil) { excludeUnneededFiles() }
+private fun AbstractArchiveTask.configureReleasePackageTask(file_extension: String) {
+    val dist_task: Task by tasks.named("createReleaseDistributable")
+    dependsOn(dist_task)
+    group = dist_task.group
+
+    mustRunAfter("finishPackagingReleaseAppImage")
+
+    into("/") {
+        from(dist_task.outputs.files.singleFile)
     }
-    tasks.named<Jar>("packageReleaseUberJarForCurrentOS") {
-        with (JarUtil) { excludeUnneededFiles() }
-    }
+
+    destinationDirectory = DesktopUtils.getOutputDir(project)
+    archiveFileName = DesktopUtils.getOutputFilename(project) + file_extension
+}
+
+tasks.register<Tar>("packageReleaseTarball") {
+    configureReleasePackageTask(".tar.gz")
+    compression = Compression.GZIP
+}
+
+tasks.register<Zip>("packageReleaseZip") {
+    configureReleasePackageTask(".zip")
 }

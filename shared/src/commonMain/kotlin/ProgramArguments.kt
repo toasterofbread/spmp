@@ -62,7 +62,7 @@ data class ProgramArguments(
             }
             else {
                 return getString("version_message_non_release_\$commit_\$apiver_\$split")
-                    .replace("\$commit", ProjectBuildConfig.GIT_COMMIT_HASH?.take(7).toString())
+                    .replace("\$commit", (ProjectBuildConfig.GIT_COMMIT_HASH?.take(7) ?: ProjectBuildConfig.GIT_TAG).toString())
                     .replace("\$apiver", api_version_string)
                     .replace("\$split", split_string)
             }

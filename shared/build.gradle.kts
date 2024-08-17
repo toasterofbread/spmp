@@ -95,7 +95,9 @@ kotlin {
                 implementation(deps.get("com.anggrayudi:storage"))
                 implementation(deps.get("io.github.jan-tennert.supabase:functions-kt"))
                 implementation(deps.get("io.ktor:ktor-client-cio"))
-                implementation(deps.get("dev.toastbits.compose-webview-multiplatform:compose-webview-multiplatform-android"))
+                implementation(deps.get("com.github.toasterofbread.compose-webview-multiplatform:compose-webview-multiplatform-android"))
+
+                runtimeOnly(deps.get("io.ktor:ktor-server-content-negotiation"))
             }
         }
 
@@ -108,7 +110,7 @@ kotlin {
                 implementation(deps.get("app.cash.sqldelight:sqlite-driver"))
                 implementation(deps.get("com.github.caoimhebyrne:KDiscordIPC"))
                 implementation(deps.get("org.bytedeco:ffmpeg-platform"))
-                implementation(deps.get("dev.toastbits.compose-webview-multiplatform:compose-webview-multiplatform-desktop"))
+                implementation(deps.get("com.github.toasterofbread.compose-webview-multiplatform:compose-webview-multiplatform-desktop"))
             }
         }
     }

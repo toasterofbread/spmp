@@ -164,8 +164,7 @@ abstract class ActuallyPackageAppImageTask: DefaultTask() {
         val appimage_output: File = appimage_output_file.get().asFile
 
         runBlocking {
-            val runtime_file_path: String = project.file("appimage-runtime/runtime-x86_64").absolutePath
-            project.logger.lifecycle("Executing appimagetool with arch $arch, output ${appimage_output.relativeTo(project.rootDir)}, and runtime $runtime_file_path")
+            project.logger.lifecycle("Executing appimagetool with arch $arch and output ${appimage_output.relativeTo(project.rootDir)}")
             project.exec {
                 environment("ARCH", arch)
                 workingDir = appimage_dst
@@ -173,7 +172,6 @@ abstract class ActuallyPackageAppImageTask: DefaultTask() {
                 args = listOf(
                     "--verbose",
                     "--no-appstream",
-                    "--runtime-file", runtime_file_path,
                     ".", appimage_output.absolutePath
                 )
             }

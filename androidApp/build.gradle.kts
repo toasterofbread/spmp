@@ -155,8 +155,8 @@ android {
     }
 
     lint {
-        // What is this needed for?
         disable.add("ByteOrderMark")
+        disable.add("Instantiatable")
     }
 
     sourceSets.getByName("main") {

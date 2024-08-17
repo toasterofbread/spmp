@@ -22,6 +22,7 @@
         mpv
         vulkan-loader
         xorg.libXtst
+        apksigcopier
 
         # Webview
         at-spi2-atk

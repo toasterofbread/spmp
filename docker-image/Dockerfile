@@ -2,6 +2,12 @@ FROM ubuntu:20.04
 
 ENV DEBIAN_FRONTEND=noninteractive
 
+ARG GRADLE_VERSION
+RUN test -n "$GRADLE_VERSION"
+
+ARG ANDROID_SDK_VERSION
+RUN test -n "$ANDROID_SDK_VERSION"
+
 RUN apt-get update && \
     apt-get install -y openjdk-21-jre wget git unzip binutils desktop-file-utils
 
@@ -14,8 +20,14 @@ RUN wget https://github.com/AppImage/appimagetool/releases/download/continuous/a
     echo '/appimagetool --appimage-extract-and-run "$@"' >> /usr/local/bin/appimagetool && \
     chmod +x /usr/local/bin/appimagetool
 
-ARG GRADLE_VERSION
-RUN test -n "$GRADLE_VERSION"
+ENV ANDROID_HOME=/android-sdk
+RUN wget https://dl.google.com/android/repository/commandlinetools-linux-11076708_latest.zip -O cmdlinetools.zip && \
+    unzip cmdlinetools.zip && \
+    mkdir -p $ANDROID_HOME/cmdline-tools && \
+    mv cmdline-tools $ANDROID_HOME/cmdline-tools/latest
+
+RUN yes | $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager --licenses && \
+    $ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager "build-tools;$ANDROID_SDK_VERSION.0.0" "platforms;android-$ANDROID_SDK_VERSION"
 
 RUN wget https://services.gradle.org/distributions/gradle-$GRADLE_VERSION-bin.zip -O gradle-bin.zip && \
     unzip gradle-bin.zip
@@ -28,4 +40,4 @@ ENV JAVA_22_HOME=/usr/lib/jvm/jdk-22.0.2-oracle-x64
 ENV JAVA_HOME=$JAVA_22_HOME
 
 WORKDIR /src
-ENTRYPOINT ["/src/desktopApp/docker/entryPoint.sh"]
+ENTRYPOINT ["/src/docker-image/gradleEntryPoint.sh"]

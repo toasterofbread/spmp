@@ -288,6 +288,11 @@ afterEvaluate {
     }
 
     tasks.withType<AbstractJPackageTask> {
+        if (name == "packageReleaseExe") {
+            // Exe packaging is weird
+            return@withType
+        }
+
         doFirst {
             DesktopUtils.runChecks(project)
         }

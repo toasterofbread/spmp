@@ -8,8 +8,8 @@
         - Nix flake reference in docs
         - AUR package
     -->
-    <string name="version_string" translatable="false">0.4.0-RC6</string>
-    <string name="version_code" translatable="false">19</string>
+    <string name="version_string" translatable="false">0.4.0</string>
+    <string name="version_code" translatable="false">20</string>
 
     <string name="app_name" translatable="false">SpMp</string>
     <string name="app_name_debug" translatable="false">SpMp (debug)</string>

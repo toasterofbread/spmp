@@ -41,14 +41,14 @@
       spmp_package =
         let
           pname = "spmp";
-          version = "0.4.0-RC6";
+          version = "0.4.0";
         in
         pkgs.stdenv.mkDerivation {
           inherit pname version;
 
           src = pkgs.fetchurl {
             url = "https://github.com/toasterofbread/spmp/releases/download/v${version}/spmp-v${version}-linux-x86_64.tar.gz";
-            hash = "sha256-NjgH1Me0zxpvy5QAEJeOx8vy2ydSNiAVmRGLnI0EgW4=";
+            hash = "sha256-FImSNHHPECYOcxprut2gnx064QttZX1oEAFT4s7iUFc=";
           };
 
           nativeBuildInputs = with pkgs; [

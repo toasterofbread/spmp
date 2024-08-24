@@ -2,11 +2,14 @@
     <string name="language_name">English (GB)</string>
 
     <!--
-        Things to update on version change:
-        - flake.nix
-        - toasterofbread/flatpak-repo
-        - Nix flake reference in docs
-        - AUR package
+        Release checklist:
+        - Gradle clean
+        - Things to update on version change:
+            - flake.nix
+            - toasterofbread/flatpak-repo
+            - Nix flake reference in docs
+            - AUR package
+            - dev.toastbits.spmp.metainfo.xml
     -->
     <string name="version_string" translatable="false">0.4.0</string>
     <string name="version_code" translatable="false">20</string>

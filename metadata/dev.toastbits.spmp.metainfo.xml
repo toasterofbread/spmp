@@ -54,6 +54,12 @@
     </categories>
 
     <releases>
+        <release version="v0.4.1" date="2024-08-24">
+            <url type="details">https://github.com/toasterofbread/spmp/releases/tag/v0.4.1</url>
+            <description>
+                <p>Fix: Several YouTube data parsing functions not working due to 'NotImplementedError: MUSIC_PAGE_TYPE_TRACK_CREDITS'</p>
+            </description>
+        </release>
         <release version="v0.4.0" date="2024-08-17">
             <url type="details">https://github.com/toasterofbread/spmp/releases/tag/v0.4.0</url>
             <description>

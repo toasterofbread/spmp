@@ -10,5 +10,6 @@ ANDROID_SDK_VERSION=$(grep "^android.compileSdk=" $PROJECT/gradle.properties | c
 
 docker build -t $IMAGE --build-arg="GRADLE_VERSION=$GRADLE_VERSION" --build-arg="ANDROID_SDK_VERSION=$ANDROID_SDK_VERSION" docker-image
 
+./gradlew clean
 ./gradlew --stop
 docker run --rm -it -v $PROJECT:/src -v ~/.gradle:/gradle-user-home $IMAGE:latest $DOCKER_ARGS -PGIT_TAG_OVERRIDE=$TAG

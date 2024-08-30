@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
+import androidx.annotation.OptIn
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -14,6 +15,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.audio.SonicAudioProcessor
 import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.RenderersFactory
 import androidx.media3.exoplayer.audio.AudioRendererEventListener
@@ -33,16 +35,17 @@ import com.google.common.util.concurrent.MoreExecutors
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
-import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.platform.PlayerServiceCommand
 import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.Executors
 
+@OptIn(UnstableApi::class)
 internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
     play_when_ready: Boolean,
     playlist_auto_progress: Boolean,
-    getNotificationPlayer: (ExoPlayer) -> Player = { it }
+    getNotificationPlayer: (ExoPlayer) -> Player = { it },
+    onSongReadyToPlay: () -> Unit = {}
 ) {
     audio_sink = DefaultAudioSink.Builder(context.ctx)
         .setAudioProcessorChain(
@@ -110,7 +113,11 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
         .setUsePlatformDiagnostics(false)
         .build()
 
-    val player_listener: InternalPlayerServicePlayerListener = InternalPlayerServicePlayerListener(this)
+    val player_listener: InternalPlayerServicePlayerListener =
+        InternalPlayerServicePlayerListener(
+            this,
+            onSongReadyToPlay = onSongReadyToPlay
+        )
     player.addListener(player_listener)
 
     player.playWhenReady = play_when_ready

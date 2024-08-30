@@ -8,34 +8,29 @@ import android.os.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.media3.common.*
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.common.Player
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.audio.*
 import androidx.media3.session.*
-import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
-import dev.toastbits.ytmkt.model.external.SongLikedStatus
 import dev.toastbits.ytmkt.model.implementedOrNull
 import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
 import com.toasterofbread.spmp.platform.visualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatusListener
-import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
-import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.PlayerServiceCommand
-import com.toasterofbread.spmp.platform.playerservice.*
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.shared.R
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
 import kotlinx.coroutines.*
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
+import java.security.interfaces.DSAParams
 
 @androidx.annotation.OptIn(UnstableApi::class)
 open class ForegroundPlayerService(
@@ -121,7 +116,10 @@ open class ForegroundPlayerService(
         initialiseSessionAndPlayer(
             play_when_ready,
             playlist_auto_progress,
-            getNotificationPlayer = { getNotificationPlayer(it) }
+            getNotificationPlayer = { getNotificationPlayer(it) },
+            onSongReadyToPlay = {
+                listeners.forEach { it.onDurationChanged(player.duration) }
+            }
         )
 
         _service_player = object : PlayerServicePlayer(this) {

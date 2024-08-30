@@ -7,6 +7,7 @@ import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.lyrics.kugou.loadKugouLyrics
 import com.toasterofbread.spmp.youtubeapi.lyrics.kugou.searchKugouLyrics
 import com.toasterofbread.spmp.platform.getUiLanguage
+import kotlin.time.Duration
 
 internal class KugouLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     override fun getReadable(): String = getString("lyrics_source_kugou")
@@ -26,7 +27,7 @@ internal class KugouLyricsSource(source_idx: Int): LyricsSource(source_idx) {
         )
     }
 
-    override suspend fun searchForLyrics(title: String, artist_name: String?): Result<List<SearchResult>> {
+    override suspend fun searchForLyrics(title: String, artist_name: String?, duration: Duration?): Result<List<SearchResult>> {
         return searchKugouLyrics(title, artist_name)
     }
 }

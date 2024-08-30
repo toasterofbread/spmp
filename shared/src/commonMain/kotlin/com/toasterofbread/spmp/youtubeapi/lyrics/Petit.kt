@@ -20,6 +20,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.Charset
 import java.util.Base64
 import java.util.UnknownFormatConversionException
+import kotlin.time.Duration
 
 private const val DATA_START: String = "<lyricsData>"
 private const val DATA_END: String = "</lyricsData>"
@@ -101,7 +102,8 @@ internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
 
     override suspend fun searchForLyrics(
         title: String,
-        artist_name: String?
+        artist_name: String?,
+        duration: Duration?
     ): Result<List<SearchResult>> = runCatching {
         val search_results: List<SearchResult> = searchPetitLyrics(title).getOrThrow()
         if (search_results.isEmpty() && artist_name != null) {

@@ -1,9 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics 
 
 import androidx.compose.ui.graphics.Color
-import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.youtubeapi.lyrics.lrclib.loadLrclibLyrics
 import com.toasterofbread.spmp.youtubeapi.lyrics.lrclib.searchLrclibLyrics
@@ -30,8 +28,13 @@ internal class LrclibLyricsSource(source_idx: Int): LyricsSource(source_idx) {
 		)
     }
 
-    override suspend fun searchForLyrics(title: String, artist_name: String?, duration: Duration?): Result<List<SearchResult>> = runCatching {
-        return searchLrclibLyrics(title, artist_name, duration)
+    override suspend fun searchForLyrics(
+        title: String,
+        artist_name: String?,
+        album: String?,
+        duration: Duration?
+    ): Result<List<SearchResult>> = runCatching {
+        return searchLrclibLyrics(title, artist_name, album, duration)
     }
 }
 

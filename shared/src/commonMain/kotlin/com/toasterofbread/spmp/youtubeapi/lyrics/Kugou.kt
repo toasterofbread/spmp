@@ -27,7 +27,12 @@ internal class KugouLyricsSource(source_idx: Int): LyricsSource(source_idx) {
         )
     }
 
-    override suspend fun searchForLyrics(title: String, artist_name: String?, duration: Duration?): Result<List<SearchResult>> {
+    override suspend fun searchForLyrics(
+        title: String,
+        artist_name: String?,
+        album_name: String?,
+        duration: Duration?
+    ): Result<List<SearchResult>> {
         return searchKugouLyrics(title, artist_name)
     }
 }

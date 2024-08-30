@@ -138,6 +138,7 @@ fun LyricsSearchMenu(
                     result = selected_source.searchForLyrics(
                         title = title.value.text,
                         artist_name = if (artist.value.text.trim().isEmpty()) null else artist.value.text,
+                        album_name = song.Album.get(db)?.getActiveTitle(db),
                         duration = song.Duration.get(db)?.milliseconds
                     )
 

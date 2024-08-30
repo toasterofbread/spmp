@@ -103,6 +103,7 @@ internal class PetitLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     override suspend fun searchForLyrics(
         title: String,
         artist_name: String?,
+        album_name: String?,
         duration: Duration?
     ): Result<List<SearchResult>> = runCatching {
         val search_results: List<SearchResult> = searchPetitLyrics(title).getOrThrow()

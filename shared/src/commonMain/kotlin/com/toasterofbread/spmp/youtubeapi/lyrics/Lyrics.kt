@@ -44,7 +44,12 @@ sealed class LyricsSource(val source_index: Int) {
     open suspend fun getReferenceBySong(song: Song, context: AppContext): Result<LyricsReference?> { throw NotImplementedError() }
 
     open fun supportsLyricsBySearching(): Boolean = true
-    open suspend fun searchForLyrics(title: String, artist_name: String?, duration: Duration?): Result<List<SearchResult>> { throw NotImplementedError() }
+    open suspend fun searchForLyrics(
+        title: String,
+        artist_name: String?,
+        album_name: String?,
+        duration: Duration?
+    ): Result<List<SearchResult>> { throw NotImplementedError() }
 
     fun referenceOfSource(id: String): LyricsReference =
         LyricsReference(source_index, id)
@@ -81,13 +86,10 @@ sealed class LyricsSource(val source_index: Int) {
             default: Int = context.settings.lyrics.DEFAULT_SOURCE.get()
         ): Result<SongLyrics> = runCatching {
             val db: Database = context.database
-            val (song_title, artist_title, duration) = db.transactionWithResult {
-                Triple(
-                    song.getActiveTitle(db),
-                    song.Artists.get(db)?.firstOrNull()?.getActiveTitle(db),
-                    song.Duration.get(db)
-                )
-            }
+            val song_title: String? = song.getActiveTitle(db)
+            val artist_title: String? = song.Artists.get(db)?.firstOrNull()?.getActiveTitle(db)
+            val album_title: String? = song.Album.get(db)?.getActiveTitle(db)
+            val duration_ms: Long? = song.Duration.get(db)
 
             var fail_exception: Throwable? = null
             iterateByPriority(default) { source ->
@@ -113,7 +115,12 @@ sealed class LyricsSource(val source_index: Int) {
                         return@iterateByPriority
                     }
 
-                    val result: SearchResult = source.searchForLyrics(song_title, artist_title, duration?.milliseconds).fold(
+                    val result: SearchResult = source.searchForLyrics(
+                        song_title,
+                        artist_title,
+                        album_title,
+                        duration_ms?.milliseconds
+                    ).fold(
                         { results ->
                             if (results.isEmpty()) {
                                 fail_exception = null

@@ -15,6 +15,7 @@ import kotlin.time.Duration
 internal suspend fun searchLrclibLyrics(
     title: String,
     artist: String?,
+	album: String?,
 	duration: Duration?
 ): Result<List<LyricsSource.SearchResult>> = runCatching {
 	val client: HttpClient = JsonHttpClient
@@ -25,6 +26,9 @@ internal suspend fun searchLrclibLyrics(
 				parameters.append("track_name", title)
 				if (artist != null) {
 					parameters.append("artist_name", artist)
+				}
+				if (album != null) {
+					parameters.append("album_name", album)
 				}
 				if (duration != null) {
 					parameters.append("duration", duration.inWholeSeconds.toString())

@@ -50,6 +50,7 @@ sealed class LyricsSource(val source_index: Int) {
         private val lyrics_sources: List<(Int) -> LyricsSource> = listOf(
             { KugouLyricsSource(it) },
             { PetitLyricsSource(it) },
+	    { LrclibLyricsSource(it) },
             { YoutubeMusicLyricsSource(it) }
         )
         val SOURCE_AMOUNT: Int get() = lyrics_sources.size

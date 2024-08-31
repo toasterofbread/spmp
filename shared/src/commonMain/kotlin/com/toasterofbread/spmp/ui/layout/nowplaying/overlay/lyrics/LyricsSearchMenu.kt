@@ -67,6 +67,7 @@ import com.toasterofbread.spmp.db.Database
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.IOException
+import kotlin.time.Duration.Companion.milliseconds
 
 private const val LYRICS_SEARCH_RETRY_COUNT = 3
 
@@ -135,8 +136,10 @@ fun LyricsSearchMenu(
 
                 while (retry_count-- > 0) {
                     result = selected_source.searchForLyrics(
-                        title.value.text,
-                        if (artist.value.text.trim().isEmpty()) null else artist.value.text
+                        title = title.value.text,
+                        artist_name = if (artist.value.text.trim().isEmpty()) null else artist.value.text,
+                        album_name = song.Album.get(db)?.getActiveTitle(db),
+                        duration = song.Duration.get(db)?.milliseconds
                     )
 
                     val error = result.exceptionOrNull() ?: break

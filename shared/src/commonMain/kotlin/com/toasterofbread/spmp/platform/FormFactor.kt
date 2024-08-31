@@ -36,8 +36,8 @@ enum class FormFactor {
             }
 
             return (
-                if (player.screen_size.width < 500.dp) FormFactor.PORTRAIT
-                else FormFactor.LANDSCAPE
+                if (player.screen_size.width > player.screen_size.height) FormFactor.LANDSCAPE
+                else FormFactor.PORTRAIT
             )
         }
     }

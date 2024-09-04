@@ -116,7 +116,7 @@ private fun getHeadersFromCurlCommand(command: String): Result<Headers> {
 
         val split_header: List<String> = command.substring(header_start, header_end).split(":", limit = 2)
         if (split_header.size != 2) {
-            return Result.failure(RuntimeException("Found partial header at $header_start in $command"))
+            continue
         }
 
         val key: String = split_header[0].trim().lowercase()

@@ -8,6 +8,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import kotlin.time.Duration
 
 internal class YoutubeMusicLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     override fun getReadable(): String = getString("lyrics_source_ytm")
@@ -16,7 +17,6 @@ internal class YoutubeMusicLyricsSource(source_idx: Int): LyricsSource(source_id
 
     override fun supportsLyricsBySong(): Boolean = true
     override fun supportsLyricsBySearching(): Boolean = false
-    override suspend fun searchForLyrics(title: String, artist_name: String?): Result<List<SearchResult>> { throw NotImplementedError() }
 
     override suspend fun getReferenceBySong(song: Song, context: AppContext): Result<LyricsReference?> = withContext(Dispatchers.IO) {
         val browse_id = song.LyricsBrowseId.get(context.database)

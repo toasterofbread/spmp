@@ -42,9 +42,9 @@ enum class FormFactor {
 
         @Composable
         fun observe(min_portrait_ratio: Float? = null): State<FormFactor> {
-            val screen_size: DpSize = LocalPlayerState.current.screen_size
+            val screen_size: DpSize by LocalPlayerState.current.screen_size_state
             return remember { derivedStateOf {
-                getCurrent(screen_size)
+                form_factor_override ?: getCurrent(screen_size)
             } }
         }
     }

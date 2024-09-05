@@ -176,7 +176,9 @@ class PlayerState(
             override val swipe_state: AnchoredDraggableState<Int>
                 get() = np_swipe_state
         }
-    var screen_size: DpSize by mutableStateOf(DpSize.Zero)
+
+    val screen_size_state: MutableState<DpSize> = mutableStateOf(DpSize.Zero)
+    var screen_size: DpSize by screen_size_state
 
     val session_started: Boolean get() = _player?.service_player?.session_started == true
     var hide_player: Boolean by mutableStateOf(false)

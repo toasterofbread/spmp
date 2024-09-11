@@ -51,7 +51,13 @@ interface MetadataProcessor {
 }
 
 object JAudioTaggerMetadataProcessor: MetadataProcessor {
-    val CUSTOM_METADATA_KEY: FieldKey = FieldKey.ALBUM_ARTIST
+    val CUSTOM_METADATA_KEYS: List<FieldKey> =
+        listOf(
+            FieldKey.COMMENT,
+
+            // For backward compatibility
+            FieldKey.ALBUM_ARTIST
+        )
 
     @Serializable
     data class CustomMetadata(
@@ -89,6 +95,7 @@ object JAudioTaggerMetadataProcessor: MetadataProcessor {
             set(FieldKey.TITLE, song.getActiveTitle(context.database))
             set(FieldKey.ARTIST, artists?.firstOrNull()?.getActiveTitle(context.database))
             set(FieldKey.ALBUM, album?.getActiveTitle(context.database))
+            set(FieldKey.ALBUM_ARTIST, album?.Artists?.get(context.database)?.firstOrNull()?.getActiveTitle(context.database))
             set(FieldKey.URL_OFFICIAL_ARTIST_SITE, artists?.firstOrNull()?.getURL(context))
             set(FieldKey.URL_LYRICS_SITE, song.Lyrics.get(context.database)?.getUrl())
 
@@ -98,7 +105,7 @@ object JAudioTaggerMetadataProcessor: MetadataProcessor {
                     artist_ids = artists?.map { it.id },
                     album_id = album?.id
                 )
-            set(CUSTOM_METADATA_KEY, Json.encodeToString(custom_metadata))
+            set(CUSTOM_METADATA_KEYS.first(), Json.encodeToString(custom_metadata))
         }
 
         val audio_file: AudioFile = AudioFileIO.readAs(File(file.absolute_path), file_extension)
@@ -129,10 +136,12 @@ object JAudioTaggerMetadataProcessor: MetadataProcessor {
                 }
 
             val custom_metadata: CustomMetadata? =
-                try {
-                    Json.decodeFromString(tag.getFirst(CUSTOM_METADATA_KEY))
+                CUSTOM_METADATA_KEYS.firstNotNullOfOrNull { key ->
+                    try {
+                        Json.decodeFromString(tag.getFirst(key))
+                    }
+                    catch (_: Throwable) { null }
                 }
-                catch (_: Throwable) { null }
 
             if (custom_metadata?.song_id == null || (match_id != null && custom_metadata.song_id != match_id)) {
                 return@withContext null

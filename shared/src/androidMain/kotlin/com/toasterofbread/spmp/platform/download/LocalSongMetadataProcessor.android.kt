@@ -8,6 +8,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.download.JAudioTaggerMetadataProcessor.CUSTOM_METADATA_KEYS
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
@@ -18,10 +19,13 @@ actual val LocalSongMetadataProcessor: MetadataProcessor =
         override suspend fun addMetadataToLocalSong(song: Song, file: PlatformFile, file_extension: String, context: AppContext) =
             JAudioTaggerMetadataProcessor.addMetadataToLocalSong(song, file, file_extension, context)
 
-        private val custom_metadata_key: Int get() =
-            when (JAudioTaggerMetadataProcessor.CUSTOM_METADATA_KEY) {
-                FieldKey.ALBUM_ARTIST -> MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST
-                else -> throw NotImplementedError(JAudioTaggerMetadataProcessor.CUSTOM_METADATA_KEY.name)
+        private val custom_metadata_keys: List<Int> =
+            JAudioTaggerMetadataProcessor.CUSTOM_METADATA_KEYS.map { key ->
+                when (key) {
+                    FieldKey.ALBUM_ARTIST -> MediaMetadataRetriever.METADATA_KEY_ALBUMARTIST
+                    FieldKey.COMMENT -> MediaMetadataRetriever.METADATA_KEY_LOCATION // Comment key not available in MediaMetadataRetriever
+                    else -> throw NotImplementedError(key.name)
+                }
             }
 
         override suspend fun readLocalSongMetadata(file: PlatformFile, context: AppContext, match_id: String?, load_data: Boolean): SongData? =
@@ -31,10 +35,12 @@ actual val LocalSongMetadataProcessor: MetadataProcessor =
                     metadata_retriever.setDataSource(context.ctx, Uri.parse(file.uri))
 
                     val custom_metadata: JAudioTaggerMetadataProcessor.CustomMetadata? =
-                        try {
-                            Json.decodeFromString(metadata_retriever.extractMetadata(custom_metadata_key)!!)
+                        custom_metadata_keys.firstNotNullOfOrNull { key ->
+                            try {
+                                Json.decodeFromString(metadata_retriever.extractMetadata(key)!!)
+                            }
+                            catch (_: Throwable) { null }
                         }
-                        catch (_: Throwable) { null }
 
                     if (custom_metadata?.song_id == null || (match_id != null && custom_metadata.song_id != match_id)) {
                         return@withContext null

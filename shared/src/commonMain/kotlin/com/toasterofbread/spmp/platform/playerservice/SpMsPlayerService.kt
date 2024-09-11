@@ -453,7 +453,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
         }
     }
 
-    override fun onLocalSongsSynced(songs: List<DownloadStatus>) {
+    override fun onLocalSongsSynced(songs: Iterable<DownloadStatus>) {
         player_status_coroutine_scope.launch {
             runCommandOnEachLocalPlayer(
                 "setLocalFiles",

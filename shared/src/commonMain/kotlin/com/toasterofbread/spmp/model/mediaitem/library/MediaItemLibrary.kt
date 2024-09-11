@@ -18,9 +18,13 @@ import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.LocalSongMetadataProcessor
 import com.toasterofbread.spmp.platform.download.SongDownloader
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
+import dev.toastbits.composekit.platform.Platform
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.time.TimeSource
+import kotlin.time.measureTime
+import kotlin.time.measureTimedValue
 
 @Suppress("DeferredResultUnused")
 object MediaItemLibrary {
@@ -133,15 +137,33 @@ object MediaItemLibrary {
     }
 }
 
-private suspend fun getAllLocalSongFiles(context: AppContext, allow_partial: Boolean = false): List<DownloadStatus> = withContext(Dispatchers.IO) {
+private suspend fun getAllLocalSongFiles(context: AppContext, allow_partial: Boolean = false): Iterable<DownloadStatus> = withContext(Dispatchers.IO) {
     val files: List<PlatformFile> = (
         MediaItemLibrary.getLocalSongsDir(context).listFiles().orEmpty()
         + if (allow_partial) MediaItemLibrary.getSongDownloadsDir(context).listFiles().orEmpty() else emptyList()
     )
 
+    return@withContext when (Platform.current) {
+        Platform.ANDROID ->
+            performGetAllLocalSongFiles(files, allow_partial, context)
+        Platform.DESKTOP ->
+            context.database.transactionWithResult {
+                runBlocking {
+                    performGetAllLocalSongFiles(files, allow_partial, context)
+                }
+            }
+    }
+}
+
+private suspend fun performGetAllLocalSongFiles(
+    files: List<PlatformFile>,
+    allow_partial: Boolean,
+    context: AppContext
+): Iterable<DownloadStatus> = coroutineScope {
+    val mutex: Mutex = Mutex()
     val results: Array<DownloadStatus?> = arrayOfNulls(files.size)
 
-    files.mapIndexed { index, file ->
+    for ((index, file) in files.withIndex()) {
         launch {
             val file_info: SongDownloader.Companion.DownloadFileInfo = SongDownloader.getFileDownloadInfo(file)
             if (!allow_partial && file_info.is_partial) {
@@ -150,12 +172,15 @@ private suspend fun getAllLocalSongFiles(context: AppContext, allow_partial: Boo
 
             var song: Song? =
                 file_info.id?.let { SongRef(it) }
-                    ?: LocalSongMetadataProcessor.readLocalSongMetadata(file, context, load_data = true)?.apply { saveToDatabase(context.database) }
+                ?: LocalSongMetadataProcessor.readLocalSongMetadata(file, context, load_data = true)?.apply { saveToDatabase(context.database) }
 
             if (song == null) {
                 song = SongRef('!' + file.absolute_path.hashCode().toString())
                 song.createDbEntry(context.database)
-                song.Title.set(file.name.split('.', limit = 2).firstOrNull() ?: "???", context.database)
+                song.Title.set(
+                    file.name.split('.', limit = 2).firstOrNull() ?: "???",
+                    context.database
+                )
             }
 
             val result: DownloadStatus =
@@ -168,18 +193,18 @@ private suspend fun getAllLocalSongFiles(context: AppContext, allow_partial: Boo
                     file = file_info.file
                 )
 
-            synchronized(results) {
+            mutex.withLock {
                 results[index] = result
             }
         }
-    }.joinAll()
+    }
 
-    return@withContext results.filterNotNull()
+    return@coroutineScope (results as Array<DownloadStatus>).asIterable()
 }
 
 private class LocalSongSyncLoader: SyncLoader<DownloadStatus>() {
     override suspend fun internalPerformSync(context: AppContext): Map<String, DownloadStatus> {
-        val downloads: List<DownloadStatus> =
+        val downloads: Iterable<DownloadStatus> =
             getAllLocalSongFiles(context, true)
 
         SpMp._player_state?.interactService { service: Any ->

@@ -14,12 +14,18 @@ import dev.toastbits.ytmkt.model.external.YoutubeVideoFormat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.withTimeoutOrNull
 
 internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppContext, metered: Boolean): DataSpec {
     val song: SongRef = SongRef(data_spec.uri.toString())
 
     val download_manager: PlayerDownloadManager = context.download_manager
-    var local_file: PlatformFile? = MediaItemLibrary.getLocalSong(song, context)?.file
+
+    var local_file: PlatformFile? =
+        withTimeoutOrNull(1000) {
+            MediaItemLibrary.getLocalSong(song, context)?.file
+        }
+
     if (local_file != null) {
         println("Playing song ${song.id} from local file $local_file")
         return data_spec.withUri(Uri.parse(local_file.uri))
@@ -31,10 +37,13 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
         auto_download_enabled
         && song.getPlayCount(context.database, 7) >= context.settings.streaming.AUTO_DOWNLOAD_THRESHOLD.get()
         && (context.settings.streaming.AUTO_DOWNLOAD_ON_METERED.get() || !metered)
+        && !MediaItemLibrary.song_sync_in_progress
     ) {
         var done: Boolean = false
         runBlocking {
-            val initial_status: DownloadStatus? = download_manager.getDownload(song)
+            val initial_status: DownloadStatus? = withTimeoutOrNull(1000) {
+                download_manager.getDownload(song)
+            }
             when (initial_status?.status) {
                 DownloadStatus.Status.IDLE, DownloadStatus.Status.CANCELLED, DownloadStatus.Status.PAUSED, null -> {
                     download_manager.startDownload(song, true) { status ->
@@ -90,6 +99,11 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
         getSongTargetAudioFormat(song.id, context).fold(
             { it },
             {
+                MediaItemLibrary.getLocalSong(song, context)?.file?.also { local_file ->
+                    println("Playing song ${song.id} from local file $local_file")
+                    return data_spec.withUri(Uri.parse(local_file.uri))
+                }
+
                 it.printStackTrace()
                 throw it
             }

@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp
 
-import SpMp
 import ProgramArguments
+import SpMp
 import SpMp.isDebugBuild
 import android.content.ComponentCallbacks2
 import android.content.Intent
@@ -18,12 +18,12 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.core.view.WindowCompat
-import dev.toastbits.composekit.platform.ApplicationContext
-import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
+import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.composekit.platform.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel

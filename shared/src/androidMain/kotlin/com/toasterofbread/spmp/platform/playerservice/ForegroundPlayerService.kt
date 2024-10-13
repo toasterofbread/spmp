@@ -4,33 +4,44 @@ import android.content.Intent
 import android.media.AudioManager
 import android.media.MediaRouter
 import android.media.audiofx.LoudnessEnhancer
-import android.os.*
-import androidx.compose.runtime.*
+import android.os.Build
+import android.os.Bundle
+import android.os.IBinder
+import android.view.KeyEvent
+import android.view.KeyEvent.KEYCODE_MEDIA_STOP
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.media3.common.util.UnstableApi
+import androidx.core.content.getSystemService
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
-import androidx.media3.exoplayer.audio.*
-import androidx.media3.session.*
-import dev.toastbits.composekit.platform.PlatformPreferencesListener
-import dev.toastbits.ytmkt.model.implementedOrNull
-import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
-import com.toasterofbread.spmp.platform.visualiser.FFTAudioProcessor
+import androidx.media3.exoplayer.audio.AudioSink
+import androidx.media3.session.DefaultMediaNotificationProvider
+import androidx.media3.session.MediaSession
+import androidx.media3.session.MediaSessionService
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatusListener
+import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.PlayerServiceCommand
+import com.toasterofbread.spmp.platform.visualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
-import com.toasterofbread.spmp.shared.R
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
-import kotlinx.coroutines.*
+import com.toasterofbread.spmp.shared.R
+import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
-import java.security.interfaces.DSAParams
+import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
+import dev.toastbits.ytmkt.model.implementedOrNull
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlin.system.exitProcess
 
 @androidx.annotation.OptIn(UnstableApi::class)
 open class ForegroundPlayerService(
@@ -40,6 +51,7 @@ open class ForegroundPlayerService(
     override val load_state: PlayerServiceLoadState = PlayerServiceLoadState(false)
     override val context: AppContext get() = _context
     private lateinit var _context: AppContext
+    private var stopped: Boolean = false
 
     internal val coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
     internal lateinit var player: ExoPlayer
@@ -88,6 +100,19 @@ open class ForegroundPlayerService(
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
+
+        val keyEvent: KeyEvent? = intent?.extras?.getParcelable(Intent.EXTRA_KEY_EVENT)
+        println("onStartCommand $keyEvent $flags $startId $intent")
+
+        // Partial workaround for https://github.com/androidx/media/issues/805
+        if (
+            Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
+            && keyEvent?.keyCode == KEYCODE_MEDIA_STOP
+            && flags == 0
+        ) {
+            exitProcess(-1)
+        }
+
         return START_NOT_STICKY
     }
 
@@ -151,7 +176,8 @@ open class ForegroundPlayerService(
     }
 
     override fun onDestroy() {
-        stopSelf()
+        stopped = true
+        stopForeground(STOP_FOREGROUND_REMOVE)
 
         _context.getPrefs().removeListener(prefs_listener)
         coroutine_scope.cancel()
@@ -161,11 +187,15 @@ open class ForegroundPlayerService(
         loudness_enhancer?.release()
         SongLikedStatusListener.removeListener(song_liked_listener)
 
-        val audio_manager = getSystemService(AUDIO_SERVICE) as AudioManager?
+        val audio_manager: AudioManager? = getSystemService()
         audio_manager?.unregisterAudioDeviceCallback(audio_device_callback)
 
         clearListener()
         super.onDestroy()
+    }
+
+    override fun onUpdateNotification(session: MediaSession, startInForegroundRequired: Boolean) {
+        super.onUpdateNotification(session, true)
     }
 
     override fun onTaskRemoved(intent: Intent?) {
@@ -178,9 +208,12 @@ open class ForegroundPlayerService(
                 && intent?.component?.packageName == packageName
             )
         ) {
-            stopSelf()
-            onDestroy()
+            stopForeground(STOP_FOREGROUND_REMOVE)
         }
+    }
+
+    private fun checkAlive() {
+        check(!stopped) { "Attempting to use a stopped foreground player service $this. This is a bug." }
     }
 
     internal fun onPlayerServiceCommand(command: PlayerServiceCommand): Bundle {
@@ -238,14 +271,17 @@ open class ForegroundPlayerService(
     }
 
     override fun play() {
+        checkAlive()
         player.play()
     }
 
     override fun pause() {
+        checkAlive()
         player.pause()
     }
 
     override fun playPause() {
+        checkAlive()
         if (player.isPlaying) {
             player.pause()
         }
@@ -258,6 +294,8 @@ open class ForegroundPlayerService(
     private fun getSeekPosition(): Pair<Int, Long> = Pair(current_song_index, current_position_ms)
 
     override fun seekTo(position_ms: Long) {
+        checkAlive()
+
         val current: Pair<Int, Long> = getSeekPosition()
         player.seekTo(position_ms)
         listeners.forEach { it.onSeeked(position_ms) }
@@ -268,6 +306,8 @@ open class ForegroundPlayerService(
     }
 
     override fun seekToSong(index: Int) {
+        checkAlive()
+
         val current: Pair<Int, Long> = getSeekPosition()
         player.seekTo(index, 0)
 
@@ -277,6 +317,8 @@ open class ForegroundPlayerService(
     }
 
     override fun seekToNext() {
+        checkAlive()
+
         val current: Pair<Int, Long> = getSeekPosition()
         player.seekToNext()
 
@@ -286,6 +328,8 @@ open class ForegroundPlayerService(
     }
 
     override fun seekToPrevious() {
+        checkAlive()
+
         val current: Pair<Int, Long> = getSeekPosition()
         player.seekToPrevious()
 
@@ -295,6 +339,8 @@ open class ForegroundPlayerService(
     }
 
     override fun undoSeek() {
+        checkAlive()
+
         val (index: Int, position_ms: Long) = song_seek_undo_stack.removeLastOrNull() ?: return
 
         if (index != current_song_index) {
@@ -318,6 +364,8 @@ open class ForegroundPlayerService(
     }
 
     override fun addSong(song: Song, index: Int) {
+        checkAlive()
+
         player.addMediaItem(index, song.buildExoMediaItem(context))
         listeners.forEach { it.onSongAdded(index, song) }
 
@@ -325,11 +373,15 @@ open class ForegroundPlayerService(
     }
 
     override fun moveSong(from: Int, to: Int) {
+        checkAlive()
+
         player.moveMediaItem(from, to)
         listeners.forEach { it.onSongMoved(from, to) }
     }
 
     override fun removeSong(index: Int) {
+        checkAlive()
+
         val song: Song = player.getMediaItemAt(index).getSong()
         player.removeMediaItem(index)
         listeners.forEach { it.onSongRemoved(index, song) }

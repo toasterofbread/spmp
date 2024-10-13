@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.platform.playerservice
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -12,9 +11,9 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.common.audio.SonicAudioProcessor
 import androidx.media3.common.util.BitmapLoader
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.RenderersFactory
@@ -28,15 +27,19 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.extractor.mkv.MatroskaExtractor
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
-import androidx.media3.session.*
+import androidx.media3.session.MediaController
+import androidx.media3.session.MediaSession
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionResult
+import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
-import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.platform.PlayerServiceCommand
 import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.Executors
 
@@ -143,7 +146,9 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
                 throw NotImplementedError()
             }
 
-            override fun loadBitmap(uri: Uri, options: BitmapFactory.Options?): ListenableFuture<Bitmap> {
+            override fun supportsMimeType(mimeType: String): Boolean = true
+
+            override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> {
                 return executor.submit<Bitmap> {
                     runBlocking {
                         val song = SongRef(uri.toString())

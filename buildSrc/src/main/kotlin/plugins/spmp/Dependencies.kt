@@ -85,7 +85,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/androidx/androidx/blob/8d6777b558dc315e96ee908502e847e2cd29e216/LICENSE.txt"
             ),
             "androidx.media3" to DependencyInfo(
-                version = "1.2.0",
+                version = "1.4.1",
                 name = "AndroidX Media",
                 author = "AOSP",
                 url = "https://github.com/androidx/media",

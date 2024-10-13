@@ -41,6 +41,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.encodeToString
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
+import kotlinx.coroutines.cancel
 import java.io.IOException
 import java.util.Timer
 import java.util.TimerTask
@@ -220,6 +221,7 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
     }
 
     fun release() {
+        coroutine_scope.cancel()
         update_timer?.cancel()
         update_timer = null
 

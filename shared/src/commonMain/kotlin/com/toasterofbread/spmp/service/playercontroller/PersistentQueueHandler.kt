@@ -54,7 +54,7 @@ private suspend fun getSavedQueue(context: AppContext): Pair<List<SongData>, Per
 
 internal class PersistentQueueHandler(val player: PlayerServicePlayer, val context: AppContext) {
     private var persistent_queue_loaded: Boolean = false
-    private val queue_lock = Mutex()
+    private val queue_lock: Mutex = Mutex()
 
     private fun getPersistentQueueMetadata(): PersistentQueueMetadata =
         PersistentQueueMetadata(player.current_song_index, player.current_position_ms)

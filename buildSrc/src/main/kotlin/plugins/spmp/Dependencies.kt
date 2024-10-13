@@ -36,7 +36,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/toasterofbread/spmp-server/blob/6dde651ffc102d604ac7ecd5ac7471b1572fd2e6/LICENSE"
             ),
             "dev.toastbits.composekit" to DependencyInfo(
-                version = "2d2f8d5e68",
+                version = "7144f4da20",
                 name = "ComposeKit",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/composekit",
@@ -298,6 +298,14 @@ class SpMpDeps(extra: Map<String, Any>) {
                 url = "https://github.com/dzolnai/ExoVisualizer",
                 license = "MIT",
                 license_url = "https://github.com/dzolnai/ExoVisualizer/blob/720e1b127b900aece546b8e88aed65db50379f0a/LICENSE"
+            ),
+            "com.github.wseemann" to DependencyInfo(
+                version = "1.0.19",
+                name = "FFmpegMediaMetadataRetriever",
+                author = "wseemann",
+                url = "https://github.com/wseemann/FFmpegMediaMetadataRetriever",
+                license = "Apache-2.0",
+                license_url = "https://github.com/wseemann/FFmpegMediaMetadataRetriever/blob/4fdde1bc1f5d2c4c91b876454d5472a9272a66a7/LICENSE-2.0.txt"
             )
         )
 }

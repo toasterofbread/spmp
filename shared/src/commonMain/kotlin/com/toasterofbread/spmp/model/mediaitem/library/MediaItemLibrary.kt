@@ -30,7 +30,7 @@ import kotlin.time.measureTimedValue
 object MediaItemLibrary {
     fun getLibraryDir(
         context: AppContext,
-        custom_location_uri: String = context.settings.system.LIBRARY_PATH.get(),
+        custom_location_uri: String = context.settings.system.LIBRARY_PATH.get()
     ): PlatformFile {
         if (custom_location_uri.isNotBlank()) {
             val custom_dir: PlatformFile? = context.getUserDirectoryFile(custom_location_uri)

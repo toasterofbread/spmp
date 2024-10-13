@@ -7,6 +7,7 @@ import android.media.audiofx.LoudnessEnhancer
 import android.os.Build
 import android.os.Bundle
 import android.os.IBinder
+import android.os.Process
 import android.view.KeyEvent
 import android.view.KeyEvent.KEYCODE_MEDIA_STOP
 import androidx.compose.runtime.Composable
@@ -41,7 +42,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import kotlin.system.exitProcess
 
 @androidx.annotation.OptIn(UnstableApi::class)
 open class ForegroundPlayerService(
@@ -108,9 +108,9 @@ open class ForegroundPlayerService(
         if (
             Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
             && keyEvent?.keyCode == KEYCODE_MEDIA_STOP
-            && flags == 0
+//            && flags == 0
         ) {
-            exitProcess(-1)
+            Process.killProcess(Process.myPid())
         }
 
         return START_NOT_STICKY

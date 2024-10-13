@@ -1,7 +1,5 @@
 package com.toasterofbread.spmp.model.lyrics
 
-import dev.toastbits.composekit.utils.common.lazyAssert
-import dev.toastbits.composekit.utils.common.toHiragana
 import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 

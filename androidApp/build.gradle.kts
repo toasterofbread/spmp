@@ -163,6 +163,10 @@ android {
         assets.srcDirs("src/main/assets")
         dependencies {
             implementation(project(":shared"))
+
+            // Widget
+            implementation("androidx.glance:glance-appwidget:1.1.0")
+            implementation("androidx.glance:glance-material3:1.1.0")
         }
         manifest {
             srcFile("src/main/AndroidManifest.xml")

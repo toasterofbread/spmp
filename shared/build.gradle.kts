@@ -98,6 +98,10 @@ kotlin {
                 implementation(deps.get("com.github.toasterofbread.compose-webview-multiplatform:compose-webview-multiplatform-android"))
 
                 runtimeOnly(deps.get("io.ktor:ktor-server-content-negotiation"))
+
+                // Widget
+                implementation("androidx.glance:glance-appwidget:1.1.0")
+                implementation("androidx.glance:glance-material3:1.1.0")
             }
         }
 

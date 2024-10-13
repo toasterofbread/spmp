@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.platform.playerservice
 
+import SpMp
 import android.content.Intent
 import android.media.AudioManager
 import android.media.MediaRouter
@@ -15,6 +16,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.getSystemService
+import androidx.glance.GlanceId
+import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -33,6 +37,7 @@ import com.toasterofbread.spmp.platform.visualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
 import com.toasterofbread.spmp.shared.R
+import com.toasterofbread.spmp.widget.SpMpMainWidget
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
@@ -41,6 +46,7 @@ import dev.toastbits.ytmkt.model.implementedOrNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -173,6 +179,21 @@ open class ForegroundPlayerService(
         )
 
         SongLikedStatusListener.addListener(song_liked_listener)
+
+        coroutine_scope.launch {
+            val widget: GlanceAppWidget = SpMpMainWidget()
+            val manager: GlanceAppWidgetManager = GlanceAppWidgetManager(this@ForegroundPlayerService)
+
+            while (true) {
+                val ids: List<GlanceId> = manager.getGlanceIds(widget::class.java)
+                for (id in ids) {
+                    widget.update(this@ForegroundPlayerService, id)
+                }
+                println("UPDATE WIDGETS $ids ${SpMp.test++}")
+
+                delay(1000)
+            }
+        }
     }
 
     override fun onDestroy() {

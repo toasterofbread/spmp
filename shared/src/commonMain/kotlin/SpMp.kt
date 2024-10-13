@@ -60,6 +60,8 @@ object SpMp {
 
     private lateinit var context: AppContext
 
+    var test: Int by mutableIntStateOf(0)
+
     var _player_state: PlayerState? = null
         private set
     val player_state: PlayerState get() = _player_state!!

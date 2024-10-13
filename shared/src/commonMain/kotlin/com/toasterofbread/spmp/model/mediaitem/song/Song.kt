@@ -34,7 +34,7 @@ import java.net.URL
 import java.net.URLConnection
 import kotlin.math.roundToInt
 
-private const val STATIC_LYRICS_SYNC_OFFSET: Long = 1000
+const val STATIC_LYRICS_SYNC_OFFSET: Long = 1000
 
 interface Song: MediaItem.WithArtists {
     override fun getType(): MediaItemType = MediaItemType.SONG

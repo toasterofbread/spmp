@@ -96,8 +96,6 @@ kotlin {
                 implementation(deps.get("io.github.jan-tennert.supabase:functions-kt"))
                 implementation(deps.get("io.ktor:ktor-client-cio"))
                 implementation(deps.get("com.github.toasterofbread.compose-webview-multiplatform:compose-webview-multiplatform-android"))
-                implementation(deps.get("com.github.wseemann:FFmpegMediaMetadataRetriever-core"))
-                implementation(deps.get("com.github.wseemann:FFmpegMediaMetadataRetriever-native"))
 
                 runtimeOnly(deps.get("io.ktor:ktor-server-content-negotiation"))
             }

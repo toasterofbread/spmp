@@ -15,6 +15,7 @@ import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -27,10 +28,18 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.toInfoString
-import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.longpressmenu.artist.ArtistLongPressMenuInfo
 import com.toasterofbread.spmp.ui.component.longpressmenu.playlist.PlaylistLongPressMenuInfo
 import com.toasterofbread.spmp.ui.component.longpressmenu.song.SongLongPressMenuInfo
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.lpm_action_share
+import spmp.shared.generated.resources.lpm_action_open_external
+import spmp.shared.generated.resources.lpm_action_print_info
+import spmp.shared.generated.resources.lpm_action_hide
 
 const val MENU_ITEM_SPACING: Int = 20
 
@@ -41,7 +50,8 @@ internal fun ColumnScope.LongPressMenuInfoActions(
     getAccentColour: () -> Color,
     onAction: () -> Unit,
 ) {
-    val player = LocalPlayerState.current
+    val player: PlayerState = LocalPlayerState.current
+    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     Column(
         Modifier.fillMaxHeight().weight(1f),
@@ -58,13 +68,15 @@ internal fun ColumnScope.LongPressMenuInfoActions(
     if (player.context.canShare()) {
         LongPressMenuActionProvider.ActionButton(
             Icons.Filled.Share,
-            getString("lpm_action_share"),
+            stringResource(Res.string.lpm_action_share),
             getAccentColour,
             onClick = {
-                player.context.shareText(
-                    data.item.getURL(player.context),
-                    if (data.item is Song) data.item.getActiveTitle(player.database) else null
-                )
+                coroutine_scope.launch {
+                    player.context.shareText(
+                        data.item.getUrl(player.context),
+                        if (data.item is Song) data.item.getActiveTitle(player.database) else null
+                    )
+                }
             },
             onAction = onAction
         )
@@ -74,10 +86,12 @@ internal fun ColumnScope.LongPressMenuInfoActions(
     if (player.context.canOpenUrl()) {
         LongPressMenuActionProvider.ActionButton(
             Icons.Filled.OpenWith,
-            getString("lpm_action_open_external"),
+            stringResource(Res.string.lpm_action_open_external),
             getAccentColour,
             onClick = {
-                player.context.openUrl(data.item.getURL(player.context))
+                coroutine_scope.launch {
+                    player.context.openUrl(data.item.getUrl(player.context))
+                }
             },
             onAction = onAction
         )
@@ -94,7 +108,7 @@ internal fun ColumnScope.LongPressMenuInfoActions(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(Icons.Default.Print, null, tint = getAccentColour())
-            WidthShrinkText(getString("lpm_action_print_info"), fontSize = 15.sp)
+            WidthShrinkText(stringResource(Res.string.lpm_action_print_info), fontSize = 15.sp)
         }
     }
 }
@@ -117,7 +131,7 @@ internal fun ColumnScope.LongPressMenuActions(data: LongPressMenuData, backgroun
     // Hide
     LongPressMenuActionProvider.ActionButton(
         Icons.Filled.VisibilityOff,
-        getString("lpm_action_hide"),
+        stringResource(Res.string.lpm_action_hide),
         getAccentColour,
         onClick = {
             data.item.Hidden.set(true, player.database)

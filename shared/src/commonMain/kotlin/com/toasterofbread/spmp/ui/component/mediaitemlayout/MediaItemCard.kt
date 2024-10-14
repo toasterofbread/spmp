@@ -47,7 +47,7 @@ import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.model.mediaitem.db.isMediaItemHidden
+import com.toasterofbread.spmp.model.mediaitem.db.observeIsMediaItemHidden
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
@@ -56,7 +56,6 @@ import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.TitleBar
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -67,8 +66,14 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getThumbShape
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import dev.toastbits.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.settings.ui.vibrant_accent
 import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.artist_chip_play
+import spmp.shared.generated.resources.media_play
+import spmp.shared.generated.resources.playlist_chip_play
 
 @Composable
 fun MediaItemCard(
@@ -81,7 +86,9 @@ fun MediaItemCard(
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     val item: MediaItemData = remember(layout) { layout.items.first() }
-    if (apply_filter && isMediaItemHidden(item, player.context)) {
+    val item_hidden: Boolean by observeIsMediaItemHidden(item)
+
+    if (apply_filter && item_hidden) {
         return
     }
 
@@ -108,7 +115,7 @@ fun MediaItemCard(
 
             Text(
                 if (item is RemotePlaylist) playlist_type?.value.getReadable(false)
-                else item.getType().getReadable(false),
+                else stringResource(item.getType().getReadable(false)),
                 fontSize = 15.sp,
                 lineHeight = 15.sp
             )
@@ -208,13 +215,11 @@ fun MediaItemCard(
                 )
             ) {
                 Text(
-                    getString(
-                        when (item.getType()) {
-                            MediaItemType.SONG -> "media_play"
-                            MediaItemType.ARTIST -> "artist_chip_play"
-                            MediaItemType.PLAYLIST_REM, MediaItemType.PLAYLIST_LOC -> "playlist_chip_play"
-                        }
-                    )
+                    when (item.getType()) {
+                        MediaItemType.SONG -> stringResource(Res.string.media_play)
+                        MediaItemType.ARTIST -> stringResource(Res.string.artist_chip_play)
+                        MediaItemType.PLAYLIST_REM, MediaItemType.PLAYLIST_LOC -> stringResource(Res.string.playlist_chip_play)
+                    }
                 )
             }
         }

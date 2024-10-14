@@ -13,13 +13,10 @@ data class ContentBarReference(val type: Type, val index: Int) {
         TEMPLATE
     }
 
-    fun getBar(context: AppContext, custom_bars: List<CustomContentBar>? = null): ContentBar? =
+    fun getBar(custom_bars: List<CustomContentBar>): ContentBar? =
         when (type) {
             Type.INTERNAL -> InternalContentBar.ALL.getOrNull(index)
-            Type.CUSTOM -> {
-                val bars: List<CustomContentBar> = custom_bars ?: context.settings.layout.CUSTOM_BARS.get()
-                bars.getOrNull(index)
-            }
+            Type.CUSTOM -> custom_bars.getOrNull(index)
             Type.TEMPLATE -> CustomContentBarTemplate.entries[index].getContentBar()
         }
 

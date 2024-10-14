@@ -1,0 +1,15 @@
+CREATE TABLE PersistentQueueItem (
+    item_index INTEGER NOT NULL PRIMARY KEY,
+    id TEXT NOT NULL,
+
+    FOREIGN KEY (id) REFERENCES MediaItem(id)
+);
+
+clear:
+DELETE FROM PersistentQueueItem;
+
+insert:
+INSERT INTO PersistentQueueItem(item_index, id) VALUES(:item_index, :id);
+
+get:
+SELECT * FROM PersistentQueueItem ORDER BY item_index ASC;

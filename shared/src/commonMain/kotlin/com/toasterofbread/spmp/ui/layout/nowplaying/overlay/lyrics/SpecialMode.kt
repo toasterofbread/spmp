@@ -30,7 +30,10 @@ import dev.toastbits.composekit.platform.composable.BackHandler
 import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import dev.toastbits.composekit.utils.modifier.background
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.resources.getString
+import dev.toastbits.composekit.settings.ui.on_accent
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.lyrics_sync_long_press_line
 
 internal enum class SpecialMode {
     ADJUST_SYNC, SELECT_SYNC_LINE
@@ -100,7 +103,7 @@ internal fun SpecialModeMenu(special_mode: SpecialMode?, song: Song, setMode: (S
                         }
 
                         WidthShrinkText(
-                            getString("lyrics_sync_long_press_line"),
+                            stringResource(Res.string.lyrics_sync_long_press_line),
                             Modifier.fillMaxWidth().weight(1f),
                             style = LocalTextStyle.current.copy(color = player.theme.on_accent)
                         )

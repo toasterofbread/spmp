@@ -37,7 +37,6 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import dev.toastbits.composekit.platform.composable.SwipeRefresh
-import dev.toastbits.composekit.settings.ui.Theme
 import dev.toastbits.composekit.utils.common.getThemeColour
 import dev.toastbits.composekit.utils.composable.getTop
 import dev.toastbits.composekit.utils.modifier.background
@@ -53,6 +52,7 @@ import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.composekit.settings.ui.makeVibrant
 
 private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
 

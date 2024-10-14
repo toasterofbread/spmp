@@ -11,9 +11,15 @@ import androidx.compose.runtime.rememberCoroutineScope
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.playlist.InteractivePlaylistEditor.Companion.rememberEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.lpm_action_play
+import spmp.shared.generated.resources.lpm_action_play_after_1_song
+import spmp.shared.generated.resources.lpm_action_play_after_x_songs
+import spmp.shared.generated.resources.lpm_action_shuffle_playlist
+import spmp.shared.generated.resources.playlist_delete
 
 @Composable
 fun LongPressMenuActionProvider.PlaylistLongPressMenuActions(playlist: MediaItem) {
@@ -23,14 +29,14 @@ fun LongPressMenuActionProvider.PlaylistLongPressMenuActions(playlist: MediaItem
     val coroutine_context = rememberCoroutineScope()
 
     ActionButton(
-        Icons.Default.PlayArrow, getString("lpm_action_play"),
+        Icons.Default.PlayArrow, stringResource(Res.string.lpm_action_play),
         onClick = {
             player.playMediaItem(playlist)
         }
     )
 
     ActionButton(
-        Icons.Default.Shuffle, getString("lpm_action_shuffle_playlist"),
+        Icons.Default.Shuffle, stringResource(Res.string.lpm_action_shuffle_playlist),
         onClick = {
             player.playMediaItem(playlist, true)
         }
@@ -38,7 +44,7 @@ fun LongPressMenuActionProvider.PlaylistLongPressMenuActions(playlist: MediaItem
 
     ActiveQueueIndexAction(
         { distance ->
-            getString(if (distance == 1) "lpm_action_play_after_1_song" else "lpm_action_play_after_x_songs").replace("\$x", distance.toString())
+            stringResource(if (distance == 1) Res.string.lpm_action_play_after_1_song else Res.string.lpm_action_play_after_x_songs).replace("\$x", distance.toString())
         },
         onClick = { active_queue_index ->
             player.playMediaItem(playlist, at_index = active_queue_index + 1)
@@ -52,7 +58,7 @@ fun LongPressMenuActionProvider.PlaylistLongPressMenuActions(playlist: MediaItem
     if (playlist_editor != null) {
         ActionButton(
             Icons.Default.Delete,
-            getString("playlist_delete"),
+            stringResource(Res.string.playlist_delete),
             onClick = {
                 playlist_editor?.also { editor ->
                     coroutine_context.launch {

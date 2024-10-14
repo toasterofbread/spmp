@@ -6,8 +6,13 @@ import com.toasterofbread.spmp.resources.migrations.Migration
 
 expect fun AppContext.getSqlDriver(): SqlDriver
 
+private var instance: Database? = null
+
 fun AppContext.createDatabase(): Database {
-    val driver: SqlDriver = getSqlDriver()
-    Migration.updateDriverIfNeeded(driver)
-    return Database(driver)
+    if (instance == null) {
+        val driver: SqlDriver = getSqlDriver()
+        Migration.updateDriverIfNeeded(driver)
+        instance = Database(driver)
+    }
+    return instance!!
 }

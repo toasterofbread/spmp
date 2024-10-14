@@ -5,8 +5,9 @@ import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+import PlatformIO
 
-suspend fun MediaItem.removeFromDatabase(db: Database) = withContext(Dispatchers.IO) {
+suspend fun MediaItem.removeFromDatabase(db: Database) = withContext(Dispatchers.PlatformIO) {
     db.transaction {
         db.pinnedItemQueries.remove(id, getType().ordinal.toLong())
 

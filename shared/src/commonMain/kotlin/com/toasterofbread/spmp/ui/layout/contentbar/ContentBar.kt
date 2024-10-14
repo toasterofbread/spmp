@@ -15,19 +15,21 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.settings.ui.Theme
 import dev.toastbits.composekit.utils.common.getContrasted
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.Serializable
 
 @Serializable
 sealed class ContentBar {
+    @Composable
     abstract fun getName(): String
+    @Composable
     abstract fun getDescription(): String?
     abstract fun getIcon(): ImageVector
 
@@ -73,7 +75,7 @@ sealed class ContentBar {
     @Composable
     abstract fun BarContent(
         slot: LayoutSlot,
-        background_colour: Theme.Colour?,
+        background_colour: ThemeValues.Colour?,
         content_padding: PaddingValues,
         distance_to_page: Dp,
         lazy: Boolean,
@@ -83,12 +85,12 @@ sealed class ContentBar {
     interface BarSelectionState {
         val built_in_bars: List<ContentBarReference>
         val custom_bars: List<ContentBarReference>
-        fun onBarSelected(slot: LayoutSlot, bar: ContentBarReference?)
+        suspend fun onBarSelected(slot: LayoutSlot, bar: ContentBarReference?)
         fun onColourSelected(slot: LayoutSlot, colour: ColourSource)
         fun onSlotConfigChanged(slot: LayoutSlot, config: JsonElement?)
 
-        fun createCustomBar(): ContentBarReference
-        fun deleteCustomBar(bar: ContentBarReference)
+        suspend fun createCustomBar(): ContentBarReference
+        suspend fun deleteCustomBar(bar: ContentBarReference)
         fun onCustomBarEditRequested(bar: ContentBarReference)
     }
 

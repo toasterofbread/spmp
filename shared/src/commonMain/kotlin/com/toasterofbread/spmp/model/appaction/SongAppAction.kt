@@ -2,21 +2,17 @@ package com.toasterofbread.spmp.model.appaction
 
 import kotlinx.serialization.Serializable
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
-import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.vibrateShort
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.IconButtonDefaults
-import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.*
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
@@ -31,12 +27,32 @@ import androidx.compose.material.icons.outlined.PushPin
 import com.toasterofbread.spmp.model.mediaitem.db.togglePinned
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
-import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
 import LocalPlayerState
 import dev.toastbits.ytmkt.model.external.SongLikedStatus
 import dev.toastbits.ytmkt.endpoint.SongLikedEndpoint
 import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.appaction_config_song_action
+import spmp.shared.generated.resources.appaction_song_action_toggle_like
+import spmp.shared.generated.resources.appaction_song_action_toggle_pin
+import spmp.shared.generated.resources.appaction_song_action_hide
+import spmp.shared.generated.resources.appaction_song_action_start_radio
+import spmp.shared.generated.resources.appaction_song_action_download
+import spmp.shared.generated.resources.appaction_song_action_open_album
+import spmp.shared.generated.resources.appaction_song_action_open_related
+import spmp.shared.generated.resources.appaction_song_action_remove_from_queue
+import spmp.shared.generated.resources.appaction_song_action_share
+import spmp.shared.generated.resources.appaction_song_action_open_externally
+import spmp.shared.generated.resources.appaction_song_action_copy_url
+import spmp.shared.generated.resources.notif_download_finished
+import spmp.shared.generated.resources.notif_download_already_finished
+import spmp.shared.generated.resources.notif_download_cancelled
+import spmp.shared.generated.resources.notif_download_already_downloading
+import spmp.shared.generated.resources.notif_copied_to_clipboard
 
 @Serializable
 data class SongAppAction(
@@ -107,7 +123,7 @@ data class SongAppAction(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                getString("appaction_config_song_action"),
+                stringResource(Res.string.appaction_config_song_action),
                 Modifier.align(Alignment.CenterVertically),
                 softWrap = false
             )
@@ -153,12 +169,12 @@ data class SongAppAction(
                 TOGGLE_PIN -> {
                     var pinned: Boolean by song.observePinnedToHome()
                     IconButton(
-                        { 
+                        {
                             if (onClick != null) {
                                 onClick()
                             }
                             else {
-                                pinned = !pinned 
+                                pinned = !pinned
                             }
                         }
                     ) {
@@ -169,19 +185,20 @@ data class SongAppAction(
             }
         }
 
+        @Composable
         fun getName(): String =
             when (this) {
-                TOGGLE_LIKE -> getString("appaction_song_action_toggle_like")
-                TOGGLE_PIN -> getString("appaction_song_action_toggle_pin")
-                HIDE -> getString("appaction_song_action_hide")
-                START_RADIO -> getString("appaction_song_action_start_radio")
-                DOWNLOAD -> getString("appaction_song_action_download")
-                OPEN_ALBUM -> getString("appaction_song_action_open_album")
-                OPEN_RELATED -> getString("appaction_song_action_open_related")
-                REMOVE_FROM_QUEUE -> getString("appaction_song_action_remove_from_queue")
-                SHARE -> getString("appaction_song_action_share")
-                OPEN_EXTERNALLY -> getString("appaction_song_action_open_externally")
-                COPY_URL -> getString("appaction_song_action_copy_url")
+                TOGGLE_LIKE -> stringResource(Res.string.appaction_song_action_toggle_like)
+                TOGGLE_PIN -> stringResource(Res.string.appaction_song_action_toggle_pin)
+                HIDE -> stringResource(Res.string.appaction_song_action_hide)
+                START_RADIO -> stringResource(Res.string.appaction_song_action_start_radio)
+                DOWNLOAD -> stringResource(Res.string.appaction_song_action_download)
+                OPEN_ALBUM -> stringResource(Res.string.appaction_song_action_open_album)
+                OPEN_RELATED -> stringResource(Res.string.appaction_song_action_open_related)
+                REMOVE_FROM_QUEUE -> stringResource(Res.string.appaction_song_action_remove_from_queue)
+                SHARE -> stringResource(Res.string.appaction_song_action_share)
+                OPEN_EXTERNALLY -> stringResource(Res.string.appaction_song_action_open_externally)
+                COPY_URL -> stringResource(Res.string.appaction_song_action_copy_url)
             }
 
         fun getIcon(): ImageVector =
@@ -241,15 +258,17 @@ data class SongAppAction(
                 }
                 DOWNLOAD -> {
                     player.onSongDownloadRequested(song) { status ->
-                        when (status?.status) {
-                            null -> {}
-                            DownloadStatus.Status.FINISHED -> player.context.sendToast(getString("notif_download_finished"))
-                            DownloadStatus.Status.ALREADY_FINISHED -> player.context.sendToast(getString("notif_download_already_finished"))
-                            DownloadStatus.Status.CANCELLED -> player.context.sendToast(getString("notif_download_cancelled"))
+                        player.coroutine_scope.launch {
+                            when (status?.status) {
+                                null -> {}
+                                DownloadStatus.Status.FINISHED -> player.context.sendToast(getString(Res.string.notif_download_finished))
+                                DownloadStatus.Status.ALREADY_FINISHED -> player.context.sendToast(getString(Res.string.notif_download_already_finished))
+                                DownloadStatus.Status.CANCELLED -> player.context.sendToast(getString(Res.string.notif_download_cancelled))
 
-                            // IDLE, DOWNLOADING, PAUSED
-                            else -> {
-                                player.context.sendToast(getString("notif_download_already_downloading"))
+                                // IDLE, DOWNLOADING, PAUSED
+                                else -> {
+                                    player.context.sendToast(getString(Res.string.notif_download_already_downloading))
+                                }
                             }
                         }
                     }
@@ -268,20 +287,20 @@ data class SongAppAction(
                 }
                 SHARE -> {
                     if (player.context.canShare()) {
-                        player.context.shareText(song.getURL(player.context), song.Title.get(player.database))
+                        player.context.shareText(song.getUrl(player.context), song.Title.get(player.database))
                     }
                 }
                 OPEN_EXTERNALLY -> {
                     if (player.context.canOpenUrl()) {
-                        player.context.openUrl(song.getURL(player.context))
+                        player.context.openUrl(song.getUrl(player.context))
                         player.context.vibrateShort()
                     }
                 }
                 COPY_URL -> {
                     if (player.context.canCopyText()) {
-                        player.context.copyText(song.getURL(player.context))
+                        player.context.copyText(song.getUrl(player.context))
                         player.context.vibrateShort()
-                        player.context.sendToast(getString("notif_copied_to_clipboard"))
+                        player.context.sendToast(getString(Res.string.notif_copied_to_clipboard))
                     }
                 }
             }

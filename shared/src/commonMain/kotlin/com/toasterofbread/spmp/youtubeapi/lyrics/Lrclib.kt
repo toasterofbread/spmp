@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics 
 
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
@@ -8,6 +9,7 @@ import com.toasterofbread.spmp.youtubeapi.lyrics.lrclib.searchLrclibLyrics
 import kotlin.time.Duration
 
 internal class LrclibLyricsSource(source_idx: Int): LyricsSource(source_idx) {
+    @Composable
     override fun getReadable(): String = "lrclib"
     override fun getColour(): Color = Color(0x0C0E41)
     override fun getUrlOfId(id: String): String? = null

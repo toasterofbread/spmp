@@ -1,157 +1,110 @@
+@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
+@file:OptIn(InternalResourceApi::class)
+
 package com.toasterofbread.spmp.resources
 
-import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.getUiLanguage
-import kotlinx.coroutines.runBlocking
-import org.kobjects.ktxml.api.EventType
-import org.kobjects.ktxml.mini.MiniXmlPullParser
-import java.io.InputStream
-import java.util.*
-import java.util.concurrent.locks.ReentrantLock
-import kotlin.concurrent.withLock
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.text.intl.Locale
+import org.jetbrains.compose.resources.InternalResourceApi
+import org.jetbrains.compose.resources.LanguageQualifier
+import org.jetbrains.compose.resources.RegionQualifier
+import org.jetbrains.compose.resources.ResourceEnvironment
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.getSystemResourceEnvironment
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.allStringResources
+import spmp.shared.generated.resources.language_name
 
-private var _strings: Map<String, String>? = null
-private var _string_arrays: Map<String, List<String>>? = null
+data class Language(
+    val family: String,
+    val locale: String?,
+    val readable_name: String
+) {
+    val identifier: String
+        get() =
+            if (locale == null) family
+            else "$family-$locale"
 
-private val strings: Map<String, String> get() = _strings!!
-private val string_arrays: Map<String, List<String>> get() = _string_arrays!!
+    companion object {
+        suspend fun fromIdentifier(identifier: String): Language =
+            getAvailableLanguages().getBestMatch(identifier) ?: DEFAULT
 
-private val resource_load_lock = ReentrantLock()
+        suspend fun getSystem(): Language =
+            fromIdentifier(Locale.current.toLanguageTag())
 
-@Suppress("BlockingMethodInNonBlockingContext")
-fun initResources(language: String, context: AppContext) {
-    fun formatText(text: String): String = text.replace("\\\"", "\"").replace("\\'", "'")
+        val DEFAULT: Language = Language("en", "GB", "English (GB)")
+    }
+}
 
-    resource_load_lock.withLock {
-        if (_strings != null && _string_arrays != null) {
-            return
-        }
+private var available_languages: List<Language>? = null
 
-        runBlocking {
-            val strs: MutableMap<String, String> = mutableMapOf()
-            val str_arrays: MutableMap<String, List<String>> = mutableMapOf()
-
-            fun loadFile(path: String) {
-                val stream: InputStream
-                try {
-                    stream = context.openResourceFile(path)
+suspend fun getAvailableLanguages(): List<Language> {
+    if (available_languages == null) {
+        available_languages =
+            Res.string.language_name.items.mapNotNull { language ->
+                if (language.qualifiers.isEmpty()) {
+                    return@mapNotNull null
                 }
-                catch (e: Throwable) {
-                    if (e.javaClass != MissingResourceException::class.java) {
-                        throw e
-                    }
-                    return
-                }
 
-                println("Loading resource file at $path")
+                var family: String? = null
+                var locale: String? = null
 
-                val string: String = stream.reader().readText()
-                stream.close()
-
-                val parser: MiniXmlPullParser = MiniXmlPullParser(string.iterator())
-
-                while (parser.eventType != EventType.END_DOCUMENT) {
-                    try {
-                        if (parser.eventType != EventType.START_TAG) {
-                            parser.next()
-                            continue
+                for (qualifier in language.qualifiers) {
+                    when (qualifier) {
+                        is LanguageQualifier -> {
+                            family = qualifier.language
                         }
-
-                        val key: String? = parser.getAttributeValue("", "name")
-                        if (key != null) {
-                            when (parser.name) {
-                                "string" -> {
-                                    strs[key] = formatText(parser.nextText())
-                                }
-                                "string-array" -> {
-                                    val array = mutableListOf<String>()
-
-                                    parser.nextTag()
-                                    while (parser.name == "item") {
-                                        array.add(formatText(parser.nextText()))
-                                        parser.nextTag()
-                                    }
-
-                                    str_arrays[key] = array
-                                }
-                                "resources" -> {}
-                                else -> throw NotImplementedError(parser.name)
-                            }
+                        is RegionQualifier -> {
+                            locale = qualifier.region
                         }
-
-                        parser.next()
-                    }
-                    catch (e: Throwable) {
-                        throw RuntimeException("Error occurred while processing line ${parser.lineNumber} of $path", e)
                     }
                 }
 
-                stream.close()
+                checkNotNull(family)
+
+                val readable_name: String = getString(getResourceEnvironment(family, locale), Res.string.language_name)
+                return@mapNotNull Language(family, locale, readable_name)
             }
+    }
+    return available_languages!!
+}
 
-            var language_best_match: String? = null
-            val language_family = language.split('-', limit = 2).first()
+private fun List<Language>.getBestMatch(identifier: String): Language? {
+    val split: List<String> = identifier.split('-', limit = 2)
+    check(split.isNotEmpty()) { split }
 
-            iterateValuesDirectories(context) { file_language, path ->
-                if (file_language == null) {
-                    return@iterateValuesDirectories false
-                }
-
-                if (file_language == language) {
-                    language_best_match = path
-                    return@iterateValuesDirectories true
-                }
-
-                if (file_language.split('-', limit = 2).first() == language_family) {
-                    language_best_match = path
-                }
-
-                return@iterateValuesDirectories false
-            }
-
-            loadFile("values/strings.xml")
-            if (language_best_match != null) {
-                loadFile("$language_best_match/strings.xml")
-            }
-
-            _strings = strs
-            _string_arrays = str_arrays
+    for (language in this) {
+        if (language.family == split.first() && language.locale == split.getOrNull(1)) {
+            return language
         }
+    }
+
+    return firstOrNull { it.family == split.first() }
+}
+
+fun getResourceEnvironment(language_family: String, language_region: String?): ResourceEnvironment {
+    val system_environment: ResourceEnvironment = getSystemResourceEnvironment()
+    return ResourceEnvironment(
+        language = LanguageQualifier(language_family),
+        region = RegionQualifier(language_region ?: ""),
+        theme = system_environment.theme,
+        density = system_environment.density
+    )
+}
+
+fun Language.getResourceEnvironment(): ResourceEnvironment =
+    getResourceEnvironment(family, locale)
+
+@Composable
+fun rememberStringResourceByKey(key: String): StringResource {
+    return remember(key) {
+        Res.allStringResources[key] ?: throw RuntimeException("String resource with key '$key' not found")
     }
 }
 
-fun getString(key: String): String = strings[key] ?: throw NotImplementedError(key)
-fun getStringOrNull(key: String): String? = _strings?.get(key)
-fun getStringTODO(temp_string: String): String = "$temp_string // TODO" // String to be localised
-fun getStringArray(key: String): List<String> = string_arrays[key] ?: throw NotImplementedError(key)
+suspend fun getStringTODO(string: String): String = "TODO($string)"
 
-fun getStringSafe(key: String, context: AppContext): String {
-    resource_load_lock.withLock {
-        if (_strings == null) {
-            initResources(context.getUiLanguage(), context)
-        }
-        return strings[key] ?: throw NotImplementedError(key)
-    }
-}
-
-fun getStringArraySafe(key: String, context: AppContext): List<String> {
-    resource_load_lock.withLock {
-        if (_string_arrays == null) {
-            initResources(context.getUiLanguage(), context)
-        }
-        return string_arrays[key] ?: throw NotImplementedError(key)
-    }
-}
-
-inline fun iterateValuesDirectories(context: AppContext, action: (language: String?, path: String) -> Boolean) {
-    for (file in context.listResourceFiles("") ?: emptyList()) {
-        if (!file.startsWith("values")) {
-            continue
-        }
-
-        val file_language: String? = if (file.length == 6) null else file.substring(7)
-        if (action(file_language, file)) {
-            break
-        }
-    }
-}
+@Composable
+fun stringResourceTODO(string: String): String = "TODO($string)"

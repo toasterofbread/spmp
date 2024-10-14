@@ -33,7 +33,6 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -43,6 +42,13 @@ import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.LocalArtistPage
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.`artist_$x_songs`
+import spmp.shared.generated.resources.library_no_items_match_filter
+import spmp.shared.generated.resources.library_no_liked_artists
+import spmp.shared.generated.resources.library_no_local_artists
 
 class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
@@ -174,7 +180,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                     verticalArrangement = Arrangement.spacedBy(15.dp)
                 ) {
                     item {
-                        LibraryPageTitle(MediaItemType.ARTIST.getReadable(true))
+                        LibraryPageTitle(stringResource(MediaItemType.ARTIST.getReadable(true)))
                     }
 
                     if (artists == null) {
@@ -190,15 +196,15 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                             }
                         }
                         else {
-                            val text: String? =
-                                if (library_page.search_filter != null) getString("library_no_items_match_filter")
-                                else if (showing_alt_content) if (loaded) getString("library_no_liked_artists") else null
-                                else getString("library_no_local_artists")
+                            val text: StringResource? =
+                                if (library_page.search_filter != null) Res.string.library_no_items_match_filter
+                                else if (showing_alt_content) if (loaded) Res.string.library_no_liked_artists else null
+                                else Res.string.library_no_local_artists
 
                             if (text != null) {
                                 item {
                                     Text(
-                                        text,
+                                        stringResource(text),
                                         Modifier.fillMaxWidth(),
                                         textAlign = TextAlign.Center
                                     )
@@ -220,7 +226,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                                 title_lines = 3,
                                 getExtraInfo = {
                                     listOf(
-                                        getString("artist_\$x_songs").replace("\$x", song_count.toString())
+                                        stringResource(Res.string.`artist_$x_songs`).replace("\$x", song_count.toString())
                                     )
                                 }
                             )

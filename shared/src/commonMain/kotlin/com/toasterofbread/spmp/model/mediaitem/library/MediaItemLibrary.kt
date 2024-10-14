@@ -1,39 +1,28 @@
 package com.toasterofbread.spmp.model.mediaitem.library
 
 import SpMp
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import dev.toastbits.composekit.platform.PlatformFile
-import dev.toastbits.composekit.utils.common.addUnique
 import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
-import com.toasterofbread.spmp.platform.download.LocalSongMetadataProcessor
-import com.toasterofbread.spmp.platform.download.SongDownloader
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
-import dev.toastbits.composekit.platform.Platform
-import kotlinx.coroutines.*
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
-import kotlin.time.TimeSource
-import kotlin.time.measureTime
-import kotlin.time.measureTimedValue
+import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.platform.ReentrantLock
+import dev.toastbits.composekit.utils.common.addUnique
 
 @Suppress("DeferredResultUnused")
 object MediaItemLibrary {
-    fun getLibraryDir(
+    suspend fun getLibraryDir(
         context: AppContext,
-        custom_location_uri: String = context.settings.system.LIBRARY_PATH.get()
-    ): PlatformFile {
-        if (custom_location_uri.isNotBlank()) {
-            val custom_dir: PlatformFile? = context.getUserDirectoryFile(custom_location_uri)
+        custom_location_uri: String? = null
+    ): PlatformFile? {
+        val location_url: String = custom_location_uri ?: context.settings.system.LIBRARY_PATH.get()
+        if (location_url.isNotBlank()) {
+            val custom_dir: PlatformFile? = context.getUserDirectoryFile(location_url)
             if (custom_dir != null) {
                 return custom_dir
             }
@@ -42,46 +31,48 @@ object MediaItemLibrary {
         return getDefaultLibraryDir(context)
     }
 
-    fun getDefaultLibraryDir(context: AppContext): PlatformFile =
-        PlatformFile.fromFile(context.getFilesDir(), context).resolve("library")
+    fun getDefaultLibraryDir(context: AppContext): PlatformFile? =
+        context.getFilesDir()?.resolve("library")
 
-    fun getSongDownloadsDir(context: AppContext): PlatformFile =
-        PlatformFile.fromFile(context.getFilesDir(), context).resolve("downloads")
+    fun getSongDownloadsDir(context: AppContext): PlatformFile? =
+        context.getFilesDir()?.resolve("downloads")
 
-    fun getLocalSongsDir(context: AppContext): PlatformFile =
-        getLibraryDir(context).resolve("songs")
+    suspend fun getLocalSongsDir(context: AppContext): PlatformFile? =
+        getLibraryDir(context)?.resolve("songs")
 
-    fun getLocalLyricsDir(context: AppContext): PlatformFile =
-        getLibraryDir(context).resolve("lyrics")
+    suspend fun getLocalLyricsDir(context: AppContext): PlatformFile? =
+        getLibraryDir(context)?.resolve("lyrics")
 
-    fun getLocalLyricsFile(song: Song, context: AppContext): PlatformFile =
-        getLocalLyricsDir(context).resolve(LyricsFileConverter.getSongLyricsFileName(song))
+    suspend fun getLocalLyricsFile(song: Song, context: AppContext): PlatformFile? =
+        getLocalLyricsDir(context)?.resolve(LyricsFileConverter.getSongLyricsFileName(song))
 
-    fun getLocalPlaylistsDir(context: AppContext): PlatformFile =
-        getLibraryDir(context).resolve("playlists")
+    suspend fun getLocalPlaylistsDir(context: AppContext): PlatformFile? =
+        getLibraryDir(context)?.resolve("playlists")
 
-    fun getLocalPlaylistFile(playlist: LocalPlaylist, context: AppContext): PlatformFile =
-        getLocalPlaylistsDir(context).resolve(PlaylistFileConverter.getPlaylistFileName(playlist))
+    suspend fun getLocalPlaylistFile(playlist: LocalPlaylist, context: AppContext): PlatformFile? =
+        getLocalPlaylistsDir(context)?.resolve(PlaylistFileConverter.getPlaylistFileName(playlist))
 
     interface PlaylistsListener {
         fun onPlaylistAdded(playlist: PlaylistData) {}
         fun onPlaylistRemoved(playlist: Playlist) {}
     }
+
     private val playlists_listeners: MutableList<PlaylistsListener> = mutableListOf()
+    private val playlists_listeners_lock: ReentrantLock = ReentrantLock()
 
     fun addPlaylistsListener(listener: PlaylistsListener) {
-        synchronized(playlists_listeners) {
+        playlists_listeners_lock.withLock {
             playlists_listeners.addUnique(listener)
         }
     }
     fun removePlaylistsListener(listener: PlaylistsListener) {
-        synchronized(playlists_listeners) {
+        playlists_listeners_lock.withLock {
             playlists_listeners.remove(listener)
         }
     }
 
     fun onPlaylistCreated(playlist: PlaylistData) {
-        synchronized(playlists_listeners) {
+        playlists_listeners_lock.withLock {
             for (listener in playlists_listeners) {
                 listener.onPlaylistAdded(playlist)
             }
@@ -89,7 +80,7 @@ object MediaItemLibrary {
     }
 
     fun onPlaylistDeleted(playlist: Playlist) {
-        synchronized(playlists_listeners) {
+        playlists_listeners_lock.withLock {
             for (listener in playlists_listeners) {
                 listener.onPlaylistRemoved(playlist)
             }
@@ -137,173 +128,11 @@ object MediaItemLibrary {
     }
 }
 
-private suspend fun getAllLocalSongFiles(context: AppContext, allow_partial: Boolean = false): Iterable<DownloadStatus> = withContext(Dispatchers.IO) {
-    val files: List<PlatformFile> = (
-        MediaItemLibrary.getLocalSongsDir(context).listFiles().orEmpty()
-        + if (allow_partial) MediaItemLibrary.getSongDownloadsDir(context).listFiles().orEmpty() else emptyList()
-    )
-
-    return@withContext when (Platform.current) {
-        Platform.ANDROID ->
-            performGetAllLocalSongFiles(files, allow_partial, context)
-        Platform.DESKTOP ->
-            context.database.transactionWithResult {
-                runBlocking {
-                    performGetAllLocalSongFiles(files, allow_partial, context)
-                }
-            }
-    }
-}
-
-private suspend fun performGetAllLocalSongFiles(
-    files: List<PlatformFile>,
-    allow_partial: Boolean,
-    context: AppContext
-): Iterable<DownloadStatus> = coroutineScope {
-    val mutex: Mutex = Mutex()
-    val results: Array<DownloadStatus?> = arrayOfNulls(files.size)
-
-    for ((index, file) in files.withIndex()) {
-        launch {
-            val file_info: SongDownloader.Companion.DownloadFileInfo = SongDownloader.getFileDownloadInfo(file)
-            if (!allow_partial && file_info.is_partial) {
-                return@launch
-            }
-
-            var song: Song? =
-                file_info.id?.let { SongRef(it) }
-                ?: LocalSongMetadataProcessor.readLocalSongMetadata(file, context, load_data = true)?.apply { saveToDatabase(context.database) }
-
-            if (song == null) {
-                song = SongRef('!' + file.absolute_path.hashCode().toString())
-                song.createDbEntry(context.database)
-                song.Title.set(
-                    file.name.split('.', limit = 2).firstOrNull() ?: "???",
-                    context.database
-                )
-            }
-
-            val result: DownloadStatus =
-                DownloadStatus(
-                    song = song,
-                    status = if (file_info.is_partial) DownloadStatus.Status.IDLE else DownloadStatus.Status.FINISHED,
-                    quality = null,
-                    progress = if (file_info.is_partial) -1f else 1f,
-                    id = file_info.file.name,
-                    file = file_info.file
-                )
-
-            mutex.withLock {
-                results[index] = result
-            }
-        }
-    }
-
-    return@coroutineScope (results as Array<DownloadStatus>).asIterable()
-}
-
-private class LocalSongSyncLoader: SyncLoader<DownloadStatus>() {
-    override suspend fun internalPerformSync(context: AppContext): Map<String, DownloadStatus> {
-        val downloads: Iterable<DownloadStatus> =
-            getAllLocalSongFiles(context, true)
-
-        SpMp._player_state?.interactService { service: Any ->
-            if (service is ClientServerPlayerService) {
-                service.onLocalSongsSynced(downloads)
-            }
-        }
-
-        return downloads.associateBy { it.song.id }
-    }
-}
-
 private class LocalLyricsSyncLoader: SyncLoader<PlatformFile>() {
     override suspend fun internalPerformSync(context: AppContext): Map<String, PlatformFile> {
-        return MediaItemLibrary.getLocalLyricsDir(context).listFiles().orEmpty()
+        return MediaItemLibrary.getLocalLyricsDir(context)?.listFiles().orEmpty()
             .associateBy { file ->
                 file.name.split('.', limit = 2).first()
             }
     }
-}
-
-private abstract class SyncLoader<T> {
-    var synced: Map<String, T>? by mutableStateOf(null)
-        private set
-    var sync_in_progress: Boolean by mutableStateOf(false)
-        private set
-
-    private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
-    private val lock: Mutex = Mutex()
-    private var sync_job: Deferred<Map<String, T>>? = null
-
-    protected abstract suspend fun internalPerformSync(context: AppContext): Map<String, T>
-
-    suspend fun put(key: String, value: T): Boolean {
-        lock.withLock {
-            sync_job?.also { job ->
-                if (job.isActive) {
-                    return false
-                }
-            }
-
-            synced = synced?.toMutableMap()?.apply {
-                put(key, value)
-            }
-        }
-
-        return true
-    }
-
-    suspend fun remove(key: String) {
-        lock.withLock {
-            sync_job?.also { job ->
-                if (job.isActive) {
-                    return
-                }
-            }
-
-            synced = synced?.toMutableMap()?.apply {
-                remove(key)
-            }
-        }
-    }
-
-    suspend fun performSync(context: AppContext, skip_if_synced: Boolean = false): Map<String, T> =
-        coroutine_scope.async {
-            return@async coroutineScope {
-                val loader: Deferred<Map<String, T>>
-                lock.withLock {
-                    if (skip_if_synced) {
-                        synced?.also {
-                            return@coroutineScope it
-                        }
-                    }
-
-                    sync_job?.also { job ->
-                        if (job.isActive) {
-                            loader = job
-                            return@withLock
-                        }
-                    }
-
-                    loader = async(start = CoroutineStart.LAZY) {
-                        try {
-                            sync_in_progress = true
-
-                            val sync_result: Map<String, T> = internalPerformSync(context)
-                            synced = sync_result
-
-                            return@async sync_result
-                        }
-                        finally {
-                            sync_in_progress = false
-                        }
-                    }
-                    sync_job = loader
-                }
-
-                loader.start()
-                return@coroutineScope loader.await()
-            }
-        }.await()
 }

@@ -17,15 +17,21 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getServerGroupItems
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.platform.playerservice.LocalServer
 import dev.toastbits.composekit.utils.composable.ShapedIconButton
-import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import LocalProgramArguments
 import ProgramArguments
+import dev.toastbits.composekit.settings.ui.on_accent
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.loading_splash_button_configure_connection
+import spmp.shared.generated.resources.server_info_url
+import spmp.shared.generated.resources.action_close
+import spmp.shared.generated.resources.loading_splash_title_configure_server_connection
 
 private const val LOCAL_SERVER_AUTOSTART_DELAY_MS: Long = 100
 
@@ -45,13 +51,15 @@ fun SplashExtraLoadingContent(item_modifier: Modifier) {
         colors = button_colours,
         modifier = item_modifier
     ) {
-        Text(getString("loading_splash_button_configure_connection"))
+        Text(stringResource(Res.string.loading_splash_button_configure_connection))
     }
 
     if (player.context.canOpenUrl()) {
+        val server_info_url: String = stringResource(Res.string.server_info_url)
+
         ShapedIconButton(
             {
-                player.context.openUrl(getString("server_info_url"))
+                player.context.openUrl(server_info_url)
             },
             colours = IconButtonDefaults.iconButtonColors(
                 containerColor = player.theme.accent,
@@ -73,16 +81,16 @@ fun SplashExtraLoadingContent(item_modifier: Modifier) {
                     { show_config_dialog = false },
                     colors = button_colours
                 ) {
-                    Text(getString("action_close"))
+                    Text(stringResource(Res.string.action_close))
                 }
             },
             title = {
-                Text(getString("loading_splash_title_configure_server_connection"))
+                Text(stringResource(Res.string.loading_splash_title_configure_server_connection))
             },
             text = {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     items(settings_items) { item ->
-                        item.Item(player.app_page_state.Settings.settings_interface, { _, _ -> }, {}, Modifier)
+                        item.Item(Modifier)
                     }
                 }
             }

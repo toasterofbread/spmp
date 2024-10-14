@@ -2,7 +2,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.ExperimentalComposeUiApi
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.awt.ComposeWindow
-import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.type
@@ -14,7 +13,6 @@ import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 import androidx.compose.ui.window.rememberWindowState
 import androidx.compose.ui.window.WindowPlacement
-import dev.toastbits.composekit.platform.composable.onWindowBackPressed
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.KeyboardShortcutTrigger
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.getTextFieldFocusState
@@ -22,8 +20,11 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.isTextFieldFocused
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.*
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.skiko.OS
 import org.jetbrains.skiko.hostOs
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.app_name
 import java.awt.Toolkit
 import java.awt.Frame
 import java.lang.reflect.Field
@@ -37,38 +38,42 @@ fun main(args: Array<String>) {
     }
 
     val coroutine_scope: CoroutineScope = CoroutineScope(Job())
-    val context: AppContext = AppContext(SpMp.app_name, coroutine_scope)
+    val context: AppContext = runBlocking { AppContext.create(coroutine_scope) }
 
     SpMp.init(context)
 
-    val force_software_renderer: Boolean = context.settings.platform.FORCE_SOFTWARE_RENDERER.get()
+    val force_software_renderer: Boolean = runBlocking { context.settings.platform.FORCE_SOFTWARE_RENDERER.get() }
     if (force_software_renderer) {
         System.setProperty("skiko.renderApi", "SOFTWARE")
     }
 
     val arguments: ProgramArguments =
-        ProgramArguments.parse(
-            args,
-            onIllegalArgument = { argument ->
-                println("Ignoring unknown argument '$argument'")
-            }
-        ) ?: return
+        runBlocking {
+            ProgramArguments.parse(
+                args,
+                onIllegalArgument = { argument ->
+                    println("Ignoring unknown argument '$argument'")
+                }
+            )
+        } ?: return
 
     SpMp.onStart()
 
     if (hostOs == OS.Linux) {
-        try {
-            // Set AWT class name of window
-            val toolkit: Toolkit = Toolkit.getDefaultToolkit()
-            val class_name_field: Field = toolkit.javaClass.getDeclaredField("awtAppClassName")
-            class_name_field.isAccessible = true
-            class_name_field.set(toolkit, SpMp.app_name.lowercase())
+        coroutine_scope.launch {
+            try {
+                // Set AWT class name of window
+                val toolkit: Toolkit = Toolkit.getDefaultToolkit()
+                val class_name_field: Field = toolkit.javaClass.getDeclaredField("awtAppClassName")
+                class_name_field.isAccessible = true
+                class_name_field.set(toolkit, getString(Res.string.app_name).lowercase())
+            }
+            catch (_: Throwable) {}
         }
-        catch (_: Throwable) {}
     }
 
     lateinit var window: ComposeWindow
-    val enable_window_transparency: Boolean = context.settings.theme.ENABLE_WINDOW_TRANSPARENCY.get()
+    val enable_window_transparency: Boolean = runBlocking { context.settings.theme.ENABLE_WINDOW_TRANSPARENCY.get() }
 
     val shortcut_state: ShortcutState = ShortcutState()
     var player: PlayerState? = null

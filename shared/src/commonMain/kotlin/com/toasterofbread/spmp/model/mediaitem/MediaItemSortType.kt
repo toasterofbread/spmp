@@ -6,20 +6,27 @@ import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.resources.rememberStringResourceByKey
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.sort_type_alphabet
+import spmp.shared.generated.resources.sort_type_artist
+import spmp.shared.generated.resources.sort_type_duration
+import spmp.shared.generated.resources.sort_type_playcount
 
 enum class MediaItemSortType {
     NATIVE, ALPHABET, DURATION, ARTIST, PLAY_COUNT;
 
+    @Composable
     fun getReadable(native_string_key: String? = null): String =
-        getString(when(this) {
-            NATIVE ->     native_string_key!!
-            ALPHABET ->   "sort_type_alphabet"
-            DURATION ->   "sort_type_duration"
-            ARTIST -> "sort_type_artist"
-            PLAY_COUNT -> "sort_type_playcount"
-        })
+        when(this) {
+            NATIVE ->     stringResource(rememberStringResourceByKey(native_string_key!!))
+            ALPHABET ->   stringResource(Res.string.sort_type_alphabet)
+            DURATION ->   stringResource(Res.string.sort_type_duration)
+            ARTIST -> stringResource(Res.string.sort_type_artist)
+            PLAY_COUNT -> stringResource(Res.string.sort_type_playcount)
+        }
 
     fun <T: YtmMediaItem> sortItems(items: List<T>, db: Database, reversed: Boolean = false): List<T> {
         return sortItems(items, db, reversed) { it }
@@ -80,7 +87,7 @@ enum class MediaItemSortType {
                 onDismissed,
                 entries.size - index_offset,
                 selected_option.ordinal - index_offset,
-                { 
+                {
                     Text(entries[it + index_offset].getReadable(native_string_key))
                 }
             ) {

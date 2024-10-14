@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.model.lyrics
 
-import SpMp
 import dev.toastbits.composekit.platform.PlatformFile
 import dev.toastbits.composekit.utils.common.indexOfOrNull
 import com.toasterofbread.spmp.ProjectBuildConfig
@@ -10,8 +9,14 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.OutputStreamWriter
-import java.util.concurrent.TimeUnit
+import okio.buffer
+import okio.BufferedSink
+import okio.use
+import kotlin.time.Duration
+import PlatformIO
+import org.jetbrains.compose.resources.getString
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.app_name
 
 // Reads and writes LRC files based on https://en.wikipedia.org/wiki/LRC_(file_format)
 object LyricsFileConverter {
@@ -19,22 +24,22 @@ object LyricsFileConverter {
         "${song.id}.${getFileExtension()}"
     fun getFileExtension(): String = "lrc"
 
-    private fun OutputStreamWriter.writeFileHeaders(lyrics: SongLyrics) {
-        write(
+    private suspend fun BufferedSink.writeFileHeaders(lyrics: SongLyrics) {
+        writeUtf8(
             buildString {
                 appendLine("[src:${lyrics.reference.source_index}]")
                 appendLine("[id:${lyrics.reference.id}]")
 
-                appendLine("[re:${SpMp.app_name}]")
+                appendLine("[re:${getString(Res.string.app_name)}]")
                 appendLine("[ve:${ProjectBuildConfig.GIT_TAG ?: ProjectBuildConfig.GIT_COMMIT_HASH}]")
             }
         )
     }
 
-    private fun timestampToString(time_ms: Long): String {
-        val minutes: String = TimeUnit.MILLISECONDS.toMinutes(time_ms).toString().padStart(2, '0')
-        val seconds: String = (TimeUnit.MILLISECONDS.toSeconds(time_ms) % 60).toString().padStart(2, '0')
-        val milliseconds: String = ((time_ms % 1000) / 100).toString().padStart(2, '0')
+    private fun timestampToString(time: Duration): String {
+        val minutes: String = time.inWholeMinutes.toString().padStart(2, '0')
+        val seconds: String = (time.inWholeSeconds % 60).toString().padStart(2, '0')
+        val milliseconds: String = ((time.inWholeMilliseconds % 1000) / 100).toString().padStart(2, '0')
         return "$minutes:$seconds.$milliseconds"
     }
 
@@ -51,46 +56,46 @@ object LyricsFileConverter {
     suspend fun SongLyrics.saveToFile(
         file: PlatformFile,
         context: AppContext
-    ): Result<Unit> = withContext(Dispatchers.IO) {
+    ): Result<Unit> = withContext(Dispatchers.PlatformIO) {
         val temp_file: PlatformFile = file.getSibling("${file.name}.tmp")
         check(temp_file.createFile()) { temp_file.toString() }
 
         return@withContext runCatching {
-            temp_file.outputStream().use { stream ->
-                with(stream.writer()) {
-                    writeFileHeaders(this@saveToFile)
+            temp_file.outputStream().buffer().use { stream ->
+                stream.writeFileHeaders(this@saveToFile)
 
-                    write(
-                        buildString {
-                            for (line in lines) {
-                                var first = true
-                                for (term in line) {
-                                    if (first) {
-                                        term.line_range?.start?.also { line_start ->
-                                            append("[${timestampToString(line_start)}]")
-                                        }
-                                        first = false
+                stream.writeUtf8(
+                    buildString {
+                        for (line in lines) {
+                            var first = true
+                            for (term in line) {
+                                if (first) {
+                                    term.line_range?.start?.also { line_start ->
+                                        val duration: Duration = with (Duration) { line_start.milliseconds }
+                                        append("[${timestampToString(duration)}]")
                                     }
-
-                                    term.start?.also { term_start ->
-                                        if (term_start == term.line_range?.start) {
-                                            return@also
-                                        }
-                                        append("<${timestampToString(term_start)}>")
-                                    }
-
-                                    for (subterm in term.subterms) {
-                                        append(subterm.text)
-                                    }
+                                    first = false
                                 }
 
-                                append('\n')
-                            }
-                        }
-                    )
+                                term.start?.also { term_start ->
+                                    if (term_start == term.line_range?.start) {
+                                        return@also
+                                    }
+                                    val duration: Duration = with (Duration) { term_start.milliseconds }
+                                    append("<${timestampToString(duration)}>")
+                                }
 
-                    flush()
-                }
+                                for (subterm in term.subterms) {
+                                    append(subterm.text)
+                                }
+                            }
+
+                            append('\n')
+                        }
+                    }
+                )
+
+                stream.flush()
             }
 
             check(file.delete()) { "Deleting existing file failed ($file)" }
@@ -98,7 +103,7 @@ object LyricsFileConverter {
         }
     }
 
-    suspend fun loadFromFile(file: PlatformFile, context: AppContext): Pair<SongRef, SongLyrics>? = withContext(Dispatchers.IO) {
+    suspend fun loadFromFile(file: PlatformFile, context: AppContext): Pair<SongRef, SongLyrics>? = withContext(Dispatchers.PlatformIO) {
         val required_suffix: String = ".${getFileExtension()}"
         if (!file.name.endsWith(required_suffix)) {
             return@withContext null
@@ -110,10 +115,11 @@ object LyricsFileConverter {
         var lyrics_source: Int? = null
         var lyrics_id: String? = null
 
-        file.inputStream().use { stream ->
-            stream.reader().forEachLine { line ->
+        file.inputStream().buffer().use { stream ->
+            while (true) {
+                val line: String = stream.readUtf8Line() ?: break
                 if (line.isBlank()) {
-                    return@forEachLine
+                    continue
                 }
 
                 val line_text: String
@@ -203,7 +209,7 @@ object LyricsFileConverter {
                 }
 
                 if (terms.isEmpty()) {
-                    return@forEachLine
+                    continue
                 }
 
                 lines.add(

@@ -36,6 +36,7 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.composekit.platform.assert
 import dev.toastbits.ytmkt.endpoint.ArtistWithParamsRow
 import dev.toastbits.ytmkt.model.external.ItemLayoutType
 import dev.toastbits.ytmkt.uistrings.RawUiString
@@ -151,7 +152,7 @@ internal fun ArtistAppPage.SFFArtistPage(
                         val layout_id: YoutubeUILocalisation.StringID? = (layout.title as? YoutubeUiString)?.getYoutubeStringId()
 
                         val is_singles: Boolean =
-                            player.settings.behaviour.TREAT_SINGLES_AS_SONG.get()
+                            player.settings.behaviour.TREAT_SINGLES_AS_SONG.observe().value
                             && layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
 
                         val is_artist_row: Boolean =

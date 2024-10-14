@@ -16,6 +16,7 @@ import dev.toastbits.composekit.utils.composable.*
 import dev.toastbits.composekit.utils.modifier.horizontal
 import dev.toastbits.composekit.utils.modifier.vertical
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.composekit.settings.ui.vibrant_accent
 
 @Composable
 fun LargeFilterList(

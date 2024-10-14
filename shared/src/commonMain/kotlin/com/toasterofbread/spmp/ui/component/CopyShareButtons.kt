@@ -8,23 +8,30 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.notif_copied_x_to_clipboard
+import spmp.shared.generated.resources.notif_copied_to_clipboard
 
 @Composable
 fun AppContext.CopyShareButtons(name: String? = null, getText: () -> String) {
-    val clipboard = LocalClipboardManager.current
+    val clipboard: ClipboardManager = LocalClipboardManager.current
+    val copied_text: String = stringResource(Res.string.notif_copied_to_clipboard)
+    val copied_x_text: String = stringResource(Res.string.notif_copied_x_to_clipboard)
+
     IconButton({
         clipboard.setText(AnnotatedString(getText()))
 
         if (name != null) {
-            sendToast(getString("notif_copied_x_to_clipboard").replace("\$x", name))
+            sendToast(copied_x_text.replace("\$x", name))
         }
         else {
-            sendToast(getString("notif_copied_to_clipboard"))
+            sendToast(copied_text)
         }
     }) {
         Icon(Icons.Default.ContentCopy, null, Modifier.size(20.dp))

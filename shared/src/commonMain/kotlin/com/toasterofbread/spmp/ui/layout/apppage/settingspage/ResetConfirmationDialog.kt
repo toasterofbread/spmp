@@ -11,7 +11,12 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import com.toasterofbread.spmp.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_confirm_action
+import spmp.shared.generated.resources.action_deny_action
+import spmp.shared.generated.resources.prompt_confirm_action
+import spmp.shared.generated.resources.prompt_confirm_settings_page_reset
 
 @Composable
 internal fun ResetConfirmationDialog(show_state: MutableState<Boolean>, reset: suspend () -> Unit) {
@@ -32,13 +37,13 @@ internal fun ResetConfirmationDialog(show_state: MutableState<Boolean>, reset: s
                         do_reset = true
                     }
                 ) {
-                    Text(getString("action_confirm_action"))
+                    Text(stringResource(Res.string.action_confirm_action))
                 }
             },
-            dismissButton = { TextButton({ show_state.value = false }) { Text(getString("action_deny_action")) } },
-            title = { Text(getString("prompt_confirm_action")) },
+            dismissButton = { TextButton({ show_state.value = false }) { Text(stringResource(Res.string.action_deny_action)) } },
+            title = { Text(stringResource(Res.string.prompt_confirm_action)) },
             text = {
-                Text(getString("prompt_confirm_settings_page_reset"))
+                Text(stringResource(Res.string.prompt_confirm_settings_page_reset))
             }
         )
     }

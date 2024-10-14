@@ -40,7 +40,7 @@ fun <T, Q: Query<*>> Q.observeAsState(
                     onExternalChange(current_value)
                 }
                 catch (e: Throwable) {
-                    if (e.javaClass.name != "androidx.compose.runtime.LeftCompositionCancellationException") {
+                    if (e::class.qualifiedName != "androidx.compose.runtime.LeftCompositionCancellationException") {
                         e.printStackTrace()
                         throw RuntimeException("onExternalChange failed for observed query (${this@observeAsState}, $current_value)", e)
                     }

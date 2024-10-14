@@ -58,7 +58,6 @@ import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
 import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
@@ -66,7 +65,26 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.db.Database
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import java.io.IOException
+import PlatformIO
+import androidx.compose.ui.graphics.Color
+import dev.toastbits.composekit.platform.ReentrantLock
+import dev.toastbits.composekit.platform.synchronized
+import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.settings.ui.vibrant_accent
+import kotlinx.io.IOException
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.lyrics_none_found
+import spmp.shared.generated.resources.`lyrics_search_on_$source`
+import spmp.shared.generated.resources.action_confirm_action
+import spmp.shared.generated.resources.action_cancel
+import spmp.shared.generated.resources.prompt_confirm_action
+import spmp.shared.generated.resources.lyrics_no_lyrics_set_confirmation_title
+import spmp.shared.generated.resources.song_name
+import spmp.shared.generated.resources.artist
+import spmp.shared.generated.resources.lyrics_source_cannot_search
+import spmp.shared.generated.resources.action_close
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val LYRICS_SEARCH_RETRY_COUNT = 3
@@ -84,10 +102,10 @@ fun LyricsSearchMenu(
     val song_artists: List<Artist>? by song.Artists.observe(db)
     val song_artist_title: String? by song_artists?.firstOrNull()?.observeActiveTitle()
 
-    val on_accent = player.theme.on_accent
-    val accent = player.theme.accent
+    val on_accent: Color = player.theme.on_accent
+    val accent: Color = player.theme.accent
 
-    val load_lock = remember { Object() }
+    val load_lock: ReentrantLock = remember { ReentrantLock() }
     var loading by remember { mutableStateOf(false) }
 
     val text_field_colours: TextFieldColors =
@@ -112,11 +130,8 @@ fun LyricsSearchMenu(
     val artist = remember (song_artist_title) { mutableStateOf(TextFieldValue(song_artist_title ?: "")) }
     var search_state: Boolean by remember { mutableStateOf(false) }
 
-    var selected_source: LyricsSource by remember {
-        mutableStateOf(
-            LyricsSource.fromIdx(player.settings.lyrics.DEFAULT_SOURCE.get())
-        )
-    }
+    val default_source: Int by player.settings.lyrics.DEFAULT_SOURCE.observe()
+    var selected_source: LyricsSource by remember { mutableStateOf(LyricsSource.fromIdx(default_source)) }
 
     var search_results: Pair<List<LyricsSource.SearchResult>, Int>? by remember { mutableStateOf(null) }
     var edit_page_open by remember { mutableStateOf(true) }
@@ -124,7 +139,7 @@ fun LyricsSearchMenu(
     OnChangedEffect(search_state) {
         keyboard_controller?.hide()
 
-        withContext(Dispatchers.IO) {
+        withContext(Dispatchers.PlatformIO) {
             synchronized(load_lock) {
                 check(!loading)
                 loading = true
@@ -156,7 +171,7 @@ fun LyricsSearchMenu(
                             edit_page_open = false
                         }
                         else {
-                            player.context.sendToast(getString("lyrics_none_found"))
+                            player.context.sendToast(getString(Res.string.lyrics_none_found))
                         }
                     },
                     { SpMp.reportActionError(it) }
@@ -213,10 +228,8 @@ fun LyricsSearchMenu(
                             Icon(Icons.Default.ArrowDropDown, null, tint = on_accent)
 
                             Text(
-                                remember(selected_source) {
-                                    getString("lyrics_search_on_\$source")
-                                        .replace("\$source", selected_source.getReadable())
-                                },
+                                stringResource(Res.string.`lyrics_search_on_$source`)
+                                    .replace("\$source", selected_source.getReadable()),
                                 color = on_accent
                             )
 
@@ -226,11 +239,7 @@ fun LyricsSearchMenu(
                                 LyricsSource.SOURCE_AMOUNT,
                                 selected_source.source_index,
                                 { source_idx ->
-                                    Text(
-                                        remember(source_idx) {
-                                            LyricsSource.fromIdx(source_idx).getReadable()
-                                        }
-                                    )
+                                    Text(LyricsSource.fromIdx(source_idx).getReadable())
                                 },
                                 selected_border_colour = player.theme.vibrant_accent
                             ) { source_idx ->
@@ -258,19 +267,19 @@ fun LyricsSearchMenu(
                                 onDismissRequest = { confirming_no_lyrics = false },
                                 confirmButton = {
                                     Button({ song.Lyrics.set(LyricsReference.NONE, player.database) }) {
-                                        Text(getString("action_confirm_action"))
+                                        Text(stringResource(Res.string.action_confirm_action))
                                     }
                                 },
                                 dismissButton = {
                                     Button({ confirming_no_lyrics = false }) {
-                                        Text(getString("action_cancel"))
+                                        Text(stringResource(Res.string.action_cancel))
                                     }
                                 },
                                 title = {
-                                    Text(getString("prompt_confirm_action"))
+                                    Text(stringResource(Res.string.prompt_confirm_action))
                                 },
                                 text = {
-                                    Text(getString("lyrics_no_lyrics_set_confirmation_title"))
+                                    Text(stringResource(Res.string.lyrics_no_lyrics_set_confirmation_title))
                                 },
                                 icon = {
                                     Icon(Icons.Default.CommentsDisabled, null)
@@ -303,15 +312,15 @@ fun LyricsSearchMenu(
 
                     Crossfade(selected_source.supportsLyricsBySearching()) { search_supported ->
                         Column {
-                            Field(title, getString("song_name"), search_supported)
+                            Field(title, stringResource(Res.string.song_name), search_supported)
                             Spacer(Modifier.height(10.dp))
-                            Field(artist, getString("artist"), search_supported)
+                            Field(artist, stringResource(Res.string.artist), search_supported)
                         }
                     }
 
                     AnimatedVisibility(!selected_source.supportsLyricsBySearching()) {
                         Text(
-                            getString("lyrics_source_cannot_search"),
+                            stringResource(Res.string.lyrics_source_cannot_search),
                             style = MaterialTheme.typography.labelLarge
                         )
                     }
@@ -367,7 +376,7 @@ fun LyricsSearchMenu(
                         contentColor = on_accent
                     )
                 ) {
-                    Text(getString("action_close"))
+                    Text(stringResource(Res.string.action_close))
                 }
 
                 IconButton(

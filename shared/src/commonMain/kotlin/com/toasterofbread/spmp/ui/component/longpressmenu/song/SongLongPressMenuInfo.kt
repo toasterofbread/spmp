@@ -20,7 +20,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.lpm_action_radio_at_song_pos
+import spmp.shared.generated.resources.lpm_action_radio_after_x_songs
+import spmp.shared.generated.resources.lpm_info_queue_index
 
 @Composable
 fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, getAccentColour: () -> Color) {
@@ -37,17 +41,17 @@ fun ColumnScope.SongLongPressMenuInfo(song: Song, queue_index: Int?, getAccentCo
     }
 
     if (queue_index != null) {
-        Item(Icons.Default.Radio, getString("lpm_action_radio_at_song_pos"))
+        Item(Icons.Default.Radio, stringResource(Res.string.lpm_action_radio_at_song_pos))
     }
 
     val player = LocalPlayerState.current
     if ((player.controller?.service_player?.active_queue_index ?: 0) < player.status.m_song_count) {
-        Item(Icons.Default.SubdirectoryArrowRight, getString("lpm_action_radio_after_x_songs"))
+        Item(Icons.Default.SubdirectoryArrowRight, stringResource(Res.string.lpm_action_radio_after_x_songs))
     }
 
     Spacer(Modifier.fillMaxHeight().weight(1f))
 
     if (queue_index != null) {
-        Text(getString("lpm_info_queue_index").replace("\$index", queue_index.toString()))
+        Text(stringResource(Res.string.lpm_info_queue_index).replace("\$index", queue_index.toString()))
     }
 }

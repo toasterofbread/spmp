@@ -6,7 +6,6 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
@@ -21,11 +20,10 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.platform.generatePalette
+import com.toasterofbread.spmp.platform.createImageBitmapUtil
+import dev.toastbits.composekit.utils.common.generatePalette
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
@@ -34,7 +32,10 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.Colourp
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.NotifImagePlayerOverlayMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.notifImagePlayerOverlayMenuButtonText
+import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
 import dev.toastbits.composekit.utils.common.thenIf
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 val DEFAULT_THUMBNAIL_ROUNDING: Float
     @Composable get() =
@@ -69,7 +70,10 @@ class SongThemePlayerOverlayMenu(
 
         LaunchedEffect(thumb_image) {
             palette_colours = null
-            palette_colours = thumb_image?.generatePalette(8)
+
+            palette_colours = thumb_image?.let {
+                createImageBitmapUtil()?.generatePalette(it , 8)
+            }
         }
 
         AnimatedVisibility(
@@ -125,10 +129,10 @@ class SongThemePlayerOverlayMenu(
                     ) {
                         Spacer(Modifier.height(10.dp))
 
-                        val sections: Map<String, List<SongThemeOption>> = remember { SongThemeOption.getSections() }
+                        val sections: Map<StringResource, List<SongThemeOption>> = remember { SongThemeOption.getSections() }
                         for ((index, title, items) in sections.withIndex()) {
                             Text(
-                                title,
+                                stringResource(title),
                                 Modifier.padding(bottom = 5.dp),
                                 style = MaterialTheme.typography.labelLarge
                             )

@@ -15,9 +15,14 @@ import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.appaction.shortcut.*
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.*
+import dev.toastbits.composekit.settings.ui.vibrant_accent
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.shortcut_editor_trigger_label
+import spmp.shared.generated.resources.shortcut_editor_trigger
+import spmp.shared.generated.resources.shortcut_editor_empty_trigger
 
 @Composable
 fun ShortcutPreview(
@@ -48,7 +53,7 @@ fun ShortcutPreview(
 
                     Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                    Text(getString("shortcut_editor_trigger_label"), item_modifier, softWrap = false)
+                    Text(stringResource(Res.string.shortcut_editor_trigger_label), item_modifier, softWrap = false)
                     Spacer(Modifier.width(10.dp))
                     ShortcutTriggerPreview(shortcut.trigger, item_modifier)
                 }
@@ -84,7 +89,7 @@ fun ShortcutPreview(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    Text(getString("shortcut_editor_trigger"))
+                    Text(stringResource(Res.string.shortcut_editor_trigger))
 
                     Spacer(Modifier.fillMaxWidth().weight(1f))
 
@@ -127,7 +132,7 @@ fun ShortcutTriggerPreview(trigger: ShortcutTrigger?, modifier: Modifier = Modif
         horizontalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         if (trigger == null) {
-            Text(getString("shortcut_editor_empty_trigger"), softWrap = false)
+            Text(stringResource(Res.string.shortcut_editor_empty_trigger), softWrap = false)
         }
         else {
             val type: ShortcutTrigger.Type = trigger.getType()

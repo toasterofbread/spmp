@@ -1,11 +1,13 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
-import dev.toastbits.composekit.settings.ui.item.SettingsItem
-import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
 import dev.toastbits.composekit.platform.PreferencesProperty
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppStringSetItem
 import com.toasterofbread.spmp.platform.AppContext
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.s_filter_title_keywords_dialog_title
 
 internal fun getFilterCategoryItems(context: AppContext): List<SettingsItem> {
     return listOf(
@@ -27,7 +29,7 @@ internal fun getFilterCategoryItems(context: AppContext): List<SettingsItem> {
 
         AppStringSetItem(
             context.settings.filter.TITLE_KEYWORDS,
-            getString("s_filter_title_keywords_dialog_title")
+            Res.string.s_filter_title_keywords_dialog_title
         )
     )
 }

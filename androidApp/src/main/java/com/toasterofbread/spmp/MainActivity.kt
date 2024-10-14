@@ -27,6 +27,7 @@ import dev.toastbits.composekit.platform.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.runBlocking
 
 class MainActivity: ComponentActivity() {
     private val coroutine_scope = CoroutineScope(Job())
@@ -40,7 +41,7 @@ class MainActivity: ComponentActivity() {
             if (
                 error is java.nio.channels.UnresolvedAddressException // Thrown by Kizzy
             ) {
-                SpMp.Log.warning("Skipping error: ${error.stackTraceToString()}")
+                println("WARNING: Skipping error: ${error.stackTraceToString()}")
                 return@setDefaultUncaughtExceptionHandler
             }
 
@@ -62,7 +63,7 @@ class MainActivity: ComponentActivity() {
         }
 
         val shortcut_state: ShortcutState = ShortcutState()
-        val context: AppContext = AppContext(this, coroutine_scope, ApplicationContext(this))
+        val context: AppContext = runBlocking { AppContext.create(this@MainActivity, coroutine_scope, ApplicationContext(this@MainActivity)) }
         SpMp.init(context)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)

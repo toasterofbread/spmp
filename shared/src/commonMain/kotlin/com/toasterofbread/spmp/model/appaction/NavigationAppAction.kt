@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.model.appaction
 
 import kotlinx.serialization.Serializable
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.appaction.action.navigation.*
@@ -19,6 +18,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import androidx.compose.runtime.*
 import androidx.compose.animation.AnimatedVisibility
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.appaction_config_navigation_action
 
 @Serializable
 data class NavigationAppAction(
@@ -81,7 +83,7 @@ data class NavigationAppAction(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                getString("appaction_config_navigation_action"),
+                stringResource(Res.string.appaction_config_navigation_action),
                 Modifier.align(Alignment.CenterVertically),
                 softWrap = false
             )

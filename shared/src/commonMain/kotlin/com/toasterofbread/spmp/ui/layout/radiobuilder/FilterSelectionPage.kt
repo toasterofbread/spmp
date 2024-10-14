@@ -38,7 +38,6 @@ import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.toRemotePlaylistData
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -49,6 +48,15 @@ import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import PlatformIO
+import dev.toastbits.composekit.settings.ui.on_accent
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.radio_builder_no_songs_match_criteria
+import spmp.shared.generated.resources.radio_title_artists_splitter
+import spmp.shared.generated.resources.radio_title_overflow
+import spmp.shared.generated.resources.`radio_title_of_$artists`
 
 @Composable
 fun FilterSelectionPage(
@@ -116,7 +124,7 @@ fun FilterSelectionPage(
                         else {
                             val playlist_data: RemotePlaylistData = playlist.toRemotePlaylistData()
 
-                            withContext(Dispatchers.IO) {
+                            withContext(Dispatchers.PlatformIO) {
                                 setRadioMetadata(playlist_data, artists, selected_artists)
                                 playlist_data.saveToDatabase(player.database)
                             }
@@ -161,7 +169,7 @@ fun FilterSelectionPage(
                             var show_error: Boolean by remember { mutableStateOf(false) }
 
                             Text(
-                                getString("radio_builder_no_songs_match_criteria"),
+                                stringResource(Res.string.radio_builder_no_songs_match_criteria),
                                 Modifier
                                     .padding(10.dp)
                                     .platformClickable(
@@ -247,17 +255,17 @@ fun FilterSelectionPage(
     }
 }
 
-private fun setRadioMetadata(radio_playlist: RemotePlaylistData, artists: List<RadioBuilderArtist>, selected_artists: Collection<Int>) {
+private suspend fun setRadioMetadata(radio_playlist: RemotePlaylistData, artists: List<RadioBuilderArtist>, selected_artists: Collection<Int>) {
     val included_artists = selected_artists.take(2)
-    val splitter = getString("radio_title_artists_splitter")
+    val splitter = getString(Res.string.radio_title_artists_splitter)
 
     var artists_string = included_artists.joinToString(splitter) { index ->
         artists[index].name
     }
 
     if (selected_artists.size > included_artists.size || included_artists.isEmpty()) {
-        artists_string += getString("radio_title_overflow")
+        artists_string += getString(Res.string.radio_title_overflow)
     }
 
-    radio_playlist.name = getString("radio_title_of_\$artists").replace("\$artists", artists_string)
+    radio_playlist.name = getString(Res.string.`radio_title_of_$artists`).replace("\$artists", artists_string)
 }

@@ -1,17 +1,22 @@
 package com.toasterofbread.spmp.model.appaction.shortcut
 
-import androidx.compose.runtime.*
+import LocalPlayerState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.input.key.*
-import dev.toastbits.composekit.utils.common.addUnique
-import com.toasterofbread.spmp.ui.component.shortcut.trigger.*
+import androidx.compose.runtime.ProvidableCompositionLocal
+import androidx.compose.runtime.compositionLocalOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEvent
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.nativeKeyCode
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.model.appaction.shortcut.getDefaultShortcuts
-import kotlinx.serialization.json.Json
-import kotlinx.coroutines.CoroutineScope
+import com.toasterofbread.spmp.ui.component.shortcut.trigger.KeyboardShortcutTrigger
+import com.toasterofbread.spmp.ui.component.shortcut.trigger.MouseButtonShortcutTrigger
+import dev.toastbits.composekit.utils.common.addUnique
 import kotlinx.coroutines.launch
 import kotlin.math.roundToLong
-import LocalPlayerState
 
 val LocalShortcutState: ProvidableCompositionLocal<ShortcutState> = compositionLocalOf { ShortcutState() }
 

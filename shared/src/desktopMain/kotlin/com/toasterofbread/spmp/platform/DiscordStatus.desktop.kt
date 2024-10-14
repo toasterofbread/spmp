@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.platform
 
+import androidx.compose.runtime.Composable
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
@@ -19,6 +20,7 @@ actual class DiscordStatus actual constructor(
     actual companion object {
         actual fun isSupported(): Boolean = true
         actual fun isAccountTokenRequired(): Boolean = false
+        @Composable
         actual fun getWarningText(): String? = null
     }
 

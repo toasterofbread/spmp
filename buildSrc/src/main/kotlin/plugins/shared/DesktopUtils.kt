@@ -47,7 +47,7 @@ object DesktopUtils {
         )
 
     const val LOCAL_PROPERTIES_PATH: String = "local.properties"
-    val Project.strings_file: File get() = rootProject.file("shared/src/commonMain/resources/assets/values/strings.xml")
+    val Project.strings_file: File get() = rootProject.file("shared/src/commonMain/composeResources/values/strings.xml")
 
     fun Project.getString(key: String): String {
         val reader: InputStreamReader = strings_file.reader()

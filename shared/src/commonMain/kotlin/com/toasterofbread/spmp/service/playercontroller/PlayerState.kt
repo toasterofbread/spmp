@@ -1,21 +1,20 @@
 package com.toasterofbread.spmp.service.playercontroller
 
-import LocalPlayerState
+import ProgramArguments
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.animation.core.spring
 import androidx.compose.animation.core.AnimationSpec
+import androidx.compose.animation.core.DecayAnimationSpec
+import androidx.compose.animation.core.animateDpAsState
+import androidx.compose.animation.core.exponentialDecay
 import androidx.compose.animation.core.tween
 import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.*
-import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.AnchoredDraggableState
+import androidx.compose.foundation.gestures.DraggableAnchors
 import androidx.compose.foundation.gestures.animateTo
-import androidx.compose.foundation.gestures.snapTo
+import androidx.compose.foundation.layout.*
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.*
@@ -25,15 +24,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.IntOffset
-import dev.toastbits.composekit.platform.PlatformPreferences
-import dev.toastbits.composekit.platform.PlatformPreferencesListener
-import dev.toastbits.composekit.platform.composable.BackHandler
-import dev.toastbits.composekit.platform.composable.composeScope
-import dev.toastbits.composekit.settings.ui.Theme
-import dev.toastbits.composekit.utils.composable.getEnd
-import dev.toastbits.composekit.utils.composable.getStart
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -41,21 +31,23 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.AppThemeManager
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.download.DownloadMethodSelectionDialog
 import com.toasterofbread.spmp.platform.download.DownloadStatus
-import com.toasterofbread.spmp.platform.playerservice.PlayerService
-import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
-import com.toasterofbread.spmp.platform.playerservice.PlayerServiceLoadState
-import com.toasterofbread.spmp.platform.playerservice.PlayerServiceCompanion
-import com.toasterofbread.spmp.platform.playerservice.PlatformInternalPlayerService
 import com.toasterofbread.spmp.platform.playerservice.PlatformExternalPlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlatformInternalPlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlayerService
+import com.toasterofbread.spmp.platform.playerservice.PlayerServiceCompanion
+import com.toasterofbread.spmp.platform.playerservice.PlayerServiceLoadState
+import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenu
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.multiselect.AppPageMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectInfoDisplayContent
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
+import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
@@ -63,35 +55,29 @@ import com.toasterofbread.spmp.ui.layout.apppage.SongAppPage
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MainPageDisplay
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
+import com.toasterofbread.spmp.ui.layout.contentbar.*
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
-import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
-import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
-import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 import com.toasterofbread.spmp.ui.layout.nowplaying.container.npAnchorToDp
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.ui.layout.playlistpage.PlaylistAppPage
+import dev.toastbits.composekit.platform.PlatformPreferencesListener
+import dev.toastbits.composekit.platform.composable.BackHandler
+import dev.toastbits.composekit.platform.synchronized
+import dev.toastbits.composekit.settings.ui.ThemeValues
+import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.utils.composable.getEnd
+import dev.toastbits.composekit.utils.composable.getStart
 import dev.toastbits.ytmkt.model.external.YoutubePage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.delay
-import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
-import com.toasterofbread.spmp.ui.layout.contentbar.*
-import com.toasterofbread.spmp.ui.layout.BarColourState
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import dev.toastbits.composekit.utils.composable.getTop
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
-import dev.toastbits.composekit.utils.common.blendWith
-import androidx.compose.foundation.layout.requiredHeight
-import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.requiredWidth
-import kotlin.math.roundToInt
-import kotlin.math.absoluteValue
-import ProgramArguments
-import LocalProgramArguments
 
 typealias DownloadRequestCallback = (DownloadStatus?) -> Unit
 
@@ -101,25 +87,36 @@ enum class FeedLoadState { PREINIT, NONE, LOADING, CONTINUING }
 class PlayerState(
     val context: AppContext,
     val launch_arguments: ProgramArguments,
-    internal val coroutine_scope: CoroutineScope
+    internal val coroutine_scope: CoroutineScope,
+    initial_theme_mode: ThemeMode,
+    initial_swipe_sensitivity: Float
 ) {
     val database: Database get() = context.database
     val settings: Settings get() = context.settings
-    val theme: Theme get() = context.theme
+    val theme: AppThemeManager get() = context.theme
     val app_page: AppPage get() = app_page_state.current_page
 
     private var _player: PlayerService? by mutableStateOf(null)
-
     private val app_page_undo_stack: MutableList<AppPage?> = mutableStateListOf()
 
-    private val low_memory_listener: () -> Unit
-    private val prefs_listener: PlatformPreferencesListener
+    var np_theme_mode: ThemeMode by mutableStateOf(initial_theme_mode)
+        private set
+    var np_swipe_sensitivity: Float by mutableStateOf(initial_swipe_sensitivity)
+        private set
 
-    fun switchNowPlayingPage(page: Int) {
-        coroutine_scope.launch {
-            np_swipe_state.animateTo(page)
+    private val low_memory_listener: () -> Unit
+    private val prefs_listner: PlatformPreferencesListener =
+        PlatformPreferencesListener { prefs, key ->
+            when (key) {
+                settings.theme.NOWPLAYING_THEME_MODE.key -> coroutine_scope.launch {
+                    np_theme_mode = settings.theme.NOWPLAYING_THEME_MODE.get()
+                }
+                settings.theme.ACCENT_COLOUR_SOURCE.key -> theme.manager.updateColours()
+                settings.player.EXPAND_SWIPE_SENSITIVITY.key -> coroutine_scope.launch {
+                    np_swipe_sensitivity = settings.player.EXPAND_SWIPE_SENSITIVITY.get()
+                }
+            }
         }
-    }
 
     private var long_press_menu_data: LongPressMenuData? by mutableStateOf(null)
     private var long_press_menu_showing: Boolean by mutableStateOf(false)
@@ -127,7 +124,8 @@ class PlayerState(
 
     private fun createSwipeState(
         anchors: DraggableAnchors<Int> = DraggableAnchors {},
-        animation_spec: AnimationSpec<Float> = tween()
+        snap_animation_spec: AnimationSpec<Float> = tween(),
+        decay_animation_spec: DecayAnimationSpec<Float> = exponentialDecay()
     ): AnchoredDraggableState<Int> =
         AnchoredDraggableState(
             initialValue = 0,
@@ -138,7 +136,8 @@ class PlayerState(
             velocityThreshold = {
                 1f
             },
-            animationSpec = animation_spec
+            snapAnimationSpec = snap_animation_spec,
+            decayAnimationSpec = decay_animation_spec
         )
 
     private var np_swipe_state: AnchoredDraggableState<Int> by mutableStateOf(createSwipeState())
@@ -186,10 +185,25 @@ class PlayerState(
 
     val app_page_state: AppPageState = AppPageState(this)
     val main_multiselect_context: MediaItemMultiSelectContext = AppPageMultiSelectContext(this)
-    var np_theme_mode: ThemeMode by mutableStateOf(context.settings.theme.NOWPLAYING_THEME_MODE.get())
 
     var np_overlay_menu: PlayerOverlayMenu? by mutableStateOf(null)
     private val np_overlay_menu_queue: MutableList<PlayerOverlayMenu> = mutableListOf()
+
+    init {
+        low_memory_listener = {
+            if (app_page != app_page_state.SongFeed) {
+                app_page_state.SongFeed.resetSongFeed()
+            }
+        }
+
+        context.getPrefs().addListener(prefs_listner)
+    }
+
+    fun switchNowPlayingPage(page: Int) {
+        coroutine_scope.launch {
+            np_swipe_state.animateTo(page)
+        }
+    }
 
     fun navigateNpOverlayMenuBack() {
         np_overlay_menu = np_overlay_menu_queue.removeLastOrNull()
@@ -208,23 +222,7 @@ class PlayerState(
         np_overlay_menu = menu
     }
 
-    init {
-        low_memory_listener = {
-            if (app_page != app_page_state.SongFeed) {
-                app_page_state.SongFeed.resetSongFeed()
-            }
-        }
-
-        prefs_listener = PlatformPreferencesListener { _, key ->
-            when (key) {
-                context.settings.theme.NOWPLAYING_THEME_MODE.key -> {
-                    np_theme_mode = context.settings.theme.NOWPLAYING_THEME_MODE.get()
-                }
-            }
-        }
-    }
-
-    private fun getServiceCompanion(): PlayerServiceCompanion {
+    private suspend fun getServiceCompanion(): PlayerServiceCompanion {
         if (!PlatformInternalPlayerService.isAvailable(context, launch_arguments)) {
             return PlatformExternalPlayerService
         }
@@ -239,15 +237,16 @@ class PlayerState(
 
     fun onStart() {
         SpMp.addLowMemoryListener(low_memory_listener)
-        context.getPrefs().addListener(prefs_listener)
 
-        if (getServiceCompanion().isServiceRunning(context)) {
-            connectService()
-        }
-        else {
-            coroutine_scope.launch {
-                if (PersistentQueueHandler.isPopulatedQueueSaved(context)) {
-                    connectService()
+        coroutine_scope.launch {
+            if (getServiceCompanion().isServiceRunning(context)) {
+                connectService()
+            }
+            else {
+                coroutine_scope.launch {
+                    if (PersistentQueueHandler.isPopulatedQueueSaved(context)) {
+                        connectService()
+                    }
                 }
             }
         }
@@ -255,7 +254,6 @@ class PlayerState(
 
     fun onStop() {
         SpMp.removeLowMemoryListener(low_memory_listener)
-        context.getPrefs().removeListener(prefs_listener)
     }
 
     fun release() {
@@ -332,7 +330,7 @@ class PlayerState(
         }.dp
 
     fun getNowPlayingExpansionOffset(density: Density): Dp {
-        return -np_swipe_state.offset.npAnchorToDp(density, context)
+        return -np_swipe_state.offset.npAnchorToDp(density, context, np_swipe_sensitivity)
     }
 
     @Composable
@@ -386,7 +384,7 @@ class PlayerState(
             .offset {
                 val bottom_padding: Int = getNpBottomPadding(system_insets, navigation_insets, keyboard_insets)
                 val swipe_offset: Dp =
-                    if (player_showing) -np_swipe_state.offset.npAnchorToDp(density, context) - np_bottom_bar_height// - ((screen_size.height + np_bottom_bar_height) * 0.5f)
+                    if (player_showing) -np_swipe_state.offset.npAnchorToDp(density, context, np_swipe_sensitivity) - np_bottom_bar_height// - ((screen_size.height + np_bottom_bar_height) * 0.5f)
                     else -np_bottom_bar_height
 
                 IntOffset(
@@ -502,30 +500,34 @@ class PlayerState(
     }
 
     fun onPlayActionOccurred() {
-        if (np_swipe_state.targetValue == 0 && context.settings.behaviour.OPEN_NP_ON_SONG_PLAYED.get()) {
-            switchNowPlayingPage(1)
+        coroutine_scope.launch {
+            if (np_swipe_state.targetValue == 0 && context.settings.behaviour.OPEN_NP_ON_SONG_PLAYED.get()) {
+                switchNowPlayingPage(1)
+            }
         }
     }
 
     fun playMediaItem(item: MediaItem, shuffle: Boolean = false, at_index: Int = 0) {
         withPlayer {
-            if (item is Song) {
-                playSong(
-                    item,
-                    start_radio = context.settings.behaviour.START_RADIO_ON_SONG_PRESS.get(),
-                    shuffle = shuffle,
-                    at_index = at_index
-                )
-            }
-            else {
-                startRadioAtIndex(
-                    at_index,
-                    item,
-                    shuffle = shuffle,
-                    onSuccessfulLoad = { result ->
-                        seekToSong(at_index)
-                    }
-                )
+            coroutine_scope.launch {
+                if (item is Song) {
+                    playSong(
+                        item,
+                        start_radio = context.settings.behaviour.START_RADIO_ON_SONG_PRESS.get(),
+                        shuffle = shuffle,
+                        at_index = at_index
+                    )
+                }
+                else {
+                    startRadioAtIndex(
+                        at_index,
+                        item,
+                        shuffle = shuffle,
+                        onSuccessfulLoad = { result ->
+                            seekToSong(at_index)
+                        }
+                    )
+                }
             }
         }
     }
@@ -587,7 +589,9 @@ class PlayerState(
                     download_request_callback?.invoke(null)
                 },
                 onSelected = { method ->
-                    method.execute(context, songs, download_request_callback)
+                    coroutine_scope.launch {
+                        method.execute(context, songs, download_request_callback)
+                    }
                     download_request_songs = null
                 },
                 songs = songs,
@@ -651,8 +655,10 @@ class PlayerState(
             return
         }
 
-        connectService {
-            action(it.service_player)
+        coroutine_scope.launch {
+            connectService {
+                action(it.service_player)
+            }
         }
     }
 
@@ -672,14 +678,17 @@ class PlayerState(
 
     private var service_connecting: Boolean = false
     private var service_connected_listeners: MutableList<(PlayerService) -> Unit> = mutableListOf()
+    private val service_connected_listeners_mutex: Mutex = Mutex()
     private var service_connection: Any? = null
     private var service_connection_companion: PlayerServiceCompanion? = null
 
-    private fun connectService(
-        service_companion: PlayerServiceCompanion = getServiceCompanion(),
+    private suspend fun connectService(
+        service_companion: PlayerServiceCompanion? = null,
         onConnected: ((PlayerService) -> Unit)? = null
     ) {
-        synchronized(service_connected_listeners) {
+        val service_companion: PlayerServiceCompanion = service_companion ?: getServiceCompanion()
+
+        service_connected_listeners_mutex.withLock {
             if (service_connecting) {
                 if (onConnected != null) {
                     service_connected_listeners.add(onConnected)
@@ -735,8 +744,9 @@ class PlayerState(
             }
 
             service_connecting = false
-            connectService(service_companion, onConnected = null)
         }
+
+        connectService(service_companion, onConnected = null)
     }
 
     val status: PlayerStatus = PlayerStatus()

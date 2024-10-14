@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.settings.category
 
+import LocalPlayerState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,29 +14,30 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.settings.ui.SettingsPageWithItems
-import dev.toastbits.composekit.settings.ui.item.ComposableSettingsItem
-import dev.toastbits.composekit.settings.ui.item.SettingsItem
-import dev.toastbits.composekit.platform.PreferencesGroup
-import dev.toastbits.composekit.platform.PlatformPreferences
 import com.toasterofbread.spmp.platform.AppContext
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.utils.common.amplifyPercent
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PreferencesGroupImpl
+import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
 import dev.toastbits.composekit.settings.ui.SettingsInterface
-import LocalPlayerState
+import dev.toastbits.composekit.settings.ui.SettingsPageWithItems
+import dev.toastbits.composekit.settings.ui.ThemeValues
+import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.utils.common.amplifyPercent
 
 sealed class SettingsGroup(
     key: String,
     prefs: PlatformPreferences
-): PreferencesGroup(key, prefs) {
+): PreferencesGroupImpl(key, prefs) {
     override val group_key: String = key
 
     // val id: String = id.uppercase()
     // abstract val keys: List<SettingsKey>
 
-    abstract val page: CategoryPage?
+//    abstract val page: CategoryPage?
 
     open fun showPage(exporting: Boolean): Boolean = true
 
@@ -53,25 +55,40 @@ sealed class SettingsGroup(
     //     }
     // }
 
+    open fun getPage(): CategoryPage? =
+        SimplePage(
+            { getTitle() },
+            { getDescription() },
+            { getConfigurationItems() },
+            { getIcon() },
+            { titleBarEndContent(it) }
+        )
+
+    @Composable
+    protected open fun titleBarEndContent(modifier: Modifier) {}
+
     abstract class CategoryPage(
         val group: SettingsGroup,
-        val getTitle: () -> String
+        val getTitle: @Composable () -> String
     ) {
         abstract fun getTitleItem(context: AppContext): SettingsItem?
-        abstract fun openPageOnInterface(context: AppContext, settings_interface: SettingsInterface)
+        abstract fun openPage(context: AppContext)
         open fun getItems(context: AppContext): List<SettingsItem>? = null
     }
 
     protected open inner class SimplePage(
-        getTitle: () -> String,
-        val getDescription: () -> String,
+        getTitle: @Composable () -> String,
+        val getDescription: @Composable () -> String,
         private val getPageItems: () -> List<SettingsItem>,
         private val getPageIcon: @Composable () -> ImageVector,
         private val titleBarEndContent: @Composable (Modifier) -> Unit = {}
     ): CategoryPage(this, getTitle) {
         private var items: List<SettingsItem>? = null
 
-        override fun openPageOnInterface(context: AppContext, settings_interface: SettingsInterface) {
+        private val settings_interface: SettingsInterface
+            get() = SpMp.player_state.app_page_state.Settings.settings_interface
+
+        override fun openPage(context: AppContext) {
             settings_interface.openPage(
                 object : SettingsPageWithItems(
                     getTitle = getTitle,
@@ -102,9 +119,10 @@ sealed class SettingsGroup(
 
         override fun getTitleItem(context: AppContext): SettingsItem? =
             ComposableSettingsItem { modifier ->
+                val theme: ThemeValues = LocalApplicationTheme.current
                 ElevatedCard(
                     onClick = {
-                        openPageOnInterface(context, this)
+                        openPage(context)
                     },
                     modifier = modifier.fillMaxWidth(),
                     colors = CardDefaults.elevatedCardColors(
@@ -120,7 +138,7 @@ sealed class SettingsGroup(
                         Icon(getPageIcon(), null)
                         Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                             Text(getTitle(), style = MaterialTheme.typography.titleMedium)
-                            Text(getDescription(), style = MaterialTheme.typography.labelMedium)
+                            Text(getDescription(), style = MaterialTheme.typography.labelMedium, modifier = Modifier.alpha(0.7f))
                         }
                     }
                 }

@@ -30,12 +30,15 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
 import com.toasterofbread.spmp.platform.getOrNotify
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.lpm_action_play_after_1_song
+import spmp.shared.generated.resources.lpm_action_play_after_x_songs
 
 @Composable
 internal fun RowScope.MultiSelectGeneralActions(multiselect_context: MediaItemMultiSelectContext) {
@@ -138,10 +141,10 @@ internal fun RowScope.MultiSelectGeneralActions(multiselect_context: MediaItemMu
             player.withPlayerComposable {
                 val distance: Int = active_queue_index - player.status.m_index + 1
                 Text(
-                    getString(
-                        if (distance == 1) "lpm_action_play_after_1_song"
-                        else "lpm_action_play_after_x_songs").replace("\$x", distance.toString()
-                    ),
+                    stringResource(
+                        if (distance == 1) Res.string.lpm_action_play_after_1_song
+                        else Res.string.lpm_action_play_after_x_songs
+                    ).replace("\$x", distance.toString()),
                     fontSize = 15.sp
                 )
             }

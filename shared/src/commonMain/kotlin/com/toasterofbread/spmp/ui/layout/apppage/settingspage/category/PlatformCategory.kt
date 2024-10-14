@@ -4,14 +4,13 @@ import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import dev.toastbits.composekit.settings.ui.item.GroupSettingsItem
-import dev.toastbits.composekit.settings.ui.item.InfoTextSettingsItem
-import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.GroupSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.InfoTextSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.settings.ui.item.TextFieldSettingsItem
-import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
-import com.toasterofbread.spmp.resources.getString
+import dev.toastbits.composekit.settings.ui.component.item.TextFieldSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.playerservice.PlatformInternalPlayerService
@@ -19,12 +18,24 @@ import com.toasterofbread.spmp.platform.playerservice.PlatformExternalPlayerServ
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import LocalProgramArguments
 import ProgramArguments
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.s_group_desktop_system
+import spmp.shared.generated.resources.s_group_server
+import spmp.shared.generated.resources.s_info_server
+import spmp.shared.generated.resources.settings_value_not_ipv4_or_domain
+import spmp.shared.generated.resources.settings_value_not_port
 
 internal fun getPlatformCategoryItems(context: AppContext): List<SettingsItem> {
     val platform_items: List<SettingsItem> =
         when (Platform.current) {
             Platform.ANDROID -> getAndroidGroupItems(context)
             Platform.DESKTOP -> getDesktopGroupItems(context)
+            Platform.WEB -> getWebGroupItems(context)
         }
 
     return platform_items + getServerGroupItems(context)
@@ -35,9 +46,7 @@ private fun getAndroidGroupItems(context: AppContext): List<SettingsItem> =
 
 private fun getDesktopGroupItems(context: AppContext): List<SettingsItem> =
     listOf(
-        GroupSettingsItem(
-            getString("s_group_desktop_system")
-        ),
+        GroupSettingsItem(Res.string.s_group_desktop_system),
 
         TextFieldSettingsItem(
             context.settings.platform.STARTUP_COMMAND,
@@ -48,9 +57,7 @@ private fun getDesktopGroupItems(context: AppContext): List<SettingsItem> =
             context.settings.platform.FORCE_SOFTWARE_RENDERER,
         ),
 
-        GroupSettingsItem(
-            getString("s_group_server")
-        )
+        GroupSettingsItem(Res.string.s_group_server)
     )
 
 fun getServerGroupItems(context: AppContext): List<SettingsItem> {
@@ -75,17 +82,16 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
     check(!port_regex.matches("a"))
 
     return listOfNotNull(
-        InfoTextSettingsItem(
-            getString("s_info_server")
-        ),
+        InfoTextSettingsItem(Res.string.s_info_server),
 
         ToggleSettingsItem(
             context.settings.platform.ENABLE_EXTERNAL_SERVER_MODE,
             getEnabled = {
-                getLocalServerUnavailabilityReason() == null
+                val reason: LocalServerUnavailabilityReason? = getLocalServerUnavailabilityReason()
+                return@ToggleSettingsItem reason != null && reason.reason == null
             },
             getValueOverride = {
-                if (getLocalServerUnavailabilityReason() != null) {
+                if (getLocalServerUnavailabilityReason()?.reason != null) {
                     true
                 }
                 else {
@@ -93,7 +99,7 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
                 }
             },
             getSubtitleOverride = {
-                getLocalServerUnavailabilityReason()
+                getLocalServerUnavailabilityReason()?.reason
             }
         ).takeIf { !Platform.DESKTOP.isCurrent() },
 
@@ -101,11 +107,12 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
 
         TextFieldSettingsItem(
             context.settings.platform.SERVER_IP_ADDRESS,
-            getStringError = { input ->
-                if (!ip_regex.matches(input) && !domain_regex.matches(input)) {
-                    return@TextFieldSettingsItem getString("settings_value_not_ipv4_or_domain")
+            getStringErrorProvider = {
+                val settings_value_not_ipv4_or_domain: String = stringResource(Res.string.settings_value_not_ipv4_or_domain)
+                return@TextFieldSettingsItem { input ->
+                    if (!ip_regex.matches(input) && !domain_regex.matches(input)) settings_value_not_ipv4_or_domain
+                    else null
                 }
-                return@TextFieldSettingsItem null
             },
             getFieldModifier = { Modifier.appTextField() }
         ),
@@ -115,11 +122,12 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
                 fromProperty = { it.toString() },
                 toProperty = { it.toIntOrNull() ?: 0 }
             ),
-            getStringError = { input ->
-                if (!port_regex.matches(input)) {
-                    return@TextFieldSettingsItem getString("settings_value_not_port")
+            getStringErrorProvider = {
+                val settings_value_not_port: String = stringResource(Res.string.settings_value_not_port)
+                return@TextFieldSettingsItem { input ->
+                    if (!port_regex.matches(input)) settings_value_not_port
+                    else null
                 }
-                return@TextFieldSettingsItem null
             },
             getFieldModifier = { Modifier.appTextField() }
         ),
@@ -135,9 +143,21 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
     )
 }
 
+private fun getWebGroupItems(context: AppContext): List<SettingsItem> =
+    listOf()
+
 @Composable
-private fun getLocalServerUnavailabilityReason(): String? {
+private fun getLocalServerUnavailabilityReason(): LocalServerUnavailabilityReason? {
     val player: PlayerState = LocalPlayerState.current
     val launch_arguments: ProgramArguments = LocalProgramArguments.current
-    return remember { PlatformInternalPlayerService.getUnavailabilityReason(player.context, launch_arguments) }
+
+    var reason: LocalServerUnavailabilityReason? by remember { mutableStateOf(null) }
+
+    LaunchedEffect(Unit) {
+        reason = LocalServerUnavailabilityReason(PlatformInternalPlayerService.getUnavailabilityReason(player.context, launch_arguments))
+    }
+
+    return reason
 }
+
+private data class LocalServerUnavailabilityReason(val reason: String?)

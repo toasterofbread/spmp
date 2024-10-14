@@ -23,12 +23,14 @@ import com.toasterofbread.spmp.service.playercontroller.*
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.nowplaying.*
-import com.toasterofbread.spmp.resources.getString
 import dev.toastbits.composekit.platform.composable.platformClickable
 import dev.toastbits.composekit.platform.vibrateShort
 import dev.toastbits.composekit.utils.common.getValue
 import dev.toastbits.composekit.utils.composable.Marquee
 import dev.toastbits.composekit.utils.modifier.bounceOnClick
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_cancel
 
 private const val TITLE_FONT_SIZE_SP: Float = 21f
 private const val ARTIST_FONT_SIZE_SP: Float = 12f
@@ -57,6 +59,7 @@ fun PlayerButton(
             )
     ) {
         val painter: VectorPainter = rememberVectorPainter(image)
+        val np_theme_mode: ThemeMode by player.settings.theme.NOWPLAYING_THEME_MODE.observe()
 
         Canvas(
             Modifier
@@ -71,7 +74,7 @@ fun PlayerButton(
             val gradient_end: Float
             val gradient_colours: List<Color>
 
-            val accent: Color? = if (player.np_theme_mode != ThemeMode.NONE) getAccentColour?.invoke(player) else null
+            val accent: Color? = if (np_theme_mode != ThemeMode.NONE) getAccentColour?.invoke(player) else null
             if (accent != null) {
                 gradient_end = this@Canvas.size.width * 0.95f
                 gradient_colours = listOf(getOnBackgroundColour(player), getOnBackgroundColour(player), accent)
@@ -169,11 +172,11 @@ internal fun Controls(
                                 Button({
                                     selecting_artists = null
                                 }) {
-                                    Text(getString("action_cancel"))
+                                    Text(stringResource(Res.string.action_cancel))
                                 }
                             },
                             title = {
-                                Text(MediaItemType.ARTIST.getReadable(true))
+                                Text(stringResource(MediaItemType.ARTIST.getReadable(true)))
                             },
                             text = {
                                 CompositionLocalProvider(LocalPlayerClickOverrides provides click_overrides.copy(

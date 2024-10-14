@@ -71,12 +71,8 @@ object JAudioTaggerMetadataProcessor: MetadataProcessor {
             set(FieldKey.TITLE, song.getActiveTitle(context.database))
             set(FieldKey.ARTIST, artists?.firstOrNull()?.getActiveTitle(context.database))
             set(FieldKey.ALBUM, album?.getActiveTitle(context.database))
-<<<<<<< HEAD:shared/src/jvmMain/kotlin/com/toasterofbread/spmp/platform/download/JAudioTaggerMetadataProcessor.kt
-            set(FieldKey.URL_OFFICIAL_ARTIST_SITE, artists?.firstOrNull()?.getUrl(context))
-=======
             set(FieldKey.ALBUM_ARTIST, album?.Artists?.get(context.database)?.firstOrNull()?.getActiveTitle(context.database))
-            set(FieldKey.URL_OFFICIAL_ARTIST_SITE, artists?.firstOrNull()?.getURL(context))
->>>>>>> main:shared/src/commonMain/kotlin/com/toasterofbread/spmp/platform/download/LocalSongMetadataProcessor.kt
+            set(FieldKey.URL_OFFICIAL_ARTIST_SITE, artists?.firstOrNull()?.getUrl(context))
             set(FieldKey.URL_LYRICS_SITE, song.Lyrics.get(context.database)?.getUrl())
 
             val custom_metadata: CustomMetadata =

@@ -14,6 +14,7 @@ import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.getDefaultCatppuccinThemes
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.s_cat_desc_theme
 import spmp.shared.generated.resources.s_cat_theme
 import spmp.shared.generated.resources.s_key_accent_source
 import spmp.shared.generated.resources.s_key_current_theme
@@ -123,13 +124,12 @@ class ThemeSettings(val context: AppContext): SettingsGroup("THEME", context.get
     override fun getTitle(): String = stringResource(Res.string.s_cat_theme)
 
     @Composable
-    override fun getDescription(): String = stringResource(Res.string.s_cat_theme)
+    override fun getDescription(): String = stringResource(Res.string.s_cat_desc_theme)
 
     @Composable
     override fun getIcon(): ImageVector = Icons.Outlined.Palette
 
     override fun getConfigurationItems(): List<SettingsItem> = getThemeCategoryItems(context)
-
 
     enum class VideoPosition {
         NONE, BACKGROUND, THUMBNAIL;

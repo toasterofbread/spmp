@@ -44,8 +44,6 @@ suspend fun getAvailableLanguages(): List<Language> {
     if (available_languages == null) {
         available_languages =
             Res.string.language_name.items.mapNotNull { language ->
-                println("READLANG $language ${language.qualifiers}")
-
                 if (language.qualifiers.isEmpty()) {
                     return@mapNotNull null
                 }

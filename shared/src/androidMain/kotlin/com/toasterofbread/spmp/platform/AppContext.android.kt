@@ -13,6 +13,7 @@ import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.resources.Language
 import com.toasterofbread.spmp.resources.getAvailableLanguages
 import com.toasterofbread.spmp.youtubeapi.YtmApiType
+import dev.toastbits.composekit.platform.PlatformContextImpl
 import dev.toastbits.composekit.settings.ui.ThemeManager
 import dev.toastbits.ytmkt.model.YtmApi
 import kotlinx.coroutines.CoroutineScope
@@ -26,7 +27,7 @@ actual class AppContext private constructor(
     available_languages: List<Language>,
     private val prefs: PlatformPreferences,
     application_context: ApplicationContext? = null
-): PlatformContext(context, coroutine_scope, application_context) {
+): PlatformContextImpl(context, coroutine_scope, application_context) {
     companion object {
         lateinit var main_activity: Class<out Activity>
 

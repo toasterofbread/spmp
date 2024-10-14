@@ -2,11 +2,11 @@ package com.toasterofbread.spmp.youtubeapi.lyrics
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import dev.toastbits.composekit.utils.common.substringBetween
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.lyrics.petit.parseTimedLyrics
 import com.toasterofbread.spmp.youtubeapi.lyrics.petit.searchPetitLyrics
+import dev.toastbits.composekit.utils.common.substringBetween
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.post
@@ -15,19 +15,12 @@ import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-<<<<<<< HEAD
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.lyrics_source_petit
 import kotlin.io.encoding.Base64
 import kotlin.io.encoding.ExperimentalEncodingApi
-=======
-import java.nio.ByteBuffer
-import java.nio.charset.Charset
-import java.util.Base64
-import java.util.UnknownFormatConversionException
 import kotlin.time.Duration
->>>>>>> main
 
 private const val DATA_START: String = "<lyricsData>"
 private const val DATA_END: String = "</lyricsData>"

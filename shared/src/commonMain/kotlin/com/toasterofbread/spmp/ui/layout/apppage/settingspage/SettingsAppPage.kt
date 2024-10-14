@@ -51,15 +51,14 @@ internal enum class PrefsPageScreen {
     UI_DEBUG_INFO
 }
 
-class SettingsAppPage(override val state: AppPageState, getFooterModifier: @Composable () -> Modifier): AppPage() {
+class SettingsAppPage(override val state: AppPageState): AppPage() {
     private val pill_menu: PillMenu = PillMenu(follow_player = true)
     val ytm_auth: PreferencesProperty<Set<String>> = state.context.settings.youtube_auth.YTM_AUTH
     val settings_interface: SettingsInterface =
         getPrefsPageSettingsInterface(
             state,
             pill_menu,
-            ytm_auth,
-            getFooterModifier,
+            ytm_auth
         )
 
     override fun onBackNavigation(): Boolean {

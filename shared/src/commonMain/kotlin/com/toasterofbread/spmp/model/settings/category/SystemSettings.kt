@@ -16,6 +16,7 @@ import spmp.shared.generated.resources.`font_option_default_$x`
 import spmp.shared.generated.resources.font_option_hc_maru_gothic
 import spmp.shared.generated.resources.font_option_system
 import spmp.shared.generated.resources.hc_maru_gothic
+import spmp.shared.generated.resources.s_cat_desc_general
 import spmp.shared.generated.resources.s_cat_general
 import spmp.shared.generated.resources.s_key_add_songs_to_history
 import spmp.shared.generated.resources.s_key_data_lang
@@ -73,7 +74,7 @@ class SystemSettings(
     override fun getTitle(): String = stringResource(Res.string.s_cat_general)
 
     @Composable
-    override fun getDescription(): String = stringResource(Res.string.s_cat_general)
+    override fun getDescription(): String = stringResource(Res.string.s_cat_desc_general)
 
     @Composable
     override fun getIcon(): ImageVector = Icons.Outlined.Tune

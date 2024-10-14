@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.platform.createImageBitmapUtil
 import dev.toastbits.composekit.utils.common.generatePalette
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
@@ -69,7 +70,10 @@ class SongThemePlayerOverlayMenu(
 
         LaunchedEffect(thumb_image) {
             palette_colours = null
-            palette_colours = thumb_image?.generatePalette(8)
+
+            palette_colours = thumb_image?.let {
+                createImageBitmapUtil()?.generatePalette(it , 8)
+            }
         }
 
         AnimatedVisibility(

@@ -56,7 +56,7 @@ fun SongFeedFilterChip.getDisplayStringResource(): StringResource =
         YoutubeUILocalisation.StringID.SONG_FEED_SAD -> Res.string.home_feed_filter_sad
         YoutubeUILocalisation.StringID.SONG_FEED_FEEL_GOOD -> Res.string.home_feed_filter_feel_good
         YoutubeUILocalisation.StringID.SONG_FEED_SLEEP -> Res.string.home_feed_filter_sleep
-        else -> Res.string.error_message_generic.also { println("READLANG err $this ${getId()}") }
+        else -> Res.string.error_message_generic
     }
 
 fun List<SongFeedFilterChip>.sortFilterChips(): List<SongFeedFilterChip> =

@@ -98,10 +98,10 @@ class LayoutSettings(val context: AppContext): SettingsGroup("LAYOUT", context.g
     )
 
     @Composable
-    override fun getTitle(): String = stringResource(Res.string.s_cat_desc_layout)
+    override fun getTitle(): String = stringResource(Res.string.s_cat_layout)
 
     @Composable
-    override fun getDescription(): String = stringResource(Res.string.s_cat_layout)
+    override fun getDescription(): String = stringResource(Res.string.s_cat_desc_layout)
 
     @Composable
     override fun getIcon(): ImageVector = Icons.Outlined.VerticalSplit

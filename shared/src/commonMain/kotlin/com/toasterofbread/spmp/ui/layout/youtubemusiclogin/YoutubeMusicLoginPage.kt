@@ -25,19 +25,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.youtubeapi.AccountSwitcherEndpoint
 import com.toasterofbread.spmp.youtubeapi.YTMLogin
-<<<<<<< HEAD
-import dev.toastbits.composekit.utils.composable.LinkifyText
-=======
-import com.toasterofbread.spmp.youtubeapi.SpMpYoutubeiAuthenticationState
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.ytmkt.model.YtmApi
->>>>>>> main
+import dev.toastbits.composekit.utils.composable.LinkifyText
 import dev.toastbits.ytmkt.impl.youtubei.YoutubeiApi
 import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState
 import dev.toastbits.ytmkt.model.ApiAuthenticationState
@@ -220,7 +214,7 @@ class YoutubeMusicLoginPage(val api: YoutubeiApi): LoginPage() {
             title = if (info_only) null else ({ Text(stringResource(Res.string.prompt_confirm_action)) }),
             text = {
                 Column {
-                    LinkifyText(player.context, stringResource(if (info_only) Res.string.info_ytm_login else Res.string.warning_ytm_login), player.theme.accent)
+                    LinkifyText(stringResource(if (info_only) Res.string.info_ytm_login else Res.string.warning_ytm_login), player.theme.accent)
                     if (!info_only && !manual_only) {
                         FilledTonalButton({ onFinished(true) }, Modifier.fillMaxWidth().padding(top = 5.dp).offset(y = 20.dp)) {
                             Text(stringResource(Res.string.action_login_manually))

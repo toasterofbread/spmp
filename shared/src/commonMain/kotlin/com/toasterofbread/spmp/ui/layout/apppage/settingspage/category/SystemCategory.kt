@@ -35,6 +35,7 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import LocalPlayerState
+import androidx.compose.material3.MaterialTheme
 import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.resources.Language
 import com.toasterofbread.spmp.resources.getAvailableLanguages
@@ -100,7 +101,10 @@ fun getLanguageDropdownItem(
 internal fun getSystemCategoryItems(context: AppContext, available_languages: List<Language>): List<SettingsItem> =
     listOf(
         ComposableSettingsItem {
-            WidthShrinkText(stringResource(Res.string.language_change_restart_notice))
+            Text(
+                stringResource(Res.string.language_change_restart_notice),
+                style = MaterialTheme.typography.labelMedium
+            )
         },
 
         getLanguageDropdownItem(

@@ -54,18 +54,18 @@ dependencyResolutionManagement {
         mavenCentral()
         maven("https://jitpack.io")
 //
-//        // https://github.com/KevinnZou/compose-webview-multiplatform
+////        // https://github.com/KevinnZou/compose-webview-multiplatform
 //        maven("https://jogamp.org/deployment/maven")
-//
-//        // https://github.com/d1snin/catppuccin-kotlin
-//        maven("https://maven.d1s.dev/snapshots")
-//
+////
+////        // https://github.com/d1snin/catppuccin-kotlin
+        maven("https://maven.d1s.dev/snapshots")
+////
 //        // https://github.com/sergeych/mp_stools
-//        maven("https://maven.universablockchain.com/")
-//
-        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
+        maven("https://maven.universablockchain.com/")
+////
+//        maven("https://maven.pkg.jetbrains.space/public/p/compose/dev")
 //        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
-//
+////
 //        maven("https://oss.sonatype.org/content/repositories/snapshots")
     }
 }

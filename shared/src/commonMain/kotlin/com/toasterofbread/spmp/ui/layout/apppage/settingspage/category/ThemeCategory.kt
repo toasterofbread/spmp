@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
+import LocalPlayerState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
 import isWindowTransparencySupported
@@ -11,6 +12,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.doesPlatformSupportVideoPlayback
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import dev.toastbits.composekit.settings.ui.NamedTheme
 import dev.toastbits.composekit.settings.ui.ThemeValues
@@ -47,6 +49,9 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> =
             str_field_card = Res.string.s_theme_editor_field_card,
             str_field_accent = Res.string.s_theme_editor_field_accent,
             str_button_preview = Res.string.s_theme_editor_button_preview,
+            getFooterModifier = {
+                LocalPlayerState.current.nowPlayingTopOffset(Modifier, NowPlayingTopOffsetSection.PAGE_BAR)
+            },
             getThemeProvider = {
                 val system_theme: NamedTheme = rememberSystemTheme(stringResource(Res.string.theme_title_system), context)
                 var themes: List<NamedTheme> by context.settings.theme.THEMES.observe()

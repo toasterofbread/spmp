@@ -283,8 +283,14 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
             )
         }
 
-        val server_unavailability_reason: String? = LocalServer.getLocalServerUnavailabilityReason()
+        var server_unavailability_reason: String? by remember { mutableStateOf(null) }
+        var server_unavailability_reason_loaded: Boolean by remember { mutableStateOf(false) }
         var show_unavailability_dialog: Boolean by remember { mutableStateOf(false) }
+
+        LaunchedEffect(Unit) {
+            server_unavailability_reason = LocalServer.getLocalServerUnavailabilityReason()
+            server_unavailability_reason_loaded = true
+        }
 
         if (show_unavailability_dialog) {
             AlertDialog(
@@ -303,7 +309,7 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
             )
         }
 
-        if (server_unavailability_reason == null || local_server_process != null) {
+        if ((server_unavailability_reason_loaded && server_unavailability_reason == null) || local_server_process != null) {
             Button(
                 {
                     coroutine_scope.launch {

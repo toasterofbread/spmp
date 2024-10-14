@@ -21,6 +21,7 @@ import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PlatformContext
+import dev.toastbits.composekit.platform.PlatformContextImpl
 import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.composekit.settings.ui.NamedTheme
@@ -35,7 +36,7 @@ import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.theme_title_system
 
-expect class AppContext: PlatformContext {
+expect class AppContext: PlatformContextImpl {
     val database: Database
     val download_manager: PlayerDownloadManager
     val ytapi: YtmApi
@@ -163,7 +164,7 @@ fun AppContext.observeDataLanguage(): State<String> {
 fun AppContext.getDefaultLanguage(): String =
     Locale.current.run {
         "$language-$region"
-    }.also { println("READLANG default '$it'") }
+    }
 
 fun <T> Result<T>.getOrNotify(context: AppContext, error_key: String): T? =
     fold(

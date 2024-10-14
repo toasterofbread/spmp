@@ -18,6 +18,10 @@ import com.toasterofbread.spmp.platform.playerservice.PlatformExternalPlayerServ
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import LocalProgramArguments
 import ProgramArguments
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_group_desktop_system
@@ -83,10 +87,11 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
         ToggleSettingsItem(
             context.settings.platform.ENABLE_EXTERNAL_SERVER_MODE,
             getEnabled = {
-                getLocalServerUnavailabilityReason() == null
+                val reason: LocalServerUnavailabilityReason? = getLocalServerUnavailabilityReason()
+                return@ToggleSettingsItem reason != null && reason.reason == null
             },
             getValueOverride = {
-                if (getLocalServerUnavailabilityReason() != null) {
+                if (getLocalServerUnavailabilityReason()?.reason != null) {
                     true
                 }
                 else {
@@ -94,7 +99,7 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
                 }
             },
             getSubtitleOverride = {
-                getLocalServerUnavailabilityReason()
+                getLocalServerUnavailabilityReason()?.reason
             }
         ).takeIf { !Platform.DESKTOP.isCurrent() },
 
@@ -142,8 +147,17 @@ private fun getWebGroupItems(context: AppContext): List<SettingsItem> =
     listOf()
 
 @Composable
-private fun getLocalServerUnavailabilityReason(): String? {
+private fun getLocalServerUnavailabilityReason(): LocalServerUnavailabilityReason? {
     val player: PlayerState = LocalPlayerState.current
     val launch_arguments: ProgramArguments = LocalProgramArguments.current
-    return PlatformInternalPlayerService.getUnavailabilityReason(player.context, launch_arguments)
+
+    var reason: LocalServerUnavailabilityReason? by remember { mutableStateOf(null) }
+
+    LaunchedEffect(Unit) {
+        reason = LocalServerUnavailabilityReason(PlatformInternalPlayerService.getUnavailabilityReason(player.context, launch_arguments))
+    }
+
+    return reason
 }
+
+private data class LocalServerUnavailabilityReason(val reason: String?)

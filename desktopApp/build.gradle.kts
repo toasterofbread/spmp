@@ -27,6 +27,12 @@ repositories {
 
     // https://github.com/KevinnZou/compose-webview-multiplatform
     maven("https://jogamp.org/deployment/maven")
+
+    // https://github.com/d1snin/catppuccin-kotlin
+    maven("https://maven.d1s.dev/snapshots")
+
+    // https://github.com/sergeych/mp_stools
+    maven("https://maven.universablockchain.com/")
 }
 
 val local_properties_path: String = "local.properties"

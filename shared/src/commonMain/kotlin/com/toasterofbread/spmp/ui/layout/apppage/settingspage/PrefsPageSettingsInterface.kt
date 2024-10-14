@@ -21,8 +21,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 internal fun getPrefsPageSettingsInterface(
     page_state: AppPageState,
     pill_menu: PillMenu,
-    ytm_auth: PreferencesProperty<Set<String>>,
-    getFooterModifier: @Composable () -> Modifier
+    ytm_auth: PreferencesProperty<Set<String>>
 ): SettingsInterface {
     lateinit var settings_interface: SettingsInterface
     val context: AppContext = page_state.context
@@ -74,8 +73,7 @@ internal fun getPrefsPageSettingsInterface(
             else {
                 pill_menu.addActionOverrider(pill_menu_action_overrider)
             }
-        },
-        getFooterModifier
+        }
     )
 
     return settings_interface

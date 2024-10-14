@@ -5,8 +5,7 @@ import androidx.compose.runtime.Composable
 import com.toasterofbread.spmp.platform.AppContext
 
 interface PlayerServiceCompanion {
-    @Composable
-    fun getUnavailabilityReason(context: AppContext, launch_arguments: ProgramArguments): String? = null
+    suspend fun getUnavailabilityReason(context: AppContext, launch_arguments: ProgramArguments): String? = null
     fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean
 
     fun isServiceRunning(context: AppContext): Boolean

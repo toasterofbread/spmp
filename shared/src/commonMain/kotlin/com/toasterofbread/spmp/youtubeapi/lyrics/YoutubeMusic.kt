@@ -1,5 +1,7 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics
 
+import PlatformIO
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
@@ -7,15 +9,9 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-<<<<<<< HEAD
-import PlatformIO
-import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.lyrics_source_ytm
-=======
-import kotlin.time.Duration
->>>>>>> main
 
 internal class YoutubeMusicLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     @Composable

@@ -14,6 +14,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.AppContext
@@ -137,7 +138,7 @@ sealed class SettingsGroup(
                         Icon(getPageIcon(), null)
                         Column(verticalArrangement = Arrangement.spacedBy(5.dp)) {
                             Text(getTitle(), style = MaterialTheme.typography.titleMedium)
-                            Text(getDescription(), style = MaterialTheme.typography.labelMedium)
+                            Text(getDescription(), style = MaterialTheme.typography.labelMedium, modifier = Modifier.alpha(0.7f))
                         }
                     }
                 }

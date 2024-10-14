@@ -4,16 +4,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.youtubeapi.lyrics.kugou.loadKugouLyrics
 import com.toasterofbread.spmp.youtubeapi.lyrics.kugou.searchKugouLyrics
-import com.toasterofbread.spmp.platform.getUiLanguage
-<<<<<<< HEAD
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.lyrics_source_kugou
-=======
 import kotlin.time.Duration
->>>>>>> main
 
 internal class KugouLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     @Composable

@@ -188,9 +188,12 @@ actual class DiscordStatus actual constructor(
 
     private val client: SupabaseClient by lazy {
         createSupabaseClient(
-            ProjectBuildConfig.SUPABASE_URL + "/functions/v1/",
-            ProjectBuildConfig.SUPABASE_KEY
-        ) {}
+            supabaseUrl = ProjectBuildConfig.SUPABASE_URL,
+            supabaseKey = ProjectBuildConfig.SUPABASE_KEY,
+            builder = {
+                install(Functions)
+            }
+        )
     }
 
     actual suspend fun getCustomImages(

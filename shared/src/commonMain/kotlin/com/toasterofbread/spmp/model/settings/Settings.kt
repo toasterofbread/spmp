@@ -48,10 +48,10 @@ class Settings(context: AppContext, available_languages: List<Language>) {
         ).associateBy { it.group_key }
 
     val groups_with_page: List<SettingsGroup> get() =
-        all_groups.values.filter { it.page != null && it !is DependencySettings }
+        all_groups.values.filter { it.getPage() != null && it !is DependencySettings }
 
     val group_pages: List<SettingsGroup.CategoryPage> get() =
-        all_groups.values.mapNotNull { if (it is DependencySettings) null else it.page }
+        all_groups.values.mapNotNull { if (it is DependencySettings) null else it.getPage() }
 
     fun groupFromKey(key: String): SettingsGroup? =
         all_groups[key]

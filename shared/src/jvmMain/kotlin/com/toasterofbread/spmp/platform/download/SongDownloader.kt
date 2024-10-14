@@ -107,9 +107,19 @@ abstract class SongDownloader(
             return song_download_dir.resolve(generatePath(extension, true))
         }
 
+<<<<<<< HEAD:shared/src/jvmMain/kotlin/com/toasterofbread/spmp/platform/download/SongDownloader.kt
         suspend fun getDestinationFile(extension: String): PlatformFile =
             custom_uri?.let { context.getUserDirectoryFile(it) }
                 ?: getSongStorageDir().resolve(generatePath(extension, false))
+=======
+        fun getDestinationFile(extension: String): PlatformFile {
+            if (custom_uri != null) {
+                context.getUserDirectoryFile(custom_uri)
+            }
+
+            return song_storage_dir.resolve(generatePath(extension, false))
+        }
+>>>>>>> main:shared/src/commonMain/kotlin/com/toasterofbread/spmp/platform/download/SongDownloader.kt
 
         override fun toString(): String =
             "Download(id=${song.id}, quality=$quality, silent=$silent, instance=$instance, file=$song_file)"

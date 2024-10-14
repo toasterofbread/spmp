@@ -30,7 +30,14 @@ import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.youtubeapi.AccountSwitcherEndpoint
 import com.toasterofbread.spmp.youtubeapi.YTMLogin
+<<<<<<< HEAD
 import dev.toastbits.composekit.utils.composable.LinkifyText
+=======
+import com.toasterofbread.spmp.youtubeapi.SpMpYoutubeiAuthenticationState
+import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.ytmkt.model.YtmApi
+>>>>>>> main
 import dev.toastbits.ytmkt.impl.youtubei.YoutubeiApi
 import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState
 import dev.toastbits.ytmkt.model.ApiAuthenticationState
@@ -146,16 +153,18 @@ class YoutubeMusicLoginPage(val api: YoutubeiApi): LoginPage() {
                 }
             }
             else if (!manual && isWebViewLoginSupported()) {
-                val v_padding: Dp = player.getDefaultVerticalPadding()
                 YoutubeMusicWebviewLogin(
                     api,
                     MUSIC_LOGIN_URL,
                     Modifier
                         .fillMaxSize()
-                        .padding(
-                            top = (content_padding.calculateTopPadding() - v_padding).coerceAtLeast(0.dp),
-                            bottom = (content_padding.calculateBottomPadding() - v_padding).coerceAtLeast(0.dp)
-                        )
+                        .thenIf(Platform.ANDROID.isCurrent()) {
+                            val v_padding: Dp = 30.dp
+                            padding(
+                                top = (content_padding.calculateTopPadding() - v_padding).coerceAtLeast(0.dp),
+                                bottom = (content_padding.calculateBottomPadding() - v_padding).coerceAtLeast(0.dp)
+                            )
+                        }
                     ) { result ->
                     if (result == null) {
                         onFinished(null)

@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.ui.layout.apppage.searchpage
 
 import LocalPlayerState
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -16,10 +15,9 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_close
@@ -28,7 +26,7 @@ import spmp.shared.generated.resources.s_cat_search
 @Composable
 fun SearchSettingsDialog(modifier: Modifier = Modifier, close: () -> Unit) {
     val player: PlayerState = LocalPlayerState.current
-    val settings_items: List<SettingsItem> = remember { player.settings.search.getItems() }
+    val settings_items: List<SettingsItem> = remember { player.settings.search.getConfigurationItems() }
 
     AlertDialog(
         onDismissRequest = close,
@@ -46,7 +44,7 @@ fun SearchSettingsDialog(modifier: Modifier = Modifier, close: () -> Unit) {
         text = {
             LazyColumn {
                 items(settings_items) { item ->
-                    item.Item(player.app_page_state.Settings.settings_interface, { _, _ -> }, {}, Modifier)
+                    item.Item(Modifier)
                 }
             }
         }

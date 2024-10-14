@@ -1,28 +1,30 @@
 package com.toasterofbread.spmp.model.settings.category
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.FormatListBulleted
+import androidx.compose.material.icons.automirrored.outlined.FormatListBulleted
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getFeedCategoryItems
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PreferencesProperty
-import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getFeedCategoryItems
-import com.toasterofbread.spmp.platform.AppContext
-import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.s_key_feed_show_artists_row
-import spmp.shared.generated.resources.s_key_feed_show_song_download_indicators
-import spmp.shared.generated.resources.s_key_feed_initial_rows
-import spmp.shared.generated.resources.s_sub_feed_initial_rows
-import spmp.shared.generated.resources.s_key_feed_square_preview_text_lines
-import spmp.shared.generated.resources.s_key_feed_grid_row_count
-import spmp.shared.generated.resources.s_key_feed_grid_row_count_expanded
+import spmp.shared.generated.resources.s_cat_desc_feed
+import spmp.shared.generated.resources.s_cat_feed
+import spmp.shared.generated.resources.s_hidden_feed_rows_dialog_title
 import spmp.shared.generated.resources.s_key_feed_alt_grid_row_count
 import spmp.shared.generated.resources.s_key_feed_alt_grid_row_count_expanded
+import spmp.shared.generated.resources.s_key_feed_grid_row_count
+import spmp.shared.generated.resources.s_key_feed_grid_row_count_expanded
+import spmp.shared.generated.resources.s_key_feed_initial_rows
+import spmp.shared.generated.resources.s_key_feed_show_artists_row
 import spmp.shared.generated.resources.s_key_feed_show_radios
+import spmp.shared.generated.resources.s_key_feed_show_song_download_indicators
+import spmp.shared.generated.resources.s_key_feed_square_preview_text_lines
 import spmp.shared.generated.resources.s_key_hidden_feed_rows
-import spmp.shared.generated.resources.s_hidden_feed_rows_dialog_title
-import spmp.shared.generated.resources.s_cat_feed
-import spmp.shared.generated.resources.s_cat_desc_feed
+import spmp.shared.generated.resources.s_sub_feed_initial_rows
 
 class FeedSettings(val context: AppContext): SettingsGroup("FEED", context.getPrefs()) {
     val SHOW_ARTISTS_ROW: PreferencesProperty<Boolean> by property(
@@ -73,14 +75,17 @@ class FeedSettings(val context: AppContext): SettingsGroup("FEED", context.getPr
     val HIDDEN_ROWS: PreferencesProperty<Set<String>> by property(
         getName = { stringResource(Res.string.s_key_hidden_feed_rows) },
         getDescription = { stringResource(Res.string.s_hidden_feed_rows_dialog_title) },
-        getDefaultValue = { emptySet<String>() }
+        getDefaultValue = { emptySet() }
     )
 
-    override val page: CategoryPage? =
-        SimplePage(
-            { stringResource(Res.string.s_cat_feed) },
-            { stringResource(Res.string.s_cat_desc_feed) },
-            { getFeedCategoryItems(context) },
-            { Icons.Outlined.FormatListBulleted }
-        )
+    @Composable
+    override fun getTitle(): String = stringResource(Res.string.s_cat_feed)
+
+    @Composable
+    override fun getDescription(): String = stringResource(Res.string.s_cat_desc_feed)
+
+    @Composable
+    override fun getIcon(): ImageVector = Icons.AutoMirrored.Outlined.FormatListBulleted
+
+    override fun getConfigurationItems(): List<SettingsItem> = getFeedCategoryItems(context)
 }

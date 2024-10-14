@@ -21,7 +21,7 @@ import dev.toastbits.composekit.platform.lazyAssert
 
 internal class PersistentQueueHandler(val player: PlayerServicePlayer, val context: AppContext) {
     private var persistent_queue_loaded: Boolean = false
-    private val queue_lock = Mutex()
+    private val queue_lock: Mutex = Mutex()
 
     private fun getPersistentQueueMetadata(): PersistentQueueMetadata =
         PersistentQueueMetadata(0, player.current_song_index.toLong(), player.current_position_ms)

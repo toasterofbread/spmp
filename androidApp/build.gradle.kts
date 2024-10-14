@@ -6,6 +6,7 @@ import java.io.FileInputStream
 import java.util.Properties
 import com.android.build.api.dsl.ApplicationVariantDimension
 import plugin.spmp.SpMpDeps
+import plugin.spmp.getDeps
 
 plugins {
     kotlin("multiplatform")
@@ -51,7 +52,7 @@ fun getString(key: String): String {
 kotlin {
     androidTarget()
     sourceSets {
-        val deps: SpMpDeps = SpMpDeps(extra.properties)
+        val deps: SpMpDeps = getDeps()
 
         val androidMain by getting {
             dependencies {
@@ -155,8 +156,8 @@ android {
     }
 
     lint {
-        // What is this needed for?
         disable.add("ByteOrderMark")
+        disable.add("Instantiatable")
     }
 
     sourceSets.getByName("main") {

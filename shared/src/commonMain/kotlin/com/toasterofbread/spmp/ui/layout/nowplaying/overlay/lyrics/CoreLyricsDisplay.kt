@@ -1,4 +1,3 @@
-@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import LocalPlayerState
@@ -18,9 +17,14 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.HorizontalFuriganaText
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING_DP
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
+<<<<<<< HEAD
 import dev.toastbits.composekit.platform.composable.platformClickable
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.common.thenWith
+=======
+import com.toasterofbread.spmp.youtubeapi.lyrics.createFuriganaTokeniser
+import dev.toastbits.composekit.utils.composable.workingAnimateScrollToItem
+>>>>>>> main
 import kotlinx.coroutines.delay
 
 @Composable
@@ -107,10 +111,7 @@ fun CoreLyricsDisplay(
                 )
             }
             else {
-                scroll_state.animateScrollToItem(
-                    range_start_line,
-                    getScrollOffset()
-                )
+                scroll_state.workingAnimateScrollToItem(range_start_line, getScrollOffset(), density)
             }
         }
 

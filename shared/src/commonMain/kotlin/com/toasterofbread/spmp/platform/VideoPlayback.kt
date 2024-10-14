@@ -7,7 +7,7 @@ import LocalPlayerState
 import dev.toastbits.ytmkt.model.external.YoutubeVideoFormat
 import com.toasterofbread.spmp.model.mediaitem.song.getSongFormats
 
-expect fun isVideoPlaybackSupported(): Boolean
+expect fun doesPlatformSupportVideoPlayback(): Boolean
 
 @Composable
 expect fun VideoPlayback(

@@ -1,24 +1,18 @@
 package com.toasterofbread.spmp.model.mediaitem.library
 
 import SpMp
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.setValue
-import dev.toastbits.composekit.platform.PlatformFile
-import dev.toastbits.composekit.utils.common.addUnique
 import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
-import kotlinx.coroutines.*
-import PlatformIO
+import dev.toastbits.composekit.platform.PlatformFile
 import dev.toastbits.composekit.platform.ReentrantLock
+import dev.toastbits.composekit.utils.common.addUnique
 
 @Suppress("DeferredResultUnused")
 object MediaItemLibrary {
@@ -64,21 +58,21 @@ object MediaItemLibrary {
     }
 
     private val playlists_listeners: MutableList<PlaylistsListener> = mutableListOf()
-    private val playlists_listners_lock: ReentrantLock = ReentrantLock()
+    private val playlists_listeners_lock: ReentrantLock = ReentrantLock()
 
     fun addPlaylistsListener(listener: PlaylistsListener) {
-        playlists_listners_lock.withLock {
+        playlists_listeners_lock.withLock {
             playlists_listeners.addUnique(listener)
         }
     }
     fun removePlaylistsListener(listener: PlaylistsListener) {
-        playlists_listners_lock.withLock {
+        playlists_listeners_lock.withLock {
             playlists_listeners.remove(listener)
         }
     }
 
     fun onPlaylistCreated(playlist: PlaylistData) {
-        playlists_listners_lock.withLock {
+        playlists_listeners_lock.withLock {
             for (listener in playlists_listeners) {
                 listener.onPlaylistAdded(playlist)
             }
@@ -86,7 +80,7 @@ object MediaItemLibrary {
     }
 
     fun onPlaylistDeleted(playlist: Playlist) {
-        playlists_listners_lock.withLock {
+        playlists_listeners_lock.withLock {
             for (listener in playlists_listeners) {
                 listener.onPlaylistRemoved(playlist)
             }

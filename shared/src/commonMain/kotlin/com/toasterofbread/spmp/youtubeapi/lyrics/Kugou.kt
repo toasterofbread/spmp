@@ -7,9 +7,13 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.lyrics.kugou.loadKugouLyrics
 import com.toasterofbread.spmp.youtubeapi.lyrics.kugou.searchKugouLyrics
 import com.toasterofbread.spmp.platform.getUiLanguage
+<<<<<<< HEAD
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.lyrics_source_kugou
+=======
+import kotlin.time.Duration
+>>>>>>> main
 
 internal class KugouLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     @Composable
@@ -30,7 +34,12 @@ internal class KugouLyricsSource(source_idx: Int): LyricsSource(source_idx) {
         )
     }
 
-    override suspend fun searchForLyrics(title: String, artist_name: String?): Result<List<SearchResult>> {
+    override suspend fun searchForLyrics(
+        title: String,
+        artist_name: String?,
+        album_name: String?,
+        duration: Duration?
+    ): Result<List<SearchResult>> {
         return searchKugouLyrics(title, artist_name)
     }
 }

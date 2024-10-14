@@ -28,7 +28,12 @@ import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
 import androidx.media3.extractor.mkv.MatroskaExtractor
 import androidx.media3.extractor.mp4.FragmentedMp4Extractor
-import androidx.media3.session.*
+import androidx.media3.session.MediaController
+import androidx.media3.session.MediaSession
+import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionError
+import androidx.media3.session.SessionResult
+import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
@@ -44,7 +49,8 @@ import java.util.concurrent.Executors
 internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
     play_when_ready: Boolean,
     playlist_auto_progress: Boolean,
-    getNotificationPlayer: (ExoPlayer) -> Player = { it }
+    getNotificationPlayer: (ExoPlayer) -> Player = { it },
+    onSongReadyToPlay: () -> Unit = {}
 ) = runBlocking {
     val service: ForegroundPlayerService = this@initialiseSessionAndPlayer
 
@@ -114,7 +120,11 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
         .setUsePlatformDiagnostics(false)
         .build()
 
-    val player_listener: InternalPlayerServicePlayerListener = InternalPlayerServicePlayerListener(service)
+    val player_listener: InternalPlayerServicePlayerListener =
+        InternalPlayerServicePlayerListener(
+            service,
+            onSongReadyToPlay = onSongReadyToPlay
+        )
     player.addListener(player_listener)
 
     player.playWhenReady = play_when_ready
@@ -140,7 +150,9 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
                 throw NotImplementedError()
             }
 
-            override fun loadBitmap(uri: Uri, options: BitmapFactory.Options?): ListenableFuture<Bitmap> {
+            override fun supportsMimeType(mimeType: String): Boolean = true
+
+            override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> {
                 return executor.submit<Bitmap> {
                     runBlocking {
                         val song = SongRef(uri.toString())
@@ -212,7 +224,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
             ): ListenableFuture<SessionResult> {
                 val command: PlayerServiceCommand? = PlayerServiceCommand.fromSessionCommand(customCommand, args)
                 if (command == null) {
-                    return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE))
+                    return Futures.immediateFuture(SessionResult(SessionError.ERROR_BAD_VALUE))
                 }
 
                 val result: Bundle = onPlayerServiceCommand(command)

@@ -40,6 +40,8 @@ internal fun getYoutubeMusicLoginPage(
             @Composable
             get() = false
 
+        override val apply_padding: Boolean = false
+
         override val title: String?
             @Composable
             get() = login_page.getTitle(confirm_param)

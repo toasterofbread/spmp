@@ -14,11 +14,10 @@ data class ProgramArguments(
     val is_flatpak: Boolean = false
 ) {
     companion object {
-        suspend fun parse(args: Array<String>): ProgramArguments? {
-            fun onIllegalArgument(msg: String) {
-                throw IllegalArgumentException("$msg Received arguments: ${args.toList()}")
-            }
-
+        suspend fun parse(
+            args: Array<String>,
+            onIllegalArgument: (String) -> Unit
+        ): ProgramArguments? {
             var arguments: ProgramArguments = ProgramArguments()
 
             val iterator: Iterator<String> = args.iterator()
@@ -88,7 +87,7 @@ data class ProgramArguments(
             }
             else {
                 return `version_message_non_release_$commit_$apiver_$split`
-                    .replace("\$commit", ProjectBuildConfig.GIT_COMMIT_HASH?.take(7).toString())
+                    .replace("\$commit", (ProjectBuildConfig.GIT_COMMIT_HASH?.take(7) ?: ProjectBuildConfig.GIT_TAG).toString())
                     .replace("\$apiver", api_version_string)
                     .replace("\$split", split_string)
             }

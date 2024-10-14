@@ -1,11 +1,13 @@
 package com.toasterofbread.spmp.model.settings.category
 
-import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getSearchCategoryItems
-import com.toasterofbread.spmp.platform.AppContext
-import androidx.compose.material.icons.outlined.Search
 import androidx.compose.material.icons.Icons
-import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import androidx.compose.material.icons.outlined.Search
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getSearchCategoryItems
 import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_key_search_search_for_non_music
@@ -18,7 +20,16 @@ class SearchSettings(val context: AppContext): SettingsGroup("SEARCH", context.g
         getDefaultValue = { false }
     )
 
-    fun getItems(): List<SettingsItem> = getSearchCategoryItems(context)
+    @Composable
+    override fun getTitle(): String = ""
 
-    override val page: CategoryPage? = null
+    @Composable
+    override fun getDescription(): String = ""
+
+    @Composable
+    override fun getIcon(): ImageVector = Icons.Outlined.Search
+
+    override fun getConfigurationItems(): List<SettingsItem> = getSearchCategoryItems(context)
+
+    override fun getPage(): CategoryPage? = null
 }

@@ -174,7 +174,9 @@ class PlayerState(
             override val swipe_state: AnchoredDraggableState<Int>
                 get() = np_swipe_state
         }
-    var screen_size: DpSize by mutableStateOf(DpSize.Zero)
+
+    val screen_size_state: MutableState<DpSize> = mutableStateOf(DpSize.Zero)
+    var screen_size: DpSize by screen_size_state
 
     val session_started: Boolean get() = _player?.service_player?.session_started == true
     var hide_player: Boolean by mutableStateOf(false)
@@ -219,10 +221,18 @@ class PlayerState(
         np_overlay_menu = menu
     }
 
-    private suspend fun getServiceCompanion(): PlayerServiceCompanion =
-        if (!PlatformInternalPlayerService.isServiceAttached(context) && (!PlatformInternalPlayerService.isAvailable(context, launch_arguments) || settings.platform.ENABLE_EXTERNAL_SERVER_MODE.get()))
-            PlatformExternalPlayerService
-        else PlatformInternalPlayerService
+    private suspend fun getServiceCompanion(): PlayerServiceCompanion {
+        if (!PlatformInternalPlayerService.isAvailable(context, launch_arguments)) {
+            return PlatformExternalPlayerService
+        }
+        if (PlatformInternalPlayerService.isServiceAttached(context)) {
+            return PlatformInternalPlayerService
+        }
+        if (settings.platform.ENABLE_EXTERNAL_SERVER_MODE.get()) {
+            return PlatformExternalPlayerService
+        }
+        return PlatformInternalPlayerService
+    }
 
     fun onStart() {
         SpMp.addLowMemoryListener(low_memory_listener)

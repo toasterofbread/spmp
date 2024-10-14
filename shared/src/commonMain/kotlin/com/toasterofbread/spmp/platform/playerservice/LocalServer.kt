@@ -13,5 +13,5 @@ expect object LocalServer {
     fun startLocalServer(
         context: AppContext,
         port: Int
-    ): Job
+    ): Result<Job>
 }

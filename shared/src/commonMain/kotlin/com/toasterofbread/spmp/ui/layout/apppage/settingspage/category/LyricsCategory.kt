@@ -1,11 +1,12 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
-import dev.toastbits.composekit.settings.ui.item.DropdownSettingsItem
-import dev.toastbits.composekit.settings.ui.item.SettingsItem
-import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.utils.common.toCustomResource
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res

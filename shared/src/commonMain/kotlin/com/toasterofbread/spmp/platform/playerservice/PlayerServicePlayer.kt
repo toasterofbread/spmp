@@ -1,30 +1,31 @@
 package com.toasterofbread.spmp.platform.playerservice
 
+import PlatformIO
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import app.cash.sqldelight.Query
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.platform.PlatformPreferences
-import dev.toastbits.composekit.platform.PlatformPreferencesListener
-import dev.toastbits.composekit.platform.synchronized
-import dev.toastbits.composekit.platform.assert
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.db.incrementPlayCount
-import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.getUid
-import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.radio.RadioInstance
+import com.toasterofbread.spmp.model.radio.RadioState
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.service.playercontroller.DiscordStatusHandler
 import com.toasterofbread.spmp.service.playercontroller.PersistentQueueHandler
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
-import com.toasterofbread.spmp.model.radio.RadioInstance
-import com.toasterofbread.spmp.model.radio.RadioState
+import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.platform.PlatformPreferencesListener
+import dev.toastbits.composekit.platform.assert
+import dev.toastbits.composekit.platform.synchronized
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import io.ktor.client.HttpClient
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
@@ -34,21 +35,18 @@ import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.delay
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
-import kotlinx.serialization.encodeToString
-import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
-import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import kotlin.random.Random
 import kotlin.random.nextInt
 import kotlin.time.Duration
-import PlatformIO
 
 private val UPDATE_INTERVAL: Duration = with (Duration) { 30.seconds }
 //private const val VOL_NOTIF_SHOW_DURATION: Long = 1000
@@ -225,6 +223,7 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
     }
 
     fun release() {
+        coroutine_scope.cancel()
         update_timer?.cancel()
         update_timer = null
 
@@ -478,7 +477,7 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
                 clearQueue(save = false)
             }
             else if (clear_after) {
-                clearQueue(save = false, from = index)
+                clearQueue(save = false, from = index, cancel_radio = false)
             }
 
             for (song in to_add.withIndex()) {
@@ -518,6 +517,10 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
     }
 
     fun seekBy(delta_ms: Long) {
+        if (duration_ms < 0) {
+            return
+        }
+
         seekTo((current_position_ms + delta_ms).coerceIn(0, duration_ms))
     }
 

@@ -1,23 +1,17 @@
-@file:Suppress("UNUSED_VARIABLE")
-
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.runBlocking
-import org.apache.commons.io.FileUtils
-import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.gradle.internal.os.OperatingSystem
+import org.gradle.jvm.tasks.Jar
+import org.jetbrains.compose.desktop.application.dsl.TargetFormat
+import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
+import plugin.spmp.SpMpDeps
+import plugin.spmp.getDeps
+import plugins.shared.DesktopUtils
 import java.io.FileInputStream
-import java.net.URL
 import java.nio.file.Files.getPosixFilePermissions
 import java.nio.file.Files.setPosixFilePermissions
 import java.nio.file.attribute.PosixFilePermission
-import java.util.*
-import kotlin.NoSuchElementException
-import org.gradle.api.Project
-import java.io.File
-import java.io.FileOutputStream
-import java.util.zip.ZipFile
-import plugin.shared.CommandClass
-import plugin.spmp.SpMpDeps
+import java.util.Properties
 
 plugins {
     kotlin("multiplatform")
@@ -25,8 +19,14 @@ plugins {
     id("org.jetbrains.compose")
 }
 
-enum class OS {
-    LINUX, WINDOWS;
+repositories {
+    google()
+    mavenCentral()
+    mavenLocal()
+    maven("https://jitpack.io")
+
+    // https://github.com/KevinnZou/compose-webview-multiplatform
+    maven("https://jogamp.org/deployment/maven")
 }
 
 val local_properties_path: String = "local.properties"
@@ -62,7 +62,7 @@ kotlin {
 
     jvm()
     sourceSets {
-        val deps: SpMpDeps = SpMpDeps(extra.properties)
+        val deps: SpMpDeps = getDeps()
 
         val jvmMain by getting  {
             dependencies {
@@ -99,7 +99,7 @@ compose.desktop {
             javaHome = it
         }
 
-        nativeDistributions {
+        nativeDistributions { with (DesktopUtils) {
             modules(
                 "java.sql",
                 "jdk.unsupported",
@@ -109,9 +109,14 @@ compose.desktop {
             appResourcesRootDir.set(project.file("build/package"))
 
             packageName = rootProject.name
-            packageVersion = getString("version_string")
             version = getString("version_string")
             licenseFile.set(rootProject.file("LICENSE"))
+
+            packageVersion =
+                getString("version_string").let {
+                    if (System.getProperty("os.name").startsWith("Win")) it.makeVersionSafeForWindows()
+                    else it
+                }
 
             targetFormats(TargetFormat.AppImage, TargetFormat.Deb, TargetFormat.Exe)
 
@@ -136,11 +141,9 @@ compose.desktop {
                 shortcut = true
                 dirChooser = true
 
-                if (getString("version_string").contains("-")) {
-                    exePackageVersion = "0.0.0"
-                }
+                exePackageVersion = getString("version_string").makeVersionSafeForWindows()
             }
-        }
+        } }
 
         buildTypes.release {
             proguard {
@@ -150,6 +153,10 @@ compose.desktop {
         }
     }
 }
+
+private fun String.makeVersionSafeForWindows(): String =
+    if (contains("-")) "0.0.0"
+    else this
 
 abstract class ActuallyPackageAppImageTask: DefaultTask() {
     @get:Input
@@ -181,7 +188,31 @@ abstract class ActuallyPackageAppImageTask: DefaultTask() {
         project.logger.lifecycle("Copying source AppImage files from ${appimage_src.relativeTo(project.rootDir)} to ${appimage_dst.relativeTo(project.rootDir)}")
         appimage_src.copyRecursively(appimage_dst, true)
 
-        val AppRun: File = appimage_dst.resolve("AppRun")
+        prepareAppImageDirectory(appimage_dst)
+
+        val arch: String = appimage_arch.get()
+        val appimage_output: File = appimage_output_file.get().asFile
+
+        runBlocking {
+            project.logger.lifecycle("Executing appimagetool with arch $arch and output ${appimage_output.relativeTo(project.rootDir)}")
+            project.exec {
+                environment("ARCH", arch)
+                workingDir = appimage_dst
+                executable = "appimagetool"
+                args = listOf(
+                    "--verbose",
+                    "--no-appstream",
+                    ".", appimage_output.absolutePath
+                )
+            }
+
+            delay(100)
+            project.logger.lifecycle("\nAppImage successfully packaged to ${appimage_output.absolutePath}")
+        }
+    }
+
+    private fun prepareAppImageDirectory(dir: File) {
+        val AppRun: File = dir.resolve("AppRun")
         if (AppRun.isFile) {
             project.logger.lifecycle("Adding execute permission to AppRun file at ${AppRun.relativeTo(project.rootDir)}")
             AppRun.addExecutePermission()
@@ -194,25 +225,15 @@ abstract class ActuallyPackageAppImageTask: DefaultTask() {
         val icon_dst: File = icon_dst_file.get().asFile
         icon_src.copyTo(icon_dst, overwrite = true)
 
-        val arch: String = appimage_arch.get()
-        val appimage_output: File = appimage_output_file.get().asFile
+        project.logger.lifecycle("Removing unneeded jars")
 
-        runBlocking {
-            project.logger.lifecycle("Executing appimagetool with arch $arch and output file ${appimage_output.relativeTo(project.rootDir)}")
-            project.exec {
-                environment("ARCH", arch)
-                workingDir = appimage_dst
-                executable = "appimagetool"
-                args = listOf(".", appimage_output.absolutePath)
-            }
-
-            delay(100)
-            project.logger.lifecycle("\nAppImage successfully packaged to ${appimage_output.absolutePath}")
+        with (DesktopUtils) {
+            dir.resolve("lib/app").removeUnneededJarsFromDir(project, is_windows = false)
         }
     }
 
-    fun File.addExecutePermission() {
-        if (OperatingSystem.current().isUnix()) {
+    private fun File.addExecutePermission() {
+        if (OperatingSystem.current().isUnix) {
             val permissions: MutableSet<PosixFilePermission> = getPosixFilePermissions(toPath())
             permissions.add(PosixFilePermission.OWNER_EXECUTE)
             setPosixFilePermissions(toPath(), permissions)
@@ -235,7 +256,7 @@ fun registerAppImagePackageTasks() {
             val build_dir: File = tasks.getByName(task_name).outputs.files.toList().single()
 
             appimage_arch = "x86_64"
-            appimage_output_file = build_dir.parentFile.resolve("appimage").resolve(rootProject.name.lowercase() + "-" + getString("version_string") + ".appimage")
+            appimage_output_file = DesktopUtils.getOutputDir(project).resolve(DesktopUtils.getOutputFilename(project) + ".appimage")
 
             appimage_src_dir = projectDir.resolve("appimage")
             appimage_dst_dir = build_dir.resolve(rootProject.name)
@@ -248,24 +269,99 @@ fun registerAppImagePackageTasks() {
     }
 }
 
-fun configureRunTask() {
+fun configureRunTask() = with (DesktopUtils) {
     tasks.getByName<JavaExec>("run") {
         val local_properties: Properties = Properties().apply {
             try {
-                val file: File = rootProject.file(local_properties_path)
+                val file: File = rootProject.file(LOCAL_PROPERTIES_PATH)
                 if (file.isFile) {
                     load(FileInputStream(file))
                 }
             }
             catch (e: Throwable) {
-                RuntimeException("Ignoring exception while loading '$local_properties_path' in configureRunTask()", e).printStackTrace()
+                RuntimeException("Ignoring exception while loading '$LOCAL_PROPERTIES_PATH' in configureRunTask()", e).printStackTrace()
             }
         }
-        executable = local_properties["execTaskJavaExe"]?.toString() ?: return@getByName
+        executable(local_properties["execTaskJavaExe"]?.toString() ?: return@getByName)
     }
 }
 
 afterEvaluate {
     registerAppImagePackageTasks()
     configureRunTask()
+
+    tasks.named<Jar>("packageUberJarForCurrentOS") {
+        isZip64 = true
+    }
+
+    tasks.named<Jar>("packageReleaseUberJarForCurrentOS") {
+        isZip64 = true
+    }
+}
+
+afterEvaluate {
+    tasks.named<Jar>("packageUberJarForCurrentOS") {
+        destinationDirectory = DesktopUtils.getOutputDir(project)
+        archiveFileName = DesktopUtils.getOutputFilename(project) + "-debug.jar"
+        doFirst {
+            DesktopUtils.runChecks(project)
+        }
+        with (DesktopUtils) { excludeUnneededFiles() }
+    }
+    tasks.named<Jar>("packageReleaseUberJarForCurrentOS") {
+        destinationDirectory = DesktopUtils.getOutputDir(project)
+        archiveFileName = DesktopUtils.getOutputFilename(project) + ".jar"
+        doFirst {
+            DesktopUtils.runChecks(project)
+        }
+        with (DesktopUtils) { excludeUnneededFiles() }
+    }
+
+    tasks.withType<AbstractJPackageTask> {
+        if (name == "packageReleaseExe") {
+            // Exe packaging is weird
+            return@withType
+        }
+
+        doFirst {
+            DesktopUtils.runChecks(project)
+        }
+
+        doLast {
+            val is_windows: Boolean = OperatingSystem.current().isWindows
+            val jars_directory: File =
+                outputs.files.singleFile.resolve("spmp").run {
+                    if (is_windows) resolve("app")
+                    else resolve("lib/app")
+                }
+
+            with (DesktopUtils) {
+                jars_directory.removeUnneededJarsFromDir(project, is_windows = is_windows)
+            }
+        }
+    }
+}
+
+private fun AbstractArchiveTask.configureReleasePackageTask(file_extension: String) {
+    val dist_task: Task by tasks.named("createReleaseDistributable")
+    dependsOn(dist_task)
+    group = dist_task.group
+
+    mustRunAfter("finishPackagingReleaseAppImage")
+
+    into("/") {
+        from(dist_task.outputs.files.singleFile)
+    }
+
+    destinationDirectory = DesktopUtils.getOutputDir(project)
+    archiveFileName = DesktopUtils.getOutputFilename(project) + file_extension
+}
+
+tasks.register<Tar>("packageReleaseTarball") {
+    configureReleasePackageTask(".tar.gz")
+    compression = Compression.GZIP
+}
+
+tasks.register<Zip>("packageReleaseZip") {
+    configureReleasePackageTask(".zip")
 }

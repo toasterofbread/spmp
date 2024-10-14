@@ -1,10 +1,10 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import androidx.compose.ui.Modifier
-import dev.toastbits.composekit.settings.ui.item.SliderSettingsItem
 import dev.toastbits.composekit.utils.common.roundTo
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.component.item.SliderSettingsItem
 import dev.toastbits.composekit.utils.common.CustomStringResource
 import dev.toastbits.composekit.utils.common.toCustomResource
 import org.jetbrains.compose.resources.getString

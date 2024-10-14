@@ -1,16 +1,18 @@
 package com.toasterofbread.spmp.model.settings.category
 
-import dev.toastbits.ytmkt.model.ApiAuthenticationState
-import dev.toastbits.composekit.settings.ui.item.SettingsItem
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.SettingsInterface
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.PlayCircle
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.packSetData
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getYtmAuthItem
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.PrefsPageScreen
-import dev.toastbits.composekit.platform.PlatformPreferences
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getYtmAuthItem
+import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.SettingsInterface
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import io.ktor.http.Headers
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.stringResource
@@ -44,7 +46,7 @@ class YoutubeAuthSettings(val context: AppContext): SettingsGroup("YTAUTH", cont
         }
     )
 
-    override val page: CategoryPage? =
+    override fun getPage(): CategoryPage? =
         object : CategoryPage(
             this,
             { stringResource(Res.string.s_cat_youtube_auth) }
@@ -60,4 +62,15 @@ class YoutubeAuthSettings(val context: AppContext): SettingsGroup("YTAUTH", cont
                     YTM_AUTH
                 )
         }
+
+    @Composable
+    override fun getTitle(): String = stringResource(Res.string.s_cat_youtube_auth)
+
+    @Composable
+    override fun getDescription(): String = ""
+
+    @Composable
+    override fun getIcon(): ImageVector = Icons.Outlined.PlayCircle
+
+    override fun getConfigurationItems(): List<SettingsItem> = emptyList()
 }

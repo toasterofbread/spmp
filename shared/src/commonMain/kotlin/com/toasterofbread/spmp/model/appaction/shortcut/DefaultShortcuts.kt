@@ -69,6 +69,12 @@ fun getDefaultShortcuts(): List<Shortcut> =
             NavigationAppAction(AppPageNavigationAction(AppPage.Type.SETTINGS))
         ),
 
+        // Open search
+        Shortcut(
+            KeyboardShortcutTrigger(Key.F.keyCode, listOf(KeyboardShortcutTrigger.KeyboardModifier.CTRL)),
+            NavigationAppAction(AppPageNavigationAction(AppPage.Type.SEARCH))
+        ),
+
         // Navigate back
         Shortcut(
             KeyboardShortcutTrigger(Key.Escape.keyCode),

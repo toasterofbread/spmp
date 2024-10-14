@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.settings.category
 
+import LocalPlayerState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -15,27 +16,27 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.settings.ui.SettingsPageWithItems
-import dev.toastbits.composekit.settings.ui.item.ComposableSettingsItem
-import dev.toastbits.composekit.settings.ui.item.SettingsItem
-import dev.toastbits.composekit.platform.PreferencesGroup
-import dev.toastbits.composekit.platform.PlatformPreferences
 import com.toasterofbread.spmp.platform.AppContext
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.utils.common.amplifyPercent
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PreferencesGroupImpl
+import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
 import dev.toastbits.composekit.settings.ui.SettingsInterface
-import LocalPlayerState
+import dev.toastbits.composekit.settings.ui.SettingsPageWithItems
+import dev.toastbits.composekit.settings.ui.ThemeValues
+import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.utils.common.amplifyPercent
 
 sealed class SettingsGroup(
     key: String,
     prefs: PlatformPreferences
-): PreferencesGroup(key, prefs) {
+): PreferencesGroupImpl(key, prefs) {
     override val group_key: String = key
 
     // val id: String = id.uppercase()
     // abstract val keys: List<SettingsKey>
 
-    abstract val page: CategoryPage?
+//    abstract val page: CategoryPage?
 
     open fun showPage(exporting: Boolean): Boolean = true
 
@@ -52,6 +53,18 @@ sealed class SettingsGroup(
     //         (it as Enum<*>).name == split[1]
     //     }
     // }
+
+    open fun getPage(): CategoryPage? =
+        SimplePage(
+            { getTitle() },
+            { getDescription() },
+            { getConfigurationItems() },
+            { getIcon() },
+            { titleBarEndContent(it) }
+        )
+
+    @Composable
+    protected open fun titleBarEndContent(modifier: Modifier) {}
 
     abstract class CategoryPage(
         val group: SettingsGroup,
@@ -102,9 +115,11 @@ sealed class SettingsGroup(
 
         override fun getTitleItem(context: AppContext): SettingsItem? =
             ComposableSettingsItem { modifier ->
+                val theme: ThemeValues = LocalApplicationTheme.current
                 ElevatedCard(
                     onClick = {
-                        openPageOnInterface(context, this)
+                        TODO()
+//                        openPageOnInterface(context, inter)
                     },
                     modifier = modifier.fillMaxWidth(),
                     colors = CardDefaults.elevatedCardColors(

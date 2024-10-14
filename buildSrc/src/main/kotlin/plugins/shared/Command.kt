@@ -17,7 +17,8 @@ class CommandClass(project: Project): Project by project {
 
     fun getCurrentGitTag(): String? {
         try {
-            return cmd("git", "tag", "--points-at", "HEAD").ifBlank { null }
+            val tags: List<String> = cmd("git", "tag", "--points-at", "HEAD").split('\n')
+            return tags.lastOrNull()
         }
         catch (e: Throwable) {
             return null

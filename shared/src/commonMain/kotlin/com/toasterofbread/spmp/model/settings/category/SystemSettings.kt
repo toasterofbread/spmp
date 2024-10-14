@@ -3,30 +3,31 @@ package com.toasterofbread.spmp.model.settings.category
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Tune
 import androidx.compose.runtime.Composable
-import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getSystemCategoryItems
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.Language
-import dev.toastbits.composekit.platform.PlatformPreferences
-import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.*
-import org.jetbrains.compose.resources.FontResource
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getSystemCategoryItems
 import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import org.jetbrains.compose.resources.FontResource
 import org.jetbrains.compose.resources.stringResource
-import spmp.shared.generated.resources.s_key_interface_lang
-import spmp.shared.generated.resources.s_sub_interface_lang
-import spmp.shared.generated.resources.s_key_data_lang
-import spmp.shared.generated.resources.s_sub_data_lang
-import spmp.shared.generated.resources.s_key_font
-import spmp.shared.generated.resources.s_key_ui_scale
-import spmp.shared.generated.resources.s_key_library_path
-import spmp.shared.generated.resources.s_sub_library_path
-import spmp.shared.generated.resources.s_key_persistent_queue
-import spmp.shared.generated.resources.s_sub_persistent_queue
-import spmp.shared.generated.resources.s_key_add_songs_to_history
-import spmp.shared.generated.resources.s_cat_general
-import spmp.shared.generated.resources.s_cat_desc_general
-import spmp.shared.generated.resources.font_option_system
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.`font_option_default_$x`
 import spmp.shared.generated.resources.font_option_hc_maru_gothic
+import spmp.shared.generated.resources.font_option_system
+import spmp.shared.generated.resources.hc_maru_gothic
+import spmp.shared.generated.resources.s_cat_general
+import spmp.shared.generated.resources.s_key_add_songs_to_history
+import spmp.shared.generated.resources.s_key_data_lang
+import spmp.shared.generated.resources.s_key_font
+import spmp.shared.generated.resources.s_key_interface_lang
+import spmp.shared.generated.resources.s_key_library_path
+import spmp.shared.generated.resources.s_key_persistent_queue
+import spmp.shared.generated.resources.s_key_ui_scale
+import spmp.shared.generated.resources.s_sub_data_lang
+import spmp.shared.generated.resources.s_sub_interface_lang
+import spmp.shared.generated.resources.s_sub_library_path
+import spmp.shared.generated.resources.s_sub_persistent_queue
 
 class SystemSettings(
     val context: AppContext,
@@ -68,13 +69,16 @@ class SystemSettings(
         getDefaultValue = { false }
     )
 
-    override val page: CategoryPage? =
-        SimplePage(
-            { stringResource(Res.string.s_cat_general) },
-            { stringResource(Res.string.s_cat_desc_general) },
-            { getSystemCategoryItems(context, available_languages) },
-            { Icons.Outlined.Tune }
-        )
+    @Composable
+    override fun getTitle(): String = stringResource(Res.string.s_cat_general)
+
+    @Composable
+    override fun getDescription(): String = stringResource(Res.string.s_cat_general)
+
+    @Composable
+    override fun getIcon(): ImageVector = Icons.Outlined.Tune
+
+    override fun getConfigurationItems(): List<SettingsItem> = getSystemCategoryItems(context, available_languages)
 }
 
 enum class FontMode {

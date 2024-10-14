@@ -116,7 +116,7 @@ fun ProjectInfoDialog(modifier: Modifier = Modifier, close: () -> Unit) {
                         FilledTonalButton(
                             {
                                 val settings_page: SettingsAppPage = player.app_page_state.Settings
-                                player.settings.deps.page!!.openPageOnInterface(player.context, settings_page.settings_interface)
+                                player.settings.deps.getPage()!!.openPageOnInterface(player.context, settings_page.settings_interface)
 
                                 if (player.app_page != settings_page) {
                                     player.openAppPage(settings_page)

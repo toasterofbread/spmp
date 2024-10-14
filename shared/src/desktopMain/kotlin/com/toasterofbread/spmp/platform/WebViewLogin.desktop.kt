@@ -44,11 +44,18 @@ actual suspend fun initWebViewLogin(
                     },
                     onError = { error ->
                         if (error != null) {
-                            continuation.resumeWithException(error)
+                            error.printStackTrace()
+                            try {
+                                continuation.resumeWithException(error)
+                            }
+                            catch (_: IllegalStateException) {}
                         }
                     },
                     onRestartRequired = {
-                        continuation.resume(true)
+                        try {
+                            continuation.resume(true)
+                        }
+                        catch (_: IllegalStateException) {}
                     }
                 )
             }

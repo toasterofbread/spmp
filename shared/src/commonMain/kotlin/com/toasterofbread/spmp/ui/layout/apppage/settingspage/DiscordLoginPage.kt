@@ -21,6 +21,8 @@ internal fun getDiscordLoginPage(discord_auth: PreferencesProperty<String>, manu
             @Composable
             get() = false
 
+        override val apply_padding: Boolean = false
+
         override val title: String?
             @Composable
             get() = if (manual) stringResource(Res.string.discord_manual_login_title) else null

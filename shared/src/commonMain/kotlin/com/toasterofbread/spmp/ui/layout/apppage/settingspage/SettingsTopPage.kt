@@ -63,7 +63,7 @@ import dev.toastbits.composekit.platform.PlatformFile
 import dev.toastbits.composekit.platform.composable.BackHandler
 import dev.toastbits.composekit.platform.composable.platformClickable
 import dev.toastbits.composekit.platform.vibrateShort
-import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.utils.common.addUnique
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.common.toggleItemPresence

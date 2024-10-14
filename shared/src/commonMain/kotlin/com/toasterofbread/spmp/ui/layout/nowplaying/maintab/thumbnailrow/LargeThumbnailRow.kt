@@ -50,8 +50,12 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.OVERLAY_MENU_ANIMATION_DURATION
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.*
 import com.toasterofbread.spmp.platform.SongVideoPlayback
+<<<<<<< HEAD
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+=======
+import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.songtheme.SongThemePlayerOverlayMenu
+>>>>>>> main
 import kotlin.math.absoluteValue
 
 internal typealias ColourpickCallback = (Color?) -> Unit

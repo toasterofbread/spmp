@@ -1,37 +1,39 @@
 package com.toasterofbread.spmp.model.settings.category
 
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.DesktopWindows
 import androidx.compose.material.icons.outlined.Android
+import androidx.compose.material.icons.outlined.DesktopWindows
 import androidx.compose.material.icons.outlined.Web
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.toasterofbread.spmp.ProjectBuildConfig
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getPlatformCategoryItems
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.platform.PlatformPreferences
-import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getPlatformCategoryItems
-import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.s_key_startup_command
-import spmp.shared.generated.resources.s_sub_startup_command
-import spmp.shared.generated.resources.s_key_force_software_renderer
-import spmp.shared.generated.resources.s_sub_force_software_renderer
-import spmp.shared.generated.resources.s_key_server_ip
-import spmp.shared.generated.resources.s_key_server_port
-import spmp.shared.generated.resources.s_key_local_server_command
-import spmp.shared.generated.resources.s_sub_local_server_command
-import spmp.shared.generated.resources.s_key_server_local_start_automatically
-import spmp.shared.generated.resources.s_sub_server_local_start_automatically
-import spmp.shared.generated.resources.s_key_enable_external_server_mode
-import spmp.shared.generated.resources.s_sub_enable_external_server_mode
-import spmp.shared.generated.resources.s_key_external_server_mode_ui_only
-import spmp.shared.generated.resources.s_sub_external_server_mode_ui_only
 import spmp.shared.generated.resources.s_cat_android
-import spmp.shared.generated.resources.s_cat_desktop
-import spmp.shared.generated.resources.s_cat_web
 import spmp.shared.generated.resources.s_cat_desc_android
 import spmp.shared.generated.resources.s_cat_desc_desktop
 import spmp.shared.generated.resources.s_cat_desc_web
+import spmp.shared.generated.resources.s_cat_desktop
+import spmp.shared.generated.resources.s_cat_web
+import spmp.shared.generated.resources.s_key_enable_external_server_mode
+import spmp.shared.generated.resources.s_key_external_server_mode_ui_only
+import spmp.shared.generated.resources.s_key_force_software_renderer
+import spmp.shared.generated.resources.s_key_local_server_command
+import spmp.shared.generated.resources.s_key_server_ip
+import spmp.shared.generated.resources.s_key_server_local_start_automatically
+import spmp.shared.generated.resources.s_key_server_port
+import spmp.shared.generated.resources.s_key_startup_command
+import spmp.shared.generated.resources.s_sub_enable_external_server_mode
+import spmp.shared.generated.resources.s_sub_external_server_mode_ui_only
+import spmp.shared.generated.resources.s_sub_force_software_renderer
+import spmp.shared.generated.resources.s_sub_local_server_command
+import spmp.shared.generated.resources.s_sub_server_local_start_automatically
+import spmp.shared.generated.resources.s_sub_startup_command
 
 class PlatformSettings(val context: AppContext): SettingsGroup("DESKTOP", context.getPrefs()) {
     val STARTUP_COMMAND: PreferencesProperty<String> by property(
@@ -75,29 +77,29 @@ class PlatformSettings(val context: AppContext): SettingsGroup("DESKTOP", contex
         getDefaultValue = { false }
     )
 
-    override val page: CategoryPage? =
-        SimplePage(
-            {
-                when (Platform.current) {
-                    Platform.ANDROID -> stringResource(Res.string.s_cat_android)
-                    Platform.DESKTOP -> stringResource(Res.string.s_cat_desktop)
-                    Platform.WEB -> stringResource(Res.string.s_cat_web)
-                }
-            },
-            {
-                when (Platform.current) {
-                    Platform.ANDROID -> stringResource(Res.string.s_cat_desc_android)
-                    Platform.DESKTOP -> stringResource(Res.string.s_cat_desc_desktop)
-                    Platform.WEB -> stringResource(Res.string.s_cat_desc_web)
-                }
-            },
-            { getPlatformCategoryItems(context) },
-            {
-                when (Platform.current) {
-                    Platform.ANDROID -> Icons.Outlined.Android
-                    Platform.DESKTOP -> Icons.Outlined.DesktopWindows
-                    Platform.WEB -> Icons.Outlined.Web
-                }
-            }
-        )
+    @Composable
+    override fun getTitle(): String =
+        when (Platform.current) {
+            Platform.ANDROID -> stringResource(Res.string.s_cat_android)
+            Platform.DESKTOP -> stringResource(Res.string.s_cat_desktop)
+            Platform.WEB -> stringResource(Res.string.s_cat_web)
+        }
+
+    @Composable
+    override fun getDescription(): String =
+        when (Platform.current) {
+            Platform.ANDROID -> stringResource(Res.string.s_cat_desc_android)
+            Platform.DESKTOP -> stringResource(Res.string.s_cat_desc_desktop)
+            Platform.WEB -> stringResource(Res.string.s_cat_desc_web)
+        }
+
+    @Composable
+    override fun getIcon(): ImageVector =
+        when (Platform.current) {
+            Platform.ANDROID -> Icons.Outlined.Android
+            Platform.DESKTOP -> Icons.Outlined.DesktopWindows
+            Platform.WEB -> Icons.Outlined.Web
+        }
+
+    override fun getConfigurationItems(): List<SettingsItem> = getPlatformCategoryItems(context)
 }

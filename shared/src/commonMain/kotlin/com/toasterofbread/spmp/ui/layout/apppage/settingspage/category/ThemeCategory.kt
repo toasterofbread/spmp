@@ -5,10 +5,15 @@ import androidx.compose.runtime.setValue
 import isWindowTransparencySupported
 import androidx.compose.ui.Modifier
 import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.settings.ui.item.*
+import dev.toastbits.composekit.settings.ui.component.item.*
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.platform.AppContext
+<<<<<<< HEAD
 import com.toasterofbread.spmp.platform.isVideoPlaybackSupported
+=======
+import com.toasterofbread.spmp.platform.doesPlatformSupportVideoPlayback
+import com.toasterofbread.spmp.resources.getString
+>>>>>>> main
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
@@ -109,7 +114,7 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> =
             context.settings.theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY
         ),
 
-        if (isVideoPlaybackSupported())
+        if (doesPlatformSupportVideoPlayback())
             MultipleChoiceSettingsItem(
                 context.settings.theme.NOWPLAYING_DEFAULT_VIDEO_POSITION
             ) { position ->

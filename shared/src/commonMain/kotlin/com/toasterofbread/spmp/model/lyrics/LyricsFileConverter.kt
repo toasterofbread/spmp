@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.model.lyrics
 
-import SpMp
 import dev.toastbits.composekit.platform.PlatformFile
 import dev.toastbits.composekit.utils.common.indexOfOrNull
 import com.toasterofbread.spmp.ProjectBuildConfig
@@ -32,7 +31,7 @@ object LyricsFileConverter {
                 appendLine("[id:${lyrics.reference.id}]")
 
                 appendLine("[re:${getString(Res.string.app_name)}]")
-                appendLine("[ve:${ProjectBuildConfig.GIT_COMMIT_HASH}]")
+                appendLine("[ve:${ProjectBuildConfig.GIT_TAG ?: ProjectBuildConfig.GIT_COMMIT_HASH}]")
             }
         )
     }

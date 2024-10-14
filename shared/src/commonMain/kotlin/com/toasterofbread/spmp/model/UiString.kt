@@ -91,3 +91,14 @@ fun UiString.Companion.deserialise(data: String): UiString {
 
 suspend fun UiString.getString(context: AppContext): String =
     getString(context.getUiLanguage())
+
+//    companion object {
+//        fun mediaItemPage(key: String, item_type: MediaItemType, context: AppContext, source_language: String = context.getDataLanguage()): UiString =
+//            when (item_type) {
+//                MediaItemType.ARTIST -> Type.ARTIST_PAGE.createFromKey(key, context)
+//                else -> {
+//                    SpMp.onUnlocalisedStringFound(item_type.toString(), key, source_language)
+//                    RawLocalisedString(key)
+//                }
+//            }
+//    }

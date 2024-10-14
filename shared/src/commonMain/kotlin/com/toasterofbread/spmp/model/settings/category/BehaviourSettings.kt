@@ -2,10 +2,13 @@ package com.toasterofbread.spmp.model.settings.category
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.TouchApp
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PreferencesProperty
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getBehaviourCategoryItems
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_key_open_np_on_song_played
@@ -94,11 +97,14 @@ class BehaviourSettings(val context: AppContext): SettingsGroup("BEHAVIOUR", con
         }
     )
 
-    override val page: CategoryPage? =
-        SimplePage(
-            { stringResource(Res.string.s_cat_behaviour) },
-            { stringResource(Res.string.s_cat_desc_behaviour) },
-            { getBehaviourCategoryItems(context) },
-            { Icons.Outlined.TouchApp }
-        )
+    @Composable
+    override fun getTitle(): String = stringResource(Res.string.s_cat_behaviour)
+
+    @Composable
+    override fun getDescription(): String = stringResource(Res.string.s_cat_desc_behaviour)
+
+    @Composable
+    override fun getIcon(): ImageVector = Icons.Outlined.TouchApp
+
+    override fun getConfigurationItems(): List<SettingsItem> = getBehaviourCategoryItems(context)
 }

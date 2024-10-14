@@ -1,10 +1,10 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import androidx.compose.ui.Modifier
-import dev.toastbits.composekit.settings.ui.item.GroupSettingsItem
-import dev.toastbits.composekit.settings.ui.item.SettingsItem
-import dev.toastbits.composekit.settings.ui.item.TextFieldSettingsItem
-import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.GroupSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.TextFieldSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.platform.AppContext

@@ -1,5 +1,11 @@
 package plugin.spmp
 
+import org.gradle.api.Project
+import org.gradle.kotlin.dsl.extra
+
+fun Project.getDeps(): SpMpDeps =
+    SpMpDeps(extra.properties)
+
 class SpMpDeps(extra: Map<String, Any>) {
     companion object {
         const val OUTPUT_DIR: String = "generated/sources/dependencyList/main/com/toasterofbread/spmp"
@@ -26,15 +32,15 @@ class SpMpDeps(extra: Map<String, Any>) {
     val dependencies: Map<String, DependencyInfo> =
         mapOf(
             "dev.toastbits:spms" to DependencyInfo(
-                version = "0.3.1-wasm2",
+                version = "0.4.2-SNAPSHOT",
                 name = "spmp-server",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/spmp-server",
-                license = "GPL-2.0",
+                license = "GPL-3.0",
                 license_url = "https://github.com/toasterofbread/spmp-server/blob/6dde651ffc102d604ac7ecd5ac7471b1572fd2e6/LICENSE"
             ),
             "dev.toastbits.composekit" to DependencyInfo(
-                version = "e83119148b",
+                version = "0.0.3-SNAPSHOT",
                 name = "ComposeKit",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/composekit",
@@ -91,7 +97,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/androidx/androidx/blob/8d6777b558dc315e96ee908502e847e2cd29e216/LICENSE.txt"
             ),
             "androidx.media3" to DependencyInfo(
-                version = "1.2.0",
+                version = "1.4.1",
                 name = "AndroidX Media",
                 author = "AOSP",
                 url = "https://github.com/androidx/media",
@@ -248,15 +254,15 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/anggrayudi/SimpleStorage/blob/cdab9945ccaeb6deae3906db3af98a87bc450e5f/LICENSE"
             ),
             "io.github.jan-tennert.supabase:functions-kt" to DependencyInfo(
-                version = "1.3.2",
+                version = "2.5.3-wasm0",
                 name = "supabase-kt",
                 author = " jan-tennert",
                 url = "https://github.com/supabase-community/supabase-kt",
                 license = "MIT",
                 license_url = "https://github.com/supabase-community/supabase-kt/blob/d198a112ba7e1b11d83cd28eba74fdd863d259c3/LICENSE"
             ),
-            "dev.toastbits.compose-webview-multiplatform" to DependencyInfo(
-                version = "2d39439922",
+            "com.github.toasterofbread.compose-webview-multiplatform" to DependencyInfo(
+                version = "21331f37c1",
                 name = "WebView for JetBrains Compose Multiplatform",
                 author = "KevinnZou",
                 url = "https://github.com/KevinnZou/compose-webview-multiplatform",

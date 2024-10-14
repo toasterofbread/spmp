@@ -11,6 +11,7 @@ import dev.toastbits.ytmkt.model.external.MediaItemYoutubePage
 import dev.toastbits.ytmkt.model.external.PlainYoutubePage
 import dev.toastbits.ytmkt.model.external.YoutubePage
 import dev.toastbits.ytmkt.uistrings.UiString
+import kotlinx.coroutines.runBlocking
 
 enum class YoutubePageType {
     MediaItem, ListPage, Plain;
@@ -94,6 +95,6 @@ suspend fun YoutubePage.open(player: PlayerState, title: UiString?) {
                 browse_params = getBrowseParamsData()
             )
         is PlainYoutubePage ->
-            player.openViewMorePage(browse_id, title?.getString(player.context.getUiLanguage()))
+            player.openViewMorePage(browse_id, runBlocking { title?.getString(player.context.getUiLanguage()) })
     }
 }

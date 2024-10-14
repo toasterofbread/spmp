@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.settings.ui.SettingsPage
 import dev.toastbits.composekit.settings.ui.SettingsPageWithItems
-import dev.toastbits.composekit.settings.ui.item.ComposableSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
 import dev.toastbits.composekit.utils.common.roundTo
 import dev.toastbits.composekit.utils.composable.RecomposeOnInterval
 import com.toasterofbread.spmp.platform.AppContext

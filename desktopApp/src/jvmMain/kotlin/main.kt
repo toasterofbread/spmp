@@ -48,8 +48,14 @@ fun main(args: Array<String>) {
     }
 
     val arguments: ProgramArguments =
-        runBlocking { ProgramArguments.parse(args) }
-        ?: return
+        runBlocking {
+            ProgramArguments.parse(
+                args,
+                onIllegalArgument = { argument ->
+                    println("Ignoring unknown argument '$argument'")
+                }
+            )
+        } ?: return
 
     SpMp.onStart()
 

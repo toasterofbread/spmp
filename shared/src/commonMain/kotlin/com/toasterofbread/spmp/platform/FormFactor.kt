@@ -8,6 +8,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.State
 import androidx.compose.ui.unit.dp
 import LocalPlayerState
+import androidx.compose.ui.unit.DpSize
 
 enum class FormFactor {
     PORTRAIT,
@@ -22,23 +23,29 @@ enum class FormFactor {
             this.form_factor_override = form_factor_override
         }
 
-        @Composable
-        fun observe(min_portrait_ratio: Float? = null): State<FormFactor> {
-            val player: PlayerState = LocalPlayerState.current
-            return remember { derivedStateOf {
-                getCurrent(player)
-            } }
-        }
-
-        fun getCurrent(player: PlayerState): FormFactor {
+        fun getCurrent(screen_size: DpSize): FormFactor {
             form_factor_override?.also {
                 return it
             }
 
+            if (screen_size.width >= 500.dp) {
+                return FormFactor.LANDSCAPE
+            }
+
             return (
-                if (player.screen_size.width < 500.dp) FormFactor.PORTRAIT
-                else FormFactor.LANDSCAPE
+                if (screen_size.width > screen_size.height) FormFactor.LANDSCAPE
+                else FormFactor.PORTRAIT
             )
+        }
+
+        fun getCurrent(player: PlayerState): FormFactor = getCurrent(player.screen_size)
+
+        @Composable
+        fun observe(min_portrait_ratio: Float? = null): State<FormFactor> {
+            val screen_size: DpSize by LocalPlayerState.current.screen_size_state
+            return remember { derivedStateOf {
+                form_factor_override ?: getCurrent(screen_size)
+            } }
         }
     }
 }

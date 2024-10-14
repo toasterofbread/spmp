@@ -41,7 +41,7 @@ data class RadioState(
         val result: RadioLoadResult = (
             if (continuation == null) loadInitialSongs(context, item)
             else loadContinuationSongs(context, item, continuation)
-        ) ?: return@runCatching null
+        )
 
         if (shuffle) {
             return@runCatching result.copy(songs = result.songs.shuffled())
@@ -76,9 +76,13 @@ data class RadioState(
                 )
             }
             is Artist -> {
+                val shufflePlaylistId: String =
+                    item.ShufflePlaylistId.get(context.database)
+                    ?: throw NullPointerException("Artist ${item.id} has no shuffle playlist ID")
+
                 val radio: ArtistShuffleEndpoint.RadioData =
                     context.ytapi.ArtistShuffle.getArtistShuffle(
-                        artist_shuffle_playlist_id = item.id,
+                        artist_shuffle_playlist_id = shufflePlaylistId,
                         continuation = null
                     ).getOrThrow()
 

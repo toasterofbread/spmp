@@ -1,8 +1,19 @@
 <resources>
     <string name="language_name">UNSET</string>
 
-    <string name="version_string" translatable="false">0.4.0-beta1</string>
-    <string name="version_code" translatable="false">14</string>
+    <!--
+        Release checklist:
+        - Gradle clean
+        - Things to update on version change:
+            - flake.nix
+            - toasterofbread/flatpak-repo
+            - Nix flake reference in docs
+            - AUR package
+            - dev.toastbits.spmp.metainfo.xml
+            - Flathub
+    -->
+    <string name="version_string" translatable="false">0.4.1</string>
+    <string name="version_code" translatable="false">21</string>
 
     <string name="app_name" translatable="false">SpMp</string>
     <string name="app_name_debug" translatable="false">SpMp (debug)</string>
@@ -174,6 +185,10 @@
     <string name="player_overlay_menu_action_open_related">Open related</string>
     <string name="player_overlay_menu_action_download">Download</string>
 
+    <string name="song_theme_menu_section_foreground">Foreground</string>
+    <string name="song_theme_menu_section_background">Background</string>
+    <string name="song_theme_menu_section_video">Video</string>
+
     <string name="song_theme_menu_corner_radius">Corner radius</string>
     <string name="song_theme_menu_gradient_depth">Gradient depth</string>
     <string name="song_theme_menu_background_image_opacity">Background content opacity</string>
@@ -291,6 +306,7 @@
     <string name="report_error">Report</string>
     <string name="wrap_text_switch_label">Wrap text</string>
     <string name="upload_to_paste_dot_ee">Upload to Paste.ee</string>
+    <string name="unknown_host_name">Unknown</string>
 
     <string name="lpm_action_radio">Start radio</string>
     <string name="lpm_action_play">Play</string>
@@ -782,7 +798,7 @@
     <string name="warning_discord_kizzy">SpMp uses the KizzyRPC library to set your Discord account's status. This involves using the Discord Gateway connection, which may be considered a violation of Discord's TOS. However, there are no known cases of user accounts being suspended for this reason. Use at your own risk.&#xA;&#xA;See https://github.com/dead8309/Kizzy for more information.</string>
     <string name="info_flatpak_discord_$url">The Flatpak version of SpMp may require additional setup to use Discord status. See $url if you have issues.</string>
 
-    <string name="webview_runtime_downloading">Downloading runtime...</string>
+    <string name="webview_runtime_downloading">Downloading browser runtime...</string>
     <string name="webview_restart_required">Please restart the application to continue</string>
 
     <string name="warning_spms_api_version_mismatch">SpMs API version mismatch</string>

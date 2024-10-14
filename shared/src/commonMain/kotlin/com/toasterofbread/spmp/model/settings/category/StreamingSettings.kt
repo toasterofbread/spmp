@@ -3,36 +3,38 @@ package com.toasterofbread.spmp.model.settings.category
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Speaker
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
-import com.toasterofbread.spmp.platform.download.DownloadMethod
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.download.DownloadMethod
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getStreamingCategoryItems
-import dev.toastbits.ytmkt.model.YtmApi
-import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
 import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
+import dev.toastbits.ytmkt.model.YtmApi
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.s_key_video_formats_endpoint
-import spmp.shared.generated.resources.s_key_auto_download_enabled
-import spmp.shared.generated.resources.s_key_auto_download_threshold
-import spmp.shared.generated.resources.s_sub_auto_download_threshold
-import spmp.shared.generated.resources.s_key_auto_download_on_metered
-import spmp.shared.generated.resources.s_key_stream_audio_quality
-import spmp.shared.generated.resources.s_sub_stream_audio_quality
-import spmp.shared.generated.resources.s_key_download_audio_quality
-import spmp.shared.generated.resources.s_sub_download_audio_quality
-import spmp.shared.generated.resources.s_key_enable_audio_normalisation
-import spmp.shared.generated.resources.s_sub_enable_audio_normalisation
-import spmp.shared.generated.resources.s_key_enable_silence_skipping
-import spmp.shared.generated.resources.s_key_download_method
-import spmp.shared.generated.resources.s_sub_download_method
-import spmp.shared.generated.resources.s_key_skip_download_method_confirmation
-import spmp.shared.generated.resources.s_sub_skip_download_method_confirmation
-import spmp.shared.generated.resources.s_cat_streaming
 import spmp.shared.generated.resources.s_cat_desc_streaming
-import spmp.shared.generated.resources.video_format_endpoint_youtubei
-import spmp.shared.generated.resources.video_format_endpoint_piped
+import spmp.shared.generated.resources.s_cat_streaming
+import spmp.shared.generated.resources.s_key_auto_download_enabled
+import spmp.shared.generated.resources.s_key_auto_download_on_metered
+import spmp.shared.generated.resources.s_key_auto_download_threshold
+import spmp.shared.generated.resources.s_key_download_audio_quality
+import spmp.shared.generated.resources.s_key_download_method
+import spmp.shared.generated.resources.s_key_enable_audio_normalisation
+import spmp.shared.generated.resources.s_key_enable_silence_skipping
+import spmp.shared.generated.resources.s_key_skip_download_method_confirmation
+import spmp.shared.generated.resources.s_key_stream_audio_quality
+import spmp.shared.generated.resources.s_key_video_formats_endpoint
+import spmp.shared.generated.resources.s_sub_auto_download_threshold
+import spmp.shared.generated.resources.s_sub_download_audio_quality
+import spmp.shared.generated.resources.s_sub_download_method
+import spmp.shared.generated.resources.s_sub_enable_audio_normalisation
+import spmp.shared.generated.resources.s_sub_skip_download_method_confirmation
+import spmp.shared.generated.resources.s_sub_stream_audio_quality
 import spmp.shared.generated.resources.video_format_endpoint_newpipe
+import spmp.shared.generated.resources.video_format_endpoint_piped
+import spmp.shared.generated.resources.video_format_endpoint_youtubei
 
 class StreamingSettings(val context: AppContext): SettingsGroup("STREAMING", context.getPrefs()) {
     val VIDEO_FORMATS_METHOD: PreferencesProperty<VideoFormatsEndpointType> by enumProperty(
@@ -86,13 +88,17 @@ class StreamingSettings(val context: AppContext): SettingsGroup("STREAMING", con
         getDefaultValue = { false }
     )
 
-    override val page: CategoryPage? =
-        SimplePage(
-            { stringResource(Res.string.s_cat_streaming) },
-            { stringResource(Res.string.s_cat_desc_streaming) },
-            { getStreamingCategoryItems(context) },
-            { Icons.Outlined.Speaker }
-        )
+    @Composable
+    override fun getTitle(): String = stringResource(Res.string.s_cat_streaming)
+
+    @Composable
+    override fun getDescription(): String = stringResource(Res.string.s_cat_desc_streaming)
+
+    @Composable
+    override fun getIcon(): ImageVector = Icons.Outlined.Speaker
+
+    override fun getConfigurationItems(): List<SettingsItem> = getStreamingCategoryItems(context)
+
 }
 
 enum class VideoFormatsEndpointType {

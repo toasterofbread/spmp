@@ -1,76 +1,84 @@
 package com.toasterofbread.spmp.model.settings.category
 
-import dev.toastbits.composekit.settings.ui.item.ComposableSettingsItem
-import dev.toastbits.composekit.utils.common.thenIf
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.LibraryBooks
-import androidx.compose.material.icons.filled.OpenInNew
-import androidx.compose.material.icons.filled.Code
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.Alignment
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.offset
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.background
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Text
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.LocalTextStyle
-import androidx.compose.material3.Button
-import com.toasterofbread.spmp.SpMpDeps
-import com.toasterofbread.spmp.DependencyInfo
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.platform.AppContext
 import LocalPlayerState
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.outlined.LibraryBooks
+import androidx.compose.material.icons.filled.Code
+import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.LocalTextStyle
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
+import com.toasterofbread.spmp.DependencyInfo
+import com.toasterofbread.spmp.SpMpDeps
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.utils.common.thenIf
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.s_cat_dependencies
-import spmp.shared.generated.resources.s_cat_desc_dependencies
-import spmp.shared.generated.resources.dependency_list_title
-import spmp.shared.generated.resources.dependency_list_dep_using_fork
 import spmp.shared.generated.resources.`dependency_list_dep_$author`
 import spmp.shared.generated.resources.`dependency_list_dep_$license`
+import spmp.shared.generated.resources.dependency_list_dep_using_fork
 import spmp.shared.generated.resources.dependency_list_dep_view_source
+import spmp.shared.generated.resources.dependency_list_title
+import spmp.shared.generated.resources.s_cat_dependencies
+import spmp.shared.generated.resources.s_cat_desc_dependencies
 
 class DependencySettings(val context: AppContext): SettingsGroup("DEPENDENCY", context.getPrefs()) {
-    override val page: CategoryPage? =
-        SimplePage(
-            { stringResource(Res.string.s_cat_dependencies) },
-            { stringResource(Res.string.s_cat_desc_dependencies) },
-            { listOf(
-                ComposableSettingsItem {
-                    DependencyList(Modifier.fillMaxSize())
-                }
-            ) },
-            { Icons.Outlined.LibraryBooks },
-            titleBarEndContent = { modifier ->
-                val player: PlayerState = LocalPlayerState.current
+    @Composable
+    override fun getTitle(): String = stringResource(Res.string.s_cat_dependencies)
 
-                if (player.context.canOpenUrl()) {
-                    IconButton(
-                        { player.context.openUrl("https://github.com/toasterofbread/spmp/blob/main/buildSrc/src/main/kotlin/plugins/spmp/Dependencies.kt") },
-                        modifier
-                    ) {
-                        Icon(Icons.Default.OpenInNew, null)
-                    }
-                }
+    @Composable
+    override fun getDescription(): String = stringResource(Res.string.s_cat_desc_dependencies)
+
+    @Composable
+    override fun getIcon(): ImageVector = Icons.AutoMirrored.Outlined.LibraryBooks
+
+    override fun getConfigurationItems(): List<SettingsItem> =
+        listOf(
+            ComposableSettingsItem {
+                DependencyList(Modifier.fillMaxSize())
             }
         )
+
+    @Composable
+    override fun titleBarEndContent(modifier: Modifier) {
+        val player: PlayerState = LocalPlayerState.current
+
+        if (player.context.canOpenUrl()) {
+            IconButton(
+                { player.context.openUrl("https://github.com/toasterofbread/spmp/blob/main/buildSrc/src/main/kotlin/plugins/spmp/Dependencies.kt") },
+                modifier
+            ) {
+                Icon(Icons.Default.OpenInNew, null)
+            }
+        }
+    }
 }
 
 @Composable

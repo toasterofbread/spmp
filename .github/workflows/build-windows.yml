@@ -50,11 +50,17 @@ jobs:
     - name: Set up Gradle
       uses: gradle/gradle-build-action@v3
 
-    - name: Build exe
-      run: .\gradlew.bat desktopApp:packageReleaseExe
+    - name: Build zip and exe
+      run: .\gradlew.bat desktopApp:packageReleaseZip desktopApp:packageReleaseExe -PGIT_TAG_OVERRIDE="v0.4.0"
+
+    - name: Upload zip artifact
+      uses: actions/upload-artifact@v3
+      with:
+        name: spmp-windows-release-zip
+        path: desktopApp/build/outputs/*.zip
 
     - name: Upload exe artifact
       uses: actions/upload-artifact@v3
       with:
-        name: spmp-windows-release
+        name: spmp-windows-release-exe
         path: desktopApp/build/compose/binaries/main-release/exe/*.exe

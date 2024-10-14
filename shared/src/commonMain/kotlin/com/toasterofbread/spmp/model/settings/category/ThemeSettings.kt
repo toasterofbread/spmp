@@ -3,37 +3,38 @@ package com.toasterofbread.spmp.model.settings.category
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getThemeCategoryItems
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
-import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.settings.ui.NamedTheme
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.getDefaultCatppuccinThemes
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.s_key_current_theme
-import spmp.shared.generated.resources.s_theme_editor_title
+import spmp.shared.generated.resources.s_cat_theme
 import spmp.shared.generated.resources.s_key_accent_source
-import spmp.shared.generated.resources.s_key_np_theme_mode
-import spmp.shared.generated.resources.s_key_np_default_gradient_depth
+import spmp.shared.generated.resources.s_key_current_theme
+import spmp.shared.generated.resources.s_key_enable_window_transparency
 import spmp.shared.generated.resources.s_key_np_default_background_image_video_opacity
-import spmp.shared.generated.resources.s_key_np_default_video_position
+import spmp.shared.generated.resources.s_key_np_default_gradient_depth
+import spmp.shared.generated.resources.s_key_np_default_image_corner_rounding
 import spmp.shared.generated.resources.s_key_np_default_landscape_queue_opacity
 import spmp.shared.generated.resources.s_key_np_default_shadow_radius
-import spmp.shared.generated.resources.s_key_np_default_image_corner_rounding
-import spmp.shared.generated.resources.s_key_np_default_wave_speed
-import spmp.shared.generated.resources.s_key_np_default_wave_opacity
-import spmp.shared.generated.resources.s_key_show_expanded_player_wave
-import spmp.shared.generated.resources.s_key_enable_window_transparency
-import spmp.shared.generated.resources.s_sub_enable_window_transparency
-import spmp.shared.generated.resources.s_key_window_background_opacity
-import spmp.shared.generated.resources.s_sub_window_background_opacity
-import spmp.shared.generated.resources.s_cat_theme
-import spmp.shared.generated.resources.s_cat_desc_theme
-import spmp.shared.generated.resources.s_key_np_default_video_position_none
+import spmp.shared.generated.resources.s_key_np_default_video_position
 import spmp.shared.generated.resources.s_key_np_default_video_position_background
+import spmp.shared.generated.resources.s_key_np_default_video_position_none
 import spmp.shared.generated.resources.s_key_np_default_video_position_thumbnail
+import spmp.shared.generated.resources.s_key_np_default_wave_opacity
+import spmp.shared.generated.resources.s_key_np_default_wave_speed
+import spmp.shared.generated.resources.s_key_np_theme_mode
+import spmp.shared.generated.resources.s_key_show_expanded_player_wave
+import spmp.shared.generated.resources.s_key_window_background_opacity
+import spmp.shared.generated.resources.s_sub_enable_window_transparency
+import spmp.shared.generated.resources.s_sub_window_background_opacity
+import spmp.shared.generated.resources.s_theme_editor_title
 
 class ThemeSettings(val context: AppContext): SettingsGroup("THEME", context.getPrefs()) {
     val CURRENT_THEME: PreferencesProperty<Int> by property(
@@ -64,7 +65,7 @@ class ThemeSettings(val context: AppContext): SettingsGroup("THEME", context.get
     val NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY: PreferencesProperty<Float> by property(
         getName = { stringResource(Res.string.s_key_np_default_background_image_video_opacity) },
         getDescription = { null },
-        getDefaultValue = { if (Platform.DESKTOP.isCurrent()) 0.0f else 0.5f }
+        getDefaultValue = { 0.5f }
     )
     val NOWPLAYING_DEFAULT_VIDEO_POSITION: PreferencesProperty<VideoPosition> by enumProperty(
         getName = { stringResource(Res.string.s_key_np_default_video_position) },
@@ -74,7 +75,7 @@ class ThemeSettings(val context: AppContext): SettingsGroup("THEME", context.get
     val NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY: PreferencesProperty<Float> by property(
         getName = { stringResource(Res.string.s_key_np_default_landscape_queue_opacity) },
         getDescription = { null },
-        getDefaultValue = { 1f }
+        getDefaultValue = { 0.5f }
     )
     val NOWPLAYING_DEFAULT_SHADOW_RADIUS: PreferencesProperty<Float> by property(
         getName = { stringResource(Res.string.s_key_np_default_shadow_radius) },
@@ -118,13 +119,17 @@ class ThemeSettings(val context: AppContext): SettingsGroup("THEME", context.get
         getDefaultValue = { 1f }
     )
 
-    override val page: CategoryPage? =
-        SimplePage(
-            { stringResource(Res.string.s_cat_theme) },
-            { stringResource(Res.string.s_cat_desc_theme) },
-            { getThemeCategoryItems(context) },
-            { Icons.Outlined.Palette }
-        )
+    @Composable
+    override fun getTitle(): String = stringResource(Res.string.s_cat_theme)
+
+    @Composable
+    override fun getDescription(): String = stringResource(Res.string.s_cat_theme)
+
+    @Composable
+    override fun getIcon(): ImageVector = Icons.Outlined.Palette
+
+    override fun getConfigurationItems(): List<SettingsItem> = getThemeCategoryItems(context)
+
 
     enum class VideoPosition {
         NONE, BACKGROUND, THUMBNAIL;

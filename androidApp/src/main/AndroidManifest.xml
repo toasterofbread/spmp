@@ -59,8 +59,9 @@
 
         <service
             android:name=".platform.playerservice.PlatformInternalPlayerService"
-            android:exported="true"
-            android:foregroundServiceType="mediaPlayback">
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback"
+            android:stopWithTask="true">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
                 <action android:name="androidx.media3.session.MediaSessionService" />
@@ -69,8 +70,9 @@
 
         <service
             android:name=".platform.playerservice.PlatformExternalPlayerService"
-            android:exported="true"
-            android:foregroundServiceType="mediaPlayback">
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback"
+            android:stopWithTask="true">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
                 <action android:name="androidx.media3.session.MediaSessionService" />

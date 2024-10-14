@@ -29,7 +29,10 @@ actual class DiscordStatus actual constructor(
     private var connected: Boolean = false
 
     actual fun close() {
-        ipc.disconnect()
+        try {
+            ipc.disconnect()
+        }
+        catch (_: Throwable) {}
         coroutine_scope.cancel()
     }
 

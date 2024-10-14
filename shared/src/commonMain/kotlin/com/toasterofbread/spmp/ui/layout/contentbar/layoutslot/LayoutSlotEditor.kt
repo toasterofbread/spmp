@@ -15,7 +15,7 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.platform.composable.BackHandler
-import dev.toastbits.composekit.settings.ui.item.*
+import dev.toastbits.composekit.settings.ui.component.item.*
 import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState

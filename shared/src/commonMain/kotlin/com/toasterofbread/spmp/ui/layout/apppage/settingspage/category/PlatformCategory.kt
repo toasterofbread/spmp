@@ -4,13 +4,13 @@ import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import dev.toastbits.composekit.settings.ui.item.GroupSettingsItem
-import dev.toastbits.composekit.settings.ui.item.InfoTextSettingsItem
-import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.GroupSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.InfoTextSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.settings.ui.item.TextFieldSettingsItem
-import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.TextFieldSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.playerservice.PlatformInternalPlayerService
@@ -96,7 +96,7 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
             getSubtitleOverride = {
                 getLocalServerUnavailabilityReason()
             }
-        ),
+        ).takeIf { !Platform.DESKTOP.isCurrent() },
 
         ToggleSettingsItem(context.settings.platform.EXTERNAL_SERVER_MODE_UI_ONLY).takeIf { PlatformExternalPlayerService.playsAudio() },
 

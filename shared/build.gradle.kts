@@ -1,10 +1,10 @@
-@file:OptIn(ExperimentalKotlinGradlePluginApi::class, ExperimentalWasmDsl::class)
+@file:OptIn(ExperimentalKotlinGradlePluginApi::class)
 
-import plugin.spmp.SpMpDeps
 import org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi
-import org.jetbrains.kotlin.gradle.targets.js.dsl.ExperimentalWasmDsl
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpackConfig
 import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockStoreTask
+import plugin.spmp.SpMpDeps
+import plugin.spmp.getDeps
 
 plugins {
     id("generate-build-config")
@@ -25,29 +25,29 @@ kotlin {
 
     jvm("desktop")
 
-    wasmJs {
-        moduleName = project.parent!!.name
-        browser {
-            commonWebpackConfig {
-                outputFileName = "composeApp.js"
-                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
-                    static = (static ?: mutableListOf()).apply {
-                        // Serve sources to debug inside browser
-                        add(project.projectDir.path)
-                        add(project.projectDir.path + "/commonMain/")
-                        add(project.projectDir.path + "/wasmJsMain/")
-                    }
-                }
-            }
-        }
-        binaries.executable()
-    }
+//    wasmJs {
+//        moduleName = project.parent!!.name
+//        browser {
+//            commonWebpackConfig {
+//                outputFileName = "composeApp.js"
+//                devServer = (devServer ?: KotlinWebpackConfig.DevServer()).apply {
+//                    static = (static ?: mutableListOf()).apply {
+//                        // Serve sources to debug inside browser
+//                        add(project.projectDir.path)
+//                        add(project.projectDir.path + "/commonMain/")
+//                        add(project.projectDir.path + "/wasmJsMain/")
+//                    }
+//                }
+//            }
+//        }
+//        binaries.executable()
+//    }
 
     applyDefaultHierarchyTemplate {
         common {
             withAndroidTarget()
             withJvm()
-            withWasmJs()
+//            withWasmJs()
 
             group("jvm") {
                 withAndroidTarget()
@@ -61,7 +61,7 @@ kotlin {
     }
 
     sourceSets {
-        val deps: SpMpDeps = SpMpDeps(extra.properties)
+        val deps: SpMpDeps = getDeps()
 
         all {
             languageSettings.apply {
@@ -122,7 +122,7 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(deps.get("io.ktor:ktor-client-cio", "io.ktor"))
-                implementation(deps.get("dev.toastbits.compose-webview-multiplatform:compose-webview-multiplatform"))
+                implementation(deps.get("com.github.toasterofbread.compose-webview-multiplatform:compose-webview-multiplatform"))
                 implementation(deps.get("org.bitbucket.ijabz:jaudiotagger"))
             }
         }
@@ -140,6 +140,7 @@ kotlin {
                 implementation(deps.get("androidx.media3:media3-ui", "androidx.media3"))
                 implementation(deps.get("androidx.media3:media3-session", "androidx.media3"))
                 implementation(deps.get("com.google.accompanist:accompanist-pager"))
+
                 implementation(deps.get("com.google.accompanist:accompanist-pager-indicators"))
                 implementation(deps.get("com.google.accompanist:accompanist-systemuicontroller"))
                 // implementation(deps.get("com.github.andob:android-awt"))
@@ -163,12 +164,12 @@ kotlin {
             }
         }
 
-        val wasmJsMain by getting {
-            dependencies {
-                implementation(deps.get("io.ktor:ktor-client-js", "io.ktor"))
-                implementation(deps.get("app.cash.sqldelight:web-worker-driver-wasm-js"))
-            }
-        }
+//        val wasmJsMain by getting {
+//            dependencies {
+//                implementation(deps.get("io.ktor:ktor-client-js", "io.ktor"))
+//                implementation(deps.get("app.cash.sqldelight:web-worker-driver-wasm-js"))
+//            }
+//        }
     }
 }
 
@@ -235,20 +236,20 @@ afterEvaluate {
         finalizedBy(fixDatabaseVersion)
     }
 
-    rootProject.tasks.apply {
-        getByName("kotlinNodeJsSetup") {
-            enabled = false
-        }
-
-        getByName("kotlinNpmInstall") {
-            enabled = false
-        }
-
-        getByName<YarnLockStoreTask>("kotlinStoreYarnLock") {
-            inputFile.asFile.get().apply {
-                parentFile.mkdirs()
-                createNewFile()
-            }
-        }
-    }
+//    rootProject.tasks.apply {
+//        getByName("kotlinNodeJsSetup") {
+//            enabled = false
+//        }
+//
+//        getByName("kotlinNpmInstall") {
+//            enabled = false
+//        }
+//
+//        getByName<YarnLockStoreTask>("kotlinStoreYarnLock") {
+//            inputFile.asFile.get().apply {
+//                parentFile.mkdirs()
+//                createNewFile()
+//            }
+//        }
+//    }
 }

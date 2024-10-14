@@ -13,5 +13,5 @@ actual object LocalServer {
     actual fun startLocalServer(
         context: AppContext,
         port: Int,
-    ): Job = throw IllegalAccessError()
+    ): Result<Job> = throw IllegalAccessError()
 }

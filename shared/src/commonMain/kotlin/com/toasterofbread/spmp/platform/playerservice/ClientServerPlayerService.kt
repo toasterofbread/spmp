@@ -23,5 +23,5 @@ interface ClientServerPlayerService: PlayerService {
 
     fun onSongFilesAdded(songs: List<DownloadStatus>)
     fun onSongFilesDeleted(songs: List<Song>)
-    fun onLocalSongsSynced(songs: List<DownloadStatus>)
+    fun onLocalSongsSynced(songs: Iterable<DownloadStatus>)
 }

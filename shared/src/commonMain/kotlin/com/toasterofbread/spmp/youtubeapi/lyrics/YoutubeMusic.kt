@@ -7,11 +7,15 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
+<<<<<<< HEAD
 import PlatformIO
 import androidx.compose.runtime.Composable
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.lyrics_source_ytm
+=======
+import kotlin.time.Duration
+>>>>>>> main
 
 internal class YoutubeMusicLyricsSource(source_idx: Int): LyricsSource(source_idx) {
     @Composable
@@ -21,7 +25,6 @@ internal class YoutubeMusicLyricsSource(source_idx: Int): LyricsSource(source_id
 
     override fun supportsLyricsBySong(): Boolean = true
     override fun supportsLyricsBySearching(): Boolean = false
-    override suspend fun searchForLyrics(title: String, artist_name: String?): Result<List<SearchResult>> { throw NotImplementedError() }
 
     override suspend fun getReferenceBySong(song: Song, context: AppContext): Result<LyricsReference?> = withContext(Dispatchers.PlatformIO) {
         val browse_id = song.LyricsBrowseId.get(context.database)

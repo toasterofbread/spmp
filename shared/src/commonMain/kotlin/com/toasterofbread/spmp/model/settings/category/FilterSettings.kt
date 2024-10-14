@@ -2,20 +2,22 @@ package com.toasterofbread.spmp.model.settings.category
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FilterAlt
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getFilterCategoryItems
-import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.s_key_filter_enable
-import spmp.shared.generated.resources.s_key_filter_apply_to_playlist_items
-import spmp.shared.generated.resources.s_key_filter_apply_to_artists
+import spmp.shared.generated.resources.s_cat_desc_filter
+import spmp.shared.generated.resources.s_cat_filter
 import spmp.shared.generated.resources.s_key_filter_apply_to_artist_items
+import spmp.shared.generated.resources.s_key_filter_apply_to_artists
+import spmp.shared.generated.resources.s_key_filter_apply_to_playlist_items
+import spmp.shared.generated.resources.s_key_filter_enable
 import spmp.shared.generated.resources.s_key_filter_title_keywords
 import spmp.shared.generated.resources.s_sub_filter_title_keywords
-import spmp.shared.generated.resources.s_cat_filter
-import spmp.shared.generated.resources.s_cat_desc_filter
 
 class FilterSettings(val context: AppContext): SettingsGroup("FILTER", context.getPrefs()) {
     val ENABLE: PreferencesProperty<Boolean> by property(
@@ -44,11 +46,14 @@ class FilterSettings(val context: AppContext): SettingsGroup("FILTER", context.g
         getDefaultValue = { emptySet() }
     )
 
-    override val page: CategoryPage? =
-        SimplePage(
-            { stringResource(Res.string.s_cat_filter) },
-            { stringResource(Res.string.s_cat_desc_filter) },
-            { getFilterCategoryItems(context) },
-            { Icons.Outlined.FilterAlt }
-        )
+    @Composable
+    override fun getTitle(): String = stringResource(Res.string.s_cat_filter)
+
+    @Composable
+    override fun getDescription(): String = stringResource(Res.string.s_cat_desc_filter)
+
+    @Composable
+    override fun getIcon(): ImageVector = Icons.Outlined.FilterAlt
+
+    override fun getConfigurationItems(): List<SettingsItem> = getFilterCategoryItems(context)
 }

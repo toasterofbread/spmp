@@ -5,10 +5,10 @@ import com.toasterofbread.spmp.model.settings.category.VideoFormatsEndpointType
 import com.toasterofbread.spmp.model.settings.category.isAvailable
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
-import dev.toastbits.composekit.settings.ui.item.DropdownSettingsItem
-import dev.toastbits.composekit.settings.ui.item.MultipleChoiceSettingsItem
-import dev.toastbits.composekit.settings.ui.item.SettingsItem
-import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.MultipleChoiceSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
 import dev.toastbits.composekit.utils.common.toCustomResource
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res

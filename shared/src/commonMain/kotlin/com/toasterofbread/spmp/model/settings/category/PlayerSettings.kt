@@ -3,45 +3,46 @@ package com.toasterofbread.spmp.model.settings.category
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PlayArrow
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getPlayerCategoryItems
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
-import com.toasterofbread.spmp.platform.AppContext
-import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.s_key_mini_player_show_prev_button
+import spmp.shared.generated.resources.s_cat_desc_player
+import spmp.shared.generated.resources.s_cat_player
 import spmp.shared.generated.resources.s_key_mini_player_overscroll_clear_enabled
-import spmp.shared.generated.resources.s_key_mini_player_overscroll_clear_time
 import spmp.shared.generated.resources.s_key_mini_player_overscroll_clear_mode
-import spmp.shared.generated.resources.s_key_player_show_repeat_shuffle_buttons
-import spmp.shared.generated.resources.s_sub_player_show_repeat_shuffle_buttons
-import spmp.shared.generated.resources.s_key_player_show_progress_bar_gradient
-import spmp.shared.generated.resources.s_key_player_landscape_swap_controls_and_image
-import spmp.shared.generated.resources.s_key_player_overlay_menu_custom_action
-import spmp.shared.generated.resources.s_sub_player_overlay_menu_custom_action
-import spmp.shared.generated.resources.s_key_player_overlay_menu_swap_long_short_press_actions
-import spmp.shared.generated.resources.s_key_np_queue_item_swipe_sensitivity
-import spmp.shared.generated.resources.s_sub_np_queue_item_swipe_sensitivity
+import spmp.shared.generated.resources.s_key_mini_player_overscroll_clear_time
+import spmp.shared.generated.resources.s_key_mini_player_show_prev_button
 import spmp.shared.generated.resources.s_key_np_queue_extra_side_padding
-import spmp.shared.generated.resources.s_sub_np_queue_extra_side_padding
-import spmp.shared.generated.resources.s_key_np_queue_wave_border_mode
-import spmp.shared.generated.resources.s_sub_np_queue_wave_border_mode
+import spmp.shared.generated.resources.s_key_np_queue_item_swipe_sensitivity
 import spmp.shared.generated.resources.s_key_np_queue_radio_info_position
-import spmp.shared.generated.resources.s_key_resume_on_bt_connect
-import spmp.shared.generated.resources.s_sub_resume_on_bt_connect
+import spmp.shared.generated.resources.s_key_np_queue_wave_border_mode
 import spmp.shared.generated.resources.s_key_pause_on_bt_disconnect
-import spmp.shared.generated.resources.s_key_resume_on_wired_connect
-import spmp.shared.generated.resources.s_sub_resume_on_wired_connect
 import spmp.shared.generated.resources.s_key_pause_on_wired_disconnect
 import spmp.shared.generated.resources.s_key_player_expand_swipe_sensitivity
-import spmp.shared.generated.resources.s_cat_player
-import spmp.shared.generated.resources.s_cat_desc_player
-import spmp.shared.generated.resources.s_option_np_queue_radio_info_top_bar
-import spmp.shared.generated.resources.s_option_np_queue_radio_info_above_items
+import spmp.shared.generated.resources.s_key_player_landscape_swap_controls_and_image
+import spmp.shared.generated.resources.s_key_player_overlay_menu_custom_action
+import spmp.shared.generated.resources.s_key_player_overlay_menu_swap_long_short_press_actions
+import spmp.shared.generated.resources.s_key_player_show_progress_bar_gradient
+import spmp.shared.generated.resources.s_key_player_show_repeat_shuffle_buttons
+import spmp.shared.generated.resources.s_key_resume_on_bt_connect
+import spmp.shared.generated.resources.s_key_resume_on_wired_connect
 import spmp.shared.generated.resources.s_option_mini_player_overscroll_clear_mode_always_hide
 import spmp.shared.generated.resources.s_option_mini_player_overscroll_clear_mode_hide_if_queue_empty
 import spmp.shared.generated.resources.s_option_mini_player_overscroll_clear_mode_none_if_queue_empty
+import spmp.shared.generated.resources.s_option_np_queue_radio_info_above_items
+import spmp.shared.generated.resources.s_option_np_queue_radio_info_top_bar
+import spmp.shared.generated.resources.s_sub_np_queue_extra_side_padding
+import spmp.shared.generated.resources.s_sub_np_queue_item_swipe_sensitivity
+import spmp.shared.generated.resources.s_sub_np_queue_wave_border_mode
+import spmp.shared.generated.resources.s_sub_player_overlay_menu_custom_action
+import spmp.shared.generated.resources.s_sub_player_show_repeat_shuffle_buttons
+import spmp.shared.generated.resources.s_sub_resume_on_bt_connect
+import spmp.shared.generated.resources.s_sub_resume_on_wired_connect
 
 class PlayerSettings(val context: AppContext): SettingsGroup("PLAYER", context.getPrefs()) {
     val MINI_SHOW_PREV_BUTTON: PreferencesProperty<Boolean> by property(
@@ -135,13 +136,16 @@ class PlayerSettings(val context: AppContext): SettingsGroup("PLAYER", context.g
         getDefaultValue = { 3.5f }
     )
 
-    override val page: CategoryPage =
-        SimplePage(
-            { stringResource(Res.string.s_cat_player) },
-            { stringResource(Res.string.s_cat_desc_player) },
-            { getPlayerCategoryItems(context) },
-            { Icons.Outlined.PlayArrow }
-        )
+    @Composable
+    override fun getTitle(): String = stringResource(Res.string.s_cat_player)
+
+    @Composable
+    override fun getDescription(): String = stringResource(Res.string.s_cat_desc_player)
+
+    @Composable
+    override fun getIcon(): ImageVector = Icons.Outlined.PlayArrow
+
+    override fun getConfigurationItems(): List<SettingsItem> = getPlayerCategoryItems(context)
 }
 
 enum class NowPlayingQueueRadioInfoPosition {

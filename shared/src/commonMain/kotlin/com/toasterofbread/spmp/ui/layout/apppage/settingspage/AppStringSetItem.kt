@@ -4,11 +4,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.settings.ui.item.StringSetSettingsItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.component.item.StringSetSettingsItem
 import org.jetbrains.compose.resources.StringResource
-import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.settings_string_set_item_already_added
 import spmp.shared.generated.resources.settings_string_set_item_empty

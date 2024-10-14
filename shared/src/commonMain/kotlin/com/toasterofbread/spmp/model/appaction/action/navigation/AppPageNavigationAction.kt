@@ -8,7 +8,6 @@ import androidx.compose.ui.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.vector.ImageVector
 import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
-import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.settings.category.SettingsGroup
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
@@ -19,7 +18,6 @@ import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.appaction_config_navigation_settings_group_none
 import spmp.shared.generated.resources.appaction_config_navigation_settings_group
-import spmp.shared.generated.resources.appaction_config_navigation_settings_group_none
 import spmp.shared.generated.resources.appaction_navigation_open_page_feed
 import spmp.shared.generated.resources.appaction_navigation_open_page_library
 import spmp.shared.generated.resources.appaction_navigation_open_page_search
@@ -43,7 +41,7 @@ data class AppPageNavigationAction(
         player.openAppPage(page)
 
         if (page is SettingsAppPage && settings_group != null) {
-            val group_page: SettingsGroup.CategoryPage = player.settings.groupFromKey(settings_group)?.page ?: return
+            val group_page: SettingsGroup.CategoryPage = player.settings.groupFromKey(settings_group)?.getPage() ?: return
             group_page.openPageOnInterface(player.context, page.settings_interface)
         }
     }

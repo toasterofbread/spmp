@@ -56,6 +56,8 @@ class AppThemeManager(
         get() = _manager?.card ?: Color.Unspecified
     override val on_background: Color
         get() = _manager?.on_background ?: Color.Unspecified
+    override val error: Color
+        get() = _manager?.error ?: Color.Unspecified
 
     private var accent_colour_source: AccentColourSource? by mutableStateOf(null)
 

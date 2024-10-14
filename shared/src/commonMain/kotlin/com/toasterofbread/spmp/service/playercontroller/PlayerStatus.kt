@@ -2,9 +2,12 @@ package com.toasterofbread.spmp.service.playercontroller
 
 import androidx.compose.runtime.*
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class PlayerStatus internal constructor() {
     private var player: PlayerService? = null
@@ -116,6 +119,13 @@ class PlayerStatus internal constructor() {
             }
             override fun onDurationChanged(duration_ms: Long) {
                 m_duration_ms = duration_ms
+
+                val context: AppContext = player?.context ?: return
+                val song: Song = m_song ?: return
+
+                context.coroutine_scope.launch(Dispatchers.IO) {
+                    song.Duration.set(duration_ms, context.database)
+                }
             }
 
             override fun onEvents() {

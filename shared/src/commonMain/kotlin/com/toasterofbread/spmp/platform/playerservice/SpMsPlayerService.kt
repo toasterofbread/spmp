@@ -15,6 +15,8 @@ import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.model.radio.RadioState
+import dev.toastbits.composekit.platform.getPlatformHostName
+import dev.toastbits.composekit.platform.getPlatformOSName
 import io.ktor.http.Headers
 import io.ktor.util.flattenEntries
 import kotlinx.coroutines.*
@@ -44,6 +46,7 @@ import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.app_name
 import spmp.shared.generated.resources.loading_splash_setting_initial_state
+import spmp.shared.generated.resources.unknown_host_name
 
 private val SERVER_REPLY_TIMEOUT: Duration = with (Duration) { 1.seconds }
 
@@ -61,8 +64,8 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
     internal abstract fun onRadioCancelRequested()
 
     private suspend fun getClientName(): String {
-        val os: String = Platform.getOSName()
-        val host: String = Platform.getHostName()
+        val os: String = getPlatformOSName()
+        val host: String = getPlatformHostName() ?: getString(Res.string.unknown_host_name)
         return getString(Res.string.app_name) + " [$os, $host]"
     }
 
@@ -416,7 +419,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
         }
     }
 
-    override fun onLocalSongsSynced(songs: List<DownloadStatus>) {
+    override fun onLocalSongsSynced(songs: Iterable<DownloadStatus>) {
         player_status_coroutine_scope.launch {
             runCommandOnEachLocalPlayer(
                 "setLocalFiles",

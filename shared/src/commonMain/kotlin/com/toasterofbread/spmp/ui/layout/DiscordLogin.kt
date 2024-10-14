@@ -43,6 +43,8 @@ import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import androidx.compose.foundation.layout.PaddingValues
 import com.toasterofbread.spmp.platform.getOrNotify
+import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.utils.common.thenIf
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
@@ -81,7 +83,6 @@ fun DiscordLoginConfirmation(info_only: Boolean = false, onFinished: (manual: Bo
         text = {
             Column {
                 LinkifyText(
-                    player.context,
                     stringResource(if (info_only) Res.string.info_discord_login else Res.string.warning_discord_login),
                     player.theme.accent
                 )
@@ -103,10 +104,12 @@ fun DiscordLogin(content_padding: PaddingValues, modifier: Modifier = Modifier, 
         WebViewLogin(
             initial_url = DISCORD_LOGIN_URL,
             modifier = modifier
-                .padding(
-                    top = content_padding.calculateTopPadding() - 20.dp,
-                    bottom = content_padding.calculateBottomPadding() - 20.dp
-                ),
+                .thenIf(Platform.ANDROID.isCurrent()) {
+                    padding(
+                        top = content_padding.calculateTopPadding() - 20.dp,
+                        bottom = content_padding.calculateBottomPadding() - 20.dp
+                    )
+                },
             onClosed = { onFinished(null) },
             shouldShowPage = { it.startsWith(DISCORD_LOGIN_URL) },
             user_agent = "Mozilla/5.0 (X11; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0",

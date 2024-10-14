@@ -6,11 +6,13 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
 class InternalPlayerServicePlayerListener(
-    private val service: ForegroundPlayerService
+    private val service: ForegroundPlayerService,
+    private val onSongReadyToPlay: () -> Unit
 ): Player.Listener {
     override fun onMediaItemTransition(media_item: MediaItem?, reason: Int) {
         val song: Song? = media_item?.getSong()
@@ -37,6 +39,12 @@ class InternalPlayerServicePlayerListener(
                 update(service.current_song, service.context)
                 enabled = true
             }
+        }
+    }
+
+    override fun onPlaybackStateChanged(playbackState: Int) {
+        if (convertState(playbackState) == SpMsPlayerState.READY) {
+            onSongReadyToPlay()
         }
     }
 

@@ -9,6 +9,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getDiscordCategoryItems
 import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.vectorResource
 import spmp.shared.generated.resources.*
@@ -116,18 +117,20 @@ class DiscordSettings(val context: AppContext): SettingsGroup("DISCORD", context
         getDefaultValueComposable = { ProjectBuildConfig.DISCORD_STATUS_TEXT_BUTTON_PROJECT_OVERRIDE ?: stringResource(Res.string.discord_status_default_button_project) }
     )
 
-    override val page: CategoryPage? =
-        if (!DiscordStatus.isSupported()) null
-        else SimplePage(
-            { stringResource(Res.string.s_cat_discord_status) },
-            { stringResource(Res.string.s_cat_desc_discord_status) },
-            { getDiscordCategoryItems(context) },
-            { getIcon() }
-        )
+    @Composable
+    override fun getTitle(): String = stringResource(Res.string.s_cat_discord_status)
+
+    @Composable
+    override fun getDescription(): String = stringResource(Res.string.s_cat_desc_discord_status)
+
+    @Composable
+    override fun getIcon(): ImageVector = getDiscordIcon()
+
+    override fun getConfigurationItems(): List<SettingsItem> = getDiscordCategoryItems(context)
 
     companion object {
         @Composable
-        fun getIcon(): ImageVector =
+        fun getDiscordIcon(): ImageVector =
             vectorResource(Res.drawable.ic_discord)
     }
 }

@@ -10,6 +10,8 @@ import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.getStringTODO
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 data class LyricsReference(val source_index: Int, val id: String, val local_file: PlatformFile? = null) {
     fun isNone(): Boolean = source_index < 0
@@ -38,12 +40,18 @@ sealed class LyricsSource(val source_index: Int) {
     abstract fun getColour(): Color
     abstract fun getUrlOfId(id: String): String?
 
+    abstract suspend fun getLyrics(lyrics_id: String, context: AppContext): Result<SongLyrics>
+
     open fun supportsLyricsBySong(): Boolean = false
     open suspend fun getReferenceBySong(song: Song, context: AppContext): Result<LyricsReference?> { throw NotImplementedError() }
 
     open fun supportsLyricsBySearching(): Boolean = true
-    abstract suspend fun getLyrics(lyrics_id: String, context: AppContext): Result<SongLyrics>
-    abstract suspend fun searchForLyrics(title: String, artist_name: String? = null): Result<List<SearchResult>>
+    open suspend fun searchForLyrics(
+        title: String,
+        artist_name: String?,
+        album_name: String?,
+        duration: Duration?
+    ): Result<List<SearchResult>> { throw NotImplementedError() }
 
     fun referenceOfSource(id: String): LyricsReference =
         LyricsReference(source_index, id)
@@ -52,6 +60,7 @@ sealed class LyricsSource(val source_index: Int) {
         private val lyrics_sources: List<(Int) -> LyricsSource> = listOf(
             { KugouLyricsSource(it) },
             { PetitLyricsSource(it) },
+	    { LrclibLyricsSource(it) },
             { YoutubeMusicLyricsSource(it) }
         )
         val SOURCE_AMOUNT: Int get() = lyrics_sources.size
@@ -79,12 +88,10 @@ sealed class LyricsSource(val source_index: Int) {
             default: Int? = null
         ): Result<SongLyrics> = runCatching {
             val db: Database = context.database
-            val (song_title, artist_title) = db.transactionWithResult {
-                Pair(
-                    song.getActiveTitle(db),
-                    song.Artists.get(db)?.firstOrNull()?.getActiveTitle(db)
-                )
-            }
+            val song_title: String? = song.getActiveTitle(db)
+            val artist_title: String? = song.Artists.get(db)?.firstOrNull()?.getActiveTitle(db)
+            val album_title: String? = song.Album.get(db)?.getActiveTitle(db)
+            val duration_ms: Long? = song.Duration.get(db)
 
             var fail_exception: Throwable? = null
             iterateByPriority(default ?: context.settings.lyrics.DEFAULT_SOURCE.get()) { source ->
@@ -110,7 +117,12 @@ sealed class LyricsSource(val source_index: Int) {
                         return@iterateByPriority
                     }
 
-                    val result: SearchResult = source.searchForLyrics(song_title, artist_title).fold(
+                    val result: SearchResult = source.searchForLyrics(
+                        song_title,
+                        artist_title,
+                        album_title,
+                        duration_ms?.milliseconds
+                    ).fold(
                         { results ->
                             if (results.isEmpty()) {
                                 fail_exception = null

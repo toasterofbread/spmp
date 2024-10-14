@@ -2,33 +2,35 @@ package com.toasterofbread.spmp.model.settings.category
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.MusicNote
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getLyricsCategoryItems
-import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.s_key_lyrics_follow_enabled
-import spmp.shared.generated.resources.s_sub_lyrics_follow_enabled
-import spmp.shared.generated.resources.s_key_lyrics_follow_offset
-import spmp.shared.generated.resources.s_sub_lyrics_follow_offset
-import spmp.shared.generated.resources.s_key_lyrics_romanise_furigana
-import spmp.shared.generated.resources.s_key_lyrics_default_furigana
-import spmp.shared.generated.resources.s_key_lyrics_text_alignment
-import spmp.shared.generated.resources.s_key_lyrics_extra_padding
-import spmp.shared.generated.resources.s_sub_lyrics_extra_padding
-import spmp.shared.generated.resources.s_key_lyrics_enable_word_sync
-import spmp.shared.generated.resources.s_sub_lyrics_enable_word_sync
-import spmp.shared.generated.resources.s_key_lyrics_font_size
-import spmp.shared.generated.resources.s_key_lyrics_default_source
-import spmp.shared.generated.resources.s_key_lyrics_sync_delay
-import spmp.shared.generated.resources.s_sub_lyrics_sync_delay
-import spmp.shared.generated.resources.s_key_lyrics_sync_delay_topbar
-import spmp.shared.generated.resources.s_sub_lyrics_sync_delay_topbar
-import spmp.shared.generated.resources.s_key_lyrics_sync_delay_bluetooth
-import spmp.shared.generated.resources.s_sub_lyrics_sync_delay_bluetooth
-import spmp.shared.generated.resources.s_cat_lyrics
 import spmp.shared.generated.resources.s_cat_desc_lyrics
+import spmp.shared.generated.resources.s_cat_lyrics
+import spmp.shared.generated.resources.s_key_lyrics_default_furigana
+import spmp.shared.generated.resources.s_key_lyrics_default_source
+import spmp.shared.generated.resources.s_key_lyrics_enable_word_sync
+import spmp.shared.generated.resources.s_key_lyrics_extra_padding
+import spmp.shared.generated.resources.s_key_lyrics_follow_enabled
+import spmp.shared.generated.resources.s_key_lyrics_follow_offset
+import spmp.shared.generated.resources.s_key_lyrics_font_size
+import spmp.shared.generated.resources.s_key_lyrics_romanise_furigana
+import spmp.shared.generated.resources.s_key_lyrics_sync_delay
+import spmp.shared.generated.resources.s_key_lyrics_sync_delay_bluetooth
+import spmp.shared.generated.resources.s_key_lyrics_sync_delay_topbar
+import spmp.shared.generated.resources.s_key_lyrics_text_alignment
+import spmp.shared.generated.resources.s_sub_lyrics_enable_word_sync
+import spmp.shared.generated.resources.s_sub_lyrics_extra_padding
+import spmp.shared.generated.resources.s_sub_lyrics_follow_enabled
+import spmp.shared.generated.resources.s_sub_lyrics_follow_offset
+import spmp.shared.generated.resources.s_sub_lyrics_sync_delay
+import spmp.shared.generated.resources.s_sub_lyrics_sync_delay_bluetooth
+import spmp.shared.generated.resources.s_sub_lyrics_sync_delay_topbar
 
 class LyricsSettings(val context: AppContext): SettingsGroup("LYRICS", context.getPrefs()) {
     val FOLLOW_ENABLED: PreferencesProperty<Boolean> by property(
@@ -92,11 +94,14 @@ class LyricsSettings(val context: AppContext): SettingsGroup("LYRICS", context.g
         getDefaultValue = { 0.3f }
     )
 
-    override val page: CategoryPage? =
-        SimplePage(
-            { stringResource(Res.string.s_cat_lyrics) },
-            { stringResource(Res.string.s_cat_desc_lyrics) },
-            { getLyricsCategoryItems(context) },
-            { Icons.Outlined.MusicNote }
-        )
+    @Composable
+    override fun getTitle(): String = stringResource(Res.string.s_cat_lyrics)
+
+    @Composable
+    override fun getDescription(): String = stringResource(Res.string.s_cat_desc_lyrics)
+
+    @Composable
+    override fun getIcon(): ImageVector = Icons.Outlined.MusicNote
+
+    override fun getConfigurationItems(): List<SettingsItem> = getLyricsCategoryItems(context)
 }

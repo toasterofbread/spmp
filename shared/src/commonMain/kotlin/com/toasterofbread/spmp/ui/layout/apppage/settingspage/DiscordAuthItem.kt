@@ -1,10 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import LocalPlayerState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
@@ -12,37 +9,35 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
-import dev.toastbits.composekit.platform.PlatformPreferences
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.item.LargeToggleSettingsItem
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
-import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.ui.layout.DiscordAccountPreview
-import com.toasterofbread.spmp.ui.layout.DiscordLoginConfirmation
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.layout.DiscordAccountPreview
+import com.toasterofbread.spmp.ui.layout.DiscordLoginConfirmation
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.component.item.LargeToggleSettingsItem
 import dev.toastbits.composekit.settings.ui.on_accent
 import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.JsonPrimitive
-import org.jetbrains.compose.resources.stringResource
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.jsonPrimitive
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.auth_not_signed_in
-import spmp.shared.generated.resources.s_discord_status_disabled
 import spmp.shared.generated.resources.auth_sign_in
-import spmp.shared.generated.resources.s_discord_status_enable
 import spmp.shared.generated.resources.auth_sign_out
 import spmp.shared.generated.resources.s_discord_status_disable
+import spmp.shared.generated.resources.s_discord_status_disabled
+import spmp.shared.generated.resources.s_discord_status_enable
 
 fun getDiscordAuthItem(
     context: AppContext,
@@ -131,7 +126,7 @@ fun getDiscordAuthItem(
         enable_button = if (login_required) Res.string.auth_sign_in else Res.string.s_discord_status_enable,
         disable_button = if (login_required) Res.string.auth_sign_out else Res.string.s_discord_status_disable,
         warningDialog =
-            if (login_required) {{ dismiss, openPage ->
+            if (login_required) {{ dismiss ->
                 DiscordLoginConfirmation { manual ->
                     dismiss()
                     if (manual != null) {
@@ -170,7 +165,7 @@ fun getDiscordAuthItem(
             }
         },
         prerequisite_value = if (ignore_prerequisite) null else prerequisite
-    ) { target, setEnabled, _, openPage ->
+    ) { target, setEnabled, _ ->
         if (target) {
             if (login_required) {
                 openPage(PrefsPageScreen.DISCORD_LOGIN.ordinal, null)

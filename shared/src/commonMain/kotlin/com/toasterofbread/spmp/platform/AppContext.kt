@@ -49,13 +49,13 @@ class AppThemeManager(
     private val context: AppContext
 ): ThemeValues {
     override val accent: Color
-        get() = manager.accent
+        get() = _manager?.accent ?: Color.Unspecified
     override val background: Color
-        get() = manager.background
+        get() = _manager?.background ?: Color.Unspecified
     override val card: Color
-        get() = manager.card
+        get() = _manager?.card ?: Color.Unspecified
     override val on_background: Color
-        get() = manager.on_background
+        get() = _manager?.on_background ?: Color.Unspecified
 
     private var accent_colour_source: AccentColourSource? by mutableStateOf(null)
 
@@ -148,6 +148,7 @@ fun AppContext.observeUiLanguage(): State<String> {
 
 suspend fun AppContext.getDataLanguage(): String =
     settings.system.LANG_DATA.get().ifEmpty { getDefaultLanguage() }
+        .let { if (it == "en-GB") "en-US" else it }
 
 @Composable
 fun AppContext.observeDataLanguage(): State<String> {
@@ -158,7 +159,9 @@ fun AppContext.observeDataLanguage(): State<String> {
 }
 
 fun AppContext.getDefaultLanguage(): String =
-    Locale.current.toLanguageTag()
+    Locale.current.run {
+        "$language-$region"
+    }.also { println("READLANG default '$it'") }
 
 fun <T> Result<T>.getOrNotify(context: AppContext, error_key: String): T? =
     fold(

@@ -21,7 +21,6 @@ import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
-import com.toasterofbread.spmp.youtubeapi.lyrics.createFuriganaTokeniser
 import kotlinx.coroutines.delay
 import LocalPlayerState
 
@@ -217,8 +216,11 @@ private fun rememberCurrentLineState(
     var state: CurrentLineState? by remember { mutableStateOf(null) }
 
     LaunchedEffect(romanise_furigana) {
-        val tokeniser: LyricsFuriganaTokeniser = createFuriganaTokeniser(romanise_furigana)
-        val lines: List<List<SongLyrics.Term>> = lyrics.lines.map { tokeniser.mergeAndFuriganiseTerms(it) }
+        val tokeniser: LyricsFuriganaTokeniser? = LyricsFuriganaTokeniser.getInstance()
+        val lines: List<List<SongLyrics.Term>> =
+            if (tokeniser != null) lyrics.lines.map { tokeniser.mergeAndFuriganiseTerms(it, romanise_furigana) }
+            else lyrics.lines
+
         state = CurrentLineState(lines).apply { update(getTime(), linger) }
     }
 

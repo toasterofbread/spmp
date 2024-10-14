@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 
+@Composable
 actual fun notifImagePlayerOverlayMenuButtonText(): String? = null
 
 actual class NotifImagePlayerOverlayMenu actual constructor(): PlayerOverlayMenu() {

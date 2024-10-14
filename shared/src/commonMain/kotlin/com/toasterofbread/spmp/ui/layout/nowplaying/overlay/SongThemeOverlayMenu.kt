@@ -228,7 +228,6 @@ class SongThemePlayerOverlayMenu(
 
                         Spacer(Modifier.fillMaxHeight().weight(1f))
 
-
                         val notif_image_menu_button_text: String? = notifImagePlayerOverlayMenuButtonText()
                         if (notif_image_menu_button_text != null) {
                             Button({ openMenu(NotifImagePlayerOverlayMenu()) }, colors = button_colours) {

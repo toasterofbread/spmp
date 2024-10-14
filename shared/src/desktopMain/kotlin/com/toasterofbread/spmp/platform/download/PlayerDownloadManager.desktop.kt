@@ -14,15 +14,12 @@ actual class PlayerDownloadManager actual constructor(private val context: AppCo
     private var _downloader: SongDownloader? = null
     private val listeners: MutableList<DownloadStatusListener> = mutableListOf()
 
-    private suspend fun getDownloader(): SongDownloader {
+    private fun getDownloader(): SongDownloader {
         if (_downloader == null) {
-            val local_songs_dir: PlatformFile = MediaItemLibrary.getLocalSongsDir(context)!!
             _downloader =
                 object : SongDownloader(
                     context,
-                    Executors.newFixedThreadPool(3),
-                    MediaItemLibrary.getSongDownloadsDir(context)!!,
-                    local_songs_dir
+                    Executors.newFixedThreadPool(3)
                 ) {
                     override fun getAudioFileDurationMs(file: PlatformFile): Long? {
                         // TODO

@@ -29,7 +29,7 @@ actual class PlatformInternalPlayerService: ExternalPlayerService(plays_audio = 
 
         override fun isServiceRunning(context: AppContext): Boolean = true
 
-        override fun connect(
+        override suspend fun connect(
             context: AppContext,
             launch_arguments: ProgramArguments,
             instance: PlayerService?,

@@ -32,7 +32,7 @@ internal class HeadlessExternalPlayerService: ExternalPlayerService(plays_audio 
     @Composable
     override fun LoadScreenExtraContent(item_modifier: Modifier, requestServiceChange: (PlayerServiceCompanion) -> Unit) {
         val launch_arguments: ProgramArguments = LocalProgramArguments.current
-        val internal_service_available: Boolean = remember(launch_arguments) { PlatformInternalPlayerService.Companion.isAvailable(context, launch_arguments) }
+        val internal_service_available: Boolean = remember(launch_arguments) { PlatformInternalPlayerService.isAvailable(context, launch_arguments) }
 
         if (internal_service_available) {
             Button(
@@ -47,10 +47,12 @@ internal class HeadlessExternalPlayerService: ExternalPlayerService(plays_audio 
     }
 
     companion object: PlayerServiceCompanion {
+        override fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean = true
+
         override fun isServiceRunning(context: AppContext): Boolean = true
         override fun playsAudio(): Boolean = true
 
-        override fun connect(
+        override suspend fun connect(
             context: AppContext,
             launch_arguments: ProgramArguments,
             instance: PlayerService?,

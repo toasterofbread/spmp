@@ -7,13 +7,15 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
+import androidx.annotation.OptIn
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
 import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
 import androidx.media3.common.audio.SonicAudioProcessor
 import androidx.media3.common.util.BitmapLoader
-import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.RenderersFactory
 import androidx.media3.exoplayer.audio.AudioRendererEventListener
@@ -30,20 +32,22 @@ import androidx.media3.session.*
 import com.google.common.util.concurrent.Futures
 import com.google.common.util.concurrent.ListenableFuture
 import com.google.common.util.concurrent.MoreExecutors
-import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
-import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.platform.PlayerServiceCommand
 import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.Executors
 
+@OptIn(UnstableApi::class)
 internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
     play_when_ready: Boolean,
     playlist_auto_progress: Boolean,
     getNotificationPlayer: (ExoPlayer) -> Player = { it }
-) {
+) = runBlocking {
+    val service: ForegroundPlayerService = this@initialiseSessionAndPlayer
+
     audio_sink = DefaultAudioSink.Builder(context.ctx)
         .setAudioProcessorChain(
             DefaultAudioProcessorChain(
@@ -60,7 +64,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
         RenderersFactory { handler: Handler?, _, audioListener: AudioRendererEventListener?, _, _ ->
             arrayOf(
                 MediaCodecAudioRenderer(
-                    this,
+                    service,
                     MediaCodecSelector.DEFAULT,
                     handler,
                     audioListener,
@@ -70,7 +74,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
         }
 
     player = ExoPlayer.Builder(
-        this,
+        service,
         renderers_factory,
         DefaultMediaSourceFactory(
             createDataSourceFactory(),
@@ -110,7 +114,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
         .setUsePlatformDiagnostics(false)
         .build()
 
-    val player_listener: InternalPlayerServicePlayerListener = InternalPlayerServicePlayerListener(this)
+    val player_listener: InternalPlayerServicePlayerListener = InternalPlayerServicePlayerListener(service)
     player.addListener(player_listener)
 
     player.playWhenReady = play_when_ready
@@ -119,8 +123,8 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
 
     val controller_future: ListenableFuture<MediaController> =
         MediaController.Builder(
-            this,
-            SessionToken(this, ComponentName(this, this::class.java))
+            service,
+            SessionToken(service, ComponentName(service, service::class.java))
         ).buildAsync()
 
     controller_future.addListener(
@@ -128,7 +132,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
         MoreExecutors.directExecutor()
     )
 
-    media_session = MediaSession.Builder(this, getNotificationPlayer(player))
+    media_session = MediaSession.Builder(service, getNotificationPlayer(player))
         .setBitmapLoader(object : BitmapLoader {
             val executor = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor())
 
@@ -167,7 +171,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
         })
         .setSessionActivity(
             PendingIntent.getActivity(
-                this,
+                service,
                 1,
                 packageManager.getLaunchIntentForPackage(packageName),
                 PendingIntent.FLAG_IMMUTABLE

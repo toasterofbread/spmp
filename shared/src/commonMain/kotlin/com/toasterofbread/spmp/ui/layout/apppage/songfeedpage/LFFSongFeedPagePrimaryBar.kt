@@ -23,6 +23,7 @@ import com.toasterofbread.spmp.ui.component.LargeFilterList
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import dev.toastbits.composekit.settings.ui.vibrant_accent
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
@@ -96,7 +97,7 @@ internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
                 LargeFilterList(
                     filter_chips?.size ?: 0,
                     getItemText = { i ->
-                        filter_chips?.get(i)?.text?.observe() ?: ""
+                        filter_chips?.get(i)?.getDisplayStringResource()?.let { stringResource(it) } ?: ""
                     },
                     getItemIcon = { i ->
                         filter_chips?.get(i)?.getIcon()

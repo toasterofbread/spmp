@@ -12,33 +12,37 @@ import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
 import android.media.MediaMetadataRetriever
 import android.net.Uri
 import android.os.Build
+import androidx.compose.runtime.Composable
 import androidx.core.app.ActivityCompat
-import androidx.core.app.ServiceCompat
 import androidx.core.app.NotificationChannelCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
+import androidx.core.app.ServiceCompat
 import androidx.core.content.ContextCompat
 import androidx.core.content.PermissionChecker
 import androidx.core.graphics.drawable.IconCompat
-import dev.toastbits.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlatformBinder
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.getUiLanguage
+import dev.toastbits.composekit.platform.PlatformFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withContext
-import java.util.concurrent.Executors
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.action_download_resume
-import spmp.shared.generated.resources.`downloading_song_\$title`
-import spmp.shared.generated.resources.`downloading_\$x_songs`
-import spmp.shared.generated.resources.download_just_started
-import spmp.shared.generated.resources.`download_started_\$x_minutes_ago`
 import spmp.shared.generated.resources.action_cancel
+import spmp.shared.generated.resources.action_download_pause
+import spmp.shared.generated.resources.action_download_resume
+import spmp.shared.generated.resources.download_just_started
 import spmp.shared.generated.resources.download_service_name
+import spmp.shared.generated.resources.`download_started_$x_minutes_ago`
+import spmp.shared.generated.resources.`downloading_$x_songs`
+import spmp.shared.generated.resources.`downloading_song_$title`
+import java.util.concurrent.Executors
 
 private const val NOTIFICATION_ID = 1
 private const val NOTIFICATION_CHANNEL_ID = "download_channel"
@@ -64,12 +68,14 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
 
         override fun onPausedChanged() {
-            pause_resume_action.title = if (paused) stringResource(Res.string.action_download_resume) else getString(
-                "action_download_pause"
-            )
+            context.coroutine_scope.launch {
+                pause_resume_action?.title =
+                    if (paused) getString(Res.string.action_download_resume)
+                    else getString(Res.string.action_download_pause)
+            }
         }
 
-        override fun onFirstDownloadStarting(download: Download) {
+        override suspend fun onFirstDownloadStarting(download: Download) {
             if (!download.silent) {
                 if (
                     Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU
@@ -103,7 +109,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
         @SuppressLint("MissingPermission")
         suspend fun updateNotification() = withContext(Dispatchers.IO) {
-            synchronized(downloads) {
+            withDownloads {
                 if (downloads.isNotEmpty() && downloads.all { it.silent }) {
                     return@withContext
                 }
@@ -139,12 +145,12 @@ class PlayerDownloadService: PlatformServiceImpl() {
                         if (downloads.size == 1) {
                             val song_title = downloads.first().song.getActiveTitle(context.database)
                             if (song_title != null) {
-                                title = stringResource(Res.string.downloading_song_\$title).replace("\$title", song_title)
+                                title = getString(Res.string.`downloading_song_$title`).replace("\$title", song_title)
                             }
                         }
 
                         if (title == null) {
-                            title = stringResource(Res.string.downloading_\$x_songs).replace("\$x", downloads.size.toString())
+                            title = getString(Res.string.`downloading_$x_songs`).replace("\$x", downloads.size.toString())
                         }
 
                         builder.setContentTitle(if (paused) "$title (paused)" else title)
@@ -152,8 +158,8 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
                         val elapsed_minutes = ((System.currentTimeMillis() - start_time_ms) / 60000f).toInt()
                         builder.setSubText(
-                            if (elapsed_minutes == 0) stringResource(Res.string.download_just_started)
-                            else stringResource(Res.string.download_started_\$x_minutes_ago).replace("\$x", elapsed_minutes.toString())
+                            if (elapsed_minutes == 0) getString(Res.string.download_just_started)
+                            else getString(Res.string.`download_started_$x_minutes_ago`).replace("\$x", elapsed_minutes.toString())
                         )
                     }
 
@@ -184,7 +190,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
     private lateinit var notification_manager: NotificationManagerCompat
     private var notification_update_time: Long = -1
     private lateinit var notification_delete_intent: PendingIntent
-    private lateinit var pause_resume_action: NotificationCompat.Action
+    private var pause_resume_action: NotificationCompat.Action? = null
 
     override fun onCreate() {
         super.onCreate()
@@ -192,8 +198,6 @@ class PlayerDownloadService: PlatformServiceImpl() {
         if (downloader == null) {
             downloader = SongDownloaderImpl()
         }
-
-        initResources(context.getUiLanguage(), context)
 
         downloader?.downloads?.also { downloads ->
             synchronized(downloads) {
@@ -208,16 +212,6 @@ class PlayerDownloadService: PlatformServiceImpl() {
             Intent(this, PlayerDownloadService::class.java).putExtra("action", IntentAction.STOP),
             PendingIntent.FLAG_IMMUTABLE or PendingIntent.FLAG_ONE_SHOT
         )
-        pause_resume_action = NotificationCompat.Action.Builder(
-            IconCompat.createWithResource(this, android.R.drawable.ic_menu_close_clear_cancel),
-            getStringOrNull("action_download_pause") ?: "Pause",
-            PendingIntent.getService(
-                this,
-                IntentAction.PAUSE_RESUME.ordinal,
-                Intent(this, PlayerDownloadService::class.java).putExtra("action", IntentAction.PAUSE_RESUME),
-                PendingIntent.FLAG_IMMUTABLE
-            )
-        ).build()
     }
 
     override fun onDestroy() {
@@ -235,7 +229,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
     private suspend fun onActionIntentReceived(message: PlayerDownloadManager.PlayerDownloadMessage) {
         when (message.action) {
             IntentAction.STOP -> {
-                SpMp.Log.info("Download service stopping...")
+                println("Download service stopping...")
                 downloader?.stop()
                 stopSelf()
             }
@@ -286,14 +280,13 @@ class PlayerDownloadService: PlatformServiceImpl() {
         downloader?.cancelDownloads { true }
     }
 
-    private fun getNotificationText(): String {
+    private suspend fun getNotificationText(): String {
         val downloader: SongDownloaderImpl = downloader ?: return ""
-        val downloads: MutableList<SongDownloader.Download> = downloader.downloads
 
         var text: String = ""
         var additional: String = ""
 
-        synchronized(downloads) {
+        downloader.withDownloads { downloads ->
             var downloading = 0
             for (download in downloads) {
                 if (download.status != DownloadStatus.Status.DOWNLOADING && download.status != DownloadStatus.Status.PAUSED) {
@@ -337,7 +330,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         val action: Any? = intent?.extras?.get("action")
         if (action is IntentAction) {
-            SpMp.Log.info("Download service received action $action")
+            println("Download service received action $action")
             context.coroutine_scope.launch {
                 onActionIntentReceived(
                     PlayerDownloadManager.PlayerDownloadMessage(
@@ -351,12 +344,26 @@ class PlayerDownloadService: PlatformServiceImpl() {
         return super.onStartCommand(intent, flags, startId)
     }
 
-    private fun getNotificationBuilder(): NotificationCompat.Builder {
+    private suspend fun getNotificationBuilder(): NotificationCompat.Builder {
         val content_intent: PendingIntent = PendingIntent.getActivity(
             this, 0,
             Intent(this@PlayerDownloadService, AppContext.main_activity),
             PendingIntent.FLAG_IMMUTABLE
         )
+
+        if (pause_resume_action == null) {
+            pause_resume_action =
+                NotificationCompat.Action.Builder(
+                    IconCompat.createWithResource(this@PlayerDownloadService, android.R.drawable.ic_menu_close_clear_cancel),
+                    org.jetbrains.compose.resources.getString(Res.string.action_download_pause),
+                    PendingIntent.getService(
+                        this@PlayerDownloadService,
+                        IntentAction.PAUSE_RESUME.ordinal,
+                        Intent(this@PlayerDownloadService, PlayerDownloadService::class.java).putExtra("action", IntentAction.PAUSE_RESUME),
+                        PendingIntent.FLAG_IMMUTABLE
+                    )
+                ).build()
+        }
 
         return NotificationCompat.Builder(this, getNotificationChannel())
             .setSmallIcon(android.R.drawable.stat_sys_download)
@@ -368,7 +375,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
             .addAction(
                 NotificationCompat.Action.Builder(
                     IconCompat.createWithResource(this, android.R.drawable.ic_menu_close_clear_cancel),
-                    stringResource(Res.string.action_cancel),
+                    getString(Res.string.action_cancel),
                     PendingIntent.getService(
                         this,
                         IntentAction.CANCEL_ALL.ordinal,
@@ -384,13 +391,13 @@ class PlayerDownloadService: PlatformServiceImpl() {
             }
     }
 
-    private fun getNotificationChannel(): String {
+    private suspend fun getNotificationChannel(): String {
         val channel =
             NotificationChannelCompat.Builder(
                 NOTIFICATION_CHANNEL_ID,
                 NotificationManager.IMPORTANCE_LOW
             )
-            .setName(stringResource(Res.string.download_service_name))
+            .setName(getString(Res.string.download_service_name))
             .setSound(null, null)
             .build()
 

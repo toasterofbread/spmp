@@ -33,6 +33,7 @@ import com.toasterofbread.spmp.platform.playerservice.*
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.shared.R
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
+import dev.toastbits.composekit.platform.ApplicationContext
 import kotlinx.coroutines.*
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
@@ -68,10 +69,14 @@ open class ForegroundPlayerService(
         PlatformPreferencesListener { _, key ->
             when (key) {
                 context.settings.streaming.ENABLE_AUDIO_NORMALISATION.key -> {
-                    loudness_enhancer?.update(current_song, context)
+                    coroutine_scope.launch {
+                        loudness_enhancer?.update(current_song, context)
+                    }
                 }
                 context.settings.streaming.ENABLE_SILENCE_SKIPPING.key -> {
-                    audio_sink.skipSilenceEnabled = context.settings.streaming.ENABLE_SILENCE_SKIPPING.get()
+                    coroutine_scope.launch {
+                        audio_sink.skipSilenceEnabled = context.settings.streaming.ENABLE_SILENCE_SKIPPING.get()
+                    }
                 }
             }
         }
@@ -115,7 +120,7 @@ open class ForegroundPlayerService(
     override fun onCreate() {
         super.onCreate()
 
-        _context = AppContext(this, coroutine_scope)
+        _context = runBlocking { AppContext.create(this@ForegroundPlayerService, coroutine_scope) }
         _context.getPrefs().addListener(prefs_listener)
 
         initialiseSessionAndPlayer(
@@ -173,15 +178,15 @@ open class ForegroundPlayerService(
     override fun onTaskRemoved(intent: Intent?) {
         super.onTaskRemoved(intent)
 
-        if (
-            (!player.isPlaying && convertState(player.playbackState) != SpMsPlayerState.BUFFERING)
-            || (
-                context.settings.behaviour.STOP_PLAYER_ON_APP_CLOSE.get()
-                && intent?.component?.packageName == packageName
-            )
-        ) {
+        if (!player.isPlaying && convertState(player.playbackState) != SpMsPlayerState.BUFFERING) {
             stopSelf()
-            onDestroy()
+        }
+        else if (intent?.component?.packageName == packageName) {
+            coroutine_scope.launch {
+                if (context.settings.behaviour.STOP_PLAYER_ON_APP_CLOSE.get()) {
+                    stopSelf()
+                }
+            }
         }
     }
 

@@ -12,6 +12,8 @@ import dev.toastbits.composekit.platform.PlatformFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 internal actual class LocalSongSyncLoader: SyncLoader<DownloadStatus>() {
@@ -36,9 +38,10 @@ private suspend fun getAllLocalSongFiles(context: AppContext, allow_partial: Boo
     )
 
     val results: Array<DownloadStatus?> = arrayOfNulls(files.size)
+    val db_mutex: Mutex = Mutex()
 
     files.mapIndexed { index, file ->
-        launch {
+        launch(Dispatchers.PlatformIO) {
             val file_info: SongDownloader.Companion.DownloadFileInfo = SongDownloader.getFileDownloadInfo(file)
             if (!allow_partial && file_info.is_partial) {
                 return@launch
@@ -46,12 +49,20 @@ private suspend fun getAllLocalSongFiles(context: AppContext, allow_partial: Boo
 
             var song: Song? =
                 file_info.id?.let { SongRef(it) }
-                    ?: LocalSongMetadataProcessor.readLocalSongMetadata(file, context, load_data = true)?.apply { saveToDatabase(context.database) }
+                ?: LocalSongMetadataProcessor.readLocalSongMetadata(file, context, load_data = true)
+                    ?.also {
+                        db_mutex.withLock {
+                            it.saveToDatabase(context.database)
+                        }
+                    }
 
             if (song == null) {
                 song = SongRef('!' + file.absolute_path.hashCode().toString())
-                song.createDbEntry(context.database)
-                song.Title.set(file.name.split('.', limit = 2).firstOrNull() ?: "???", context.database)
+
+                db_mutex.withLock {
+                    song.createDbEntry(context.database)
+                    song.Title.set(file.name.split('.', limit = 2).firstOrNull() ?: "???", context.database)
+                }
             }
 
             val result: DownloadStatus =

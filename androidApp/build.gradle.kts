@@ -56,7 +56,7 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 implementation(project(":shared"))
-                implementation(deps.get("dev.toastbits.composekit:library-android"))
+                implementation(deps.get("dev.toastbits.composekit:library"))
             }
         }
     }

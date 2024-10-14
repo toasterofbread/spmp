@@ -75,6 +75,8 @@ import dev.toastbits.ytmkt.model.external.YoutubePage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 
 typealias DownloadRequestCallback = (DownloadStatus?) -> Unit
@@ -665,6 +667,7 @@ class PlayerState(
 
     private var service_connecting: Boolean = false
     private var service_connected_listeners: MutableList<(PlayerService) -> Unit> = mutableListOf()
+    private val service_connected_listeners_mutex: Mutex = Mutex()
     private var service_connection: Any? = null
     private var service_connection_companion: PlayerServiceCompanion? = null
 
@@ -674,7 +677,7 @@ class PlayerState(
     ) {
         val service_companion: PlayerServiceCompanion = service_companion ?: getServiceCompanion()
 
-        synchronized(service_connected_listeners) {
+        service_connected_listeners_mutex.withLock {
             if (service_connecting) {
                 if (onConnected != null) {
                     service_connected_listeners.add(onConnected)

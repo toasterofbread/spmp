@@ -5,16 +5,16 @@ include(":androidApp")
 include(":desktopApp")
 
 pluginManagement {
-    resolutionStrategy {
-        eachPlugin {
-            // TEMP
-            // https://github.com/cashapp/sqldelight/pull/4965
-            if (requested.id.toString() == "app.cash.sqldelight") {
-                val sqldelight_version: String = extra["sqldelight.version"] as String
-                useModule("com.github.toasterofbread.sqldelight:app.cash.sqldelight.gradle.plugin:$sqldelight_version")
-            }
-        }
-    }
+//    resolutionStrategy {
+//        eachPlugin {
+//            // TEMP
+//            // https://github.com/cashapp/sqldelight/pull/4965
+//            if (requested.id.toString() == "app.cash.sqldelight") {
+//                val sqldelight_version: String = extra["sqldelight.version"] as String
+//                useModule("com.github.toasterofbread.sqldelight:app.cash.sqldelight.gradle.plugin:$sqldelight_version")
+//            }
+//        }
+//    }
 
     repositories {
         gradlePluginPortal()

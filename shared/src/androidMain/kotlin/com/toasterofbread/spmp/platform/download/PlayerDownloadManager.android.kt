@@ -202,7 +202,7 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
 
         service_connection = startPlatformService(
             context,
-            PlayerDownloadService::class.java,
+            { PlayerDownloadService() },
             onConnected = { binder ->
                 synchronized(service_connect_callbacks) {
                     service = (binder as PlayerDownloadService.ServiceBinder).getService()
@@ -236,12 +236,5 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
             unbindPlatformService(context, service_connection!!)
             service_connection = null
         }
-    }
-
-    companion object {
-        fun getSongDownloadDir(context: AppContext): PlatformFile =
-            MediaItemLibrary.getLocalSongsDir(context)
-        fun getLyricsDownloadDir(context: AppContext): PlatformFile =
-            MediaItemLibrary.getLocalLyricsDir(context)
     }
 }

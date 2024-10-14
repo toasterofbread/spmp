@@ -13,7 +13,7 @@ interface PlayerServiceCompanion {
     fun isServiceAttached(context: AppContext): Boolean = false
     fun playsAudio(): Boolean = false
 
-    fun connect(
+    suspend fun connect(
         context: AppContext,
         launch_arguments: ProgramArguments,
         instance: PlayerService? = null,

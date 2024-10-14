@@ -29,6 +29,9 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.uploadErrorToPasteEe
 import com.toasterofbread.spmp.ui.theme.ApplicationTheme
 import com.toasterofbread.spmp.model.JsonHttpClient
+import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.resources.stringResourceTODO
+import dev.toastbits.composekit.platform.ApplicationContext
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.request
@@ -41,6 +44,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -48,7 +52,6 @@ import org.jetbrains.compose.resources.painterResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
-import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.error_message_generic
 import spmp.shared.generated.resources.wrap_text_switch_label
 import spmp.shared.generated.resources.upload_to_paste_dot_ee
@@ -67,7 +70,7 @@ class ErrorReportActivity : ComponentActivity() {
         val stack_trace = intent.getStringExtra("stack_trace") ?: "No stack trace"
 
         try {
-            context = AppContext(this, coroutine_scope)
+            context = runBlocking { AppContext.create(this@ErrorReportActivity, coroutine_scope, ApplicationContext(this@ErrorReportActivity)) }
         }
         catch (_: Throwable) {}
 
@@ -96,7 +99,7 @@ class ErrorReportActivity : ComponentActivity() {
 
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                 SubtleLoadingIndicator()
-                Text(getStringTODO("Retrieving crash logcat..."))
+                Text(stringResourceTODO("Retrieving crash logcat..."))
             }
         }
     }
@@ -148,7 +151,7 @@ class ErrorReportActivity : ComponentActivity() {
 
                                 IconButton(onClick = {
                                     clipboard.setText(AnnotatedString(error_text))
-                                    context?.sendToast(getStringTODO("Copied stack trace to clipboard"))
+                                    context?.sendToast("Copied stack trace to clipboard // TODO")
                                 }) {
                                     Icon(Icons.Outlined.ContentCopy, null)
                                 }

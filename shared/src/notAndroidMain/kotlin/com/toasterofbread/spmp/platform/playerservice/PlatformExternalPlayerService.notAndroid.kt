@@ -13,7 +13,7 @@ actual class PlatformExternalPlayerService: ExternalPlayerService(plays_audio = 
             (connection as ExternalPlayerService).onDestroy()
         }
 
-        override fun connect(
+        override suspend fun connect(
             context: AppContext,
             launch_arguments: ProgramArguments,
             instance: PlayerService?,

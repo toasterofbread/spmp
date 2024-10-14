@@ -1,10 +1,14 @@
 package com.toasterofbread.spmp.platform.playerservice
 
 import android.media.audiofx.LoudnessEnhancer
+import androidx.annotation.OptIn
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import kotlinx.coroutines.launch
 
+@OptIn(UnstableApi::class)
 class InternalPlayerServicePlayerListener(
     private val service: ForegroundPlayerService
 ): Player.Listener {
@@ -21,14 +25,18 @@ class InternalPlayerServicePlayerListener(
             service.loudness_enhancer = LoudnessEnhancer(service.player.audioSessionId)
         }
 
-        service.loudness_enhancer?.update(song, service.context)
+        service.coroutine_scope.launch {
+            service.loudness_enhancer?.update(song, service.context)
+        }
     }
 
     override fun onAudioSessionIdChanged(audioSessionId: Int) {
         service.loudness_enhancer?.release()
         service.loudness_enhancer = LoudnessEnhancer(audioSessionId).apply {
-            update(service.current_song, service.context)
-            enabled = true
+            service.coroutine_scope.launch {
+                update(service.current_song, service.context)
+                enabled = true
+            }
         }
     }
 

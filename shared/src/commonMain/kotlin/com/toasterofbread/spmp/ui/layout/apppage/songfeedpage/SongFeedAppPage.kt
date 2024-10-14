@@ -165,7 +165,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                 val cached: SongFeedData? = SongFeedCache.loadFeedLayouts(state.context.database)
                 if (cached?.layouts?.isNotEmpty() == true) {
                     layouts = cached.layouts.map { it.layout }
-                    filter_chips = cached.filter_chips
+                    filter_chips = cached.filter_chips.sortFilterChips()
                     continuation = cached.continuation_token
                     return@withContext Result.success(Unit)
                 }
@@ -188,7 +188,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                     }
                     else {
                         layouts = data_layouts
-                        filter_chips = data.filter_chips
+                        filter_chips = data.filter_chips?.sortFilterChips()
 
                         if (filter_chip == null) {
                             SongFeedCache.saveFeedLayouts(data_layouts, data.filter_chips, data.ctoken, state.context.database)
@@ -208,7 +208,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                         val cached = SongFeedCache.loadFeedLayouts(state.context.database)
                         if (cached?.layouts?.isNotEmpty() == true) {
                             layouts = cached.layouts.map { it.layout }
-                            filter_chips = cached.filter_chips
+                            filter_chips = cached.filter_chips.sortFilterChips()
                             continuation = cached.continuation_token
                         }
                     }

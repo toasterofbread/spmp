@@ -70,7 +70,7 @@ data class RadioState(
                 return RadioLoadResult(
                     songs = radio.items.map { it.toSongData() },
                     continuation = radio.continuation?.let { token ->
-                        RadioContinuation(token, type = RadioContinuation.Type.SONG, song_id = item.id)
+                        RadioContinuation(token, type = RadioContinuation.Type.SONG, item_id = item.id)
                     },
                     filters = radio.filters
                 )
@@ -84,9 +84,7 @@ data class RadioState(
 
                 return RadioLoadResult(
                     songs = radio.items.map { it.toSongData() },
-                    continuation = radio.continuation?.let { token ->
-                        RadioContinuation(token, type = RadioContinuation.Type.SONG, song_id = item.id)
-                    }
+                    continuation = radio.continuation
                 )
             }
             is RemotePlaylist -> {

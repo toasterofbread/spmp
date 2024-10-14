@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.platform
 
+import androidx.compose.runtime.Composable
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import kotlinx.serialization.Serializable
@@ -14,6 +15,7 @@ expect class DiscordStatus(
         fun isSupported(): Boolean
         fun isAccountTokenRequired(): Boolean
 
+        @Composable
         fun getWarningText(): String?
     }
 

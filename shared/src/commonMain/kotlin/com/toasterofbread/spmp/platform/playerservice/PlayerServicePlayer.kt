@@ -528,7 +528,7 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
     }
 
     private fun createUpdateTimer(): Job =
-        coroutine_scope.launch(Dispatchers.PlatformIO) {
+        coroutine_scope.launch {
             while (true) {
                 savePersistentQueue()
 

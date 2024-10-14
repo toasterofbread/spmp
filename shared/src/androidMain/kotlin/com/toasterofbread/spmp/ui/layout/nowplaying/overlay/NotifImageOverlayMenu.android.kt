@@ -55,6 +55,7 @@ import spmp.shared.generated.resources.song_notif_image_menu_open
 import spmp.shared.generated.resources.song_notif_image_menu_adjust_offset
 import spmp.shared.generated.resources.song_notif_image_menu_adjust_offset_desc
 
+@Composable
 actual fun notifImagePlayerOverlayMenuButtonText(): String? = stringResource(Res.string.song_notif_image_menu_open)
 
 actual class NotifImagePlayerOverlayMenu: PlayerOverlayMenu() {

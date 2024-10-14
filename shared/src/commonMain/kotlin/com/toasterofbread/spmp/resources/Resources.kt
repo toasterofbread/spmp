@@ -38,31 +38,40 @@ data class Language(
     }
 }
 
-suspend fun getAvailableLanguages(): List<Language> =
-    Res.string.language_name.items.mapNotNull { language ->
-        if (language.qualifiers.isEmpty()) {
-            return@mapNotNull null
-        }
+private var available_languages: List<Language>? = null
 
-        var family: String? = null
-        var locale: String? = null
+suspend fun getAvailableLanguages(): List<Language> {
+    if (available_languages == null) {
+        available_languages =
+            Res.string.language_name.items.mapNotNull { language ->
+                println("READLANG $language ${language.qualifiers}")
 
-        for (qualifier in language.qualifiers) {
-            when (qualifier) {
-                is LanguageQualifier -> {
-                    family = qualifier.language
+                if (language.qualifiers.isEmpty()) {
+                    return@mapNotNull null
                 }
-                is RegionQualifier -> {
-                    locale = qualifier.region
+
+                var family: String? = null
+                var locale: String? = null
+
+                for (qualifier in language.qualifiers) {
+                    when (qualifier) {
+                        is LanguageQualifier -> {
+                            family = qualifier.language
+                        }
+                        is RegionQualifier -> {
+                            locale = qualifier.region
+                        }
+                    }
                 }
+
+                checkNotNull(family)
+
+                val readable_name: String = getString(getResourceEnvironment(family, locale), Res.string.language_name)
+                return@mapNotNull Language(family, locale, readable_name)
             }
-        }
-
-        checkNotNull(family)
-
-        val readable_name: String = getString(getResourceEnvironment(family, locale), Res.string.language_name)
-        return@mapNotNull Language(family, locale, readable_name)
     }
+    return available_languages!!
+}
 
 private fun List<Language>.getBestMatch(identifier: String): Language? {
     val split: List<String> = identifier.split('-', limit = 2)
@@ -98,5 +107,6 @@ fun rememberStringResourceByKey(key: String): StringResource {
 }
 
 suspend fun getStringTODO(string: String): String = "TODO($string)"
+
 @Composable
 fun stringResourceTODO(string: String): String = "TODO($string)"

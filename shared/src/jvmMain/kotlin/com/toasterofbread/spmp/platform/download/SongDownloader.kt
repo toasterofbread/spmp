@@ -14,6 +14,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import okio.BufferedSink
 import okio.buffer
@@ -28,15 +30,16 @@ private const val FILE_DOWNLOADING_SUFFIX = ".part"
 abstract class SongDownloader(
     private val context: AppContext,
     private val download_executor: ExecutorService,
-    private val song_download_dir: PlatformFile,
-    private val song_storage_dir: PlatformFile,
     private val max_retry_count: Int = 3
 ) {
+    private fun getSongDownloadDir(): PlatformFile = MediaItemLibrary.getSongDownloadsDir(context)!!
+    private suspend fun getSongStorageDir(): PlatformFile = MediaItemLibrary.getLocalSongsDir(context)!!
+
     protected abstract fun getAudioFileDurationMs(file: PlatformFile): Long?
     protected abstract fun onDownloadStatusChanged(download: Download, started: Boolean = false)
     protected open fun onDownloadProgress() {}
     protected open fun onPausedChanged() {}
-    protected open fun onFirstDownloadStarting(download: Download) {}
+    protected open suspend fun onFirstDownloadStarting(download: Download) {}
     protected open fun onLastDownloadFinished() {}
 
     inner class Download(
@@ -48,6 +51,8 @@ abstract class SongDownloader(
         val download_lyrics: Boolean = true,
         val direct: Boolean = false
     ) {
+        val mutex: Mutex by lazy { Mutex() }
+
         // This is fine :)
         var song_file: PlatformFile? = runBlocking {
             MediaItemLibrary.getLocalSong(song, context)?.file
@@ -97,13 +102,14 @@ abstract class SongDownloader(
                 return getDestinationFile(extension)
             }
 
+            val song_download_dir: PlatformFile = getSongDownloadDir()
             check(song_download_dir.mkdirs()) { "Could not create song download directory $song_download_dir" }
             return song_download_dir.resolve(generatePath(extension, true))
         }
 
         suspend fun getDestinationFile(extension: String): PlatformFile =
             custom_uri?.let { context.getUserDirectoryFile(it) }
-                ?: song_storage_dir.resolve(generatePath(extension, false))
+                ?: getSongStorageDir().resolve(generatePath(extension, false))
 
         override fun toString(): String =
             "Download(id=${song.id}, quality=$quality, silent=$silent, instance=$instance, file=$song_file)"
@@ -176,6 +182,13 @@ abstract class SongDownloader(
     }
 
     val downloads: MutableList<Download> = mutableListOf()
+    val downloads_mutex: Mutex = Mutex()
+
+    suspend inline fun withDownloads(action: (MutableList<Download>) -> Unit) {
+        downloads_mutex.withLock {
+            action(downloads)
+        }
+    }
 
     private var stopping: Boolean = false
 
@@ -216,15 +229,16 @@ abstract class SongDownloader(
         direct: Boolean,
         callback: (Download, Result<PlatformFile?>) -> Unit
     ) = withContext(Dispatchers.IO) {
-        val download: Download = getOrCreateDownload(
-            song,
-            silent = silent,
-            custom_uri = custom_uri,
-            download_lyrics = download_lyrics,
-            direct = direct
-        )
+        val download: Download =
+            getOrCreateDownload(
+                song,
+                silent = silent,
+                custom_uri = custom_uri,
+                download_lyrics = download_lyrics,
+                direct = direct
+            )
 
-        synchronized(download) {
+        download.mutex.withLock {
             if (download.finished) {
                 callback(download, Result.success(download.song_file))
                 return@withContext
@@ -238,7 +252,7 @@ abstract class SongDownloader(
                 return@withContext
             }
 
-            synchronized(downloads) {
+            withDownloads {
                 if (downloads.isEmpty()) {
                     onFirstDownloadStarting(download)
                     start_time_ms = System.currentTimeMillis()
@@ -279,7 +293,7 @@ abstract class SongDownloader(
                         }
                 }
 
-                synchronized(downloads) {
+                withDownloads {
                     downloads.removeAll { it.song.id == download.song.id }
 
                     if (downloads.isEmpty()) {
@@ -303,7 +317,7 @@ abstract class SongDownloader(
     }
 
     suspend fun cancelDownloads(filter: (Download) -> Boolean) = withContext(Dispatchers.IO) {
-        synchronized(downloads) {
+        withDownloads {
             for (download in downloads) {
                 if (filter(download)) {
                     download.cancel()

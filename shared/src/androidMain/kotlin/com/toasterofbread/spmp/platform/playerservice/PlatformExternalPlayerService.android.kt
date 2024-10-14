@@ -22,6 +22,8 @@ import androidx.compose.ui.Modifier
 import ProgramArguments
 import LocalProgramArguments
 import LocalPlayerState
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.loading_splash_button_launch_without_server
@@ -79,6 +81,7 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
         server.onRadioCancelled()
     }
 
+    @OptIn(UnstableApi::class)
     override fun getNotificationPlayer(player: Player): Player =
         object : ForwardingPlayer(player) {
             override fun play() {
@@ -238,10 +241,12 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
     override fun removeListener(listener: PlayerListener) = server.removeListener(listener)
 
     actual companion object: InternalPlayerServiceCompanion(PlatformExternalPlayerService::class), PlayerServiceCompanion {
+        override fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean = true
+
         override fun isServiceRunning(context: AppContext): Boolean = true
         override fun playsAudio(): Boolean = true
 
-        override fun connect(
+        override suspend fun connect(
             context: AppContext,
             launch_arguments: ProgramArguments,
             instance: PlayerService?,

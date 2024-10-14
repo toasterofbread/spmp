@@ -1,5 +1,5 @@
 <resources>
-    <string name="language_name">English (GB)</string>
+    <string name="language_name">UNSET</string>
 
     <string name="version_string" translatable="false">0.4.0-beta1</string>
     <string name="version_code" translatable="false">14</string>
@@ -75,6 +75,12 @@
     <string name="home_feed_filter_workout">Workout</string>
     <string name="home_feed_filter_commute">Commute</string>
     <string name="home_feed_filter_focus">Focus</string>
+    <string name="home_feed_filter_podcasts">Podcasts</string>
+    <string name="home_feed_filter_party">Party</string>
+    <string name="home_feed_filter_romance">Romance</string>
+    <string name="home_feed_filter_sad">Sad</string>
+    <string name="home_feed_filter_feel_good">Feel good</string>
+    <string name="home_feed_filter_sleep">Sleep</string>
 
     <string name="library_local">Local</string>
     <string name="library_account">Account</string>
@@ -264,7 +270,7 @@
     <string name="video_format_endpoint_youtubei">Youtubei</string>
     <string name="video_format_endpoint_newpipe">NewPipe</string>
 
-    <string name="error_message_generic">A error occurred</string>
+    <string name="error_message_generic">An error occurred</string>
     <string name="error_yt_feed_parse_failed">YouTube feed parsing failed</string>
     <string name="error_player_service_not_connected">Player service isn't connecting&#xA;A bug may have occurred</string>
     <string name="error_while_connecting_to_server_at_$x">An error occurred while connecting to server at $x</string>

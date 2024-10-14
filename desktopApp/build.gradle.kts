@@ -20,22 +20,6 @@ plugins {
     id("org.jetbrains.compose")
 }
 
-repositories {
-    google()
-    mavenCentral()
-    mavenLocal()
-    maven("https://jitpack.io")
-
-    // https://github.com/KevinnZou/compose-webview-multiplatform
-    maven("https://jogamp.org/deployment/maven")
-
-    // https://github.com/d1snin/catppuccin-kotlin
-    maven("https://maven.d1s.dev/snapshots")
-
-    // https://github.com/sergeych/mp_stools
-    maven("https://maven.universablockchain.com/")
-}
-
 fun getString(key: String): String {
     val reader = strings_file.reader()
     val parser = org.xmlpull.v1.XmlPullParserFactory.newInstance().newPullParser()

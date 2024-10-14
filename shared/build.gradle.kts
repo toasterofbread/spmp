@@ -115,7 +115,6 @@ kotlin {
                 implementation(deps.get("io.ktor:ktor-client-core", "io.ktor"))
                 implementation(deps.get("io.ktor:ktor-client-content-negotiation", "io.ktor"))
                 implementation(deps.get("io.ktor:ktor-serialization-kotlinx-json", "io.ktor"))
-                implementation(deps.get("com.github.toasterofbread.kotori:kotori"))
             }
         }
 

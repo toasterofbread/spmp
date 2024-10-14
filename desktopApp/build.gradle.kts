@@ -7,6 +7,7 @@ import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 import plugin.spmp.SpMpDeps
 import plugin.spmp.getDeps
 import plugins.shared.DesktopUtils
+import plugins.shared.DesktopUtils.strings_file
 import java.io.FileInputStream
 import java.nio.file.Files.getPosixFilePermissions
 import java.nio.file.Files.setPosixFilePermissions
@@ -34,9 +35,6 @@ repositories {
     // https://github.com/sergeych/mp_stools
     maven("https://maven.universablockchain.com/")
 }
-
-val local_properties_path: String = "local.properties"
-val strings_file: File = rootProject.file("shared/src/commonMain/composeResources/values/strings.xml")
 
 fun getString(key: String): String {
     val reader = strings_file.reader()

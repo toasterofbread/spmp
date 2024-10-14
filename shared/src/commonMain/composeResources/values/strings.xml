@@ -524,7 +524,7 @@
     <string name="s_key_np_theme_mode">Now playing theme mode</string>
     <string name="s_option_np_accent_background">Colour background with accent</string>
     <string name="s_option_np_accent_elements">Colour elements with accent</string>
-    <string name="s_option_np_accent_none">Don\'t use accent colour</string>
+    <string name="s_option_np_accent_none">Don't use accent colour</string>
 
     <string name="s_key_np_default_gradient_depth">Default gradient depth</string>
     <string name="s_key_np_default_background_image_video_opacity">Default landscape background image/video opacity</string>

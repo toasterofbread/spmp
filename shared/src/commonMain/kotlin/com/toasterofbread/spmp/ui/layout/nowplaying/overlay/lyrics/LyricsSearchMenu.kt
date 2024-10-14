@@ -65,7 +65,6 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.db.Database
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-<<<<<<< HEAD
 import PlatformIO
 import androidx.compose.ui.graphics.Color
 import dev.toastbits.composekit.platform.ReentrantLock
@@ -86,10 +85,7 @@ import spmp.shared.generated.resources.song_name
 import spmp.shared.generated.resources.artist
 import spmp.shared.generated.resources.lyrics_source_cannot_search
 import spmp.shared.generated.resources.action_close
-=======
-import java.io.IOException
 import kotlin.time.Duration.Companion.milliseconds
->>>>>>> main
 
 private const val LYRICS_SEARCH_RETRY_COUNT = 3
 

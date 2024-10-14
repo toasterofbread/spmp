@@ -37,10 +37,11 @@ import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.StringResource
 import kotlin.math.roundToInt
 
 internal abstract class SliderOption(
-    override val title: String,
+    override val titleResource: StringResource,
     override val icon: ImageVector,
     val getProperty: Settings.() -> PreferencesProperty<Float>,
     val getSongProperty: Song.() -> Property<Float?>

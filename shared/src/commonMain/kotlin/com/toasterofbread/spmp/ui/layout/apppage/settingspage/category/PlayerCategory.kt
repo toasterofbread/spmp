@@ -51,18 +51,15 @@ internal fun getPlayerCategoryItems(context: AppContext): List<SettingsItem> {
         GroupSettingsItem(null),
 
         ToggleSettingsItem(
-            context.settings.player.SHOW_REPEAT_SHUFFLE_BUTTONS,
-            title_max_lines = 2
+            context.settings.player.SHOW_REPEAT_SHUFFLE_BUTTONS
         ),
 
         ToggleSettingsItem(
-            context.settings.player.SHOW_SEEK_BAR_GRADIENT,
-            title_max_lines = 2
+            context.settings.player.SHOW_SEEK_BAR_GRADIENT
         ),
 
         ToggleSettingsItem(
-            context.settings.player.LANDSCAPE_SWAP_CONTROLS_AND_IMAGE,
-            title_max_lines = 2
+            context.settings.player.LANDSCAPE_SWAP_CONTROLS_AND_IMAGE
         ),
 
         MultipleChoiceSettingsItem(
@@ -72,8 +69,7 @@ internal fun getPlayerCategoryItems(context: AppContext): List<SettingsItem> {
         },
 
         ToggleSettingsItem(
-            context.settings.player.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS,
-            title_max_lines = 2
+            context.settings.player.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS
         ),
 
         GroupSettingsItem(null),

@@ -51,9 +51,9 @@ class YoutubeAuthSettings(val context: AppContext): SettingsGroup("YTAUTH", cont
             this,
             { stringResource(Res.string.s_cat_youtube_auth) }
         ) {
-            override fun openPageOnInterface(context: AppContext, settings_interface: SettingsInterface) {
+            override fun openPage(context: AppContext) {
                 val manual: Boolean = false
-                settings_interface.openPageById(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, manual)
+                SpMp.player_state.app_page_state.Settings.settings_interface.openPageById(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, manual)
             }
 
             override fun getTitleItem(context: AppContext): SettingsItem? =

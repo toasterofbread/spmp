@@ -90,7 +90,7 @@ fun SplashExtraLoadingContent(item_modifier: Modifier) {
             text = {
                 LazyColumn(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     items(settings_items) { item ->
-                        item.Item(player.app_page_state.Settings.settings_interface, { _, _ -> }, {}, Modifier)
+                        item.Item(Modifier)
                     }
                 }
             }

@@ -130,7 +130,7 @@ fun getDiscordAuthItem(
                 DiscordLoginConfirmation { manual ->
                     dismiss()
                     if (manual != null) {
-                        openPage(PrefsPageScreen.DISCORD_LOGIN.ordinal, manual)
+                        SpMp.player_state.app_page_state.Settings.settings_interface.openPageById(PrefsPageScreen.DISCORD_LOGIN.ordinal, manual)
                     }
                 }
             }}
@@ -168,7 +168,7 @@ fun getDiscordAuthItem(
     ) { target, setEnabled, _ ->
         if (target) {
             if (login_required) {
-                openPage(PrefsPageScreen.DISCORD_LOGIN.ordinal, null)
+                SpMp.player_state.app_page_state.Settings.settings_interface.openPageById(PrefsPageScreen.DISCORD_LOGIN.ordinal, null)
             }
             else {
                 discord_auth.set("0")

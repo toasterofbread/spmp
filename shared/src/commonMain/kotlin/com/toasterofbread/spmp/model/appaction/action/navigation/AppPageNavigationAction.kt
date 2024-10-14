@@ -42,7 +42,7 @@ data class AppPageNavigationAction(
 
         if (page is SettingsAppPage && settings_group != null) {
             val group_page: SettingsGroup.CategoryPage = player.settings.groupFromKey(settings_group)?.getPage() ?: return
-            group_page.openPageOnInterface(player.context, page.settings_interface)
+            group_page.openPage(player.context)
         }
     }
 

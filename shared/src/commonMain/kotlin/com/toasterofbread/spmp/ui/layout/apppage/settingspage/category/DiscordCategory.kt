@@ -40,6 +40,8 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import LocalProgramArguments
 import ProgramArguments
 import LocalPlayerState
+import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import dev.toastbits.composekit.settings.ui.on_accent
 import dev.toastbits.composekit.settings.ui.vibrant_accent
 import org.jetbrains.compose.resources.stringResource
@@ -58,6 +60,7 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
 
     return listOf(
         ComposableSettingsItem { modifier ->
+            val theme: ThemeValues = LocalApplicationTheme.current
             var accepted: Boolean by context.settings.discord_auth.DISCORD_WARNING_ACCEPTED.observe()
             val warning_text: String? = DiscordStatus.getWarningText()
 
@@ -73,7 +76,7 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
                     Column(Modifier.fillMaxSize().padding(15.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                         Icon(Icons.Default.Warning, null, tint = Color.Red)
 
-                        LinkifyText(context, warning_text ?: "", theme.accent, style = MaterialTheme.typography.bodyMedium.copy(color = theme.on_background))
+                        LinkifyText(warning_text ?: "", theme.accent, style = MaterialTheme.typography.bodyMedium.copy(color = theme.on_background))
 
                         Button(
                             { accepted = true },
@@ -98,7 +101,6 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
 
             if (program_arguments.is_flatpak) {
                 LinkifyText(
-                    context,
                     stringResource(Res.string.`info_flatpak_discord_$url`).replace("\$url", stringResource(Res.string.flatpak_documentation_url) + " "),
                     player.theme.vibrant_accent
                 )

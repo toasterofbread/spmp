@@ -56,7 +56,7 @@ fun getLayoutSlotEditorSettingsItems(context: AppContext): List<SettingsItem> {
             ),
             composable = {
                 LayoutSlotEditor(it) {
-                    goBack()
+                    SpMp.player_state.app_page_state.Settings.settings_interface.goBack()
                 }
             }
         )

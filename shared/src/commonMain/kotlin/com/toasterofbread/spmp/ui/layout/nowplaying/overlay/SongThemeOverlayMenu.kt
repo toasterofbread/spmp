@@ -33,7 +33,6 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.platform.createImageBitmapUtil
-import com.toasterofbread.spmp.platform.isVideoPlaybackSupported
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
@@ -172,7 +171,7 @@ class SongThemePlayerOverlayMenu(
                             stringResource(Res.string.song_theme_menu_wave_opacity)
                         )
 
-                        if (isVideoPlaybackSupported()) {
+                        if (true) { // isVideoPlaybackSupported()
                             val default_video_position: ThemeSettings.VideoPosition by player.settings.theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
                             var song_video_position: ThemeSettings.VideoPosition? by song.VideoPosition.observe(player.database)
 

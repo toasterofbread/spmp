@@ -248,7 +248,7 @@ fun LFFArtistStartPane(
                 if (!long_description) {
                     description?.also { desc ->
                         if (desc.isNotBlank()) {
-                            LinkifyText(player.context, desc, current_accent_colour, Modifier.padding(start = start_padding), style = MaterialTheme.typography.bodyLarge)
+                            LinkifyText(desc, current_accent_colour, Modifier.padding(start = start_padding), style = MaterialTheme.typography.bodyLarge)
                         }
                     }
                 }
@@ -275,7 +275,7 @@ fun LFFArtistStartPane(
                         )
 
                         if (desc.isNotBlank()) {
-                            LinkifyText(player.context, desc, current_accent_colour, Modifier.padding(start = start_padding), style = MaterialTheme.typography.bodyLarge)
+                            LinkifyText(desc, current_accent_colour, Modifier.padding(start = start_padding), style = MaterialTheme.typography.bodyLarge)
                         }
                     }
                 }

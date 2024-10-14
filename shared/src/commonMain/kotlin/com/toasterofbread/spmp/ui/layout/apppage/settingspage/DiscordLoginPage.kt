@@ -28,7 +28,7 @@ internal fun getDiscordLoginPage(discord_auth: PreferencesProperty<String>, manu
             get() = if (manual) stringResource(Res.string.discord_manual_login_title) else null
         override val icon: ImageVector?
             @Composable
-            get() = if (manual) DiscordSettings.getIcon() else null
+            get() = if (manual) DiscordSettings.getDiscordIcon() else null
 
         @Composable
         override fun hasTitleBar(): Boolean = false

@@ -17,14 +17,10 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.HorizontalFuriganaText
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING_DP
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
-<<<<<<< HEAD
 import dev.toastbits.composekit.platform.composable.platformClickable
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.common.thenWith
-=======
-import com.toasterofbread.spmp.youtubeapi.lyrics.createFuriganaTokeniser
 import dev.toastbits.composekit.utils.composable.workingAnimateScrollToItem
->>>>>>> main
 import kotlinx.coroutines.delay
 
 @Composable

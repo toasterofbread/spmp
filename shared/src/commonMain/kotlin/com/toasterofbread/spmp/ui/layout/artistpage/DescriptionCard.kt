@@ -90,7 +90,6 @@ fun DescriptionCard(description_text: String, expanding: Boolean = true, height:
             }
 
             LinkifyText(
-                player.context,
                 description_text,
                 modifier = Modifier
                     .onSizeChanged { size ->

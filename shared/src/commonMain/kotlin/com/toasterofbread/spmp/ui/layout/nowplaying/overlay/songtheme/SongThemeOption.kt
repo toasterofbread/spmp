@@ -21,10 +21,23 @@ import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.doesPlatformSupportVideoPlayback
-import com.toasterofbread.spmp.resources.getString
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.song_theme_menu_background_image_opacity
+import spmp.shared.generated.resources.song_theme_menu_corner_radius
+import spmp.shared.generated.resources.song_theme_menu_gradient_depth
+import spmp.shared.generated.resources.song_theme_menu_image_shadow_radius
+import spmp.shared.generated.resources.song_theme_menu_queue_opacity
+import spmp.shared.generated.resources.song_theme_menu_section_background
+import spmp.shared.generated.resources.song_theme_menu_section_foreground
+import spmp.shared.generated.resources.song_theme_menu_section_video
+import spmp.shared.generated.resources.song_theme_menu_video_position
+import spmp.shared.generated.resources.song_theme_menu_wave_opacity
+import spmp.shared.generated.resources.song_theme_menu_wave_speed
 
 internal abstract class SongThemeOption {
-    abstract val title: String
+    abstract val titleResource: StringResource
     abstract val icon: ImageVector
 
     @Composable
@@ -37,16 +50,17 @@ internal abstract class SongThemeOption {
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(5.dp)
         ) {
+            val title: String = stringResource(titleResource)
             Icon(icon, title, Modifier.size(20.dp))
             Text(title, fontSize = 15.sp, lineHeight = 15.sp)
         }
     }
 
     companion object {
-        fun getSections(): Map<String, List<SongThemeOption>> =
+        fun getSections(): Map<StringResource, List<SongThemeOption>> =
             buildMap {
                 put(
-                    getString("song_theme_menu_section_foreground"),
+                    Res.string.song_theme_menu_section_foreground,
                     listOf(
                         CornerRadius,
                         LandscapeQueueOpacity,
@@ -55,7 +69,7 @@ internal abstract class SongThemeOption {
                     )
                 )
                 put(
-                    getString("song_theme_menu_section_background"),
+                    Res.string.song_theme_menu_section_background,
                     listOf(
                         BackgroundWaveSpeed,
                         BackgroundWaveOpacity,
@@ -65,7 +79,7 @@ internal abstract class SongThemeOption {
 
                 if (doesPlatformSupportVideoPlayback()) {
                     put(
-                        getString("song_theme_menu_section_video"),
+                        Res.string.song_theme_menu_section_video,
                         listOf(
                             VideoPosition
                         )
@@ -75,49 +89,49 @@ internal abstract class SongThemeOption {
     }
 
     private object CornerRadius: SliderOption(
-        getString("song_theme_menu_corner_radius"),
+        Res.string.song_theme_menu_corner_radius,
         Icons.Default.RoundedCorner,
         { theme.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING },
         { ThumbnailRounding }
     )
 
     private object PlayerGradientDepth: SliderOption(
-        getString("song_theme_menu_gradient_depth"),
+        Res.string.song_theme_menu_gradient_depth,
         Icons.Default.Gradient,
         { theme.NOWPLAYING_DEFAULT_GRADIENT_DEPTH },
         { PlayerGradientDepth }
     )
 
     private object BackgroundWaveSpeed: SliderOption(
-        getString("song_theme_menu_wave_speed"),
+        Res.string.song_theme_menu_wave_speed,
         Icons.Default.Speed,
         { theme.NOWPLAYING_DEFAULT_WAVE_SPEED },
         { BackgroundWaveSpeed }
     )
 
     private object BackgroundWaveOpacity: SliderOption(
-        getString("song_theme_menu_wave_opacity"),
+        Res.string.song_theme_menu_wave_opacity,
         Icons.Default.Opacity,
         { theme.NOWPLAYING_DEFAULT_WAVE_OPACITY },
         { BackgroundWaveOpacity }
     )
 
     private object BackgroundImageOpacity: SliderOption(
-        getString("song_theme_menu_background_image_opacity"),
+        Res.string.song_theme_menu_background_image_opacity,
         Icons.Default.Opacity,
         { theme.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY },
         { BackgroundImageOpacity }
     )
 
     private object LandscapeQueueOpacity: SliderOption(
-        getString("song_theme_menu_queue_opacity"),
+        Res.string.song_theme_menu_queue_opacity,
         Icons.Default.Opacity,
         { theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS },
         { LandscapeQueueOpacity }
     )
 
     private object ShadowRadius: SliderOption(
-        getString("song_theme_menu_image_shadow_radius"),
+        Res.string.song_theme_menu_image_shadow_radius,
         Icons.Default.Scale,
         { theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS },
         { ShadowRadius }
@@ -126,7 +140,7 @@ internal abstract class SongThemeOption {
     private object VideoPosition: DropdownOption<ThemeSettings.VideoPosition>(
         ThemeSettings.VideoPosition.entries,
         { it.getReadable() },
-        getString("song_theme_menu_video_position"),
+        Res.string.song_theme_menu_video_position,
         Icons.Default.FitScreen,
         { theme.NOWPLAYING_DEFAULT_VIDEO_POSITION },
         { VideoPosition }

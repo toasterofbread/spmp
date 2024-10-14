@@ -128,7 +128,7 @@ internal fun getSystemCategoryItems(context: AppContext, available_languages: Li
             val player: PlayerState = LocalPlayerState.current
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                ItemTitleText(context.settings.system.UI_SCALE.getName(), theme, Modifier.weight(1f))
+                ItemTitleText(context.settings.system.UI_SCALE.getName(), player.theme, Modifier.weight(1f))
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 

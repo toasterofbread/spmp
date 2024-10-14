@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource

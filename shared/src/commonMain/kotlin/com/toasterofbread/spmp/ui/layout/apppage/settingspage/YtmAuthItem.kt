@@ -128,14 +128,14 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String
         disabled_text = Res.string.auth_not_signed_in,
         enable_button = Res.string.auth_sign_in,
         disable_button = Res.string.auth_sign_out,
-        warningDialog = { dismiss, openPage ->
+        warningDialog = { dismiss ->
             login_page.LoginConfirmationDialog(
                 info_only = false,
                 manual_only = !isWebViewLoginSupported()
             ) { param ->
                 dismiss()
                 if (param != null) {
-                    openPage(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, param)
+                    SpMp.player_state.app_page_state.Settings.settings_interface.openPageById(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, param)
                 }
             }
         },
@@ -173,9 +173,9 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String
                 )
             }
         }
-    ) { target, setEnabled, _, openPage ->
+    ) { target, setEnabled, _ ->
         if (target) {
-            openPage(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, null)
+            SpMp.player_state.app_page_state.Settings.settings_interface.openPageById(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, null)
         }
         else {
             setEnabled(false)

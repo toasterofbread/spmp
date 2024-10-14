@@ -71,7 +71,7 @@ sealed class SettingsGroup(
         val getTitle: @Composable () -> String
     ) {
         abstract fun getTitleItem(context: AppContext): SettingsItem?
-        abstract fun openPageOnInterface(context: AppContext, settings_interface: SettingsInterface)
+        abstract fun openPage(context: AppContext)
         open fun getItems(context: AppContext): List<SettingsItem>? = null
     }
 
@@ -84,7 +84,10 @@ sealed class SettingsGroup(
     ): CategoryPage(this, getTitle) {
         private var items: List<SettingsItem>? = null
 
-        override fun openPageOnInterface(context: AppContext, settings_interface: SettingsInterface) {
+        private val settings_interface: SettingsInterface
+            get() = SpMp.player_state.app_page_state.Settings.settings_interface
+
+        override fun openPage(context: AppContext) {
             settings_interface.openPage(
                 object : SettingsPageWithItems(
                     getTitle = getTitle,
@@ -118,8 +121,7 @@ sealed class SettingsGroup(
                 val theme: ThemeValues = LocalApplicationTheme.current
                 ElevatedCard(
                     onClick = {
-                        TODO()
-//                        openPageOnInterface(context, inter)
+                        openPage(context)
                     },
                     modifier = modifier.fillMaxWidth(),
                     colors = CardDefaults.elevatedCardColors(

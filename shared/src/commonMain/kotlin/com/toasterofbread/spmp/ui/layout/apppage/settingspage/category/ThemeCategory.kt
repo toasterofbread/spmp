@@ -8,12 +8,7 @@ import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.settings.ui.component.item.*
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.platform.AppContext
-<<<<<<< HEAD
-import com.toasterofbread.spmp.platform.isVideoPlaybackSupported
-=======
 import com.toasterofbread.spmp.platform.doesPlatformSupportVideoPlayback
-import com.toasterofbread.spmp.resources.getString
->>>>>>> main
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode

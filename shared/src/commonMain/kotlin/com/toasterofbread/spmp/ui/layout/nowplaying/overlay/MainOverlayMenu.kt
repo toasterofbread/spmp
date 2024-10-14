@@ -57,22 +57,14 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.download.DownloadStatus
-<<<<<<< HEAD
-import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-=======
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
-import com.toasterofbread.spmp.resources.getString
->>>>>>> main
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.ColourpickCallback
-<<<<<<< HEAD
-import dev.toastbits.composekit.settings.ui.on_accent
-=======
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.songtheme.SongThemePlayerOverlayMenu
+import dev.toastbits.composekit.settings.ui.on_accent
 import dev.toastbits.composekit.utils.composable.OnChangedEffect
->>>>>>> main
 import dev.toastbits.ytmkt.model.implementedOrNull
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
@@ -293,19 +285,7 @@ class MainPlayerOverlayMenu(
                 }
             }
 
-<<<<<<< HEAD
-            Spacer(Modifier.fillMaxHeight().weight(1f))
-
-            val play_count: Int = song.observePlayCount(player.context) ?: 0
-            Text(stringResource(Res.string.`mediaitem_play_count_$x_short`).replace("\$x", play_count.toString()))
-
-            Row(
-                Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-=======
             Box(button_modifier, contentAlignment = Alignment.Center) {
->>>>>>> main
                 Box(
                     Modifier
                         .align(Alignment.Center)

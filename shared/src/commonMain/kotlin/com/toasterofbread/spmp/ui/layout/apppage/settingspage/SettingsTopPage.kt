@@ -209,9 +209,6 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
                     var item_height: Dp by remember { mutableStateOf(0.dp) }
 
                     title_item.Item(
-                        settings_interface,
-                        settings_interface::openPageById,
-                        settings_interface::openPage,
                         Modifier
                             .onSizeChanged {
                                 item_height = with (density) { it.height.toDp() }
@@ -379,8 +376,9 @@ internal fun SettingsImportDialog(modifier: Modifier = Modifier, onFinished: () 
                     Text(stringResource(Res.string.settings_import_category_selection_subtitle), style = MaterialTheme.typography.titleMedium)
                     LazyColumn {
                         items(included_groups) { group ->
-                            val title: String = group.page?.getTitle?.invoke()
-                                ?: group.group_key.lowercase().replaceFirstChar { it.uppercaseChar() }
+                            val title: String = group.getTitle().ifEmpty {
+                                group.group_key.lowercase().replaceFirstChar { it.uppercaseChar() }
+                            }
 
                             Row(
                                 Modifier.clickable {

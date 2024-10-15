@@ -194,6 +194,14 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
             }
         }
 
+        override fun onPlayingChanged(is_playing: Boolean) {
+            discord_status.updateDiscordStatus(null)
+        }
+
+        override fun onDurationChanged(duration_ms: Long) {
+            discord_status.updateDiscordStatus(null)
+        }
+
         override fun onSongAdded(index: Int, song: Song) {}
     }
 

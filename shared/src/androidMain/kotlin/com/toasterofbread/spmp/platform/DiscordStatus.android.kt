@@ -3,10 +3,10 @@ package com.toasterofbread.spmp.platform
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import com.my.kizzyrpc.KizzyRPC
-import com.my.kizzyrpc.model.Activity
-import com.my.kizzyrpc.model.Assets
-import com.my.kizzyrpc.model.Metadata
-import com.my.kizzyrpc.model.Timestamps
+import com.my.kizzyrpc.entities.presence.Activity
+import com.my.kizzyrpc.entities.presence.Assets
+import com.my.kizzyrpc.entities.presence.Metadata
+import com.my.kizzyrpc.entities.presence.Timestamps
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.JsonHttpClient
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
@@ -53,7 +53,7 @@ actual class DiscordStatus actual constructor(
         if (account_token.isNullOrBlank()) {
             throw IllegalArgumentException("Account token is required")
         }
-        rpc = KizzyRPC(account_token, loggingEnabled = false)
+        rpc = KizzyRPC(account_token)
     }
 
     actual fun close() {
@@ -144,7 +144,7 @@ actual class DiscordStatus actual constructor(
         return !disable
     }
 
-    actual fun setActivity(
+    actual suspend fun setActivity(
         name: String,
         type: Type,
         status: Status,
@@ -157,7 +157,7 @@ actual class DiscordStatus actual constructor(
         small_text: String?,
         buttons: List<Pair<String, String>>?
     ) {
-        rpc.setActivity(
+        rpc.updateRPC(
             Activity(
                 name = name,
                 state = state,

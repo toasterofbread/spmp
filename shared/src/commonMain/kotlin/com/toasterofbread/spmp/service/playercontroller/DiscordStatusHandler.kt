@@ -13,6 +13,10 @@ import dev.toastbits.composekit.platform.ReentrantLock
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.getString
 import spmp.shared.generated.resources.Res
@@ -22,10 +26,16 @@ import spmp.shared.generated.resources.project_url
 internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context: AppContext) {
     private var discord_rpc: DiscordStatus? = null
     private val coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
-    private val status_update_lock: ReentrantLock = ReentrantLock()
+    private val load_coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
+    private val status_update_lock: Mutex = Mutex()
 
-    private var current_status_song: Song? = null
-    private var current_status_title: String? = null
+    private data class StatusInfo(
+        val song: Song?,
+        val title: String?,
+        val timestamps: Pair<Long, Long>?
+    )
+
+    private var current_status: StatusInfo? = null
 
     fun release() {
         coroutine_scope.cancel()
@@ -61,17 +71,29 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
             .replace("\$song", title)
     }
 
-    fun updateDiscordStatus(song: Song?): Unit = with(context.database) {
+    fun updateDiscordStatus(song: Song?): Unit = with(context.database) { load_coroutine_scope.launch {
         status_update_lock.withLock {
             val status_song: Song? = song ?: player.getSong()
             val song_title: String? = status_song?.getActiveTitle(context.database)
 
-            if (status_song == current_status_song && song_title == current_status_title) {
-                return
+            val status_info: StatusInfo = withContext(Dispatchers.Main) {
+                StatusInfo(
+                    status_song,
+                    song_title,
+                    if (player.is_playing && player.duration_ms > 0L)
+                        Pair(
+                            System.currentTimeMillis() - player.current_position_ms,
+                            System.currentTimeMillis() + player.duration_ms - player.current_position_ms
+                        )
+                    else null
+                )
             }
 
-            current_status_song = status_song
-            current_status_title = song_title
+            if (status_info == current_status) {
+                return@launch
+            }
+
+            current_status = status_info
 
             coroutine_scope.launchSingle {
                 discord_rpc?.apply {
@@ -138,12 +160,13 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                         small_image = small_image,
                         small_text =
                             if (small_image != null) status_song.Artists.get(context.database)?.firstOrNull()?.getActiveTitle(context.database)
-                            else null
+                            else null,
+                        timestamps = status_info.timestamps
                     )
 
     //                SpMp.Log.info("Discord status set for song $status_song ($song_title)")
                 }
             }
         }
-    }
+    } }
 }

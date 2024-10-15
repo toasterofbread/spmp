@@ -229,7 +229,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 fork_url = "https://github.com/andob/android-awt"
             ),
             "com.github.toasterofbread:KizzyRPC" to DependencyInfo(
-                version = "84e79614b4",
+                version = "e2459918be",
                 name = "KizzyRPC",
                 author = "dead8309",
                 url = "https://github.com/dead8309/KizzyRPC",

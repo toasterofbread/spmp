@@ -2,7 +2,6 @@ package com.toasterofbread.spmp.ui.layout
 
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -33,7 +32,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import coil3.compose.AsyncImage
@@ -112,6 +110,8 @@ fun DiscordLogin(content_padding: PaddingValues, modifier: Modifier = Modifier, 
             onClosed = { onFinished(null) },
             shouldShowPage = { it.startsWith(DISCORD_LOGIN_URL) },
             user_agent = "Mozilla/5.0 (X11; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0",
+            viewport_width = "1280px",
+            viewport_height = "720px"
         ) { request, openUrl, getCookies ->
             if (request.url.startsWith(DISCORD_API_URL)) {
                 val auth = request.headers["Authorization"]

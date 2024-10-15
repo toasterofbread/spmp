@@ -24,5 +24,7 @@ expect fun WebViewLogin(
     loading_message: String? = null,
     base_cookies: String = "",
     user_agent: String? = null,
+    viewport_width: String? = null,
+    viewport_height: String? = null,
     onRequestIntercepted: suspend (WebViewRequest, openUrl: (String) -> Unit, getCookies: suspend (String) -> List<Pair<String, String>>) -> Unit
 )

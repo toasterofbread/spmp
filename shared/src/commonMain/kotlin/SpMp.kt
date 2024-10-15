@@ -143,7 +143,9 @@ object SpMp {
         override fun canNavigateForward(): Boolean = false
         override fun getMostRecentOfOrNull(predicate: (Screen) -> Boolean): Screen? = null
         override fun handleKeyEvent(keyEvent: KeyEvent): Boolean = false
-        override fun navigateBackward(by: Int) {}
+        override fun navigateBackward(by: Int) {
+            _player_state?.navigateBack()
+        }
         override fun navigateForward(by: Int) {}
         override fun peekRelative(offset: Int): Screen? = null
 

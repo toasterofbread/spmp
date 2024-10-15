@@ -54,7 +54,9 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> =
             },
             getThemeProvider = {
                 val system_theme: NamedTheme = rememberSystemTheme(stringResource(Res.string.theme_title_system), context)
-                var themes: List<NamedTheme> by context.settings.theme.THEMES.observe()
+
+                // Not guaranteed to stay in composition so shouldn't be modified
+                val themes: List<NamedTheme> by context.settings.theme.THEMES.observe()
 
                 return@ThemeSelectorSettingsItem object : ThemeSelectorThemeProvider {
                     override fun getTheme(index: Int): NamedTheme? =
@@ -67,17 +69,24 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> =
                         themes.indices.contains(index - 1)
 
                     override suspend fun createTheme(index: Int) {
-                        themes = themes.toMutableList().apply {
+                        val new_themes: List<NamedTheme> = themes.toMutableList().apply {
                             add(index - 1, NamedTheme(getString(Res.string.theme_title_new), ThemeValuesData.of(context.theme.manager.current_theme)))
                         }
+                        context.settings.theme.THEMES.set(new_themes)
                     }
 
                     override suspend fun removeTheme(index: Int) {
-                        themes = themes.toMutableList().apply { removeAt(index - 1) }
+                        val new_themes: List<NamedTheme> = themes.toMutableList().apply {
+                            removeAt(index - 1)
+                        }
+                        context.settings.theme.THEMES.set(new_themes)
                     }
 
                     override fun onThemeEdited(index: Int, theme: ThemeValues, theme_name: String) {
-                        themes = themes.toMutableList().apply { set(index - 1, NamedTheme(theme_name, ThemeValuesData.of(theme))) }
+                        val new_themes: List<NamedTheme> = themes.toMutableList().apply {
+                            set(index - 1, NamedTheme(theme_name, ThemeValuesData.of(theme)))
+                        }
+                        context.settings.theme.THEMES.set(new_themes)
                     }
                 }
             },

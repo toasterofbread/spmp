@@ -28,6 +28,7 @@ import spmp.shared.generated.resources.s_key_discord_status_disable_when_idle
 import spmp.shared.generated.resources.s_key_discord_status_disable_when_invisible
 import spmp.shared.generated.resources.s_key_discord_status_disable_when_offline
 import spmp.shared.generated.resources.s_key_discord_status_disable_when_online
+import spmp.shared.generated.resources.s_key_discord_status_enable
 import spmp.shared.generated.resources.s_key_discord_status_large_image_source
 import spmp.shared.generated.resources.s_key_discord_status_name
 import spmp.shared.generated.resources.s_key_discord_status_show_button_project
@@ -44,6 +45,12 @@ import spmp.shared.generated.resources.s_sub_discord_status_text_b
 import spmp.shared.generated.resources.s_sub_discord_status_text_c
 
 class DiscordSettings(val context: AppContext): SettingsGroup("DISCORD", context.getPrefs()) {
+    val STATUS_ENABLE: PreferencesProperty<Boolean> by property(
+        getName = { stringResource(Res.string.s_key_discord_status_enable) },
+        getDescription = { null },
+        getDefaultValue = { true }
+    )
+
     val STATUS_DISABLE_WHEN_INVISIBLE: PreferencesProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_discord_status_disable_when_invisible) },
         getDescription = { null },

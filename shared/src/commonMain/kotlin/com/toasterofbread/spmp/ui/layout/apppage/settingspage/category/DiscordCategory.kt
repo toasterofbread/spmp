@@ -30,7 +30,6 @@ import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.InfoTextSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.TextFieldSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
-import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.utils.composable.LinkifyText
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.DiscordStatus
@@ -127,6 +126,10 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
         },
 
         getDiscordAuthItem(context),
+
+        ToggleSettingsItem(
+            context.settings.discord.STATUS_ENABLE
+        ),
 
         GroupSettingsItem(Res.string.s_group_discord_status_disable_when),
 

@@ -83,11 +83,6 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
     private val prefs_listener =
         PlatformPreferencesListener { _, key ->
             when (key) {
-                context.settings.discord_auth.DISCORD_ACCOUNT_TOKEN.key -> {
-                    coroutine_scope.launch {
-                        discord_status.onDiscordAccountTokenChanged()
-                    }
-                }
 //                Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.name -> {
 //                    vol_notif_enabled = Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.get(preferences = prefs)
 //                }
@@ -225,7 +220,6 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
         }
 
         coroutine_scope.launch {
-            discord_status.onDiscordAccountTokenChanged()
             persistent_queue.loadPersistentQueue()
         }
     }

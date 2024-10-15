@@ -110,6 +110,19 @@ actual class DiscordStatus actual constructor(
             return true
         }
 
+        val disabled_statuses: List<String> =
+            listOfNotNull(
+                "invisible".takeIf { context.settings.discord.STATUS_DISABLE_WHEN_INVISIBLE.get() },
+                "dnd".takeIf { context.settings.discord.STATUS_DISABLE_WHEN_DND.get() },
+                "idle".takeIf { context.settings.discord.STATUS_DISABLE_WHEN_IDLE.get() },
+                "offline".takeIf { context.settings.discord.STATUS_DISABLE_WHEN_OFFLINE.get() },
+                "online".takeIf { context.settings.discord.STATUS_DISABLE_WHEN_ONLINE.get() }
+            )
+
+        if (disabled_statuses.isEmpty()) {
+            return true
+        }
+
         val response: HttpResponse =
             JsonHttpClient.get("https://discord.com/api/v9/users/@me/settings-proto/1") {
                 headers {
@@ -132,16 +145,7 @@ actual class DiscordStatus actual constructor(
                 return true
             }
 
-        val disable: Boolean = when (settings.getStatus()) {
-            "invisible" -> context.settings.discord.STATUS_DISABLE_WHEN_INVISIBLE.get()
-            "dnd" -> context.settings.discord.STATUS_DISABLE_WHEN_DND.get()
-            "idle" -> context.settings.discord.STATUS_DISABLE_WHEN_IDLE.get()
-            "offline" -> context.settings.discord.STATUS_DISABLE_WHEN_OFFLINE.get()
-            "online" -> context.settings.discord.STATUS_DISABLE_WHEN_ONLINE.get()
-            else -> throw NotImplementedError(settings.getStatus())
-        }
-
-        return !disable
+        return !disabled_statuses.contains(settings.getStatus())
     }
 
     actual suspend fun setActivity(

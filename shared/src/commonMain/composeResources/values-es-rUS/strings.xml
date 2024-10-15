@@ -68,7 +68,6 @@
 	<string name="home_feed_similar_to">Similar a</string>
 	<string name="info_discord_login">Se le dirigirá a una vista web en la aplicación para iniciar sesión en Discord.\n\nUna vez que haya iniciado sesión, el token de su cuenta se extraerá, almacenará y usará solo para las conexiones de puerta de enlace a Discord para establecer su estado actual.\n\nVer https://github.com/dead8309/Kizzy para más información.</string>
 	<string name="info_ytm_login">Se le dirigirá a una vista web en la aplicación para iniciar sesión en YouTube Music.\n\nUna vez que haya iniciado sesión, su cookie de sesión se extraerá, almacenará y usará solo para solicitudes de API a YouTube Music, como obtener su feed recomendado y suscribirse a artistas.</string>
-	<string name="language_change_restart_notice">Se requiere reiniciar la aplicación para que los cambios de idioma y fuente surtan efecto</string>
 	<string name="language_name">Inglés</string>
 	<string name="library_$x_playlists">$x playlists</string>
 	<string name="library_$x_songs">$x canciónes</string>

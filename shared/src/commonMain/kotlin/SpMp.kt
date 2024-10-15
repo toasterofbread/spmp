@@ -1,5 +1,6 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +24,8 @@ import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.intl.platformLocaleDelegate
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.ProjectBuildConfig
@@ -57,6 +60,14 @@ import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.FontResource
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.LocalComposeEnvironment
+import org.jetbrains.compose.resources.ComposeEnvironment
+import org.jetbrains.compose.resources.DensityQualifier
+import org.jetbrains.compose.resources.InternalResourceApi
+import org.jetbrains.compose.resources.LanguageQualifier
+import org.jetbrains.compose.resources.RegionQualifier
+import org.jetbrains.compose.resources.ResourceEnvironment
+import org.jetbrains.compose.resources.ThemeQualifier
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_close
 import spmp.shared.generated.resources.app_name
@@ -192,7 +203,9 @@ object SpMp {
             }
         }
 
-        context.theme.ApplicationTheme(context, getFontFamily(context) ?: FontFamily.Default) {
+        val ui_language: String by context.observeUiLanguage()
+
+        context.theme.ApplicationTheme(context, getFontFamily(context, ui_language) ?: FontFamily.Default) {
             LaunchedEffect(open_uri) {
                 if (open_uri != null) {
                     player_state.openUri(open_uri).onFailure {
@@ -210,7 +223,8 @@ object SpMp {
                     LocalDensity provides Density(LocalDensity.current.density * ui_scale, 1f),
                     LocalProgramArguments provides arguments,
                     LocalContext provides context,
-                    LocalNavigator provides navigator
+                    LocalNavigator provides navigator,
+                    LocalComposeEnvironment provides LocalisedComposeEnvironment { ui_language }
                 ) {
                     var mismatched_server_api_version: Int? by remember { mutableStateOf(null) }
                     val splash_mode: SplashMode? = when (Platform.current) {
@@ -310,8 +324,7 @@ object SpMp {
     }
 
     @Composable
-    private fun getFontFamily(context: AppContext): FontFamily? {
-        val ui_language: String by context.observeUiLanguage()
+    private fun getFontFamily(context: AppContext, ui_language: String): FontFamily? {
         val font_mode: FontMode by context.settings.system.FONT.observe()
         val font_resource: FontResource? = remember(ui_language, font_mode) { font_mode.getFontResource(ui_language) }
 
@@ -324,3 +337,25 @@ object SpMp {
 }
 
 expect fun isWindowTransparencySupported(): Boolean
+
+private class LocalisedComposeEnvironment(
+    private val getUiLanguage: @Composable () -> String
+): ComposeEnvironment {
+    @Composable
+    @OptIn(InternalResourceApi::class)
+    override fun rememberEnvironment(): ResourceEnvironment {
+        val uiLanguage: String = getUiLanguage()
+        val composeLocale: Locale = remember(uiLanguage) { Locale(platformLocaleDelegate.parseLanguageTag(uiLanguage)) }
+        val composeTheme: Boolean = isSystemInDarkTheme()
+        val composeDensity: Density = LocalDensity.current
+
+        return remember(composeLocale, composeTheme, composeDensity) {
+            ResourceEnvironment(
+                LanguageQualifier(composeLocale.language),
+                RegionQualifier(composeLocale.region),
+                ThemeQualifier.selectByValue(composeTheme),
+                DensityQualifier.selectByDensity(composeDensity.density)
+            )
+        }
+    }
+}

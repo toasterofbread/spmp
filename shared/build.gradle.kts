@@ -18,7 +18,7 @@ plugins {
     id("app.cash.sqldelight")
 }
 
-val DATABASE_VERSION: Int = 7 // post-v0.3.2
+val DATABASE_VERSION: Int = 8 // post-v0.3.2
 
 kotlin {
     androidTarget()

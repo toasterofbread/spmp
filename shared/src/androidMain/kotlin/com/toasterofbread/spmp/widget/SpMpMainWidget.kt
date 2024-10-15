@@ -35,22 +35,37 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import dev.toastbits.composekit.utils.common.getValue
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
 
 class SpMpMainWidget: GlanceAppWidget() {
+    private val coroutine_scope = CoroutineScope(Job())
+
     override suspend fun provideGlance(context: Context, id: GlanceId) {
+        val app_context: AppContext = AppContext.create(context, coroutine_scope)
+
+        val np_theme_mode: ThemeMode = app_context.settings.theme.NOWPLAYING_THEME_MODE.get()
+        val swipe_sensitivity: Float = app_context.settings.player.EXPAND_SWIPE_SENSITIVITY.get()
+
         provideContent {
-            val coroutine_scope: CoroutineScope = rememberCoroutineScope()
-            val app_context: AppContext = remember { AppContext(context, coroutine_scope) }
+            val composable_coroutine_scope = rememberCoroutineScope()
             val state: PlayerState =
-                remember { PlayerState(app_context, ProgramArguments(), coroutine_scope) }
+                remember {
+                    PlayerState(app_context, ProgramArguments(), composable_coroutine_scope, np_theme_mode, swipe_sensitivity)
+                }
 
             CompositionLocalProvider(LocalPlayerState provides state) {
                 Content(app_context)
             }
         }
+    }
+
+    override suspend fun onDelete(context: Context, glanceId: GlanceId) {
+        coroutine_scope.cancel()
     }
 
     @Composable

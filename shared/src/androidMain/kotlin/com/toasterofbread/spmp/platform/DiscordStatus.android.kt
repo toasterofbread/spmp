@@ -1,16 +1,17 @@
 package com.toasterofbread.spmp.platform
 
 import android.net.Uri
+import androidx.compose.runtime.Composable
 import com.my.kizzyrpc.KizzyRPC
 import com.my.kizzyrpc.model.Activity
 import com.my.kizzyrpc.model.Assets
 import com.my.kizzyrpc.model.Metadata
 import com.my.kizzyrpc.model.Timestamps
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.JsonHttpClient
-import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
+import io.github.jan.supabase.SupabaseClient
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.functions.Functions
 import io.github.jan.supabase.functions.functions
@@ -27,6 +28,9 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.putJsonArray
 import kotlinx.serialization.protobuf.ProtoBuf
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.warning_discord_kizzy
 import java.io.IOException
 import java.util.Base64
 
@@ -38,7 +42,9 @@ actual class DiscordStatus actual constructor(
     actual companion object {
         actual fun isSupported(): Boolean = true
         actual fun isAccountTokenRequired(): Boolean = true
-        actual fun getWarningText(): String? = getString("warning_discord_kizzy")
+
+        @Composable
+        actual fun getWarningText(): String? = stringResource(Res.string.warning_discord_kizzy)
     }
 
     private val rpc: KizzyRPC
@@ -180,23 +186,22 @@ actual class DiscordStatus actual constructor(
     @Serializable
     private data class SupabaseGetImagesResponse(val attachment_urls: List<String?>)
 
-    private fun getSupabaseFunctions(): Functions =
+    private val client: SupabaseClient by lazy {
         createSupabaseClient(
             supabaseUrl = ProjectBuildConfig.SUPABASE_URL,
             supabaseKey = ProjectBuildConfig.SUPABASE_KEY,
             builder = {
                 install(Functions)
             }
-        ).functions
+        )
+    }
 
     actual suspend fun getCustomImages(
         image_items: List<MediaItem>,
         target_quality: ThumbnailProvider.Quality
     ): Result<List<String?>> {
-        val supabase_functions: Functions = getSupabaseFunctions()
-
         // The source code for this function is available at https://github.com/toasterofbread/discordimageindex
-        val response: HttpResponse = supabase_functions.invoke(
+        val response: HttpResponse = client.functions.invoke(
             "get-images",
             body = buildJsonObject {
                 putJsonArray("images") {

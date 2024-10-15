@@ -12,8 +12,9 @@ import kotlinx.coroutines.Dispatchers
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerEvent
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
+import PlatformIO
 
-internal suspend fun SpMsPlayerService.applyPlayerEvents(events: List<SpMsPlayerEvent>) = withContext(Dispatchers.IO) {
+internal suspend fun SpMsPlayerService.applyPlayerEvents(events: List<SpMsPlayerEvent>) = withContext(Dispatchers.PlatformIO) {
     var item_transition_event: SpMsPlayerEvent? = null
 
     for (event in events) {

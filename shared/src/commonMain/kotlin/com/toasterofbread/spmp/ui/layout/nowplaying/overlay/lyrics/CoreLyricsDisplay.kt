@@ -5,25 +5,21 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.*
 import androidx.compose.runtime.*
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.*
 import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.unit.*
-import androidx.compose.ui.layout.onSizeChanged
-import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.common.getValue
-import dev.toastbits.composekit.utils.common.thenWith
-import dev.toastbits.composekit.platform.composable.platformClickable
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.HorizontalFuriganaText
 import com.toasterofbread.spmp.ui.layout.nowplaying.NOW_PLAYING_MAIN_PADDING_DP
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
-import com.toasterofbread.spmp.youtubeapi.lyrics.createFuriganaTokeniser
+import dev.toastbits.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.utils.common.thenWith
 import dev.toastbits.composekit.utils.composable.workingAnimateScrollToItem
 import kotlinx.coroutines.delay
 
@@ -58,12 +54,14 @@ fun CoreLyricsDisplay(
     var current_range: IntRange? by remember { mutableStateOf(null) }
     var tokenised_lines: List<List<SongLyrics.Term>>? by remember { mutableStateOf(null) }
 
-    fun getScrollOffset(follow_offset: Float = player.settings.lyrics.FOLLOW_OFFSET.get()): Int =
-        (padding_height - static_scroll_offset - size_px * follow_offset).toInt()
+    suspend fun getScrollOffset(follow_offset: Float? = null): Int =
+        (padding_height - static_scroll_offset - size_px * (follow_offset ?: player.settings.lyrics.FOLLOW_OFFSET.get())).toInt()
 
     LaunchedEffect(lyrics, romanise_furigana) {
-        val tokeniser: LyricsFuriganaTokeniser = createFuriganaTokeniser(romanise_furigana)
-        tokenised_lines = lyrics.lines.map { tokeniser.mergeAndFuriganiseTerms(it) }
+        val tokeniser: LyricsFuriganaTokeniser? = LyricsFuriganaTokeniser.getInstance()
+        tokenised_lines =
+            if (tokeniser != null) lyrics.lines.map { tokeniser.mergeAndFuriganiseTerms(it, romanise_furigana) }
+            else lyrics.lines
     }
 
     LaunchedEffect(lyrics) {

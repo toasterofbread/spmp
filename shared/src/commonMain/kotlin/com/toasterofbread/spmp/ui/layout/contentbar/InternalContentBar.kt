@@ -9,10 +9,15 @@ import androidx.compose.runtime.Composable
 import androidx.compose.foundation.layout.PaddingValues
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
-import com.toasterofbread.spmp.resources.getString
-import dev.toastbits.composekit.settings.ui.Theme
 import LocalPlayerState
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.content_bar_primary
+import spmp.shared.generated.resources.content_bar_desc_primary
+import spmp.shared.generated.resources.content_bar_secondary
+import spmp.shared.generated.resources.content_bar_desc_secondary
 
 @Serializable
 sealed class InternalContentBar(val index: Int): ContentBar() {
@@ -25,8 +30,10 @@ sealed class InternalContentBar(val index: Int): ContentBar() {
 }
 
 private class PrimaryInternalContentBar(index: Int): InternalContentBar(index) {
-    override fun getName(): String = getString("content_bar_primary")
-    override fun getDescription(): String = getString("content_bar_desc_primary")
+    @Composable
+    override fun getName(): String = stringResource(Res.string.content_bar_primary)
+    @Composable
+    override fun getDescription(): String = stringResource(Res.string.content_bar_desc_primary)
     override fun getIcon(): ImageVector = Icons.Default.LooksOne
 
     @Composable
@@ -36,7 +43,7 @@ private class PrimaryInternalContentBar(index: Int): InternalContentBar(index) {
     @Composable
     override fun BarContent(
         slot: LayoutSlot,
-        background_colour: Theme.Colour?,
+        background_colour: ThemeValues.Colour?,
         content_padding: PaddingValues,
         distance_to_page: Dp,
         lazy: Boolean,
@@ -55,8 +62,10 @@ private class PrimaryInternalContentBar(index: Int): InternalContentBar(index) {
 }
 
 private class SecondaryInternalContentBar(index: Int): InternalContentBar(index) {
-    override fun getName(): String = getString("content_bar_secondary")
-    override fun getDescription(): String = getString("content_bar_desc_secondary")
+    @Composable
+    override fun getName(): String = stringResource(Res.string.content_bar_secondary)
+    @Composable
+    override fun getDescription(): String = stringResource(Res.string.content_bar_desc_secondary)
     override fun getIcon(): ImageVector = Icons.Default.LooksTwo
 
     @Composable
@@ -66,7 +75,7 @@ private class SecondaryInternalContentBar(index: Int): InternalContentBar(index)
     @Composable
     override fun BarContent(
         slot: LayoutSlot,
-        background_colour: Theme.Colour?,
+        background_colour: ThemeValues.Colour?,
         content_padding: PaddingValues,
         distance_to_page: Dp,
         lazy: Boolean,

@@ -1,12 +1,16 @@
 package com.toasterofbread.spmp.platform.playerservice
 
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
+import dev.toastbits.spms.server.SpMs
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import dev.toastbits.spms.server.SpMs
+import kotlinx.coroutines.launch
+import org.jetbrains.compose.resources.getString
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.error_message_generic
+import spmp.shared.generated.resources.server_missing_files_splitter
+import spmp.shared.generated.resources.warning_server_unavailable
 
 private const val POLL_INTERVAL: Long = 100
 private const val CLIENT_REPLY_ATTEMPTS: Int = 10
@@ -33,15 +37,18 @@ private fun getLibrariesInLibraryLoadErrorMessage(message: String): List<String>
 }
 
 actual object LocalServer {
-    private data class MissingLibrariesException(val libraries: List<String>): RuntimeException(
-        getString("warning_server_unavailable") + libraries.joinToString(getString("server_missing_files_splitter"))
-    ) {
-        init {
-            require(libraries.isNotEmpty())
+    private class MissingLibrariesException private constructor(message: String): RuntimeException(message) {
+        companion object {
+            suspend fun create(libraries: List<String>): MissingLibrariesException {
+                require(libraries.isNotEmpty())
+                return MissingLibrariesException(
+                    getString(Res.string.warning_server_unavailable) + libraries.joinToString(getString(Res.string.server_missing_files_splitter))
+                )
+            }
         }
     }
 
-    private fun createServer(): Result<SpMs> =
+    private suspend fun createServer(): Result<SpMs> =
         try {
             Result.success(SpMs(headless = false, enable_gui = false))
         }
@@ -55,10 +62,13 @@ actual object LocalServer {
             }
 
             check(missing_libraries.isNotEmpty()) { "Cause: '${e.cause?.message}'\nMessage: ${e.message}" }
-            Result.failure(MissingLibrariesException(missing_libraries))
+            Result.failure(MissingLibrariesException.create(missing_libraries))
         }
 
-    actual fun getLocalServerUnavailabilityReason(): String? =
+    actual fun isAvailable(): Boolean =
+        SpMs.isAvailable(headless = false)
+
+    actual suspend fun getLocalServerUnavailabilityReason(): String? =
         createServer().fold(
             onSuccess = {
                 it.release()
@@ -69,12 +79,12 @@ actual object LocalServer {
                     return@fold it.message
                 }
                 else {
-                    return@fold it.message ?: (getString("error_message_generic") + " (${it::class})")
+                    return@fold it.message ?: (getString(Res.string.error_message_generic) + " (${it::class})")
                 }
             }
         )
 
-    actual fun startLocalServer(
+    actual suspend fun startLocalServer(
         context: AppContext,
         port: Int
     ): Result<Job> = runCatching {

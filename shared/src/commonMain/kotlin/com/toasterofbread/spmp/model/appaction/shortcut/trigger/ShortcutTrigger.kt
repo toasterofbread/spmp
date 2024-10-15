@@ -8,7 +8,11 @@ import androidx.compose.ui.Modifier
 import androidx.compose.runtime.Composable
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.Icons
-import com.toasterofbread.spmp.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.shortcut_trigger_none
+import spmp.shared.generated.resources.shortcut_trigger_keyboard
+import spmp.shared.generated.resources.shortcut_trigger_mouse_button
 
 @Serializable
 sealed interface ShortcutTrigger {
@@ -38,9 +42,10 @@ sealed interface ShortcutTrigger {
     }
 }
 
+@Composable
 fun ShortcutTrigger.Type?.getName(): String =
     when (this) {
-        null -> getString("shortcut_trigger_none")
-        ShortcutTrigger.Type.KEYBOARD -> getString("shortcut_trigger_keyboard")
-        ShortcutTrigger.Type.MOUSE_BUTTON -> getString("shortcut_trigger_mouse_button")
+        null -> stringResource(Res.string.shortcut_trigger_none)
+        ShortcutTrigger.Type.KEYBOARD -> stringResource(Res.string.shortcut_trigger_keyboard)
+        ShortcutTrigger.Type.MOUSE_BUTTON -> stringResource(Res.string.shortcut_trigger_mouse_button)
     }

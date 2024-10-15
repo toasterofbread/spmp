@@ -7,10 +7,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.*
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import dev.toastbits.composekit.platform.composable.platformClickable
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.layout_editor_preview_option_show_bar_content
+import spmp.shared.generated.resources.layout_editor_preview_option_hide_player
+import spmp.shared.generated.resources.layout_editor_preview_option_portrait_mode
 
 @Composable
 fun LayoutSlotEditorPreviewOptions(modifier: Modifier = Modifier) {
@@ -31,7 +35,7 @@ fun LayoutSlotEditorPreviewOptions(modifier: Modifier = Modifier) {
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(getString("layout_editor_preview_option_show_bar_content"))
+            Text(stringResource(Res.string.layout_editor_preview_option_show_bar_content))
         }
 
         SwitchButton(
@@ -41,7 +45,7 @@ fun LayoutSlotEditorPreviewOptions(modifier: Modifier = Modifier) {
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(getString("layout_editor_preview_option_hide_player"))
+            Text(stringResource(Res.string.layout_editor_preview_option_hide_player))
         }
 
         SwitchButton(
@@ -54,7 +58,7 @@ fun LayoutSlotEditorPreviewOptions(modifier: Modifier = Modifier) {
             },
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text(getString("layout_editor_preview_option_portrait_mode"))
+            Text(stringResource(Res.string.layout_editor_preview_option_portrait_mode))
         }
     }
 }

@@ -20,11 +20,12 @@ import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
+import org.jetbrains.compose.resources.StringResource
 
 internal abstract class DropdownOption<T: Enum<*>>(
     val entries: List<T>,
-    val getEntryText: (T) -> String,
-    override val title: String,
+    val getEntryText: @Composable (T) -> String,
+    override val titleResource: StringResource,
     override val icon: ImageVector,
     val getProperty: Settings.() -> PreferencesProperty<T>,
     val getSongProperty: Song.() -> Property<T?>

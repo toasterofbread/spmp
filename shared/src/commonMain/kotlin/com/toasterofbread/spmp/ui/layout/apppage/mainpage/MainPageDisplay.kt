@@ -24,6 +24,8 @@ import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
+import dev.toastbits.composekit.navigation.navigator.ExtendableNavigator
+import dev.toastbits.composekit.navigation.navigator.Navigator
 
 @Composable
 fun MainPageDisplay(bottom_padding: Dp = 0.dp) {

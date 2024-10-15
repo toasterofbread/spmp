@@ -1,23 +1,7 @@
 package com.toasterofbread.spmp.widget
 
-import LocalPlayerState
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.graphics.Color
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
-import androidx.glance.text.Text
-import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
-import com.toasterofbread.spmp.model.lyrics.SongLyrics
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
-import com.toasterofbread.spmp.youtubeapi.lyrics.createFuriganaTokeniser
-import kotlinx.coroutines.delay
 
 private const val UPDATE_INTERVAL_MS = 100L
 

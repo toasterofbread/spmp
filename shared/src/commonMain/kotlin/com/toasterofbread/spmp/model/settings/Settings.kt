@@ -1,16 +1,12 @@
 package com.toasterofbread.spmp.model.settings
 
-import SpMp
-import androidx.compose.runtime.*
-import dev.toastbits.composekit.platform.PlatformPreferences
 import com.toasterofbread.spmp.model.settings.category.*
 import com.toasterofbread.spmp.platform.AppContext
-import kotlinx.serialization.json.Json
-import java.util.*
+import com.toasterofbread.spmp.resources.Language
 
-class Settings(context: AppContext) {
+class Settings(context: AppContext, available_languages: List<Language>) {
     val youtube_auth: YoutubeAuthSettings = YoutubeAuthSettings(context)
-    val system: SystemSettings = SystemSettings(context)
+    val system: SystemSettings = SystemSettings(context, available_languages)
     val behaviour: BehaviourSettings = BehaviourSettings(context)
     val layout: LayoutSettings = LayoutSettings(context)
     val player: PlayerSettings = PlayerSettings(context)
@@ -26,7 +22,7 @@ class Settings(context: AppContext) {
     val misc: MiscSettings = MiscSettings(context)
     val deps: DependencySettings = DependencySettings(context)
     val search: SearchSettings = SearchSettings(context)
-    val ytapi: YTApiSettings = YTApiSettings(context)
+    val ytapi: YTApiSettings = YTApiSettings(context.getPrefs())
 
     val all_groups: Map<String, SettingsGroup> =
         listOf(
@@ -52,10 +48,10 @@ class Settings(context: AppContext) {
         ).associateBy { it.group_key }
 
     val groups_with_page: List<SettingsGroup> get() =
-        all_groups.values.filter { it.page != null && it !is DependencySettings }
+        all_groups.values.filter { it.getPage() != null && it !is DependencySettings }
 
     val group_pages: List<SettingsGroup.CategoryPage> get() =
-        all_groups.values.mapNotNull { if (it is DependencySettings) null else it.page }
+        all_groups.values.mapNotNull { if (it is DependencySettings) null else it.getPage() }
 
     fun groupFromKey(key: String): SettingsGroup? =
         all_groups[key]

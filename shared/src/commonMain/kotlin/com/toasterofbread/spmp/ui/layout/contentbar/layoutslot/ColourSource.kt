@@ -2,25 +2,22 @@ package com.toasterofbread.spmp.ui.layout.contentbar.layoutslot
 
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import dev.toastbits.composekit.settings.ui.Theme
-import dev.toastbits.composekit.utils.common.fromHexString
 import androidx.compose.runtime.State
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import androidx.compose.runtime.*
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
 import LocalPlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
+import dev.toastbits.composekit.settings.ui.ThemeValues
 
 @Serializable
 sealed interface ColourSource {
     fun get(player: PlayerState): Color
-    val theme_colour: Theme.Colour? get() = null
+    val theme_colour: ThemeValues.Colour? get() = null
 }
 
 @Serializable
-internal data class ThemeColourSource(override val theme_colour: Theme.Colour): ColourSource {
+internal data class ThemeColourSource(override val theme_colour: ThemeValues.Colour): ColourSource {
     override fun get(player: PlayerState): Color = theme_colour.get(player.theme)
 }
 

@@ -40,7 +40,7 @@ fun convertState(exo_state: Int): SpMsPlayerState =
 fun ExoMediaItem.getSong(): Song =
     SongRef(mediaMetadata.artworkUri.toString())
 
-internal fun LoudnessEnhancer.update(song: Song?, context: AppContext) {
+internal suspend fun LoudnessEnhancer.update(song: Song?, context: AppContext) {
     if (song == null || !context.settings.streaming.ENABLE_AUDIO_NORMALISATION.get()) {
         enabled = false
         return

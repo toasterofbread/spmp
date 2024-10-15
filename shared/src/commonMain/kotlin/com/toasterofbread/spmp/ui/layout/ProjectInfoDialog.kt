@@ -28,20 +28,29 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.SettingsAppPage
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
 import spmp.shared.generated.resources.*
+import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_close
+import spmp.shared.generated.resources.project_info_dialog_title
+import spmp.shared.generated.resources.project_info_dialog_section_project
+import spmp.shared.generated.resources.donation_url
+import spmp.shared.generated.resources.project_info_dialog_project_donate_button
+import spmp.shared.generated.resources.project_url
+import spmp.shared.generated.resources.project_info_dialog_project_source_button
+import spmp.shared.generated.resources.project_info_dialog_dependencies_button
+import spmp.shared.generated.resources.project_info_dialog_section_gestures
 
-private val GESTURES: List<Triple<ImageVector, String, List<String>>> = listOf(
-    Triple(Icons.Default.SwipeVertical, "project_info_dialog_gesture_player_swipes", listOf("project_info_dialog_gesture_player_swipe_player", "project_info_dialog_gesture_player_swipe_queue")),
-    Triple(Icons.Default.TouchApp, "project_info_dialog_gesture_item_long_presses", listOf("project_info_dialog_gesture_item_long_press_normal", "project_info_dialog_gesture_item_long_press_long")),
-    Triple(Icons.Default.ThumbUp, "project_info_dialog_gesture_dislike", emptyList())
+private val GESTURES: List<Triple<ImageVector, StringResource, List<StringResource>>> = listOf(
+    Triple(Icons.Default.SwipeVertical, Res.string.project_info_dialog_gesture_player_swipes, listOf(Res.string.project_info_dialog_gesture_player_swipe_player, Res.string.project_info_dialog_gesture_player_swipe_queue)),
+    Triple(Icons.Default.TouchApp, Res.string.project_info_dialog_gesture_item_long_presses, listOf(Res.string.project_info_dialog_gesture_item_long_press_normal, Res.string.project_info_dialog_gesture_item_long_press_long)),
+    Triple(Icons.Default.ThumbUp, Res.string.project_info_dialog_gesture_dislike, emptyList())
 )
 
 @Composable
@@ -53,31 +62,32 @@ fun ProjectInfoDialog(modifier: Modifier = Modifier, close: () -> Unit) {
         modifier = modifier,
         confirmButton = {
             FilledTonalButton(close) {
-                Text(getString("action_close"))
+                Text(stringResource(Res.string.action_close))
             }
         },
         title = {
-            Text(getString("project_info_dialog_title"))
+            Text(stringResource(Res.string.project_info_dialog_title))
         },
         text = {
             Column(
                 Modifier.fillMaxWidth().verticalScroll(rememberScrollState()),
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
-                InfoSection(getString("project_info_dialog_section_project")) {
+                InfoSection(stringResource(Res.string.project_info_dialog_section_project)) {
                     Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Text(getString("project_info_dialog_project_\$author").replace("\$author", getString("project_author")), Modifier.align(Alignment.CenterVertically))
+                            Text(stringResource(Res.string.`project_info_dialog_project_$author`).replace("\$author", stringResource(Res.string.project_author)), Modifier.align(Alignment.CenterVertically))
 
                             if (player.context.canOpenUrl()) {
                                 Box(
                                     Modifier.fillMaxWidth().weight(1f).align(Alignment.CenterVertically),
                                     contentAlignment = Alignment.CenterEnd
                                 ) {
-                                    FilledTonalButton({ player.context.openUrl(getString("donation_url")) }) {
+                                    val donation_url: String = stringResource(Res.string.donation_url)
+                                    FilledTonalButton({ player.context.openUrl(donation_url) }) {
                                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                                             Icon(Icons.Default.LocalCafe, null)
-                                            Text(getString("project_info_dialog_project_donate_button"), softWrap = false)
+                                            Text(stringResource(Res.string.project_info_dialog_project_donate_button), softWrap = false)
                                         }
                                     }
                                 }
@@ -85,17 +95,18 @@ fun ProjectInfoDialog(modifier: Modifier = Modifier, close: () -> Unit) {
                         }
 
                         FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Text(getString("project_info_dialog_project_\$license").replace("\$license", getString("project_license")), Modifier.align(Alignment.CenterVertically))
+                            Text(stringResource(Res.string.`project_info_dialog_project_$license`).replace("\$license", stringResource(Res.string.project_license)), Modifier.align(Alignment.CenterVertically))
 
                             if (player.context.canOpenUrl()) {
                                 Box(
                                     Modifier.fillMaxWidth().weight(1f).align(Alignment.CenterVertically),
                                     contentAlignment = Alignment.CenterEnd
                                 ) {
-                                    FilledTonalButton({ player.context.openUrl(getString("project_url")) }) {
+                                    val project_url: String = stringResource(Res.string.project_url)
+                                    FilledTonalButton({ player.context.openUrl(project_url) }) {
                                         Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
                                             Icon(painterResource(Res.drawable.ic_github), null)
-                                            Text(getString("project_info_dialog_project_source_button"), softWrap = false)
+                                            Text(stringResource(Res.string.project_info_dialog_project_source_button), softWrap = false)
                                         }
                                     }
                                 }
@@ -105,7 +116,7 @@ fun ProjectInfoDialog(modifier: Modifier = Modifier, close: () -> Unit) {
                         FilledTonalButton(
                             {
                                 val settings_page: SettingsAppPage = player.app_page_state.Settings
-                                player.settings.deps.page!!.openPageOnInterface(player.context, settings_page.settings_interface)
+                                player.settings.deps.getPage()!!.openPage(player.context)
 
                                 if (player.app_page != settings_page) {
                                     player.openAppPage(settings_page)
@@ -115,12 +126,12 @@ fun ProjectInfoDialog(modifier: Modifier = Modifier, close: () -> Unit) {
                             },
                             Modifier.fillMaxWidth()
                         ) {
-                            Text(getString("project_info_dialog_dependencies_button"), maxLines = 2)
+                            Text(stringResource(Res.string.project_info_dialog_dependencies_button), maxLines = 2)
                         }
                     }
                 }
 
-                InfoSection(getString("project_info_dialog_section_gestures")) {
+                InfoSection(stringResource(Res.string.project_info_dialog_section_gestures)) {
                     Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                         for ((icon, gesture, subgestures) in GESTURES) {
                             Row(
@@ -129,12 +140,12 @@ fun ProjectInfoDialog(modifier: Modifier = Modifier, close: () -> Unit) {
                                 Icon(icon, null)
 
                                 Column {
-                                    Text(getString(gesture), style = if (subgestures.isEmpty()) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium)
+                                    Text(stringResource(gesture), style = if (subgestures.isEmpty()) MaterialTheme.typography.bodyLarge else MaterialTheme.typography.bodyMedium)
                                     CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.bodyLarge) {
                                         for (subgesture in subgestures) {
                                             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                                                 Text("\u2022")
-                                                Text(getString(subgesture))
+                                                Text(stringResource(subgesture))
                                             }
                                         }
                                     }

@@ -10,6 +10,8 @@ pluginManagement {
         mavenCentral()
         google()
         maven("https://oss.sonatype.org/content/repositories/snapshots/")
+        maven("https://maven.pkg.jetbrains.space/kotlin/p/kotlin/dev")
+        maven("https://jitpack.io")
     }
 
     plugins {
@@ -17,6 +19,7 @@ pluginManagement {
         kotlin("jvm").version(kotlin_version)
         kotlin("multiplatform").version(kotlin_version)
         kotlin("plugin.serialization").version(kotlin_version)
+        kotlin("plugin.compose").version(kotlin_version)
         kotlin("android").version(kotlin_version)
 
         val agp_version: String = extra["agp.version"] as String
@@ -34,9 +37,16 @@ pluginManagement {
 dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
     repositories {
+        mavenLocal()
+
         google()
         mavenCentral()
-        mavenLocal()
         maven("https://jitpack.io")
+
+        // https://github.com/d1snin/catppuccin-kotlin
+        maven("https://maven.d1s.dev/snapshots")
+
+        // https://github.com/KevinnZou/compose-webview-multiplatform
+        maven("https://jogamp.org/deployment/maven")
     }
 }

@@ -1,0 +1,23 @@
+<resources>
+    <string name="language_name">English (US)</string>
+
+    <string name="home_feed_filter_energise">Energize</string>
+	<string name="s_sub_unlocalised_strings">Strings that have not been localized for the current language</string>
+	<string name="s_cat_desc_layout">Customize layout arrangement and content</string>
+    <string name="s_cat_desc_theme">Customize app colours and change accent source</string>
+    <string name="s_cat_desc_discord_status">Manage Discord account and customize status appearance</string>
+    <string name="content_bar_template_desc_lyrics">Synchronized lyrics for the current song</string>
+
+    <string name="player_overlay_menu_action_pick_theme_colour">Pick accent color from image</string>
+    <string name="s_key_accent_source">Accent color</string>
+    <string name="s_option_np_accent_background">Color background with accent</string>
+    <string name="s_option_np_accent_elements">Color elements with accent</string>
+    <string name="s_option_np_accent_none">Don't use accent color</string>
+    <string name="s_cat_behaviour">Behavior</string>
+    <string name="s_cat_desc_lyrics">Lyrics appearance and behavior</string>
+    <string name="colour_selector_dialog_title">Select color</string>
+
+    <string name="s_key_lyrics_romanise_furigana">Romanize furigana (readings)</string>
+
+    <string name="notif_download_cancelled">Download was canceled</string>
+</resources>

@@ -19,34 +19,39 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.capitalize
 import androidx.compose.ui.text.intl.Locale
 import dev.toastbits.composekit.platform.PlatformFile
-import dev.toastbits.composekit.settings.ui.item.ComposableSettingsItem
-import dev.toastbits.composekit.settings.ui.item.DropdownSettingsItem
-import dev.toastbits.composekit.settings.ui.item.FileSettingsItem
-import dev.toastbits.composekit.settings.ui.item.SettingsItem
-import dev.toastbits.composekit.settings.ui.item.SettingsItem.Companion.ItemTitleText
-import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.FileSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem.Companion.ItemTitleText
+import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
-import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.getUiLanguage
-import com.toasterofbread.spmp.resources.Languages
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.getStringTODO
-import com.toasterofbread.spmp.ui.component.shortcut.trigger.getName
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import java.net.URI
 import LocalPlayerState
+import androidx.compose.material3.MaterialTheme
+import com.toasterofbread.spmp.platform.observeUiLanguage
+import com.toasterofbread.spmp.resources.Language
+import com.toasterofbread.spmp.resources.getAvailableLanguages
+import com.toasterofbread.spmp.resources.getStringTODO
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.system_language
+import spmp.shared.generated.resources.language_change_restart_notice
+import spmp.shared.generated.resources.action_confirm_action
+import spmp.shared.generated.resources.action_deny_action
 
 // TODO Allow setting to any language
 fun getLanguageDropdownItem(
     property: PreferencesProperty<String>,
-    available_languages: List<Languages.LanguageInfo>
+    available_languages: List<Language>
 ): SettingsItem {
     return DropdownSettingsItem(
         property.getConvertedProperty(
@@ -55,7 +60,7 @@ fun getLanguageDropdownItem(
                     return@getConvertedProperty 0
                 }
 
-                val index = available_languages.indexOfFirst { it.code == language_code }
+                val index = available_languages.indexOfFirst { it.identifier == language_code }
                 if (index == -1) {
                     property.reset()
                     return@getConvertedProperty 0
@@ -69,14 +74,14 @@ fun getLanguageDropdownItem(
                     ""
                 }
                 else {
-                    available_languages[index - 1].code
+                    available_languages[index - 1].identifier
                 }
             }
         ),
         available_languages.size + 1,
         { i ->
             if (i == 0) {
-                getString("system_language")
+                stringResource(Res.string.system_language)
             }
             else {
                 available_languages[i - 1].readable_name
@@ -84,22 +89,22 @@ fun getLanguageDropdownItem(
         }
     ) { i ->
         if (i == 0) {
-            getString("system_language")
+            stringResource(Res.string.system_language)
         }
         else {
             val lang = available_languages[i - 1]
-            "${lang.code} / ${lang.readable_name}"
+            "${lang.identifier} / ${lang.readable_name}"
         }
     }
 }
 
-internal fun getSystemCategoryItems(context: AppContext): List<SettingsItem> {
-    val language: String = context.getUiLanguage()
-    var available_languages: List<Languages.LanguageInfo> = Languages.loadAvailableLanugages(context)
-
-    return listOf(
+internal fun getSystemCategoryItems(context: AppContext, available_languages: List<Language>): List<SettingsItem> =
+    listOf(
         ComposableSettingsItem {
-            WidthShrinkText(getString("language_change_restart_notice"))
+            Text(
+                stringResource(Res.string.language_change_restart_notice),
+                style = MaterialTheme.typography.labelMedium
+            )
         },
 
         getLanguageDropdownItem(
@@ -115,7 +120,7 @@ internal fun getSystemCategoryItems(context: AppContext): List<SettingsItem> {
         DropdownSettingsItem(
             context.settings.system.FONT
         ) { mode ->
-            mode.getReadable(language)
+            mode.getReadable(context.observeUiLanguage().value)
         },
 
         ComposableSettingsItem(
@@ -127,7 +132,7 @@ internal fun getSystemCategoryItems(context: AppContext): List<SettingsItem> {
             val player: PlayerState = LocalPlayerState.current
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                ItemTitleText(context.settings.system.UI_SCALE.name, theme, Modifier.weight(1f))
+                ItemTitleText(context.settings.system.UI_SCALE.getName(), player.theme, Modifier.weight(1f))
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
@@ -161,18 +166,19 @@ internal fun getSystemCategoryItems(context: AppContext): List<SettingsItem> {
             state = context.settings.system.LIBRARY_PATH,
             getPathLabel = { path ->
                 if (path.isBlank()) {
-                    return@FileSettingsItem MediaItemLibrary.getDefaultLibraryDir(context).absolute_path
+                    return@FileSettingsItem MediaItemLibrary.getDefaultLibraryDir(context)!!.absolute_path
                 }
                 else {
+                    return@FileSettingsItem path
                     // Format Android documents tree URI to standard path
-                    val split_path: List<String> = URI.create(path).path.split(':')
-                    if (split_path.size == 1) {
-                        return@FileSettingsItem split_path.first().removePrefix("/tree/")
-                    }
-                    else {
-                        val storage: String = split_path.first().split('/').last().capitalize(Locale(context.getUiLanguage()))
-                        return@FileSettingsItem "($storage) ~/${split_path.last()}"
-                    }
+//                    val split_path: List<String> = URI.create(path).path.split(':')
+//                    if (split_path.size == 1) {
+//                        return@FileSettingsItem split_path.first().removePrefix("/tree/")
+//                    }
+//                    else {
+//                        val storage: String = split_path.first().split('/').last().capitalize(Locale(context.getUiLanguage()))
+//                        return@FileSettingsItem "($storage) ~/${split_path.last()}"
+//                    }
                 }
             },
             extraContent = {
@@ -199,53 +205,54 @@ internal fun getSystemCategoryItems(context: AppContext): List<SettingsItem> {
             },
             onSelectRequested = { setValue, showDialog ->
                 context.promptUserForDirectory(true) { path ->
-                    val old_location: PlatformFile = MediaItemLibrary.getLibraryDir(context, context.settings.system.LIBRARY_PATH.get())
-                    val new_location: PlatformFile = MediaItemLibrary.getLibraryDir(context, path ?: "")
+                    context.coroutine_scope.launch {
+                        val old_location: PlatformFile = MediaItemLibrary.getLibraryDir(context, context.settings.system.LIBRARY_PATH.get())!!
+                        val new_location: PlatformFile = MediaItemLibrary.getLibraryDir(context, path ?: "")!!
 
-                    fun processDialogSelection(accepted: Boolean, is_retry: Boolean = false) {
-                        if (accepted) {
-                            if (old_location.is_directory) {
-                                val result: Result<PlatformFile> = old_location.moveDirContentTo(new_location)
-                                result.onFailure { error ->
-                                    showDialog(
-                                        FileSettingsItem.Dialog(
-                                            getStringTODO("Transfer failed"),
-                                            error.toString(),
-                                            getString("action_confirm_action"),
-                                            null
-                                        ) {}
-                                    )
-                                    return@onFailure
+                        suspend fun processDialogSelection(accepted: Boolean, is_retry: Boolean = false) {
+                            if (accepted) {
+                                if (old_location.is_directory) {
+                                    val result: Result<PlatformFile> = old_location.moveDirContentTo(new_location)
+                                    result.onFailure { error ->
+                                        showDialog(
+                                            FileSettingsItem.Dialog(
+                                                getStringTODO("Transfer failed"),
+                                                error.toString(),
+                                                getString(Res.string.action_confirm_action),
+                                                null
+                                            ) {}
+                                        )
+                                        return@onFailure
+                                    }
                                 }
+                            } else if (is_retry) {
+                                return
                             }
-                        } else if (is_retry) {
-                            return
+
+                            setValue(path ?: "")
                         }
 
-                        setValue(path ?: "")
-                    }
-
-                    if (old_location.uri == new_location.uri) {
-                        return@promptUserForDirectory
-                    }
-
-                    if (!old_location.is_directory) {
-                        processDialogSelection(true)
-                        return@promptUserForDirectory
-                    }
-
-                    showDialog(
-                        FileSettingsItem.Dialog(
-                            getStringTODO("Transfer existing library"),
-                            getStringTODO("Move the library at ${old_location.path} to ${new_location.path}?"),
-                            getString("action_confirm_action"),
-                            getString("action_deny_action")
-                        ) { accepted ->
-                            processDialogSelection(accepted)
+                        if (old_location.uri == new_location.uri) {
+                            return@launch
                         }
-                    )
+
+                        if (!old_location.is_directory) {
+                            processDialogSelection(true)
+                            return@launch
+                        }
+
+                        showDialog(
+                            FileSettingsItem.Dialog(
+                                getStringTODO("Transfer existing library"),
+                                getStringTODO("Move the library at ${old_location.path} to ${new_location.path}?"),
+                                getString(Res.string.action_confirm_action),
+                                getString(Res.string.action_deny_action)
+                            ) { accepted ->
+                                processDialogSelection(accepted)
+                            }
+                        )
+                    }
                 }
             }
         )
     )
-}

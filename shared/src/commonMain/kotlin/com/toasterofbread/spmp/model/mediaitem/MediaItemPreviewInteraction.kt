@@ -71,7 +71,8 @@ fun Modifier.mediaItemPreviewInteraction(
 ): Modifier {
     val base: Modifier = when (Platform.current) {
         Platform.ANDROID -> androidMediaItemPreviewInteraction(item, long_press_menu_data, enabled, onClick, onLongClick)
-        Platform.DESKTOP -> desktopMediaItemPreviewInteraction(item, long_press_menu_data, enabled, onClick, onLongClick)
+        Platform.DESKTOP,
+        Platform.WEB -> desktopMediaItemPreviewInteraction(item, long_press_menu_data, enabled, onClick, onLongClick)
     }
     return base.longPressItem(long_press_menu_data)
 }

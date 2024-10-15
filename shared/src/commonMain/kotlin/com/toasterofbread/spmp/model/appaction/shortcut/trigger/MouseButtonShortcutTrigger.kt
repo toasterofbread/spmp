@@ -10,9 +10,13 @@ import androidx.compose.material3.Button
 import androidx.compose.runtime.*
 import kotlinx.serialization.Serializable
 import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
 import com.toasterofbread.spmp.model.appaction.shortcut.LocalShortcutState
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.shortcut_button_config_none_selected
+import spmp.shared.generated.resources.shortcut_button_config_selected_button
+import spmp.shared.generated.resources.shortcut_button_config_detecting_button
 
 @Serializable
 data class MouseButtonShortcutTrigger(
@@ -28,7 +32,7 @@ data class MouseButtonShortcutTrigger(
     @Composable
     override fun IndicatorContent(modifier: Modifier) {
         Text(
-            button_code?.toString() ?: getString("shortcut_button_config_none_selected"),
+            button_code?.toString() ?: stringResource(Res.string.shortcut_button_config_none_selected),
             modifier,
             softWrap = false
         )
@@ -57,7 +61,7 @@ data class MouseButtonShortcutTrigger(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                getString("shortcut_button_config_selected_button"),
+                stringResource(Res.string.shortcut_button_config_selected_button),
                 Modifier.align(Alignment.CenterVertically)
             )
 
@@ -65,7 +69,7 @@ data class MouseButtonShortcutTrigger(
                 detecting_button = !detecting_button
             }) {
                 if (detecting_button) {
-                    Text(getString("shortcut_button_config_detecting_button"))
+                    Text(stringResource(Res.string.shortcut_button_config_detecting_button))
                 }
                 else {
                     IndicatorContent(Modifier)

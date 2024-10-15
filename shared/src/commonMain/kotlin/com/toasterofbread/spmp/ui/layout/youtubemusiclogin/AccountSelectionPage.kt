@@ -20,16 +20,18 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import io.kamel.image.asyncPainterResource
 import io.kamel.image.KamelImage
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.youtubeapi.AccountSwitcherEndpoint
 import io.ktor.http.Headers
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.youtube_account_selection_title
 
 internal data class AccountSelectionData(val accounts: List<AccountSwitcherEndpoint.AccountItem>, val headers: Headers)
 
 @Composable
 internal fun AccountSelectionPage(data: AccountSelectionData, modifier: Modifier = Modifier, onAccountSelected: (AccountSwitcherEndpoint.AccountItem) -> Unit) {
     Column(modifier, verticalArrangement = Arrangement.spacedBy(25.dp)) {
-        Text(getString("youtube_account_selection_title"), style = MaterialTheme.typography.headlineMedium)
+        Text(stringResource(Res.string.youtube_account_selection_title), style = MaterialTheme.typography.headlineMedium)
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(10.dp)) {
             items(data.accounts) { account ->

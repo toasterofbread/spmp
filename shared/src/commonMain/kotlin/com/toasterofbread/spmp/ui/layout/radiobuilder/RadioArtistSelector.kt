@@ -29,7 +29,6 @@ import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.composekit.utils.composable.crossOut
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
@@ -39,6 +38,9 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.platform.FormFactor
 import dev.toastbits.ytmkt.endpoint.RadioBuilderArtist
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider as YtmThumbnailProvider
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.radio_builder_next_button
 
 @Composable
 internal fun RadioArtistSelector(
@@ -73,7 +75,7 @@ internal fun RadioArtistSelector(
                         ),
                         contentPadding = PaddingValues(0.dp, 0.dp)
                     ) {
-                        Text(getString("radio_builder_next_button"), Modifier.crossOut(selected_artists.isEmpty(), { content_colour }) { it * 1.2f })
+                        Text(stringResource(Res.string.radio_builder_next_button), Modifier.crossOut(selected_artists.isEmpty(), { content_colour }) { it * 1.2f })
                     }
                 }
             )

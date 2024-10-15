@@ -7,14 +7,13 @@ import androidx.compose.runtime.setValue
 import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.platform.synchronized
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.unpackSetData
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.getUiLanguage
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.model.radio.RadioState
 import dev.toastbits.composekit.platform.getPlatformHostName
 import dev.toastbits.composekit.platform.getPlatformOSName
@@ -23,6 +22,8 @@ import io.ktor.util.flattenEntries
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -32,18 +33,26 @@ import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.put
 import kotlinx.serialization.json.encodeToJsonElement
-import org.zeromq.*
-import java.net.InetAddress
 import dev.toastbits.spms.socketapi.shared.*
 import dev.toastbits.spms.server.CLIENT_HEARTBEAT_TARGET_PERIOD
 import dev.toastbits.spms.server.CLIENT_HEARTBEAT_MAX_PERIOD
+import dev.toastbits.spms.zmq.ZmqSocket
+import dev.toastbits.spms.zmq.ZmqSocketType
 import kotlin.time.*
+import kotlin.time.Duration
+import PlatformIO
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.app_name
+import spmp.shared.generated.resources.loading_splash_setting_initial_state
+import spmp.shared.generated.resources.unknown_host_name
 
 private val SERVER_REPLY_TIMEOUT: Duration = with (Duration) { 1.seconds }
 
 abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(), ClientServerPlayerService {
-    abstract fun getIpAddress(): String
-    abstract fun getPort(): Int
+    abstract suspend fun getIpAddress(): String
+    abstract suspend fun getPort(): Int
 
     override var connected_server: ClientServerPlayerService.ServerInfo? by mutableStateOf(null)
 
@@ -54,10 +63,10 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
 
     internal abstract fun onRadioCancelRequested()
 
-    private fun getClientName(): String {
+    private suspend fun getClientName(): String {
         val os: String = getPlatformOSName()
-        val host: String = getPlatformHostName() ?: getString("unknown_host_name")
-        return getString("app_name") + " [$os, $host]"
+        val host: String = getPlatformHostName() ?: getString(Res.string.unknown_host_name)
+        return getString(Res.string.app_name) + " [$os, $host]"
     }
 
     private val prefs_listener: PlatformPreferencesListener =
@@ -69,14 +78,13 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
             }
         }
 
-    private val zmq: ZContext = ZContext().apply { setLinger(0) }
-    private var socket: ZMQ.Socket? = null
+    private var socket: ZmqSocket? = null
     private val json: Json = Json { ignoreUnknownKeys = true }
     private val queued_messages: MutableList<Pair<String, List<JsonElement?>>> = mutableListOf()
 
-    private val poll_coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
+    private val poll_coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.PlatformIO)
     private val connect_coroutine_scope: CoroutineScope = CoroutineScope(Job())
-    private val player_status_coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.IO)
+    private val player_status_coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.PlatformIO)
 
     internal val listeners: MutableList<PlayerListener> = mutableListOf()
     internal var playlist: MutableList<Song> = mutableListOf()
@@ -90,6 +98,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
     internal var _repeat_mode: SpMsPlayerRepeatMode = SpMsPlayerRepeatMode.NONE
     internal var _volume: Float = 1f
     internal var current_song_time: Long = -1
+    internal lateinit var playback_start_mark: TimeMark
 
     protected fun sendRequest(action: String, vararg params: JsonElement?) {
         println("sendRequest $action ${params.toList()} ${connected_server == null}")
@@ -116,7 +125,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
     internal fun updateCurrentSongPosition(position_ms: Long) {
         require(position_ms >= 0) { position_ms }
         if (_is_playing) {
-            current_song_time = System.currentTimeMillis() - position_ms
+            playback_start_mark = TimeSource.Monotonic.markNow() - with (Duration) {position_ms.milliseconds }
         }
         else {
             current_song_time = position_ms
@@ -131,7 +140,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
     override fun onDestroy() {
         super.onDestroy()
         disconnectFromServer()
-        socket?.close()
+        socket?.release()
         context.getPrefs().removeListener(prefs_listener)
     }
 
@@ -146,21 +155,22 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
 
     private fun connectToServer() {
         check(connected_server == null)
-        connect_coroutine_scope.launchSingle {
+        connect_coroutine_scope.coroutineContext.cancelChildren()
+        connect_coroutine_scope.launch {
             while (true) {
-                val socket: ZMQ.Socket = zmq.createSocket(SocketType.DEALER)
+                val socket: ZmqSocket = ZmqSocket(ZmqSocketType.DEALER, is_binder = false)
                 this@SpMsPlayerService.socket = socket
 
                 try {
                     socket.connectSocketToServer(with (Duration) { 5.seconds })
                 }
                 catch (e: CancellationException) {
-                    socket.close()
+                    socket.release()
                     break
                 }
                 catch (e: Throwable) {
                     e.printStackTrace()
-                    socket.close()
+                    socket.release()
                     continue
                 }
 
@@ -176,7 +186,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
         connected_server = null
     }
 
-    private suspend fun ZMQ.Socket.connectSocketToServer(timeout: Duration) = withContext(Dispatchers.Default) {
+    private suspend fun ZmqSocket.connectSocketToServer(timeout: Duration) = withContext(Dispatchers.Default) {
         connected_server = null
 
         val ip: String = getIpAddress()
@@ -215,11 +225,8 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
 
         var server_state_applied: Boolean = false
 
-        poll_coroutine_scope.launchSingle {
-            val context: ZMQ.Context = ZMQ.context(1)
-            val poller: ZMQ.Poller = context.poller()
-            poller.register(this@connectSocketToServer, ZMQ.Poller.POLLIN)
-
+        poll_coroutine_scope.coroutineContext.cancelChildren()
+        poll_coroutine_scope.launch {
             var queued_events: MutableList<SpMsPlayerEvent>? = mutableListOf()
             var last_heartbeat: TimeMark = TimeSource.Monotonic.markNow()
             var last_server_heartbeat: TimeMark = TimeSource.Monotonic.markNow()
@@ -235,7 +242,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                     //println("LOOP 1.2")
 
                     val poll_result: Boolean =
-                        pollServerState(poller, with (Duration) { 100.milliseconds }) { events ->
+                        pollServerState(with (Duration) { 100.milliseconds }) { events ->
                             queued_events?.also {
                                 it.addAll(events)
                                 return@pollServerState
@@ -259,16 +266,16 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
 
                     synchronized(queued_messages) {
                         //println("LOOP 4")
-                        val message: ZMsg = ZMsg()
+                        val message: MutableList<String> = mutableListOf()
                         if (queued_messages.isNotEmpty()) {
                             for (queued in queued_messages) {
-                                message.addSafe(queued.first)
-                                message.addSafe(Json.encodeToString(queued.second))
+                                message.add(queued.first)
+                                message.add(Json.encodeToString(queued.second))
                             }
                             //println("LOOP 5")
                         }
                         else if (last_heartbeat.elapsedNow() > CLIENT_HEARTBEAT_TARGET_PERIOD) {
-                            message.add(byteArrayOf())
+                            message.add(" ")
                             //println("LOOP 6")
                         }
                         else {
@@ -283,33 +290,23 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                         last_heartbeat = TimeSource.Monotonic.markNow()
 
                         // println("SENDING $message")
-                        val send_result: Boolean = message.send(this@connectSocketToServer)
-                        check(send_result) { "Sending message to server failed" }
+                        sendStringMultipart(message)
 
                         // println("EXPECTING REP $actions_expecting_result")
                         if (actions_expecting_result.isEmpty()) {
                             return@synchronized
                         }
 
-                        var results: ZMsg? = null
-                        val wait_start: TimeMark = TimeSource.Monotonic.markNow()
-
-                        while (wait_start.elapsedNow() < SERVER_REPLY_TIMEOUT) {
-                            if (poller.poll((SERVER_REPLY_TIMEOUT - wait_start.elapsedNow()).inWholeMilliseconds) > 0) {
-                                results = ZMsg.recvMsg(this@connectSocketToServer)
-                                break
-                            }
-                        }
-
+                        val results: List<String>? = recvStringMultipart(SERVER_REPLY_TIMEOUT)
                         if (results == null) {
                             // println("NO RESULTS")
                             onSocketConnectionLost(1, SERVER_REPLY_TIMEOUT)
-                            return@launchSingle
+                            return@launch
                         }
 
                         last_server_heartbeat = TimeSource.Monotonic.markNow()
 
-                        val result_str: String = SpMsSocketApi.decode(results.map { it.data.decodeToString() }).first()
+                        val result_str: String = results.first()
                         // println("RESULT STR $result_str")
                         if (result_str.isEmpty()) {
                             throw RuntimeException("Result string is empty")
@@ -343,7 +340,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
             socket_load_state =
                 PlayerServiceLoadState(
                     true,
-                    getString("loading_splash_setting_initial_state") + status?.let { " ($it)" }.orEmpty()
+                    getString(Res.string.loading_splash_setting_initial_state) + status?.let { " ($it)" }.orEmpty()
                 )
         }
 
@@ -356,55 +353,24 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
         sendYtmAuthToPlayers()
     }
 
-    private suspend fun ZMQ.Socket.pollServerState(
-        poller: ZMQ.Poller,
+    private suspend fun ZmqSocket.pollServerState(
         timeout: Duration? = null,
         onEvents: suspend (List<SpMsPlayerEvent>) -> Unit
-    ): Boolean = withContext(Dispatchers.IO) {
-        var events: ZMsg? = null
-        try {
-            val wait_start: TimeMark = TimeSource.Monotonic.markNow()
-            while (true) {
-                val remaining: Long
-                if (timeout == null) {
-                    remaining = -1
-                }
-                else {
-                    val elapsed: Duration = wait_start.elapsedNow()
-                    if (elapsed >= timeout) {
-                        break
-                    }
+    ): Boolean = withContext(Dispatchers.PlatformIO) {
+        val events: List<String> =
+            recvStringMultipart(timeout) ?: return@withContext false
 
-                    remaining = (timeout - elapsed).inWholeMilliseconds
-                }
-
-                if (poller.poll(remaining) > 0) {
-                    events = ZMsg.recvMsg(this@pollServerState)
-                    break
-                }
-            }
-        }
-        catch (e: Throwable) {
-            RuntimeException("Warning: Polling server failed prematurely", e).printStackTrace()
-            return@withContext false
-        }
-
-        if (events == null) {
-            return@withContext false
-        }
-
-        val decoded_event_strings: List<String> = SpMsSocketApi.decode(events.map { it.data.decodeToString() })
-        if (decoded_event_strings.size == 1 && decoded_event_strings.first().contains("REPLY TO ")) {
+        if (events.size == 1 && events.first().contains("REPLY TO ")) {
             return@withContext true
         }
 
         val decoded_events: List<SpMsPlayerEvent> =
-            decoded_event_strings.mapNotNull { event: String ->
+            events.mapNotNull { event: String ->
                 try {
                     json.decodeFromString(event)
                 }
                 catch (e: Throwable) {
-                    throw RuntimeException("Parsing event failed '$event' (in $decoded_event_strings)", e)
+                    throw RuntimeException("Parsing event failed '$event' (in $events)", e)
                 }
             }
 
@@ -466,7 +432,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
         }
     }
 
-    override suspend fun sendAuthInfoToPlayers(ytm_auth: Pair<String?, Headers>?): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun sendAuthInfoToPlayers(ytm_auth: Pair<String?, Headers>?): Result<Unit> = withContext(Dispatchers.PlatformIO) {
         return@withContext runCatching {
             runCommandOnEachLocalPlayer(
                 "setAuthInfo",
@@ -482,11 +448,11 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
     }
 
     private suspend fun runCommandOnEachLocalPlayer(identifier: String, vararg params: JsonElement?) {
-        val socket: ZMQ.Socket = zmq.createSocket(SocketType.REQ)
+        val socket: ZmqSocket = ZmqSocket(ZmqSocketType.REQ, is_binder = false)
 
-        val message: ZMsg = ZMsg()
-        message.addSafe(SPMS_EXPECT_REPLY_CHAR + identifier)
-        message.addSafe(Json.encodeToString(params))
+        val message: MutableList<String> = mutableListOf()
+        message.add(SPMS_EXPECT_REPLY_CHAR + identifier)
+        message.add(Json.encodeToString(params))
 
         val local_players: List<SpMsClientInfo> = getLocalPlayers().getOrNull() ?: return
 
@@ -514,22 +480,22 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                 )
 
             if (server_handshake == null) {
-                socket.disconnect(server_url)
+                socket.disconnect()
                 continue
             }
 
             try {
-                message.send(socket)
+                socket.sendStringMultipart(message)
             }
             catch (e: Throwable) {
                 e.printStackTrace()
             }
             finally {
-                socket.disconnect(server_url)
+                socket.disconnect()
             }
         }
 
-        socket.close()
+        socket.release()
     }
 
     private suspend fun getLocalPlayers(): Result<List<SpMsClientInfo>> =
@@ -563,8 +529,4 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
     override fun removeListener(listener: PlayerListener) {
         listeners.remove(listener)
     }
-}
-
-private fun ZMsg.addSafe(part: String) {
-    addAll(SpMsSocketApi.encode(listOf(part)).map { ZFrame(it) })
 }

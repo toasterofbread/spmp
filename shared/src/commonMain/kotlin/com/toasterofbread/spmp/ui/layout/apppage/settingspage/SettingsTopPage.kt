@@ -63,7 +63,7 @@ import dev.toastbits.composekit.platform.PlatformFile
 import dev.toastbits.composekit.platform.composable.BackHandler
 import dev.toastbits.composekit.platform.composable.platformClickable
 import dev.toastbits.composekit.platform.vibrateShort
-import dev.toastbits.composekit.settings.ui.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.utils.common.addUnique
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.common.toggleItemPresence
@@ -72,7 +72,6 @@ import dev.toastbits.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.settings.SettingsImportExport
 import com.toasterofbread.spmp.model.settings.category.SettingsGroup
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.layout.ProjectInfoDialog
@@ -84,14 +83,39 @@ import kotlinx.coroutines.launch
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.painterResource
-import java.text.SimpleDateFormat
-import java.util.Date
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.*
+import PlatformIO
+import dev.toastbits.composekit.settings.ui.on_accent
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDateTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.format
+import kotlinx.datetime.format.FormatStringsInDatetimeFormats
+import kotlinx.datetime.format.byUnicodePattern
+import kotlinx.datetime.toLocalDateTime
+import okio.buffer
+import okio.use
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.s_page_preferences
+import spmp.shared.generated.resources.action_close
+import spmp.shared.generated.resources.settings_import_error_title
+import spmp.shared.generated.resources.settings_import_result_title
+import spmp.shared.generated.resources.`settings_import_result_$x_from_file`
+import spmp.shared.generated.resources.`settings_import_result_$x_from_default`
+import spmp.shared.generated.resources.settings_import_button_import
+import spmp.shared.generated.resources.action_cancel
+import spmp.shared.generated.resources.settings_import_prep_title
+import spmp.shared.generated.resources.settings_import_category_selection_subtitle
+import spmp.shared.generated.resources.project_url
+import spmp.shared.generated.resources.notif_copied_x_to_clipboard
+import spmp.shared.generated.resources.project_url_name
 
 @Composable
 internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, content_padding: PaddingValues = PaddingValues(), top_padding: Dp = 0.dp) {
     val player: PlayerState = LocalPlayerState.current
+    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     var importing: Boolean by remember { mutableStateOf(false) }
     if (importing) {
@@ -123,7 +147,7 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    getString("s_page_preferences"),
+                    stringResource(Res.string.s_page_preferences),
                     style = MaterialTheme.typography.displaySmall
                 )
 
@@ -139,7 +163,9 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
                     },
                     {
                         exporting = false
-                        peformExport(player.context, export_categories)
+                        coroutine_scope.launch {
+                            peformExport(player.context, export_categories)
+                        }
                     },
                     { exporting = it },
                     { importing = it }
@@ -183,9 +209,6 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
                     var item_height: Dp by remember { mutableStateOf(0.dp) }
 
                     title_item.Item(
-                        settings_interface,
-                        settings_interface::openPageById,
-                        settings_interface::openPage,
                         Modifier
                             .onSizeChanged {
                                 item_height = with (density) { it.height.toDp() }
@@ -215,7 +238,7 @@ internal fun SettingsAppPage.SettingsTopPage(modifier: Modifier = Modifier, cont
                     .alpha(0.5f),
                 horizontalArrangement = Arrangement.Center
             ) {
-                for (part in remember { ProgramArguments.getVersionMessage(split_lines = true).split("\n") }) {
+                for (part in ProgramArguments.getVersionMessageComposable(split_lines = true).split("\n")) {
                     SelectionContainer {
                         Text(
                             part,
@@ -262,11 +285,11 @@ internal fun SettingsImportDialog(modifier: Modifier = Modifier, onFinished: () 
             onDismissRequest = onFinished,
             confirmButton = {
                 Button(onFinished) {
-                    Text(getString("action_close"))
+                    Text(stringResource(Res.string.action_close))
                 }
             },
             title = {
-                Text(getString("settings_import_error_title"))
+                Text(stringResource(Res.string.settings_import_error_title))
             },
             text = {
                 ErrorInfoDisplay(error, onDismiss = null)
@@ -281,17 +304,17 @@ internal fun SettingsImportDialog(modifier: Modifier = Modifier, onFinished: () 
             onDismissRequest = onFinished,
             confirmButton = {
                 Button(onFinished) {
-                    Text(getString("action_close"))
+                    Text(stringResource(Res.string.action_close))
                 }
             },
             title = {
-                WidthShrinkText(getString("settings_import_result_title"))
+                WidthShrinkText(stringResource(Res.string.settings_import_result_title))
             },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(20.dp)) {
                     CompositionLocalProvider(LocalTextStyle provides MaterialTheme.typography.bodyLarge) {
-                        Text(getString("settings_import_result_\$x_from_file").replace("\$x", result.directly_imported_count.toString()))
-                        Text(getString("settings_import_result_\$x_from_default").replace("\$x", result.default_imported_count.toString()))
+                        Text(stringResource(Res.string.`settings_import_result_$x_from_file`).replace("\$x", result.directly_imported_count.toString()))
+                        Text(stringResource(Res.string.`settings_import_result_$x_from_default`).replace("\$x", result.default_imported_count.toString()))
                     }
                 }
             }
@@ -322,7 +345,7 @@ internal fun SettingsImportDialog(modifier: Modifier = Modifier, onFinished: () 
                     },
                     enabled = import_groups.isNotEmpty()
                 ) {
-                    Text(getString("settings_import_button_import"))
+                    Text(stringResource(Res.string.settings_import_button_import))
                 }
             },
             dismissButton = {
@@ -341,20 +364,21 @@ internal fun SettingsImportDialog(modifier: Modifier = Modifier, onFinished: () 
                     }
 
                     Button(onFinished) {
-                        Text(getString("action_cancel"))
+                        Text(stringResource(Res.string.action_cancel))
                     }
                 }
             },
             title = {
-                Text(getString("settings_import_prep_title"))
+                Text(stringResource(Res.string.settings_import_prep_title))
             },
             text = {
                 Column {
-                    Text(getString("settings_import_category_selection_subtitle"), style = MaterialTheme.typography.titleMedium)
+                    Text(stringResource(Res.string.settings_import_category_selection_subtitle), style = MaterialTheme.typography.titleMedium)
                     LazyColumn {
                         items(included_groups) { group ->
-                            val title: String = group.page?.getTitle?.invoke()
-                                ?: group.group_key.lowercase().replaceFirstChar { it.uppercaseChar() }
+                            val title: String = group.getTitle().ifEmpty {
+                                group.group_key.lowercase().replaceFirstChar { it.uppercaseChar() }
+                            }
 
                             Row(
                                 Modifier.clickable {
@@ -382,9 +406,13 @@ private fun ProjectButton(modifier: Modifier = Modifier) {
     val player: PlayerState = LocalPlayerState.current
     val clipboard: ClipboardManager = LocalClipboardManager.current
 
+    val project_url: String = stringResource(Res.string.project_url)
+    val project_url_name: String = stringResource(Res.string.project_url_name)
+    val notif_copied_x_to_clipboard: String = stringResource(Res.string.notif_copied_x_to_clipboard)
+
     fun copyProjectUrl() {
-        clipboard.setText(AnnotatedString(getString("project_url")))
-        player.context.sendToast(getString("notif_copied_x_to_clipboard").replace("\$x", getString("project_url_name")))
+        clipboard.setText(AnnotatedString(project_url))
+        player.context.sendToast(notif_copied_x_to_clipboard.replace("\$x", project_url_name))
     }
 
     Icon(
@@ -393,7 +421,7 @@ private fun ProjectButton(modifier: Modifier = Modifier) {
         modifier.platformClickable(
             onClick = {
                 if (player.context.canOpenUrl()) {
-                    player.context.openUrl(getString("project_url"))
+                    player.context.openUrl(project_url)
                 }
                 else {
                     copyProjectUrl()
@@ -440,17 +468,24 @@ private fun StyledCheckbox(checked: Boolean, onCheckedChange: (Boolean) -> Unit)
     )
 }
 
-@OptIn(DelicateCoroutinesApi::class)
-private fun peformExport(context: AppContext, groups: List<SettingsGroup>) {
-    val datetime: String = SimpleDateFormat("yyyy-MM-dd_HH:mm:ss").format(Date())
-    val filename: String = getString("settings_export_filename_\$date").replace("\$date", datetime)
+@OptIn(DelicateCoroutinesApi::class, FormatStringsInDatetimeFormats::class)
+private suspend fun peformExport(context: AppContext, groups: List<SettingsGroup>) {
+    val datetime: String =
+        Clock.System.now()
+            .toLocalDateTime(TimeZone.currentSystemDefault())
+            .format(
+                LocalDateTime.Format {
+                    byUnicodePattern("yyyy-MM-dd_HH:mm:ss")
+                }
+            )
+    val filename: String = getString(Res.string.`settings_export_filename_$date`).replace("\$date", datetime)
 
     context.promptUserForFileCreation("application/json", filename, persist = false) { path ->
         if (path == null) {
             return@promptUserForFileCreation
         }
 
-        GlobalScope.launch(Dispatchers.IO) {
+        GlobalScope.launch(Dispatchers.PlatformIO) {
             val settings_data: SettingsImportExport.SettingsExportData =
                 SettingsImportExport.exportSettingsData(
                     prefs = context.getPrefs(),
@@ -458,8 +493,8 @@ private fun peformExport(context: AppContext, groups: List<SettingsGroup>) {
                 )
 
             val file: PlatformFile = context.getUserDirectoryFile(path)!!
-            file.outputStream().writer().use { writer ->
-                writer.write(Json.encodeToString(settings_data))
+            file.outputStream().buffer().use { writer ->
+                writer.writeUtf8(Json.encodeToString(settings_data))
                 writer.flush()
             }
         }

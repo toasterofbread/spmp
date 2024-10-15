@@ -123,6 +123,8 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
     actual suspend fun getDownloads(): List<DownloadStatus> =
         service?.downloader?.getAllDownloadsStatus() ?: emptyList()
 
+    actual fun canStartDownload(): Boolean = true
+
     @Synchronized
     actual fun startDownload(
         song: Song,
@@ -133,7 +135,7 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
         callback: DownloadRequestCallback?
     ) {
         if (!silent && Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
-            context.application_context?.requestNotificationPermission { granted ->
+            context.application_context?.requestNotficationPermission { granted ->
                 if (granted) {
                     performDownload(song, silent, custom_uri, download_lyrics, direct, callback)
                 }
@@ -200,7 +202,7 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
 
         service_connection = startPlatformService(
             context,
-            PlayerDownloadService::class.java,
+            { PlayerDownloadService() },
             onConnected = { binder ->
                 synchronized(service_connect_callbacks) {
                     service = (binder as PlayerDownloadService.ServiceBinder).getService()
@@ -234,12 +236,5 @@ actual class PlayerDownloadManager actual constructor(val context: AppContext) {
             unbindPlatformService(context, service_connection!!)
             service_connection = null
         }
-    }
-
-    companion object {
-        fun getSongDownloadDir(context: AppContext): PlatformFile =
-            MediaItemLibrary.getLocalSongsDir(context)
-        fun getLyricsDownloadDir(context: AppContext): PlatformFile =
-            MediaItemLibrary.getLocalLyricsDir(context)
     }
 }

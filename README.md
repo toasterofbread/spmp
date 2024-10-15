@@ -102,7 +102,7 @@ The app is currently being developed for both English and Japanese. Contribution
 - [KizzyRPC](https://github.com/dead8309/KizzyRPC): Discord status functionality
 - [ComposeReorderable](https://github.com/aclassen/ComposeReorderable): Reorderable lists like the song queue
 - [compose-color-picker](https://github.com/godaddy/compose-color-picker): Theme editor colour wheel
-- [Catppuccin](https://github.com/catppuccin/java): Themes included as options in-app
+- [Catppuccin](https://github.com/d1snin/catppuccin-kotlin): Themes included as options in-app
 
 ## Disclaimer
 This project and its contents are not affiliated with, funded, authorized, endorsed by, or in any way associated with YouTube, Google LLC or any of its affiliates and subsidiaries.

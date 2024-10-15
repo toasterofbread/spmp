@@ -1,25 +1,29 @@
 package com.toasterofbread.spmp.ui.layout.contentbar
 
-import androidx.compose.runtime.*
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.Text
-import androidx.compose.material3.Button
-import androidx.compose.material3.Icon
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElement
-import com.toasterofbread.spmp.ui.component.shortcut.trigger.getName
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonColors
+import androidx.compose.material3.Icon
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.FormFactor
-import com.toasterofbread.spmp.model.getIcon
-import com.toasterofbread.spmp.resources.getString
+import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElement
 import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.content_bar_editor_add_element
 
 @Composable
 internal fun ContentBarElementSelector(
@@ -58,7 +62,7 @@ internal fun ContentBarElementSelector(
             colors = button_colours
         ) {
             Icon(Icons.Default.Add, null)
-            Text(getString("content_bar_editor_add_element"))
+            Text(stringResource(Res.string.content_bar_editor_add_element))
         }
     }
     else {
@@ -71,7 +75,7 @@ internal fun ContentBarElementSelector(
                 horizontalArrangement = Arrangement.spacedBy(10.dp)
             ) {
                 Icon(Icons.Default.Add, null)
-                Text(getString("content_bar_editor_add_element"))
+                Text(stringResource(Res.string.content_bar_editor_add_element))
             }
 
             FlowRow(horizontalArrangement = Arrangement.spacedBy(5.dp)) {

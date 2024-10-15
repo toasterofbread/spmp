@@ -58,15 +58,19 @@ import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.ColourpickCallback
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.songtheme.SongThemePlayerOverlayMenu
+import dev.toastbits.composekit.settings.ui.on_accent
 import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import dev.toastbits.ytmkt.model.implementedOrNull
 import kotlinx.coroutines.delay
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.`edit_$x_title_dialog_title`
+import spmp.shared.generated.resources.`mediaitem_play_count_$x_short`
 
 class MainPlayerOverlayMenu(
     val setPlayerOverlayMenu: (PlayerOverlayMenu?) -> Unit,
@@ -183,7 +187,7 @@ class MainPlayerOverlayMenu(
                 onValueChange = { text ->
                     edited_song_title = text
                 },
-                label = { Text(getString("edit_\$x_title_dialog_title").replace("\$x", MediaItemType.SONG.getReadable())) },
+                label = { Text(stringResource(Res.string.`edit_$x_title_dialog_title`).replace("\$x", stringResource(MediaItemType.SONG.getReadable()))) },
                 singleLine = true,
                 trailingIcon = {
                     Icon(Icons.Filled.Close, null, Modifier.clickable { edited_song_title = "" })

@@ -19,7 +19,7 @@ abstract class InternalPlayerServiceCompanion(
     private fun AppContext.getAndroidContext(): Context =
         ctx.applicationContext
 
-    override fun connect(
+    override suspend fun connect(
         context: AppContext,
         launch_arguments: ProgramArguments,
         instance: PlayerService?,

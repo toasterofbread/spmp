@@ -1,19 +1,23 @@
 package com.toasterofbread.spmp.model.settings.category
 
-import dev.toastbits.ytmkt.model.ApiAuthenticationState
-import dev.toastbits.composekit.settings.ui.item.SettingsItem
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.SettingsInterface
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.outlined.PlayCircle
+import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.packSetData
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getYtmAuthItem
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.PrefsPageScreen
-import dev.toastbits.composekit.platform.PlatformPreferences
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getYtmAuthItem
+import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.SettingsInterface
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import io.ktor.http.Headers
 import kotlinx.serialization.json.Json
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.s_cat_youtube_auth
 
 class YoutubeAuthSettings(val context: AppContext): SettingsGroup("YTAUTH", context.getPrefs()) {
     override fun getUnregisteredProperties(): List<PreferencesProperty<*>> =
@@ -26,11 +30,12 @@ class YoutubeAuthSettings(val context: AppContext): SettingsGroup("YTAUTH", cont
         getDescription = { null },
         getDefaultValue = {
             with(ProjectBuildConfig) {
-                if (YTM_CHANNEL_ID != null && YTM_HEADERS != null)
+                val headers: String? = YTM_HEADERS
+                if (YTM_CHANNEL_ID != null && headers != null)
                     ApiAuthenticationState.packSetData(
                         YTM_CHANNEL_ID,
                         Headers.build {
-                            val headers: Map<String, String> = Json.decodeFromString(YTM_HEADERS)
+                            val headers: Map<String, String> = Json.decodeFromString(headers)
                             for ((key, value) in headers) {
                                 append(key, value)
                             }
@@ -41,14 +46,14 @@ class YoutubeAuthSettings(val context: AppContext): SettingsGroup("YTAUTH", cont
         }
     )
 
-    override val page: CategoryPage? =
+    override fun getPage(): CategoryPage? =
         object : CategoryPage(
             this,
-            { getString("s_cat_youtube_auth") }
+            { stringResource(Res.string.s_cat_youtube_auth) }
         ) {
-            override fun openPageOnInterface(context: AppContext, settings_interface: SettingsInterface) {
+            override fun openPage(context: AppContext) {
                 val manual: Boolean = false
-                settings_interface.openPageById(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, manual)
+                SpMp.player_state.app_page_state.Settings.settings_interface.openPageById(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, manual)
             }
 
             override fun getTitleItem(context: AppContext): SettingsItem? =
@@ -57,4 +62,15 @@ class YoutubeAuthSettings(val context: AppContext): SettingsGroup("YTAUTH", cont
                     YTM_AUTH
                 )
         }
+
+    @Composable
+    override fun getTitle(): String = stringResource(Res.string.s_cat_youtube_auth)
+
+    @Composable
+    override fun getDescription(): String = ""
+
+    @Composable
+    override fun getIcon(): ImageVector = Icons.Outlined.PlayCircle
+
+    override fun getConfigurationItems(): List<SettingsItem> = emptyList()
 }

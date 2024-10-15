@@ -10,11 +10,12 @@ import plugin.spmp.getDeps
 
 plugins {
     kotlin("multiplatform")
+    kotlin("plugin.compose")
     id("com.android.application")
     id("org.jetbrains.compose")
 }
 
-val strings_file: File = rootProject.file("shared/src/commonMain/resources/assets/values/strings.xml")
+val strings_file: File = rootProject.file("shared/src/commonMain/composeResources/values/strings.xml")
 var keystore_props_file: File = rootProject.file("androidApp/keystore.properties")
 if (!keystore_props_file.isFile) {
     keystore_props_file = rootProject.file("androidApp/keystore.properties.debug")
@@ -56,7 +57,7 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 implementation(project(":shared"))
-                implementation(deps.get("dev.toastbits.composekit:library-android"))
+                implementation(deps.get("dev.toastbits.composekit:library"))
             }
         }
     }

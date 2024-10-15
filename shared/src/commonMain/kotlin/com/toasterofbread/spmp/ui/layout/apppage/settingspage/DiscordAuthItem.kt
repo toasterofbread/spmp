@@ -1,10 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import LocalPlayerState
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
@@ -12,28 +9,35 @@ import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
-import dev.toastbits.composekit.platform.PlatformPreferences
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.item.LargeToggleSettingsItem
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
-import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.ui.layout.DiscordAccountPreview
-import com.toasterofbread.spmp.ui.layout.DiscordLoginConfirmation
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.layout.DiscordAccountPreview
+import com.toasterofbread.spmp.ui.layout.DiscordLoginConfirmation
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.component.item.LargeToggleSettingsItem
+import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.jsonPrimitive
-import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.JsonPrimitive
+import kotlinx.serialization.json.boolean
+import kotlinx.serialization.json.jsonPrimitive
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.auth_not_signed_in
+import spmp.shared.generated.resources.auth_sign_in
+import spmp.shared.generated.resources.auth_sign_out
+import spmp.shared.generated.resources.s_discord_status_disable
+import spmp.shared.generated.resources.s_discord_status_disabled
+import spmp.shared.generated.resources.s_discord_status_enable
 
 fun getDiscordAuthItem(
     context: AppContext,
@@ -51,11 +55,13 @@ fun getDiscordAuthItem(
 
     return LargeToggleSettingsItem(
         object : PreferencesProperty<Boolean> {
-            override val key: String get() = throw IllegalAccessException()
-            override val name: String = ""
-            override val description: String = ""
+            override val key: String get() = throw IllegalStateException()
+            @Composable
+            override fun getName(): String = ""
+            @Composable
+            override fun getDescription(): String = ""
 
-            override fun get(): Boolean = discord_auth.get().isNotEmpty()
+            override suspend fun get(): Boolean = discord_auth.get().isNotEmpty()
 
             override fun set(value: Boolean, editor: PlatformPreferences.Editor?) {
                 if (!value) {
@@ -72,8 +78,12 @@ fun getDiscordAuthItem(
 
             override fun reset() = discord_auth.reset()
 
-            override fun getDefaultValue(): Boolean =
+            override suspend fun getDefaultValue(): Boolean =
                 discord_auth.getDefaultValue().isNotEmpty()
+
+            @Composable
+            override fun getDefaultValueComposable(): Boolean =
+                discord_auth.getDefaultValueComposable().isNotEmpty()
 
             @Composable
             override fun observe(): MutableState<Boolean> {
@@ -95,29 +105,32 @@ fun getDiscordAuthItem(
             ) {
                 StartIcon?.invoke()
 
-                var account_token: String by mutableStateOf(discord_auth.get())
+                val auth: String by discord_auth.observe()
+                var current_account_token: String by remember { mutableStateOf(auth) }
 
-                val auth: String = discord_auth.get()
-                if (auth.isNotEmpty()) {
-                    account_token = auth
+                LaunchedEffect(auth) {
+                    if (auth.isNotEmpty()) {
+                        current_account_token = auth
+                    }
                 }
-                if (account_token.isNotEmpty()) {
-                    DiscordAccountPreview(account_token)
+
+                if (current_account_token.isNotEmpty()) {
+                    DiscordAccountPreview(current_account_token)
                 }
             }
         },
         disabledContent = {
             StartIcon?.invoke()
         },
-        disabled_text = if (login_required) getString("auth_not_signed_in") else getString("s_discord_status_disabled"),
-        enable_button = if (login_required) getString("auth_sign_in") else getString("s_discord_status_enable"),
-        disable_button = if (login_required) getString("auth_sign_out") else getString("s_discord_status_disable"),
+        disabled_text = if (login_required) Res.string.auth_not_signed_in else Res.string.s_discord_status_disabled,
+        enable_button = if (login_required) Res.string.auth_sign_in else Res.string.s_discord_status_enable,
+        disable_button = if (login_required) Res.string.auth_sign_out else Res.string.s_discord_status_disable,
         warningDialog =
-            if (login_required) {{ dismiss, openPage ->
+            if (login_required) {{ dismiss ->
                 DiscordLoginConfirmation { manual ->
                     dismiss()
                     if (manual != null) {
-                        openPage(PrefsPageScreen.DISCORD_LOGIN.ordinal, manual)
+                        SpMp.player_state.app_page_state.Settings.settings_interface.openPageById(PrefsPageScreen.DISCORD_LOGIN.ordinal, manual)
                     }
                 }
             }}
@@ -152,10 +165,10 @@ fun getDiscordAuthItem(
             }
         },
         prerequisite_value = if (ignore_prerequisite) null else prerequisite
-    ) { target, setEnabled, _, openPage ->
+    ) { target, setEnabled, _ ->
         if (target) {
             if (login_required) {
-                openPage(PrefsPageScreen.DISCORD_LOGIN.ordinal, null)
+                SpMp.player_state.app_page_state.Settings.settings_interface.openPageById(PrefsPageScreen.DISCORD_LOGIN.ordinal, null)
             }
             else {
                 discord_auth.set("0")

@@ -3,8 +3,8 @@ from xmltodict import parse as xmltodict
 
 TODO_COMMENT = "<!--TODO-->"
 
-ASSETS_DIR = "shared/src/commonMain/resources/assets/"
-BASE_STRINGS_XML_PATH = "shared/src/commonMain/resources/assets/values/strings.xml"
+ASSETS_DIR = "shared/src/commonMain/composeResources/"
+BASE_STRINGS_XML_PATH = "shared/src/commonMain/composeResources/values/strings.xml"
 
 UNTRANSLATABLE_MATCH = "translatable=\"false\""
 STRING_START = "    <string name=\""

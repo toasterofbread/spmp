@@ -46,7 +46,7 @@ import com.toasterofbread.spmp.model.mediaitem.layout.Layout
 import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.model.MediaItemGridParams
-import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
+import com.toasterofbread.spmp.model.mediaitem.observeUrl
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.component.WaveBorder
@@ -248,7 +248,7 @@ fun LFFArtistStartPane(
                 if (!long_description) {
                     description?.also { desc ->
                         if (desc.isNotBlank()) {
-                            LinkifyText(player.context, desc, current_accent_colour, Modifier.padding(start = start_padding), style = MaterialTheme.typography.bodyLarge)
+                            LinkifyText(desc, current_accent_colour, Modifier.padding(start = start_padding), style = MaterialTheme.typography.bodyLarge)
                         }
                     }
                 }
@@ -275,7 +275,7 @@ fun LFFArtistStartPane(
                         )
 
                         if (desc.isNotBlank()) {
-                            LinkifyText(player.context, desc, current_accent_colour, Modifier.padding(start = start_padding), style = MaterialTheme.typography.bodyLarge)
+                            LinkifyText(desc, current_accent_colour, Modifier.padding(start = start_padding), style = MaterialTheme.typography.bodyLarge)
                         }
                     }
                 }
@@ -295,10 +295,12 @@ private fun InfoButtons(artist: Artist) {
         ArtistInfoDialog(artist) { show_info = false }
     }
 
+    val artist_url: String = artist.observeUrl()
+
     if (player.context.canShare()) {
         IconButton({
             player.context.shareText(
-                artist.getURL(player.context),
+                artist_url,
                 artist.getActiveTitle(player.database) ?: ""
             )
         }) {
@@ -308,9 +310,7 @@ private fun InfoButtons(artist: Artist) {
 
     if (player.context.canOpenUrl()) {
         IconButton({
-            player.context.openUrl(
-                artist.getURL(player.context)
-            )
+            player.context.openUrl(artist_url)
         }) {
             Icon(Icons.Outlined.OpenInNew, null)
         }

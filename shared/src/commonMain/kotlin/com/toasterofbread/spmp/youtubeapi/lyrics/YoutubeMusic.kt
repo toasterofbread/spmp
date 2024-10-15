@@ -1,24 +1,28 @@
 package com.toasterofbread.spmp.youtubeapi.lyrics
 
+import PlatformIO
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.time.Duration
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.lyrics_source_ytm
 
 internal class YoutubeMusicLyricsSource(source_idx: Int): LyricsSource(source_idx) {
-    override fun getReadable(): String = getString("lyrics_source_ytm")
+    @Composable
+    override fun getReadable(): String = stringResource(Res.string.lyrics_source_ytm)
     override fun getColour(): Color = Color(0xFE0000)
     override fun getUrlOfId(id: String): String? = "https://music.youtube.com/watch?v=$id"
 
     override fun supportsLyricsBySong(): Boolean = true
     override fun supportsLyricsBySearching(): Boolean = false
 
-    override suspend fun getReferenceBySong(song: Song, context: AppContext): Result<LyricsReference?> = withContext(Dispatchers.IO) {
+    override suspend fun getReferenceBySong(song: Song, context: AppContext): Result<LyricsReference?> = withContext(Dispatchers.PlatformIO) {
         val browse_id = song.LyricsBrowseId.get(context.database)
         if (browse_id != null) {
             return@withContext Result.success(referenceOfSource(browse_id))
@@ -41,7 +45,7 @@ internal class YoutubeMusicLyricsSource(source_idx: Int): LyricsSource(source_id
         )
     }
 
-    override suspend fun getLyrics(lyrics_id: String, context: AppContext): Result<SongLyrics> = withContext(Dispatchers.IO) {
+    override suspend fun getLyrics(lyrics_id: String, context: AppContext): Result<SongLyrics> = withContext(Dispatchers.PlatformIO) {
         val result = context.ytapi.SongLyrics.getSongLyrics(lyrics_id)
         return@withContext result.fold(
             { lyrics_text ->

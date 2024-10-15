@@ -1,24 +1,34 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
-import dev.toastbits.composekit.settings.ui.item.DropdownSettingsItem
-import dev.toastbits.composekit.settings.ui.item.MultipleChoiceSettingsItem
-import dev.toastbits.composekit.settings.ui.item.SettingsItem
-import dev.toastbits.composekit.settings.ui.item.ToggleSettingsItem
-import dev.toastbits.composekit.platform.PreferencesProperty
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.model.settings.category.VideoFormatsEndpointType
-import com.toasterofbread.spmp.platform.download.DownloadMethod
+import com.toasterofbread.spmp.model.settings.category.isAvailable
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
+import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.MultipleChoiceSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
+import dev.toastbits.composekit.utils.common.toCustomResource
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.s_option_audio_quality_high
+import spmp.shared.generated.resources.s_option_audio_quality_low
+import spmp.shared.generated.resources.s_option_audio_quality_medium
 
 internal fun getStreamingCategoryItems(context: AppContext): List<SettingsItem> {
+    val available_video_formats: List<VideoFormatsEndpointType> =
+        VideoFormatsEndpointType.entries.filter { it.isAvailable() }
+
     return listOf(
         DropdownSettingsItem(
-            context.settings.streaming.VIDEO_FORMATS_METHOD
-        ) { type ->
-            type.getReadable()
-        },
+            context.settings.streaming.VIDEO_FORMATS_METHOD.getConvertedProperty(
+                fromProperty = { it.ordinal },
+                toProperty = { available_video_formats[it] }
+            ),
+            item_count = available_video_formats.size,
+            getItem = { available_video_formats[it].getReadable() }
+        ),
 
         ToggleSettingsItem(
             context.settings.streaming.AUTO_DOWNLOAD_ENABLED
@@ -27,8 +37,8 @@ internal fun getStreamingCategoryItems(context: AppContext): List<SettingsItem> 
         AppSliderItem(
             context.settings.streaming.AUTO_DOWNLOAD_THRESHOLD,
             range = 1f..10f,
-            min_label = "1",
-            max_label = "10"
+            min_label = "1".toCustomResource(),
+            max_label = "10".toCustomResource()
         ),
 
         ToggleSettingsItem(
@@ -39,9 +49,9 @@ internal fun getStreamingCategoryItems(context: AppContext): List<SettingsItem> 
             context.settings.streaming.STREAM_AUDIO_QUALITY
         ) { quality ->
             when (quality) {
-                SongAudioQuality.HIGH -> getString("s_option_audio_quality_high")
-                SongAudioQuality.MEDIUM -> getString("s_option_audio_quality_medium")
-                SongAudioQuality.LOW -> getString("s_option_audio_quality_low")
+                SongAudioQuality.HIGH -> stringResource(Res.string.s_option_audio_quality_high)
+                SongAudioQuality.MEDIUM -> stringResource(Res.string.s_option_audio_quality_medium)
+                SongAudioQuality.LOW -> stringResource(Res.string.s_option_audio_quality_low)
             }
         },
 
@@ -49,9 +59,9 @@ internal fun getStreamingCategoryItems(context: AppContext): List<SettingsItem> 
             context.settings.streaming.DOWNLOAD_AUDIO_QUALITY
         ) { quality ->
             when (quality) {
-                SongAudioQuality.HIGH -> getString("s_option_audio_quality_high")
-                SongAudioQuality.MEDIUM -> getString("s_option_audio_quality_medium")
-                SongAudioQuality.LOW -> getString("s_option_audio_quality_low")
+                SongAudioQuality.HIGH -> stringResource(Res.string.s_option_audio_quality_high)
+                SongAudioQuality.MEDIUM -> stringResource(Res.string.s_option_audio_quality_medium)
+                SongAudioQuality.LOW -> stringResource(Res.string.s_option_audio_quality_low)
             }
         },
 

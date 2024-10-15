@@ -22,6 +22,8 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.LargeFilterList
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
+import dev.toastbits.composekit.settings.ui.vibrant_accent
+import org.jetbrains.compose.resources.stringResource
 
 @Composable
 internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
@@ -30,10 +32,12 @@ internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
     content_padding: PaddingValues,
     lazy: Boolean = true
 ): Boolean {
-    val size: Dp = when (Platform.current) {
-        Platform.ANDROID -> 100.dp
-        Platform.DESKTOP -> 125.dp
-    }
+    val size: Dp =
+        when (Platform.current) {
+            Platform.ANDROID -> 100.dp
+            Platform.DESKTOP,
+            Platform.WEB -> 125.dp
+        }
 
     val player: PlayerState = LocalPlayerState.current
 
@@ -93,7 +97,7 @@ internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
                 LargeFilterList(
                     filter_chips?.size ?: 0,
                     getItemText = { i ->
-                        filter_chips?.get(i)?.text?.getString(player.context) ?: ""
+                        filter_chips?.get(i)?.getDisplayStringResource()?.let { stringResource(it) } ?: ""
                     },
                     getItemIcon = { i ->
                         filter_chips?.get(i)?.getIcon()

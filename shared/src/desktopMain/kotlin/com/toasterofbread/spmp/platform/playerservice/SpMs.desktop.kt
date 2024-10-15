@@ -5,6 +5,8 @@ import org.jetbrains.skiko.hostOs
 import java.io.File
 import java.lang.System.getenv
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.platform.fromFile
 
 actual fun getSpMsMachineId(context: AppContext): String {
     val id_file: File =
@@ -14,5 +16,5 @@ actual fun getSpMsMachineId(context: AppContext): String {
             else -> throw NotImplementedError(hostOs.name)
         }.resolve("spmp_machine_id.txt")
 
-    return getSpMsMachineIdFromFile(id_file)
+    return getSpMsMachineIdFromFile(PlatformFile.fromFile(id_file, context))
 }

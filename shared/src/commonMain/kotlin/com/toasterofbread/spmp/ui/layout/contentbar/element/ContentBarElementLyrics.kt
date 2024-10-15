@@ -20,12 +20,24 @@ import dev.toastbits.composekit.utils.common.getValue
 import dev.toastbits.composekit.utils.composable.*
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import kotlin.math.sign
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.s_option_lyrics_text_alignment_start
+import spmp.shared.generated.resources.s_option_lyrics_text_alignment_center
+import spmp.shared.generated.resources.s_option_lyrics_text_alignment_end
+import spmp.shared.generated.resources.content_bar_element_lyrics_config_alignment
+import spmp.shared.generated.resources.s_option_lyrics_text_alignment_start
+import spmp.shared.generated.resources.s_option_lyrics_text_alignment_center
+import spmp.shared.generated.resources.s_option_lyrics_text_alignment_end
+import spmp.shared.generated.resources.content_bar_element_lyrics_config_linger
+import spmp.shared.generated.resources.content_bar_element_lyrics_config_show_furigana
+import spmp.shared.generated.resources.content_bar_element_lyrics_config_max_lines
+import spmp.shared.generated.resources.content_bar_element_lyrics_config_preallocate_max_space
 
 @Serializable
 data class ContentBarElementLyrics(
@@ -129,9 +141,9 @@ data class ContentBarElementLyrics(
             selected = alignment.sign + 1,
             itemContent = {
                 Text(
-                    if (it == 0) getString("s_option_lyrics_text_alignment_start")
-                    else if (it == 1) getString("s_option_lyrics_text_alignment_center")
-                    else getString("s_option_lyrics_text_alignment_end")
+                    if (it == 0) stringResource(Res.string.s_option_lyrics_text_alignment_start)
+                    else if (it == 1) stringResource(Res.string.s_option_lyrics_text_alignment_center)
+                    else stringResource(Res.string.s_option_lyrics_text_alignment_end)
                 )
             },
             onSelected = {
@@ -145,16 +157,16 @@ data class ContentBarElementLyrics(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                getString("content_bar_element_lyrics_config_alignment"),
+                stringResource(Res.string.content_bar_element_lyrics_config_alignment),
                 Modifier.align(Alignment.CenterVertically),
                 softWrap = false
             )
 
             Button({ show_alignment_selector = !show_alignment_selector }) {
                 Text(
-                    if (alignment < 0) getString("s_option_lyrics_text_alignment_start")
-                    else if (alignment == 0) getString("s_option_lyrics_text_alignment_center")
-                    else getString("s_option_lyrics_text_alignment_end")
+                    if (alignment < 0) stringResource(Res.string.s_option_lyrics_text_alignment_start)
+                    else if (alignment == 0) stringResource(Res.string.s_option_lyrics_text_alignment_center)
+                    else stringResource(Res.string.s_option_lyrics_text_alignment_end)
                 )
             }
         }
@@ -164,7 +176,7 @@ data class ContentBarElementLyrics(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                getString("content_bar_element_lyrics_config_linger"),
+                stringResource(Res.string.content_bar_element_lyrics_config_linger),
                 Modifier.align(Alignment.CenterVertically),
                 softWrap = false
             )
@@ -180,7 +192,7 @@ data class ContentBarElementLyrics(
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text(
-                getString("content_bar_element_lyrics_config_show_furigana"),
+                stringResource(Res.string.content_bar_element_lyrics_config_show_furigana),
                 Modifier.align(Alignment.CenterVertically),
                 softWrap = false
             )
@@ -196,7 +208,7 @@ data class ContentBarElementLyrics(
         //     horizontalArrangement = Arrangement.SpaceBetween
         // ) {
         //     Text(
-        //         getString("content_bar_element_lyrics_config_max_lines"),
+        //         stringResource(Res.string.content_bar_element_lyrics_config_max_lines),
         //         Modifier.align(Alignment.CenterVertically),
         //         softWrap = false
         //     )
@@ -221,7 +233,7 @@ data class ContentBarElementLyrics(
         //     horizontalArrangement = Arrangement.SpaceBetween
         // ) {
         //     Text(
-        //         getString("content_bar_element_lyrics_config_preallocate_max_space"),
+        //         stringResource(Res.string.content_bar_element_lyrics_config_preallocate_max_space),
         //         Modifier.align(Alignment.CenterVertically),
         //         softWrap = false
         //     )

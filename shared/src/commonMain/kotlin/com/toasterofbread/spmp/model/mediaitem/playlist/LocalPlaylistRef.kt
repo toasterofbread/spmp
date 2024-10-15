@@ -6,6 +6,7 @@ import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.UnsupportedPropertyRememberer
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.composekit.platform.PlatformFile
 
 class LocalPlaylistRef(override val id: String): LocalPlaylist, MediaItemRef() {
     override fun toString(): String = "LocalPlaylistRef($id)"
@@ -17,7 +18,9 @@ class LocalPlaylistRef(override val id: String): LocalPlaylist, MediaItemRef() {
 
     override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean, save: Boolean): Result<LocalPlaylistData> {
         return runCatching {
-            val file = MediaItemLibrary.getLocalPlaylistFile(this, context)
+            val file: PlatformFile =
+                MediaItemLibrary.getLocalPlaylistFile(this, context)
+                ?: throw RuntimeException("Local file not available")
             PlaylistFileConverter.loadFromFile(file, context)!!
         }
     }

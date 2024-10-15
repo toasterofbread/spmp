@@ -13,7 +13,6 @@ dependencies {
     implementation("com.github.kobjects:kxml2:2.4.1")
 }
 
-
 tasks.withType(JavaCompile::class) {
     options.release.set(21)
 }

@@ -4,7 +4,18 @@ import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredWidth
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
@@ -12,8 +23,19 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.ContentCopy
 import androidx.compose.material.icons.outlined.Share
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Switch
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
@@ -23,16 +45,16 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.anggrayudi.storage.extension.count
+import com.toasterofbread.spmp.model.JsonHttpClient
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.resources.stringResourceTODO
+import com.toasterofbread.spmp.ui.component.uploadErrorToPasteEe
+import dev.toastbits.composekit.platform.ApplicationContext
+import dev.toastbits.composekit.platform.composable.theme.ApplicationTheme
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
-import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.resources.getString
-import com.toasterofbread.spmp.resources.getStringTODO
-import com.toasterofbread.spmp.ui.component.uploadErrorToPasteEe
-import com.toasterofbread.spmp.ui.theme.ApplicationTheme
-import com.toasterofbread.spmp.model.JsonHttpClient
 import io.ktor.client.HttpClient
-import io.ktor.client.engine.cio.CIO
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
@@ -43,12 +65,17 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.*
+import spmp.shared.generated.resources.error_message_generic
+import spmp.shared.generated.resources.ic_discord
+import spmp.shared.generated.resources.upload_to_paste_dot_ee
+import spmp.shared.generated.resources.wrap_text_switch_label
 
 private const val LOGCAT_LINES_TO_DISPLAY: Int = 100
 
@@ -64,7 +91,7 @@ class ErrorReportActivity : ComponentActivity() {
         val stack_trace = intent.getStringExtra("stack_trace") ?: "No stack trace"
 
         try {
-            context = AppContext(this, coroutine_scope)
+            context = runBlocking { AppContext.create(this@ErrorReportActivity, coroutine_scope, ApplicationContext(this@ErrorReportActivity)) }
         }
         catch (_: Throwable) {}
 
@@ -93,7 +120,7 @@ class ErrorReportActivity : ComponentActivity() {
 
             Column(Modifier.fillMaxSize(), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
                 SubtleLoadingIndicator()
-                Text(getStringTODO("Retrieving crash logcat..."))
+                Text(stringResourceTODO("Retrieving crash logcat..."))
             }
         }
     }
@@ -136,7 +163,7 @@ class ErrorReportActivity : ComponentActivity() {
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         Column {
-                            Text(getString("error_message_generic"), fontSize = 22.sp)
+                            Text(stringResource(Res.string.error_message_generic), fontSize = 22.sp)
 
                             Row {
                                 IconButton(onClick = { startActivity(share_intent) }) {
@@ -145,7 +172,7 @@ class ErrorReportActivity : ComponentActivity() {
 
                                 IconButton(onClick = {
                                     clipboard.setText(AnnotatedString(error_text))
-                                    context?.sendToast(getStringTODO("Copied stack trace to clipboard"))
+                                    context?.sendToast("Copied stack trace to clipboard // TODO")
                                 }) {
                                     Icon(Icons.Outlined.ContentCopy, null)
                                 }
@@ -168,7 +195,7 @@ class ErrorReportActivity : ComponentActivity() {
                         Spacer(Modifier.requiredWidth(10.dp))
 
                         Column(horizontalAlignment = Alignment.End) {
-                            Text(getString("wrap_text_switch_label"))
+                            Text(stringResource(Res.string.wrap_text_switch_label))
                             Switch(checked = wrap_text, onCheckedChange = { wrap_text = it })
                         }
                     }
@@ -226,7 +253,7 @@ class ErrorReportActivity : ComponentActivity() {
                     },
                     Modifier.align(Alignment.BottomStart).padding(10.dp)
                 ) {
-                    Text(getString("upload_to_paste_dot_ee"))
+                    Text(stringResource(Res.string.upload_to_paste_dot_ee))
                 }
             }
         }

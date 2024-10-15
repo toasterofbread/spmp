@@ -9,9 +9,15 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.appaction.action.playback.*
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.appaction_navigation
+import spmp.shared.generated.resources.appaction_song
+import spmp.shared.generated.resources.appaction_playback
+import spmp.shared.generated.resources.appaction_other
+import spmp.shared.generated.resources.appaction_modify_setting
 
 @Serializable
 sealed interface AppAction {
@@ -38,13 +44,14 @@ sealed interface AppAction {
         OTHER;
         // MODIFY_SETTING; // TODO
 
+        @Composable
         fun getName(): String =
             when (this) {
-                NAVIGATION -> getString("appaction_navigation")
-                SONG -> getString("appaction_song")
-                PLAYBACK -> getString("appaction_playback")
-                OTHER -> getString("appaction_other")
-                // MODIFY_SETTING -> getString("appaction_modify_setting")
+                NAVIGATION -> stringResource(Res.string.appaction_navigation)
+                SONG -> stringResource(Res.string.appaction_song)
+                PLAYBACK -> stringResource(Res.string.appaction_playback)
+                OTHER -> stringResource(Res.string.appaction_other)
+                // MODIFY_SETTING -> stringResource(Res.string.appaction_modify_setting)
             }
 
         fun getIcon(): ImageVector =

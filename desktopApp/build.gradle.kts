@@ -7,6 +7,7 @@ import org.jetbrains.compose.desktop.application.tasks.AbstractJPackageTask
 import plugin.spmp.SpMpDeps
 import plugin.spmp.getDeps
 import plugins.shared.DesktopUtils
+import plugins.shared.DesktopUtils.strings_file
 import java.io.FileInputStream
 import java.nio.file.Files.getPosixFilePermissions
 import java.nio.file.Files.setPosixFilePermissions
@@ -15,17 +16,33 @@ import java.util.Properties
 
 plugins {
     kotlin("multiplatform")
+    kotlin("plugin.compose")
     id("org.jetbrains.compose")
 }
 
-repositories {
-    google()
-    mavenCentral()
-    mavenLocal()
-    maven("https://jitpack.io")
+fun getString(key: String): String {
+    val reader = strings_file.reader()
+    val parser = org.xmlpull.v1.XmlPullParserFactory.newInstance().newPullParser()
+    parser.setInput(reader)
 
-    // https://github.com/KevinnZou/compose-webview-multiplatform
-    maven("https://jogamp.org/deployment/maven")
+    while (parser.eventType != org.xmlpull.v1.XmlPullParser.END_DOCUMENT) {
+        if (parser.eventType != org.xmlpull.v1.XmlPullParser.START_TAG) {
+            parser.next()
+            continue
+        }
+
+        if (parser.getAttributeValue(null, "name") != key) {
+            parser.next()
+            continue
+        }
+
+        val ret = parser.nextText()
+        reader.close()
+        return ret
+    }
+
+    reader.close()
+    throw NoSuchElementException(key)
 }
 
 kotlin {
@@ -38,9 +55,10 @@ kotlin {
         val jvmMain by getting  {
             dependencies {
                 implementation(compose.desktop.currentOs)
+                implementation(compose.components.resources)
                 implementation(project(":shared"))
 
-                implementation(deps.get("dev.toastbits.composekit:library-desktop"))
+                implementation(deps.get("dev.toastbits.composekit:library"))
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.4")
 

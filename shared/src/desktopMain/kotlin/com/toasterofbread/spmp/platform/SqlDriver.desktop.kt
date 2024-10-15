@@ -6,7 +6,7 @@ import com.toasterofbread.spmp.db.Database
 import java.io.File
 
 actual fun AppContext.getSqlDriver(): SqlDriver {
-    val database_file: File = getFilesDir().resolve("spmp_database.db")
+    val database_file: File = getFilesDir()!!.resolve("spmp_database.db").file
     database_file.parentFile.mkdirs()
 
     val database_exists: Boolean = database_file.exists()

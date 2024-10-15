@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.platform.playerservice
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -30,6 +31,7 @@ import androidx.media3.extractor.mp4.FragmentedMp4Extractor
 import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSession
 import androidx.media3.session.SessionCommand
+import androidx.media3.session.SessionError
 import androidx.media3.session.SessionResult
 import androidx.media3.session.SessionToken
 import com.google.common.util.concurrent.Futures
@@ -49,7 +51,9 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
     playlist_auto_progress: Boolean,
     getNotificationPlayer: (ExoPlayer) -> Player = { it },
     onSongReadyToPlay: () -> Unit = {}
-) {
+) = runBlocking {
+    val service: ForegroundPlayerService = this@initialiseSessionAndPlayer
+
     audio_sink = DefaultAudioSink.Builder(context.ctx)
         .setAudioProcessorChain(
             DefaultAudioProcessorChain(
@@ -66,7 +70,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
         RenderersFactory { handler: Handler?, _, audioListener: AudioRendererEventListener?, _, _ ->
             arrayOf(
                 MediaCodecAudioRenderer(
-                    this,
+                    service,
                     MediaCodecSelector.DEFAULT,
                     handler,
                     audioListener,
@@ -76,7 +80,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
         }
 
     player = ExoPlayer.Builder(
-        this,
+        service,
         renderers_factory,
         DefaultMediaSourceFactory(
             createDataSourceFactory(),
@@ -118,7 +122,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
 
     val player_listener: InternalPlayerServicePlayerListener =
         InternalPlayerServicePlayerListener(
-            this,
+            service,
             onSongReadyToPlay = onSongReadyToPlay
         )
     player.addListener(player_listener)
@@ -129,8 +133,8 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
 
     val controller_future: ListenableFuture<MediaController> =
         MediaController.Builder(
-            this,
-            SessionToken(this, ComponentName(this, this::class.java))
+            service,
+            SessionToken(service, ComponentName(service, service::class.java))
         ).buildAsync()
 
     controller_future.addListener(
@@ -138,7 +142,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
         MoreExecutors.directExecutor()
     )
 
-    media_session = MediaSession.Builder(this, getNotificationPlayer(player))
+    media_session = MediaSession.Builder(service, getNotificationPlayer(player))
         .setBitmapLoader(object : BitmapLoader {
             val executor = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor())
 
@@ -179,7 +183,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
         })
         .setSessionActivity(
             PendingIntent.getActivity(
-                this,
+                service,
                 1,
                 packageManager.getLaunchIntentForPackage(packageName),
                 PendingIntent.FLAG_IMMUTABLE
@@ -220,7 +224,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
             ): ListenableFuture<SessionResult> {
                 val command: PlayerServiceCommand? = PlayerServiceCommand.fromSessionCommand(customCommand, args)
                 if (command == null) {
-                    return Futures.immediateFuture(SessionResult(SessionResult.RESULT_ERROR_BAD_VALUE))
+                    return Futures.immediateFuture(SessionResult(SessionError.ERROR_BAD_VALUE))
                 }
 
                 val result: Bundle = onPlayerServiceCommand(command)

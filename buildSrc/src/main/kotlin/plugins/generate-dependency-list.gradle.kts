@@ -1,3 +1,4 @@
+import plugin.spmp.SpMpDeps
 import java.io.File
 import plugin.spmp.getDeps
 
@@ -9,7 +10,7 @@ plugins {
 }
 
 fun Task.generateDependencyList() {
-    val output_directory: File = project.layout.buildDirectory.dir("generated/sources/buildConfig/main/com/toasterofbread/spmp").get().getAsFile()
+    val output_directory: File = project.layout.buildDirectory.dir(SpMpDeps.OUTPUT_DIR).get().asFile
     output_directory.mkdirs()
 
     val dependency_info_file_content: String =
@@ -53,12 +54,6 @@ val generateDependencyList by tasks.registering {
     }
 }
 
-afterEvaluate {
-    tasks.all {
-        when (name) {
-            "compileDebugKotlinAndroid" -> dependsOn(generateDependencyList)
-            "compileReleaseKotlinAndroid" -> dependsOn(generateDependencyList)
-            "compileKotlinDesktop" -> dependsOn(generateDependencyList)
-        }
-    }
+tasks.generateBuildConfig {
+    dependsOn(generateDependencyList)
 }

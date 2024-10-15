@@ -15,10 +15,9 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.platform.composable.BackHandler
-import dev.toastbits.composekit.settings.ui.item.*
+import dev.toastbits.composekit.settings.ui.component.item.*
 import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.platform.*
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.ui.layout.contentbar.InternalContentBar
@@ -32,9 +31,20 @@ import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElementCon
 import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElement
 import com.toasterofbread.spmp.ui.layout.contentbar.CircularReferenceWarning
 import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.vibrant_accent
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
+import org.jetbrains.compose.resources.getString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.content_bar_selection_warn_no_primary
+import spmp.shared.generated.resources.content_bar_selection_warn_no_secondary
+import spmp.shared.generated.resources.action_confirm_action
+import spmp.shared.generated.resources.action_deny_action
+import spmp.shared.generated.resources.content_bar_selection_exit_warning_title
+import spmp.shared.generated.resources.content_bar_selection_exit_warning_text
+import spmp.shared.generated.resources.`content_bar_custom_no_$x`
 
 fun getLayoutSlotEditorSettingsItems(context: AppContext): List<SettingsItem> {
     return listOf(
@@ -46,7 +56,7 @@ fun getLayoutSlotEditorSettingsItems(context: AppContext): List<SettingsItem> {
             ),
             composable = {
                 LayoutSlotEditor(it) {
-                    goBack()
+                    SpMp.player_state.app_page_state.Settings.settings_interface.goBack()
                 }
             }
         )
@@ -78,6 +88,9 @@ fun LayoutSlotEditor(
 
     val configured_slots: Map<String, ContentBarReference?> by slots_property.observe()
 
+    val content_bar_selection_warn_no_primary: String = stringResource(Res.string.content_bar_selection_warn_no_primary)
+    val content_bar_selection_warn_no_secondary: String = stringResource(Res.string.content_bar_selection_warn_no_secondary)
+
     val missing_bar_warnings: List<String> = remember(configured_slots) {
         var has_primary: Boolean = false
         var has_secondary: Boolean = false
@@ -89,7 +102,7 @@ fun LayoutSlotEditor(
                 bar = slot.getDefaultContentBar() ?: continue
             }
             else {
-                bar = configured_slots[slot.getKey()]?.getBar(player.context) ?: continue
+                bar = configured_slots[slot.getKey()]?.getBar(custom_bars) ?: continue
             }
 
             if (bar == InternalContentBar.PRIMARY) {
@@ -130,9 +143,9 @@ fun LayoutSlotEditor(
         }
 
         return@remember listOfNotNull(
-            if (!has_primary) getString("content_bar_selection_warn_no_primary")
+            if (!has_primary) content_bar_selection_warn_no_primary
             else null,
-            if (!has_secondary) getString("content_bar_selection_warn_no_secondary")
+            if (!has_secondary) content_bar_selection_warn_no_secondary
             else null
         )
     }
@@ -154,15 +167,15 @@ fun LayoutSlotEditor(
             onDismissRequest = { show_warning_exit_dialog = false },
             confirmButton = {
                 Button(onClose) {
-                    Text(getString("action_confirm_action"))
+                    Text(stringResource(Res.string.action_confirm_action))
                 }
             },
             dismissButton = {
                 Button({ show_warning_exit_dialog = false }) {
-                    Text(getString("action_deny_action"))
+                    Text(stringResource(Res.string.action_deny_action))
                 }
             },
-            title = { Text(getString("content_bar_selection_exit_warning_title")) },
+            title = { Text(stringResource(Res.string.content_bar_selection_exit_warning_title)) },
             text = {
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     Row(
@@ -180,7 +193,7 @@ fun LayoutSlotEditor(
 
                     Spacer(Modifier.height(10.dp))
 
-                    Text(getString("content_bar_selection_exit_warning_text"))
+                    Text(stringResource(Res.string.content_bar_selection_exit_warning_text))
                 }
             }
         )
@@ -188,7 +201,7 @@ fun LayoutSlotEditor(
 
     val state: ContentBar.BarSelectionState = remember(slots_property, available_slots) {
         object : ContentBar.BarSelectionState {
-            private fun parseSlots(): Map<String, ContentBarReference?> =
+            private suspend fun parseSlots(): Map<String, ContentBarReference?> =
                 slots_property.get()
 
             override val built_in_bars: List<ContentBarReference> get() = (
@@ -205,7 +218,7 @@ fun LayoutSlotEditor(
                     ContentBarReference.ofCustomBar(index)
                 }
 
-            override fun onBarSelected(slot: LayoutSlot, bar: ContentBarReference?) {
+            override suspend fun onBarSelected(slot: LayoutSlot, bar: ContentBarReference?) {
                 val slots: MutableMap<String, ContentBarReference?> = parseSlots().toMutableMap()
                 slots[slot.getKey()] = bar
                 slots_property.set(slots)
@@ -230,10 +243,11 @@ fun LayoutSlotEditor(
                 slot_config = configs
             }
 
-            override fun createCustomBar(): ContentBarReference {
-                val new_bar: CustomContentBar = CustomContentBar(
-                    bar_name = getString("content_bar_custom_no_\$x").replace("\$x", (custom_bars.size + 1).toString())
-                )
+            override suspend fun createCustomBar(): ContentBarReference {
+                val new_bar: CustomContentBar =
+                    CustomContentBar(
+                        bar_name = getString(Res.string.`content_bar_custom_no_$x`).replace("\$x", (custom_bars.size + 1).toString())
+                    )
                 custom_bars += new_bar
 
                 return ContentBarReference.ofCustomBar(custom_bars.size - 1)
@@ -243,7 +257,7 @@ fun LayoutSlotEditor(
                 editing_custom_bar = bar
             }
 
-            override fun deleteCustomBar(bar: ContentBarReference) {
+            override suspend fun deleteCustomBar(bar: ContentBarReference) {
                 check(bar.type == ContentBarReference.Type.CUSTOM)
 
                 val bars: MutableList<CustomContentBar> = custom_bars.toMutableList()
@@ -336,7 +350,7 @@ fun LayoutSlotEditor(
                     }
                 }
 
-                val bar: ContentBar? = remember(editing_bar) { editing_bar.getBar(player.context) }
+                val bar: ContentBar? = remember(editing_bar) { editing_bar.getBar(custom_bars) }
                 editor.Editor(bar as CustomContentBar)
             }
             else {

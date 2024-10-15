@@ -11,6 +11,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.utils.common.*
+import dev.toastbits.composekit.utils.common.launchSingle
 import dev.toastbits.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
@@ -31,6 +32,7 @@ import dev.toastbits.ytmkt.model.external.mediaitem.*
 import dev.toastbits.ytmkt.model.external.ItemLayoutType
 import kotlinx.coroutines.*
 import kotlinx.coroutines.sync.Mutex
+import PlatformIO
 
 internal const val ARTISTS_ROW_DEFAULT_MIN_OCCURRENCES: Int = 2
 internal const val ARTISTS_ROW_MIN_ARTISTS: Int = 4
@@ -147,7 +149,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
         allow_cached: Boolean,
         continue_feed: Boolean,
         filter_chip: Int? = null
-    ): Result<Unit> = withContext(Dispatchers.IO) {
+    ): Result<Unit> = withContext(Dispatchers.PlatformIO) {
         selected_filter_chip = filter_chip
         load_lock.lock()
         load_error = null
@@ -163,7 +165,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                 val cached: SongFeedData? = SongFeedCache.loadFeedLayouts(state.context.database)
                 if (cached?.layouts?.isNotEmpty() == true) {
                     layouts = cached.layouts.map { it.layout }
-                    filter_chips = cached.filter_chips
+                    filter_chips = cached.filter_chips.sortFilterChips()
                     continuation = cached.continuation_token
                     return@withContext Result.success(Unit)
                 }
@@ -186,7 +188,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                     }
                     else {
                         layouts = data_layouts
-                        filter_chips = data.filter_chips
+                        filter_chips = data.filter_chips?.sortFilterChips()
 
                         if (filter_chip == null) {
                             SongFeedCache.saveFeedLayouts(data_layouts, data.filter_chips, data.ctoken, state.context.database)
@@ -206,7 +208,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
                         val cached = SongFeedCache.loadFeedLayouts(state.context.database)
                         if (cached?.layouts?.isNotEmpty() == true) {
                             layouts = cached.layouts.map { it.layout }
-                            filter_chips = cached.filter_chips
+                            filter_chips = cached.filter_chips.sortFilterChips()
                             continuation = cached.continuation_token
                         }
                     }

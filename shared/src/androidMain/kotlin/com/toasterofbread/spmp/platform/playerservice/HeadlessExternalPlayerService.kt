@@ -8,11 +8,13 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.material3.Button
 import androidx.compose.material3.Text
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.platform.AppContext
 import LocalProgramArguments
 import LocalPlayerState
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.loading_splash_button_launch_without_server
 
 internal class HeadlessExternalPlayerService: ExternalPlayerService(plays_audio = false), PlayerService {
     @Composable
@@ -30,7 +32,7 @@ internal class HeadlessExternalPlayerService: ExternalPlayerService(plays_audio 
     @Composable
     override fun LoadScreenExtraContent(item_modifier: Modifier, requestServiceChange: (PlayerServiceCompanion) -> Unit) {
         val launch_arguments: ProgramArguments = LocalProgramArguments.current
-        val internal_service_available: Boolean = remember(launch_arguments) { PlatformInternalPlayerService.Companion.isAvailable(context, launch_arguments) }
+        val internal_service_available: Boolean = remember(launch_arguments) { PlatformInternalPlayerService.isAvailable(context, launch_arguments) }
 
         if (internal_service_available) {
             Button(
@@ -39,16 +41,18 @@ internal class HeadlessExternalPlayerService: ExternalPlayerService(plays_audio 
                 },
                 item_modifier
             ) {
-                Text(getString("loading_splash_button_launch_without_server"))
+                Text(stringResource(Res.string.loading_splash_button_launch_without_server))
             }
         }
     }
 
     companion object: PlayerServiceCompanion {
+        override fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean = true
+
         override fun isServiceRunning(context: AppContext): Boolean = true
         override fun playsAudio(): Boolean = true
 
-        override fun connect(
+        override suspend fun connect(
             context: AppContext,
             launch_arguments: ProgramArguments,
             instance: PlayerService?,

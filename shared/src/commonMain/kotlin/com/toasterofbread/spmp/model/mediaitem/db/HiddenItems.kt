@@ -3,6 +3,8 @@ package com.toasterofbread.spmp.model.mediaitem.db
 import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,25 +25,66 @@ import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.platform.AppContext
-import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 
-fun isMediaItemHidden(item: MediaItem, context: AppContext, hidden_items: List<MediaItem>? = null): Boolean {
+suspend fun isMediaItemHidden(
+    item: MediaItem,
+    context: AppContext,
+    hidden_items: List<MediaItem>? = null
+): Boolean =
+    isMediaItemHiddenImpl(
+        item,
+        context,
+        context.settings.filter.ENABLE.get(),
+        context.settings.filter.APPLY_TO_ARTISTS.get(),
+        context.settings.filter.TITLE_KEYWORDS.get(),
+        hidden_items
+    )
+
+@Composable
+fun observeIsMediaItemHidden(
+    item: MediaItem,
+    hidden_items: List<MediaItem>? = null
+): State<Boolean> {
+    val player: PlayerState = LocalPlayerState.current
+    val filter_enabled: Boolean by player.settings.filter.ENABLE.observe()
+    val filter_apply_to_artists: Boolean by player.settings.filter.APPLY_TO_ARTISTS.observe()
+    val filter_title_keywords: Set<String> by player.settings.filter.TITLE_KEYWORDS.observe()
+
+    return remember { derivedStateOf {
+        isMediaItemHiddenImpl(
+            item,
+            player.context,
+            filter_enabled,
+            filter_apply_to_artists,
+            filter_title_keywords,
+            hidden_items
+        )
+    } }
+}
+
+private fun isMediaItemHiddenImpl(
+    item: MediaItem,
+    context: AppContext,
+    setting_filter_enabled: Boolean,
+    setting_filter_apply_to_artists: Boolean,
+    setting_filter_title_keywords: Set<String>,
+    hidden_items: List<MediaItem>? = null
+): Boolean {
     if (hidden_items?.any { it.id == item.id } ?: item.Hidden.get(context.database)) {
         return true
     }
 
-    if (!context.settings.filter.ENABLE.get()) {
+    if (!setting_filter_enabled) {
         return false
     }
 
     val title = item.getActiveTitle(context.database) ?: return false
 
-    if (item is Artist && !context.settings.filter.APPLY_TO_ARTISTS.get()) {
+    if (item is Artist && !setting_filter_apply_to_artists) {
         return false
     }
 
-    val keywords: Set<String> = context.settings.filter.TITLE_KEYWORDS.get()
-    for (keyword in keywords) {
+    for (keyword in setting_filter_title_keywords) {
         if (title.contains(keyword)) {
             return true
         }

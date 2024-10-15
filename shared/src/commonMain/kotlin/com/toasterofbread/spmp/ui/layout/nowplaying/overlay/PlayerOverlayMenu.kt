@@ -3,8 +3,16 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.overlay
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.ImageBitmap
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics.LyricsPlayerOverlayMenu
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.player_overlay_menu_action_open_main_menu
+import spmp.shared.generated.resources.player_overlay_menu_action_open_theming
+import spmp.shared.generated.resources.player_overlay_menu_action_pick_theme_colour
+import spmp.shared.generated.resources.player_overlay_menu_action_adjust_notification_image_offset
+import spmp.shared.generated.resources.player_overlay_menu_action_open_lyrics
+import spmp.shared.generated.resources.player_overlay_menu_action_open_related
+import spmp.shared.generated.resources.player_overlay_menu_action_download
 
 enum class PlayerOverlayMenuAction {
     OPEN_MAIN_MENU,
@@ -15,15 +23,16 @@ enum class PlayerOverlayMenuAction {
     OPEN_RELATED,
     DOWNLOAD;
 
+    @Composable
     fun getReadable(): String =
         when(this) {
-            OPEN_MAIN_MENU -> getString("player_overlay_menu_action_open_main_menu")
-            OPEN_THEMING -> getString("player_overlay_menu_action_open_theming")
-            PICK_THEME_COLOUR -> getString("player_overlay_menu_action_pick_theme_colour")
-            ADJUST_NOTIFICATION_IMAGE_OFFSET -> getString("player_overlay_menu_action_adjust_notification_image_offset")
-            OPEN_LYRICS -> getString("player_overlay_menu_action_open_lyrics")
-            OPEN_RELATED -> getString("player_overlay_menu_action_open_related")
-            DOWNLOAD -> getString("player_overlay_menu_action_download")
+            OPEN_MAIN_MENU -> stringResource(Res.string.player_overlay_menu_action_open_main_menu)
+            OPEN_THEMING -> stringResource(Res.string.player_overlay_menu_action_open_theming)
+            PICK_THEME_COLOUR -> stringResource(Res.string.player_overlay_menu_action_pick_theme_colour)
+            ADJUST_NOTIFICATION_IMAGE_OFFSET -> stringResource(Res.string.player_overlay_menu_action_adjust_notification_image_offset)
+            OPEN_LYRICS -> stringResource(Res.string.player_overlay_menu_action_open_lyrics)
+            OPEN_RELATED -> stringResource(Res.string.player_overlay_menu_action_open_related)
+            DOWNLOAD -> stringResource(Res.string.player_overlay_menu_action_download)
         }
 
     companion object {

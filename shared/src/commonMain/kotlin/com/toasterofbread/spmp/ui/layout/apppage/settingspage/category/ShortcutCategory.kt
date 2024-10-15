@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
-import dev.toastbits.composekit.settings.ui.item.SettingsItem
-import dev.toastbits.composekit.settings.ui.item.ComposableSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutsEditor
 import com.toasterofbread.spmp.platform.AppContext
 

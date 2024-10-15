@@ -181,17 +181,20 @@ internal fun DesktopLongPressMenu(
 
         if (show_dialog) {
             val fade_tween: FiniteAnimationSpec<Float> = tween(100)
+            val keep_on_background_scroll: Boolean by player.settings.behaviour.DESKTOP_LPM_KEEP_ON_BACKGROUND_SCROLL.observe()
+
             AnimatedVisibility(
                 show_background,
                 Modifier.fillMaxSize().zIndex(-1f),
                 enter = fadeIn(fade_tween),
                 exit = fadeOut(fade_tween)
             ) {
+
                 LongPressMenuBackground(
                     Modifier.fillMaxSize(),
                     enable_input = show_background,
                     onScroll = {
-                        if (player.settings.behaviour.DESKTOP_LPM_KEEP_ON_BACKGROUND_SCROLL.get()) {
+                        if (keep_on_background_scroll) {
                             show_background = false
                             updatePosition()
                         }
@@ -270,7 +273,8 @@ internal fun DesktopLongPressMenu(
                         horizontalAlignment = Alignment.End,
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
-                        val background_colour = player.theme.accent.blendWith(player.theme.background, 0.1f)
+                        val background_colour: Color = player.theme.accent.blendWith(player.theme.background, 0.1f)
+                        val close_on_action: Boolean by player.settings.behaviour.LPM_CLOSE_ON_ACTION.observe()
 
                         LongPressMenuContent(
                             data,
@@ -285,7 +289,7 @@ internal fun DesktopLongPressMenu(
                             { accent_colour },
                             modifier = Modifier.border(2.dp, player.theme.on_background.copy(alpha = 0.1f), shape),
                             onAction = {
-                                if (show_background && player.settings.behaviour.LPM_CLOSE_ON_ACTION.get()) {
+                                if (show_background && close_on_action) {
                                     close()
                                 }
                             }

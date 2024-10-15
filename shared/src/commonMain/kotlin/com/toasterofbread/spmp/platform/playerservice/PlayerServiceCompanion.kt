@@ -1,17 +1,18 @@
 package com.toasterofbread.spmp.platform.playerservice
 
 import ProgramArguments
+import androidx.compose.runtime.Composable
 import com.toasterofbread.spmp.platform.AppContext
 
 interface PlayerServiceCompanion {
-    fun getUnavailabilityReason(context: AppContext, launch_arguments: ProgramArguments): String? = null
-    fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean = getUnavailabilityReason(context, launch_arguments) == null
+    suspend fun getUnavailabilityReason(context: AppContext, launch_arguments: ProgramArguments): String? = null
+    fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean
 
     fun isServiceRunning(context: AppContext): Boolean
     fun isServiceAttached(context: AppContext): Boolean = false
     fun playsAudio(): Boolean = false
 
-    fun connect(
+    suspend fun connect(
         context: AppContext,
         launch_arguments: ProgramArguments,
         instance: PlayerService? = null,

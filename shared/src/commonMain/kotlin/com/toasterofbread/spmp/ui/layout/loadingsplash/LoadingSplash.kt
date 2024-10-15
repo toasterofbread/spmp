@@ -43,9 +43,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import com.toasterofbread.spmp.platform.playerservice.PlayerServiceLoadState
 import com.toasterofbread.spmp.platform.playerservice.PlayerServiceCompanion
-import com.toasterofbread.spmp.resources.getString
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.composekit.settings.ui.on_accent
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.*
 import spmp.shared.generated.resources.*
@@ -56,6 +56,11 @@ import dev.toastbits.composekit.utils.composable.wave.OverlappingWaves
 import dev.toastbits.composekit.utils.composable.wave.getDefaultOverlappingWavesLayers
 import dev.toastbits.composekit.utils.composable.wave.WaveLayer
 import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.error_player_service_not_connected
+import spmp.shared.generated.resources.report_issue_url
+import spmp.shared.generated.resources.report_error
 
 private const val MESSAGE_DISPLAY_DELAY: Long = 1000L
 enum class SplashMode {
@@ -215,20 +220,22 @@ fun LoadingSplash(
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
                                 Icon(Icons.Default.Warning, null, tint = player.theme.on_background)
-                                Text(getString("error_player_service_not_connected"), color = player.theme.on_background)
+                                Text(stringResource(Res.string.error_player_service_not_connected), color = player.theme.on_background)
                             }
 
                             if (player.context.canOpenUrl()) {
+                                val report_issue_url: String = stringResource(Res.string.report_issue_url)
+
                                 Button(
                                     {
-                                        player.context.openUrl(getString("report_issue_url"))
+                                        player.context.openUrl(report_issue_url)
                                     },
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = player.theme.accent,
                                         contentColor = player.theme.on_accent
                                     )
                                 ) {
-                                    Text(getString("report_error"))
+                                    Text(stringResource(Res.string.report_error))
                                 }
                             }
                         }

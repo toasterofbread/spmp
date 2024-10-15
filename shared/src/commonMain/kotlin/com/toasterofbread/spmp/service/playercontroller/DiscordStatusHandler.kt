@@ -3,13 +3,14 @@ package com.toasterofbread.spmp.service.playercontroller
 import dev.toastbits.composekit.utils.common.launchSingle
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.ProjectBuildConfig
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
-import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.settings.category.DiscordSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
-import dev.toastbits.composekit.platform.ReentrantLock
+import dev.toastbits.composekit.utils.common.associateNotNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -33,20 +34,22 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
     private data class StatusInfo(
         val song: Song?,
         val title: String?,
-        val timestamps: Pair<Long, Long>?
-    ) {
-        override fun equals(other: Any?): Boolean {
-            if (other !is StatusInfo) {
-                return false
-            }
+        val timestamps: Timestamps?,
+        val large_image_source: DiscordSettings.ImageSource,
+        val small_image_source: DiscordSettings.ImageSource
+    )
 
-            return (
-                song == other.song
-                && title == other.title
-                && ((timestamps?.first ?: 0) - (other.timestamps?.first ?: 0)).absoluteValue < 500
-                && ((timestamps?.second ?: 0) - (other.timestamps?.second ?: 0)).absoluteValue < 500
-            )
-        }
+    private data class Timestamps(
+        val start: Long,
+        val end: Long
+    ) {
+        fun toPair(): Pair<Long, Long> = start to end
+
+        override fun equals(other: Any?): Boolean = (
+            other is Timestamps
+            && (start - other.start).absoluteValue < 500
+            && (end - other.end).absoluteValue < 500
+        )
     }
 
     private var current_status: StatusInfo? = null
@@ -85,9 +88,7 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
             .replace("\$song", title)
     }
 
-    fun updateDiscordStatus(song: Song?): Unit = with(context.database) {
-        val a = RuntimeException()
-        load_coroutine_scope.launch {
+    fun updateDiscordStatus(song: Song?): Unit = with(context.database) { load_coroutine_scope.launch {
         status_update_lock.withLock {
             val status_song: Song? = song ?: player.getSong()
             val song_title: String? = status_song?.getActiveTitle(context.database)
@@ -97,11 +98,13 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                     status_song,
                     song_title,
                     if (player.is_playing && player.duration_ms > 0L)
-                        Pair(
+                        Timestamps(
                             System.currentTimeMillis() - player.current_position_ms,
                             System.currentTimeMillis() + player.duration_ms - player.current_position_ms
                         )
-                    else null
+                    else null,
+                    context.settings.discord.LARGE_IMAGE_SOURCE.get(),
+                    context.settings.discord.SMALL_IMAGE_SOURCE.get()
                 )
             }
 
@@ -142,16 +145,33 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
     //                SpMp.Log.info("Loading Discord status images for $status_song ($song_title)...")
 
                     try {
-                        val artists: List<ArtistRef>? = status_song.Artists.get(context.database)
+                        val needed_images: Map<DiscordSettings.ImageSource, MediaItem> =
+                            listOf(status_info.large_image_source, status_info.small_image_source)
+                                .filter { it != DiscordSettings.ImageSource.ALT }
+                                .distinct()
+                                .associateNotNull { source ->
+                                    val item: MediaItem =
+                                        when (source) {
+                                            DiscordSettings.ImageSource.SONG -> status_song
+                                            DiscordSettings.ImageSource.ARTIST -> status_song.Artists.get(context.database)?.firstOrNull()
+                                            DiscordSettings.ImageSource.ALBUM -> status_song.Album.get(context.database)
+                                            DiscordSettings.ImageSource.ALT -> null
+                                        } ?: return@associateNotNull null
 
-                        val images: List<String?> = getCustomImages(listOfNotNull(status_song, artists?.firstOrNull()), ThumbnailProvider.Quality.LOW).getOrThrow()
+                                    return@associateNotNull source to item
+                                }
 
-                        large_image = images.getOrNull(0)
-                        small_image = images.getOrNull(1)
+                        val images: List<String?> =
+                            getCustomImages(
+                                needed_images.values.toList(),
+                                ThumbnailProvider.Quality.LOW
+                            ).getOrThrow()
+
+                        large_image = images.getOrNull(needed_images.keys.indexOf(status_info.large_image_source))
+                        small_image = images.getOrNull(needed_images.keys.indexOf(status_info.small_image_source))
                     }
                     catch (e: Throwable) {
                         RuntimeException("WARNING: Failed loading Discord status images for $status_song ($song_title)", e).printStackTrace()
-                        a.printStackTrace()
                         return@apply
                     }
 
@@ -178,7 +198,7 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                         small_text =
                             if (small_image != null) status_song.Artists.get(context.database)?.firstOrNull()?.getActiveTitle(context.database)
                             else null,
-                        timestamps = status_info.timestamps
+                        timestamps = status_info.timestamps?.toPair()
                     )
 
     //                SpMp.Log.info("Discord status set for song $status_song ($song_title)")

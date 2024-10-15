@@ -685,6 +685,15 @@
     <string name="s_key_discord_status_disable_when_offline">Offline</string>
     <string name="s_key_discord_status_disable_when_online">Online</string>
 
+    <string name="s_group_discord_status_images">Images</string>
+    <string name="s_key_discord_status_large_image_source">Primary image</string>
+    <string name="s_key_discord_status_small_image_source">Secondary image</string>
+    <string name="s_option_discord_status_image_source_song">Song</string>
+    <string name="s_option_discord_status_image_source_artist">Artist</string>
+    <string name="s_option_discord_status_image_source_album">Album</string>
+    <string name="s_option_discord_status_image_source_none">None</string>
+    <string name="s_option_discord_status_image_source_application">Application</string>
+
     <string name="s_group_discord_status_content">Status content</string>
     <string name="s_discord_status_text_info">To display information about the current song, use the strings below:&#xA;- $song&#xA;- $artist</string>
 

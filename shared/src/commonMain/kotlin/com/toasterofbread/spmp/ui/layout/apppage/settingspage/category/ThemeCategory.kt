@@ -1,12 +1,10 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import LocalPlayerState
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.setValue
-import isWindowTransparencySupported
 import androidx.compose.ui.Modifier
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.settings.ui.component.item.*
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.doesPlatformSupportVideoPlayback
@@ -14,78 +12,45 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
+import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.platform.PlatformPreferencesListener
+import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.settings.ui.NamedTheme
 import dev.toastbits.composekit.settings.ui.ThemeValues
 import dev.toastbits.composekit.settings.ui.ThemeValuesData
+import dev.toastbits.composekit.settings.ui.component.item.GroupSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.MultipleChoiceSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.ThemeSelectorSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.ThemeSelectorThemeProvider
+import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
 import dev.toastbits.composekit.settings.ui.rememberSystemTheme
+import isWindowTransparencySupported
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.s_theme_editor_title
-import spmp.shared.generated.resources.s_theme_editor_field_name
-import spmp.shared.generated.resources.s_theme_editor_field_background
-import spmp.shared.generated.resources.s_theme_editor_field_on_background
-import spmp.shared.generated.resources.s_theme_editor_field_card
-import spmp.shared.generated.resources.s_theme_editor_field_accent
-import spmp.shared.generated.resources.s_theme_editor_button_preview
-import spmp.shared.generated.resources.theme_title_new
+import spmp.shared.generated.resources.s_group_theming_desktop
 import spmp.shared.generated.resources.s_option_accent_theme
 import spmp.shared.generated.resources.s_option_accent_thumbnail
 import spmp.shared.generated.resources.s_option_np_accent_background
 import spmp.shared.generated.resources.s_option_np_accent_elements
 import spmp.shared.generated.resources.s_option_np_accent_none
-import spmp.shared.generated.resources.s_group_theming_desktop
+import spmp.shared.generated.resources.s_theme_editor_button_preview
+import spmp.shared.generated.resources.s_theme_editor_field_accent
+import spmp.shared.generated.resources.s_theme_editor_field_background
+import spmp.shared.generated.resources.s_theme_editor_field_card
+import spmp.shared.generated.resources.s_theme_editor_field_name
+import spmp.shared.generated.resources.s_theme_editor_field_on_background
+import spmp.shared.generated.resources.s_theme_editor_title
+import spmp.shared.generated.resources.theme_title_new
 import spmp.shared.generated.resources.theme_title_system
 
 internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> =
     listOfNotNull(
-        ThemeSelectorSettingsItem(
-            context.settings.theme.CURRENT_THEME,
-            context.theme.manager,
-            str_editor_title = Res.string.s_theme_editor_title,
-            str_field_name = Res.string.s_theme_editor_field_name,
-            str_field_background = Res.string.s_theme_editor_field_background,
-            str_field_on_background = Res.string.s_theme_editor_field_on_background,
-            str_field_card = Res.string.s_theme_editor_field_card,
-            str_field_accent = Res.string.s_theme_editor_field_accent,
-            str_button_preview = Res.string.s_theme_editor_button_preview,
-            getFooterModifier = {
-                LocalPlayerState.current.nowPlayingTopOffset(Modifier, NowPlayingTopOffsetSection.PAGE_BAR)
-            },
-            getThemeProvider = {
-                val system_theme: NamedTheme = rememberSystemTheme(stringResource(Res.string.theme_title_system), context)
-                var themes: List<NamedTheme> by context.settings.theme.THEMES.observe()
-
-                return@ThemeSelectorSettingsItem object : ThemeSelectorThemeProvider {
-                    override fun getTheme(index: Int): NamedTheme? =
-                        if (index <= 0) system_theme else themes.getOrNull(index - 1)
-
-                    override fun getThemeCount(): Int =
-                        themes.size + 1
-
-                    override fun isThemeEditable(index: Int): Boolean =
-                        themes.indices.contains(index - 1)
-
-                    override suspend fun createTheme(index: Int) {
-                        themes = themes.toMutableList().apply {
-                            add(index - 1, NamedTheme(getString(Res.string.theme_title_new), ThemeValuesData.of(context.theme.manager.current_theme)))
-                        }
-                    }
-
-                    override suspend fun removeTheme(index: Int) {
-                        themes = themes.toMutableList().apply { removeAt(index - 1) }
-                    }
-
-                    override fun onThemeEdited(index: Int, theme: ThemeValues, theme_name: String) {
-                        themes = themes.toMutableList().apply { set(index - 1, NamedTheme(theme_name, ThemeValuesData.of(theme))) }
-                    }
-                }
-            },
-            getFieldModifier = { Modifier.appTextField() },
-            resetThemes = {
-                context.settings.theme.THEMES.reset()
-            }
-        ),
+        createThemeSelectorSettingsItem(context, context.settings.theme.CURRENT_THEME),
 
         MultipleChoiceSettingsItem(
             context.settings.theme.ACCENT_COLOUR_SOURCE
@@ -168,3 +133,88 @@ private fun getWindowTransparencyItems(context: AppContext): List<SettingsItem> 
         range = 0f..1f
     )
 )
+
+fun createThemeSelectorSettingsItem(
+    context: AppContext,
+    state: PreferencesProperty<Int>,
+    getExtraStartThemes: @Composable () -> List<NamedTheme> = { emptyList() }
+) =
+    ThemeSelectorSettingsItem(
+        state,
+        context.theme.manager,
+        str_editor_title = Res.string.s_theme_editor_title,
+        str_field_name = Res.string.s_theme_editor_field_name,
+        str_field_background = Res.string.s_theme_editor_field_background,
+        str_field_on_background = Res.string.s_theme_editor_field_on_background,
+        str_field_card = Res.string.s_theme_editor_field_card,
+        str_field_accent = Res.string.s_theme_editor_field_accent,
+        str_button_preview = Res.string.s_theme_editor_button_preview,
+        getFooterModifier = {
+            LocalPlayerState.current.nowPlayingTopOffset(Modifier, NowPlayingTopOffsetSection.PAGE_BAR)
+        },
+        getThemeProvider = {
+            val extra_start_themes: List<NamedTheme> = getExtraStartThemes()
+            val start_theme_count: Int = 1 + extra_start_themes.size
+            val system_theme: NamedTheme = rememberSystemTheme(stringResource(Res.string.theme_title_system), context)
+
+            val initial_themes: List<NamedTheme> by context.settings.theme.THEMES.observe()
+
+            return@ThemeSelectorSettingsItem object : ThemeSelectorThemeProvider {
+                private var themes: List<NamedTheme> = initial_themes
+
+                private fun setThemes(new_themes: List<NamedTheme>) {
+                    themes = new_themes
+                    context.settings.theme.THEMES.set(new_themes)
+                }
+
+                private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
+                private val prefs_listener: PlatformPreferencesListener = PlatformPreferencesListener { _, key ->
+                    if (key == context.settings.theme.THEMES.key) {
+                        coroutine_scope.launch {
+                            themes = context.settings.theme.THEMES.get()
+                        }
+                    }
+                }
+
+                init {
+                    context.getPrefs().addListener(prefs_listener)
+                }
+
+                override fun getTheme(index: Int): NamedTheme? =
+                    if (index >= 0 && index < extra_start_themes.size) extra_start_themes[index]
+                    else if (index <= extra_start_themes.size) system_theme
+                    else themes.getOrNull(index - start_theme_count)
+
+                override fun getThemeCount(): Int =
+                    themes.size + start_theme_count
+
+                override fun isThemeEditable(index: Int): Boolean =
+                    themes.indices.contains(index - start_theme_count)
+
+                override suspend fun createTheme(index: Int) {
+                    val new_themes: List<NamedTheme> = themes.toMutableList().apply {
+                        add(index - start_theme_count, NamedTheme(getString(Res.string.theme_title_new), ThemeValuesData.of(context.theme.manager.current_theme)))
+                    }
+                    setThemes(new_themes)
+                }
+
+                override suspend fun removeTheme(index: Int) {
+                    val new_themes: List<NamedTheme> = themes.toMutableList().apply {
+                        removeAt(index - start_theme_count)
+                    }
+                    setThemes(new_themes)
+                }
+
+                override fun onThemeEdited(index: Int, theme: ThemeValues, theme_name: String) {
+                    val new_themes: List<NamedTheme> = themes.toMutableList().apply {
+                        set(index - start_theme_count, NamedTheme(theme_name, ThemeValuesData.of(theme)))
+                    }
+                    setThemes(new_themes)
+                }
+            }
+        },
+        getFieldModifier = { Modifier.appTextField() },
+        resetThemes = {
+            context.settings.theme.THEMES.reset()
+        }
+    )

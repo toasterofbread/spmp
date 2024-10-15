@@ -12,9 +12,10 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
+import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.fillMaxSize
@@ -30,11 +31,13 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
+import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
+import dev.toastbits.composekit.settings.ui.NamedTheme
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 
-internal class LyricsLineHorizontalWidget: GlanceAppWidget() {
+internal class LyricsLineHorizontalWidget: SpMpWidget() {
     private val coroutine_scope = CoroutineScope(Job())
 
     override suspend fun provideGlance(context: Context, id: GlanceId) {
@@ -42,6 +45,8 @@ internal class LyricsLineHorizontalWidget: GlanceAppWidget() {
 
         val np_theme_mode: ThemeMode = app_context.settings.theme.NOWPLAYING_THEME_MODE.get()
         val swipe_sensitivity: Float = app_context.settings.player.EXPAND_SWIPE_SENSITIVITY.get()
+
+        val widget_id: Int = GlanceAppWidgetManager(context).getAppWidgetId(id)
 
         provideContent {
             val composable_coroutine_scope = rememberCoroutineScope()
@@ -51,7 +56,7 @@ internal class LyricsLineHorizontalWidget: GlanceAppWidget() {
                 }
 
             CompositionLocalProvider(LocalPlayerState provides state) {
-                Content(app_context)
+                Content(app_context, widget_id)
             }
         }
     }
@@ -61,12 +66,23 @@ internal class LyricsLineHorizontalWidget: GlanceAppWidget() {
     }
 
     @Composable
-    fun Content(app_context: AppContext) {
+    fun Content(app_context: AppContext, id: Int) {
         val song: Song? = SpMp._player_state?.status?.m_song
         val lyrics: SongLyricsLoader.ItemState? = song?.let { SongLyricsLoader.rememberItemState(it, app_context) }
 
-        Column(GlanceModifier.fillMaxSize().background(Color.Black)) {
+        val configuration: SpMpWidgetConfiguration by SpMpWidgetConfiguration.observeForWidget(app_context, widget_type, id)
+
+        val themes: List<NamedTheme> by app_context.settings.theme.THEMES.observe()
+        val app_theme_index: Int by app_context.settings.theme.CURRENT_THEME.observe()
+        val theme: NamedTheme = themes[configuration.base_configuration.theme_index ?: app_theme_index]
+
+        Column(
+            GlanceModifier.fillMaxSize().background(Color.Black)
+        ) {
             val text_style: TextStyle = TextStyle(color = ColorProvider(Color.White))
+
+            Text(configuration.toString(), style = text_style)
+            Text(theme.toString(), style = text_style)
 
             val l = lyrics?.lyrics
             if (l == null) {

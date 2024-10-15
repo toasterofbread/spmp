@@ -20,7 +20,6 @@ import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.platform.PlatformContext
 import dev.toastbits.composekit.platform.PlatformContextImpl
 import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
@@ -67,15 +66,20 @@ class AppThemeManager(
 
     @Composable
     fun Update(): Boolean {
-        val current_theme: Int by context.settings.theme.CURRENT_THEME.observe()
-        val themes: List<NamedTheme> by context.settings.theme.THEMES.observe()
         val system_theme: NamedTheme = rememberSystemTheme(stringResource(Res.string.theme_title_system), context)
         val composable_coroutine_scope: CoroutineScope = rememberCoroutineScope()
         var initialised: Boolean by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
+            val current_theme: Int = context.settings.theme.CURRENT_THEME.get()
+            val themes: List<NamedTheme> = context.settings.theme.THEMES.get()
+
+            val initial_theme: NamedTheme =
+                themes.getOrNull(current_theme - 1)
+                    ?: system_theme
+
             _manager = object : ThemeManager(
-                ThemeValuesData.fromColourScheme(context.getDarkColorScheme()),
+                initial_theme.theme,
                 composable_coroutine_scope
             ) {
                 override fun selectAccentColour(values: ThemeValues, thumbnail_colour: Color?): Color =
@@ -87,6 +91,9 @@ class AppThemeManager(
 
             initialised = true
         }
+
+        val current_theme: Int by context.settings.theme.CURRENT_THEME.observe()
+        val themes: List<NamedTheme> by context.settings.theme.THEMES.observe()
 
         val theme: NamedTheme =
             themes.getOrNull(current_theme - 1)

@@ -5,16 +5,17 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.composekit.platform.MutableStatePreferencesProperty
+import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.settings.ui.component.item.MultipleChoiceSettingsItem
 import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import kotlinx.serialization.Serializable
 
 @Serializable
-internal data class LyricsSpMpWidgetConfiguration(
-    override val theme_index: Int = 0,
+internal data class LyricsWidgetConfiguration(
     val furigana_mode: FuriganaMode = FuriganaMode.APP_DEFAULT
-): SpMpWidgetConfiguration {
+): TypeWidgetConfiguration {
     enum class FuriganaMode {
         APP_DEFAULT,
         SHOW,
@@ -23,24 +24,24 @@ internal data class LyricsSpMpWidgetConfiguration(
 
     @Composable
     override fun ConfigurationItems(
+        context: AppContext,
         item_modifier: Modifier,
-        onChanged: (SpMpWidgetConfiguration) -> Unit
+        onChanged: (TypeWidgetConfiguration) -> Unit
     ) {
-        super.ConfigurationItems(item_modifier, onChanged)
-
-        val current_state: MutableState<FuriganaMode> = remember { mutableStateOf(furigana_mode) }
-
-        OnChangedEffect(current_state.value) {
-            onChanged(this.copy(furigana_mode = current_state.value))
-        }
-
-        MultipleChoiceSettingsItem(
+        val furigana_mode_state: MutableState<FuriganaMode> = remember { mutableStateOf(furigana_mode) }
+        val furigana_mode_property: PreferencesProperty<FuriganaMode> = remember {
             MutableStatePreferencesProperty(
-                current_state,
+                furigana_mode_state,
                 { "" },
                 { null }
             )
-        ) { mode ->
+        }
+
+        OnChangedEffect(furigana_mode_state.value) {
+            onChanged(this.copy(furigana_mode = furigana_mode_state.value))
+        }
+
+        MultipleChoiceSettingsItem(furigana_mode_property) { mode ->
             when (mode) {
                 FuriganaMode.APP_DEFAULT -> "App default"
                 FuriganaMode.SHOW -> "Show"

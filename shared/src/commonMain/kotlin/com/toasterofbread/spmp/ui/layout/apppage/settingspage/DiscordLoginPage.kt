@@ -4,13 +4,17 @@ import LocalPlayerState
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.model.settings.category.DiscordSettings
-import dev.toastbits.composekit.settings.ui.SettingsPage
-import dev.toastbits.composekit.platform.PreferencesProperty
-import com.toasterofbread.spmp.ui.layout.DiscordLogin
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.layout.DiscordLogin
+import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.ui.SettingsPage
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.discord_manual_login_title
@@ -44,10 +48,16 @@ internal fun getDiscordLoginPage(discord_auth: PreferencesProperty<String>, manu
             goBack: () -> Unit,
         ) {
             val player: PlayerState = LocalPlayerState.current
+            var exited: Boolean by remember { mutableStateOf(false) }
 
             DiscordLogin(content_padding, Modifier.fillMaxSize(), manual = manual) { auth_info ->
+                if (exited) {
+                    return@DiscordLogin
+                }
+
                 if (auth_info == null) {
                     goBack()
+                    exited = true
                     return@DiscordLogin
                 }
 
@@ -57,6 +67,7 @@ internal fun getDiscordLoginPage(discord_auth: PreferencesProperty<String>, manu
                             discord_auth.set(it)
                         }
                         goBack()
+                        exited = true
                     },
                     { error ->
                         error.message?.also {

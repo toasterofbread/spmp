@@ -3,14 +3,10 @@ package com.toasterofbread.spmp.platform
 import androidx.compose.runtime.Composable
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import dev.cbyrne.kdiscordipc.KDiscordIPC
 import dev.cbyrne.kdiscordipc.core.event.impl.ReadyEvent
 import dev.cbyrne.kdiscordipc.data.activity.Activity
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 
 actual class DiscordStatus actual constructor(
     private val context: AppContext,
@@ -25,7 +21,6 @@ actual class DiscordStatus actual constructor(
     }
 
     private val ipc: KDiscordIPC = KDiscordIPC(application_id)
-    private val coroutine_scope = CoroutineScope(Job())
     private var connected: Boolean = false
 
     actual fun close() {
@@ -33,7 +28,6 @@ actual class DiscordStatus actual constructor(
             ipc.disconnect()
         }
         catch (_: Throwable) {}
-        coroutine_scope.cancel()
     }
 
     actual enum class Status { ONLINE, IDLE, DO_NOT_DISTURB }
@@ -44,7 +38,7 @@ actual class DiscordStatus actual constructor(
         return true
     }
 
-    actual fun setActivity(
+    actual suspend fun setActivity(
         name: String,
         type: Type,
         status: Status,
@@ -74,24 +68,22 @@ actual class DiscordStatus actual constructor(
             ))
         }
 
-        coroutine_scope.launch {
-            if (connected) {
-                setActivity()
-                return@launch
-            }
+        if (connected) {
+            setActivity()
+            return
+        }
 
-            ipc.on<ReadyEvent> {
-                setActivity()
-            }
+        ipc.on<ReadyEvent> {
+            setActivity()
+        }
 
-            try {
-                connected = true
-                ipc.connect()
-            }
-            catch (e: Throwable) {
-                e.printStackTrace()
-                connected = false
-            }
+        try {
+            connected = true
+            ipc.connect()
+        }
+        catch (e: Throwable) {
+            e.printStackTrace()
+            connected = false
         }
     }
 

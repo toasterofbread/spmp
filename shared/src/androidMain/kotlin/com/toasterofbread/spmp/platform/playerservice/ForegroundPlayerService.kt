@@ -224,20 +224,18 @@ open class ForegroundPlayerService(
         super.onDestroy()
     }
 
-    override fun onUpdateNotification(session: MediaSession, startInForegroundRequired: Boolean) {
-        super.onUpdateNotification(session, true)
-    }
-
     override fun onTaskRemoved(intent: Intent?) {
         super.onTaskRemoved(intent)
 
         if (!player.isPlaying && convertState(player.playbackState) != SpMsPlayerState.BUFFERING) {
             stopSelf()
+            onDestroy()
         }
         else if (intent?.component?.packageName == packageName) {
             coroutine_scope.launch {
                 if (context.settings.behaviour.STOP_PLAYER_ON_APP_CLOSE.get()) {
                     stopSelf()
+                    onDestroy()
                 }
             }
         }

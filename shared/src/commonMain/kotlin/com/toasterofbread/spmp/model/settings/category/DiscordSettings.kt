@@ -4,46 +4,53 @@ package com.toasterofbread.spmp.model.settings.category
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.ProjectBuildConfig
-import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getDiscordCategoryItems
-import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import org.jetbrains.compose.resources.getString
-import org.jetbrains.compose.resources.vectorResource
-import spmp.shared.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
+import org.jetbrains.compose.resources.vectorResource
 import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.s_key_discord_status_disable_when_invisible
+import spmp.shared.generated.resources.discord_status_default_button_project
+import spmp.shared.generated.resources.discord_status_default_button_song
+import spmp.shared.generated.resources.discord_status_default_name
+import spmp.shared.generated.resources.discord_status_default_text_a
+import spmp.shared.generated.resources.discord_status_default_text_b
+import spmp.shared.generated.resources.discord_status_default_text_c
+import spmp.shared.generated.resources.ic_discord
+import spmp.shared.generated.resources.s_cat_desc_discord_status
+import spmp.shared.generated.resources.s_cat_discord_status
+import spmp.shared.generated.resources.s_key_discord_status_button_project_text
+import spmp.shared.generated.resources.s_key_discord_status_button_song_text
 import spmp.shared.generated.resources.s_key_discord_status_disable_when_dnd
 import spmp.shared.generated.resources.s_key_discord_status_disable_when_idle
+import spmp.shared.generated.resources.s_key_discord_status_disable_when_invisible
 import spmp.shared.generated.resources.s_key_discord_status_disable_when_offline
 import spmp.shared.generated.resources.s_key_discord_status_disable_when_online
+import spmp.shared.generated.resources.s_key_discord_status_enable
+import spmp.shared.generated.resources.s_key_discord_status_large_image_source
 import spmp.shared.generated.resources.s_key_discord_status_name
-import spmp.shared.generated.resources.s_sub_discord_status_name
-import spmp.shared.generated.resources.discord_status_default_name
-import spmp.shared.generated.resources.s_key_discord_status_text_a
-import spmp.shared.generated.resources.s_sub_discord_status_text_a
-import spmp.shared.generated.resources.discord_status_default_text_a
-import spmp.shared.generated.resources.s_key_discord_status_text_b
-import spmp.shared.generated.resources.s_sub_discord_status_text_b
-import spmp.shared.generated.resources.discord_status_default_text_b
-import spmp.shared.generated.resources.s_key_discord_status_text_c
-import spmp.shared.generated.resources.s_sub_discord_status_text_c
-import spmp.shared.generated.resources.discord_status_default_text_c
-import spmp.shared.generated.resources.s_key_discord_status_show_button_song
-import spmp.shared.generated.resources.s_sub_discord_status_show_button_song
-import spmp.shared.generated.resources.s_key_discord_status_button_song_text
-import spmp.shared.generated.resources.discord_status_default_button_song
 import spmp.shared.generated.resources.s_key_discord_status_show_button_project
+import spmp.shared.generated.resources.s_key_discord_status_show_button_song
+import spmp.shared.generated.resources.s_key_discord_status_small_image_source
+import spmp.shared.generated.resources.s_key_discord_status_text_a
+import spmp.shared.generated.resources.s_key_discord_status_text_b
+import spmp.shared.generated.resources.s_key_discord_status_text_c
+import spmp.shared.generated.resources.s_sub_discord_status_name
 import spmp.shared.generated.resources.s_sub_discord_status_show_button_project
-import spmp.shared.generated.resources.s_key_discord_status_button_project_text
-import spmp.shared.generated.resources.discord_status_default_button_project
-import spmp.shared.generated.resources.s_cat_discord_status
-import spmp.shared.generated.resources.s_cat_desc_discord_status
+import spmp.shared.generated.resources.s_sub_discord_status_show_button_song
+import spmp.shared.generated.resources.s_sub_discord_status_text_a
+import spmp.shared.generated.resources.s_sub_discord_status_text_b
+import spmp.shared.generated.resources.s_sub_discord_status_text_c
 
 class DiscordSettings(val context: AppContext): SettingsGroup("DISCORD", context.getPrefs()) {
+    val STATUS_ENABLE: PreferencesProperty<Boolean> by property(
+        getName = { stringResource(Res.string.s_key_discord_status_enable) },
+        getDescription = { null },
+        getDefaultValue = { true }
+    )
+
     val STATUS_DISABLE_WHEN_INVISIBLE: PreferencesProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_discord_status_disable_when_invisible) },
         getDescription = { null },
@@ -68,6 +75,17 @@ class DiscordSettings(val context: AppContext): SettingsGroup("DISCORD", context
         getName = { stringResource(Res.string.s_key_discord_status_disable_when_online) },
         getDescription = { null },
         getDefaultValue = { false }
+    )
+
+    val LARGE_IMAGE_SOURCE: PreferencesProperty<ImageSource> by enumProperty(
+        getName = { stringResource(Res.string.s_key_discord_status_large_image_source) },
+        getDescription = { null },
+        getDefaultValue = { ImageSource.SONG }
+    )
+    val SMALL_IMAGE_SOURCE: PreferencesProperty<ImageSource> by enumProperty(
+        getName = { stringResource(Res.string.s_key_discord_status_small_image_source) },
+        getDescription = { null },
+        getDefaultValue = { ImageSource.ARTIST }
     )
 
     val STATUS_NAME: PreferencesProperty<String> by resourceDefaultValueProperty(
@@ -132,5 +150,12 @@ class DiscordSettings(val context: AppContext): SettingsGroup("DISCORD", context
         @Composable
         fun getDiscordIcon(): ImageVector =
             vectorResource(Res.drawable.ic_discord)
+    }
+
+    enum class ImageSource {
+        SONG,
+        ARTIST,
+        ALBUM,
+        ALT
     }
 }

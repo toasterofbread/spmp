@@ -2,10 +2,10 @@ package com.toasterofbread.spmp.ui.layout
 
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxHeight
@@ -34,30 +34,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.composable.LinkifyText
-import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
+import coil3.compose.AsyncImage
+import coil3.compose.AsyncImagePainter
 import com.toasterofbread.spmp.platform.DiscordMeResponse
 import com.toasterofbread.spmp.platform.WebViewLogin
 import com.toasterofbread.spmp.platform.getDiscordAccountInfo
+import com.toasterofbread.spmp.platform.getOrNotify
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import androidx.compose.foundation.layout.PaddingValues
-import com.toasterofbread.spmp.platform.getOrNotify
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.utils.common.thenIf
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.encodeToJsonElement
+import dev.toastbits.composekit.utils.composable.LinkifyText
+import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import kotlinx.serialization.encodeToString
-import io.kamel.image.KamelImage
-import io.kamel.image.asyncPainterResource
+import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_confirm_action
 import spmp.shared.generated.resources.action_deny_action
-import spmp.shared.generated.resources.prompt_confirm_action
 import spmp.shared.generated.resources.action_login_manually
 import spmp.shared.generated.resources.info_discord_login
+import spmp.shared.generated.resources.prompt_confirm_action
 import spmp.shared.generated.resources.warning_discord_login
 
 private const val DISCORD_LOGIN_URL: String = "https://discord.com/login"
@@ -113,6 +110,8 @@ fun DiscordLogin(content_padding: PaddingValues, modifier: Modifier = Modifier, 
             onClosed = { onFinished(null) },
             shouldShowPage = { it.startsWith(DISCORD_LOGIN_URL) },
             user_agent = "Mozilla/5.0 (X11; Linux x86_64; rv:126.0) Gecko/20100101 Firefox/126.0",
+            viewport_width = "1280px",
+            viewport_height = "720px"
         ) { request, openUrl, getCookies ->
             if (request.url.startsWith(DISCORD_API_URL)) {
                 val auth = request.headers["Authorization"]
@@ -132,7 +131,7 @@ fun DiscordLogin(content_padding: PaddingValues, modifier: Modifier = Modifier, 
 }
 
 private val DiscordMeResponseSaver: Saver<DiscordMeResponse?, String> =
-    Saver<DiscordMeResponse?, String>(
+    Saver(
         save = { it: DiscordMeResponse? ->
             it?.let { Json.encodeToString(it) }
         },
@@ -171,7 +170,16 @@ fun DiscordAccountPreview(account_token: String, modifier: Modifier = Modifier) 
                     }
                 }
                 is DiscordMeResponse -> {
-                    KamelImage(asyncPainterResource(state.getAvatarUrl()), null, Modifier.fillMaxHeight().aspectRatio(1f).clip(CircleShape))
+                    AsyncImage(
+                        state.getAvatarUrl(),
+                        null,
+                        Modifier.fillMaxHeight().aspectRatio(1f).clip(CircleShape),
+                        onState = {
+                            if (it is AsyncImagePainter.State.Error) {
+                                RuntimeException(it.result.throwable).printStackTrace()
+                            }
+                        }
+                    )
 
                     Column(Modifier.fillMaxHeight(), verticalArrangement = Arrangement.SpaceEvenly) {
                         Text(state.username ?: "?", overflow = TextOverflow.Ellipsis, maxLines = 1)

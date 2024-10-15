@@ -12,8 +12,14 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.offset
 import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.drawWithContent
@@ -32,8 +38,8 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
+import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
@@ -51,6 +57,8 @@ actual fun WebViewLogin(
     loading_message: String?,
     base_cookies: String,
     user_agent: String?,
+    viewport_width: String?,
+    viewport_height: String?,
     onRequestIntercepted: suspend (WebViewRequest, openUrl: (String) -> Unit, getCookies: suspend (String) -> List<Pair<String, String>>) -> Unit
 ) {
     val player: PlayerState = LocalPlayerState.current
@@ -124,6 +132,14 @@ actual fun WebViewLogin(
 
                 androidWebSettings.apply {
                     isAlgorithmicDarkeningAllowed = true
+                    useWideViewPort = true
+
+                    if (viewport_width != null) {
+                        viewportWidth = viewport_width
+                    }
+                    if (viewport_height != null) {
+                        viewportHeight = viewport_height
+                    }
                 }
             }
 

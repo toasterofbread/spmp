@@ -40,11 +40,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/toasterofbread/spmp-server/blob/6dde651ffc102d604ac7ecd5ac7471b1572fd2e6/LICENSE"
             ),
             "dev.toastbits.composekit" to DependencyInfo(
-<<<<<<< Updated upstream
-                version = "8db406580c",
-=======
-                version = "0.0.3-SNAPSHOT",
->>>>>>> Stashed changes
+                version = "c92d43203c",
                 name = "ComposeKit",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/composekit",
@@ -198,13 +194,13 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license = "MPL-2.0",
                 license_url = "https://github.com/zeromq/jeromq/blob/30b2bf4e1c7332108497db7e4125cd8b15113ea4/LICENSE"
             ),
-            "media.kamel:kamel-image" to DependencyInfo(
-                version = "1.0.0-beta.6",
-                name = "Kamel",
-                author = "Kamel-Media",
-                url = "https://github.com/Kamel-Media/Kamel",
+            "io.coil-kt.coil3" to DependencyInfo(
+                version = "3.0.0-rc01",
+                name = "Coil",
+                author = "Coil",
+                url = "https://github.com/coil-kt/coil",
                 license = "Apache-2.0",
-                license_url = "https://github.com/Kamel-Media/Kamel/blob/6eb1dd7fea43beb2e30d8e5d162b2b5e212e5950/LICENSE"
+                license_url = "https://github.com/coil-kt/coil/blob/f1e16bdf534dcc6413a0d3763bc741c23aafa441/LICENSE.txt"
             ),
             "io.ktor" to DependencyInfo(
                 version = "3.0.0",
@@ -233,7 +229,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 fork_url = "https://github.com/andob/android-awt"
             ),
             "com.github.toasterofbread:KizzyRPC" to DependencyInfo(
-                version = "84e79614b4",
+                version = "e2459918be",
                 name = "KizzyRPC",
                 author = "dead8309",
                 url = "https://github.com/dead8309/KizzyRPC",
@@ -266,7 +262,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/supabase-community/supabase-kt/blob/d198a112ba7e1b11d83cd28eba74fdd863d259c3/LICENSE"
             ),
             "com.github.toasterofbread.compose-webview-multiplatform" to DependencyInfo(
-                version = "21331f37c1",
+                version = "83732f91e4",
                 name = "WebView for JetBrains Compose Multiplatform",
                 author = "KevinnZou",
                 url = "https://github.com/KevinnZou/compose-webview-multiplatform",

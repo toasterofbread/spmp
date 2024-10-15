@@ -26,7 +26,7 @@ expect class DiscordStatus(
 
     suspend fun shouldUpdateStatus(): Boolean
 
-    fun setActivity(
+    suspend fun setActivity(
         name: String,
         type: Type,
         status: Status = Status.ONLINE,

@@ -3,10 +3,10 @@ package com.toasterofbread.spmp.platform
 import android.net.Uri
 import androidx.compose.runtime.Composable
 import com.my.kizzyrpc.KizzyRPC
-import com.my.kizzyrpc.model.Activity
-import com.my.kizzyrpc.model.Assets
-import com.my.kizzyrpc.model.Metadata
-import com.my.kizzyrpc.model.Timestamps
+import com.my.kizzyrpc.entities.presence.Activity
+import com.my.kizzyrpc.entities.presence.Assets
+import com.my.kizzyrpc.entities.presence.Metadata
+import com.my.kizzyrpc.entities.presence.Timestamps
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.JsonHttpClient
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
@@ -53,7 +53,7 @@ actual class DiscordStatus actual constructor(
         if (account_token.isNullOrBlank()) {
             throw IllegalArgumentException("Account token is required")
         }
-        rpc = KizzyRPC(account_token, loggingEnabled = false)
+        rpc = KizzyRPC(account_token)
     }
 
     actual fun close() {
@@ -110,6 +110,19 @@ actual class DiscordStatus actual constructor(
             return true
         }
 
+        val disabled_statuses: List<String> =
+            listOfNotNull(
+                "invisible".takeIf { context.settings.discord.STATUS_DISABLE_WHEN_INVISIBLE.get() },
+                "dnd".takeIf { context.settings.discord.STATUS_DISABLE_WHEN_DND.get() },
+                "idle".takeIf { context.settings.discord.STATUS_DISABLE_WHEN_IDLE.get() },
+                "offline".takeIf { context.settings.discord.STATUS_DISABLE_WHEN_OFFLINE.get() },
+                "online".takeIf { context.settings.discord.STATUS_DISABLE_WHEN_ONLINE.get() }
+            )
+
+        if (disabled_statuses.isEmpty()) {
+            return true
+        }
+
         val response: HttpResponse =
             JsonHttpClient.get("https://discord.com/api/v9/users/@me/settings-proto/1") {
                 headers {
@@ -132,19 +145,10 @@ actual class DiscordStatus actual constructor(
                 return true
             }
 
-        val disable: Boolean = when (settings.getStatus()) {
-            "invisible" -> context.settings.discord.STATUS_DISABLE_WHEN_INVISIBLE.get()
-            "dnd" -> context.settings.discord.STATUS_DISABLE_WHEN_DND.get()
-            "idle" -> context.settings.discord.STATUS_DISABLE_WHEN_IDLE.get()
-            "offline" -> context.settings.discord.STATUS_DISABLE_WHEN_OFFLINE.get()
-            "online" -> context.settings.discord.STATUS_DISABLE_WHEN_ONLINE.get()
-            else -> throw NotImplementedError(settings.getStatus())
-        }
-
-        return !disable
+        return !disabled_statuses.contains(settings.getStatus())
     }
 
-    actual fun setActivity(
+    actual suspend fun setActivity(
         name: String,
         type: Type,
         status: Status,
@@ -157,7 +161,7 @@ actual class DiscordStatus actual constructor(
         small_text: String?,
         buttons: List<Pair<String, String>>?
     ) {
-        rpc.setActivity(
+        rpc.updateRPC(
             Activity(
                 name = name,
                 state = state,

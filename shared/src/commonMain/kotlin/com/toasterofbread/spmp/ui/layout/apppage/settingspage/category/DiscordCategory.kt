@@ -30,7 +30,6 @@ import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.InfoTextSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.TextFieldSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
-import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.utils.composable.LinkifyText
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.DiscordStatus
@@ -40,8 +39,10 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import LocalProgramArguments
 import ProgramArguments
 import LocalPlayerState
+import com.toasterofbread.spmp.model.settings.category.DiscordSettings
 import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
 import dev.toastbits.composekit.settings.ui.ThemeValues
+import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
 import dev.toastbits.composekit.settings.ui.on_accent
 import dev.toastbits.composekit.settings.ui.vibrant_accent
 import org.jetbrains.compose.resources.stringResource
@@ -52,6 +53,12 @@ import spmp.shared.generated.resources.`info_flatpak_discord_$url`
 import spmp.shared.generated.resources.s_group_discord_status_disable_when
 import spmp.shared.generated.resources.s_group_discord_status_content
 import spmp.shared.generated.resources.s_discord_status_text_info
+import spmp.shared.generated.resources.s_group_discord_status_images
+import spmp.shared.generated.resources.s_option_discord_status_image_source_album
+import spmp.shared.generated.resources.s_option_discord_status_image_source_application
+import spmp.shared.generated.resources.s_option_discord_status_image_source_artist
+import spmp.shared.generated.resources.s_option_discord_status_image_source_none
+import spmp.shared.generated.resources.s_option_discord_status_image_source_song
 
 internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
     if (!DiscordStatus.isSupported()) {
@@ -59,7 +66,13 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
     }
 
     return listOf(
-        ComposableSettingsItem { modifier ->
+        ComposableSettingsItem(
+            shouldShowItem = {
+                val accepted: Boolean by context.settings.discord_auth.DISCORD_WARNING_ACCEPTED.observe()
+                val warning_text: String? = DiscordStatus.getWarningText()
+                return@ComposableSettingsItem warning_text != null && !accepted
+            }
+        ) { modifier ->
             val theme: ThemeValues = LocalApplicationTheme.current
             var accepted: Boolean by context.settings.discord_auth.DISCORD_WARNING_ACCEPTED.observe()
             val warning_text: String? = DiscordStatus.getWarningText()
@@ -95,19 +108,28 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
             }
         },
 
-        ComposableSettingsItem {
+        ComposableSettingsItem(
+            shouldShowItem = {
+                LocalProgramArguments.current.is_flatpak
+            }
+        ) { modifier ->
             val program_arguments: ProgramArguments = LocalProgramArguments.current
             val player: PlayerState = LocalPlayerState.current
 
             if (program_arguments.is_flatpak) {
                 LinkifyText(
                     stringResource(Res.string.`info_flatpak_discord_$url`).replace("\$url", stringResource(Res.string.flatpak_documentation_url) + " "),
-                    player.theme.vibrant_accent
+                    player.theme.vibrant_accent,
+                    modifier = modifier
                 )
             }
         },
 
         getDiscordAuthItem(context),
+
+        ToggleSettingsItem(
+            context.settings.discord.STATUS_ENABLE
+        ),
 
         GroupSettingsItem(Res.string.s_group_discord_status_disable_when),
 
@@ -126,6 +148,30 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
         ToggleSettingsItem(
             context.settings.discord.STATUS_DISABLE_WHEN_ONLINE
         ),
+
+        GroupSettingsItem(Res.string.s_group_discord_status_images),
+
+        DropdownSettingsItem(
+            context.settings.discord.LARGE_IMAGE_SOURCE
+        ) {
+            when (it) {
+                DiscordSettings.ImageSource.SONG -> stringResource(Res.string.s_option_discord_status_image_source_song)
+                DiscordSettings.ImageSource.ARTIST -> stringResource(Res.string.s_option_discord_status_image_source_artist)
+                DiscordSettings.ImageSource.ALBUM -> stringResource(Res.string.s_option_discord_status_image_source_album)
+                DiscordSettings.ImageSource.ALT -> stringResource(Res.string.s_option_discord_status_image_source_application)
+            }
+        },
+
+        DropdownSettingsItem(
+            context.settings.discord.SMALL_IMAGE_SOURCE
+        ) {
+            when (it) {
+                DiscordSettings.ImageSource.SONG -> stringResource(Res.string.s_option_discord_status_image_source_song)
+                DiscordSettings.ImageSource.ARTIST -> stringResource(Res.string.s_option_discord_status_image_source_artist)
+                DiscordSettings.ImageSource.ALBUM -> stringResource(Res.string.s_option_discord_status_image_source_album)
+                DiscordSettings.ImageSource.ALT -> stringResource(Res.string.s_option_discord_status_image_source_none)
+            }
+        },
 
         GroupSettingsItem(Res.string.s_group_discord_status_content),
 

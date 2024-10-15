@@ -255,7 +255,7 @@ private fun removeHiraganaReadings(term: SongLyrics.Term.Text): List<SongLyrics.
         terms.add(
             SongLyrics.Term.Text(
                 kanji_section,
-                reading.substring(reading_head)
+                reading.substring(reading_head.coerceIn(reading.indices))
             )
         )
     }

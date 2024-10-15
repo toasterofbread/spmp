@@ -6,7 +6,7 @@ import app.cash.sqldelight.db.SqlDriver
 
 // SqlDelight migration is buggy and inconsistent between platforms, this hopefully won't be
 object Migration {
-    private val DATABASE_VERSION: Int = 6
+    private val DATABASE_VERSION: Int = 8
 
     fun updateDriverIfNeeded(driver: SqlDriver) {
         val driver_version: Int = driver.getVersion()
@@ -20,6 +20,8 @@ object Migration {
                     2, 3 -> {}
                     4 -> driver.migrateToVersion5()
                     5 -> driver.migrateToVersion6()
+                    6 -> driver.migrateToVersion7()
+                    7 -> driver.migrateToVersion8()
                     else -> throw NotImplementedError(version.toString())
                 }
             }
@@ -35,12 +37,19 @@ object Migration {
         fun execute(driver: SqlDriver, table: String)
     }
 
-    class AddColumn(val column: String, val type: String): Operation {
+    data class AddColumn(val column: String, val type: String): Operation {
         override fun execute(driver: SqlDriver, table: String) {
             if (!driver.doesColumnExist(table, column)) {
                 val query: String = """ALTER TABLE $table ADD COLUMN $column $type"""
                 driver.execute(null, query, 0, null).value
             }
+        }
+    }
+
+    data class CreateTable(val schema: String): Operation {
+        override fun execute(driver: SqlDriver, table: String) {
+            val query: String = """CREATE TABLE IF NOT EXISTS $table ($schema)"""
+            driver.execute(null, query, 0, null).value
         }
     }
 

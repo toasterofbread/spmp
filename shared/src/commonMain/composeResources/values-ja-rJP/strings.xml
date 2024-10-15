@@ -633,12 +633,23 @@
     <string name="s_key_search_search_for_non_music">通常検索を使用</string>
     <string name="s_sub_search_search_for_non_music">music.youtube.com で検索を行うかわりに、www.youtube.com を使用する</string>
 
+    <string name="s_key_discord_status_enable">Discord に再生ステータスを表示</string>
+
     <string name="s_group_discord_status_disable_when">ステータス変更を無効にする状態</string>
     <string name="s_key_discord_status_disable_when_invisible">オンライン状態が隠されている時</string>
     <string name="s_key_discord_status_disable_when_dnd">取り込み中</string>
     <string name="s_key_discord_status_disable_when_idle">退席中</string>
     <string name="s_key_discord_status_disable_when_offline">オフライン</string>
     <string name="s_key_discord_status_disable_when_online">オンライン</string>
+
+    <string name="s_group_discord_status_images">画像</string>
+    <string name="s_key_discord_status_large_image_source">プライマリー画像</string>
+    <string name="s_key_discord_status_small_image_source">セカンダリー画像</string>
+    <string name="s_option_discord_status_image_source_song">曲</string>
+    <string name="s_option_discord_status_image_source_artist">アーティスト</string>
+    <string name="s_option_discord_status_image_source_album">アルバム</string>
+    <string name="s_option_discord_status_image_source_none">なし</string>
+    <string name="s_option_discord_status_image_source_application">アプリケーション</string>
 
     <string name="s_group_discord_status_content">ステータスの内容</string>
     <string name="s_discord_status_text_info">以下の文字列をテキスト内で使うことで、再生中の曲の情報を表示できます:&#xA;- $song (曲)&#xA;- $artist (アーティスト)</string>

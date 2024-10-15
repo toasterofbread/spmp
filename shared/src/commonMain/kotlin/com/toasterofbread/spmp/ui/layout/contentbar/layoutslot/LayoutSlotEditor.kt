@@ -53,13 +53,12 @@ fun getLayoutSlotEditorSettingsItems(context: AppContext): List<SettingsItem> {
                 context.settings.layout.PORTRAIT_SLOTS,
                 context.settings.layout.LANDSCAPE_SLOTS,
                 context.settings.layout.CUSTOM_BARS
-            ),
-            composable = {
-                LayoutSlotEditor(it) {
-                    SpMp.player_state.app_page_state.Settings.settings_interface.goBack()
-                }
+            )
+        ) { modifier ->
+            LayoutSlotEditor(modifier) {
+                SpMp.player_state.app_page_state.Settings.settings_interface.goBack()
             }
-        )
+        }
     )
 }
 

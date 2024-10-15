@@ -23,6 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
 import dev.toastbits.composekit.platform.ApplicationContext
 import dev.toastbits.composekit.utils.modifier.background
@@ -77,7 +78,9 @@ class WidgetConfigurationActivity: ComponentActivity() {
         setContent {
             context.theme.Update()
 
-            SpMp.Theme(context) {
+            val ui_language: String by context.observeUiLanguage()
+
+            SpMp.Theme(context, ui_language) {
                 Scaffold { inner_padding ->
                     Content(
                         context,

@@ -341,7 +341,6 @@
     <string name="s_sub_interface_lang">Langue utilisée pour le texte de l'interface</string>
     <string name="s_key_data_lang">Langue des données</string>
     <string name="s_sub_data_lang">Langue utilisée pour les titres de chansons et d'artistes, etc.</string>
-    <string name="language_change_restart_notice">Un redémarrage de l'application est nécessaire pour que les modifications de langue et de police prennent effet</string>
     <string name="s_group_long_press_menu">Menu appui long</string>
     <string name="s_key_lpm_close_on_action">Fermer le menu lors d'une action</string>
     <string name="s_key_lpm_increment_play_after">Incrémenter l'action "Lire après" lors de son utilisation</string>

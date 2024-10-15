@@ -238,7 +238,6 @@
     <string name="s_sub_interface_lang">Język tekstu używany w interfejsie</string>
     <string name="s_key_data_lang">Język danych</string>
     <string name="s_sub_data_lang">Język używany w tytułach utworów i wykonawców, itp.</string>
-    <string name="language_change_restart_notice">Aby zmiana języka zaczęła obowiązywać, wymagane jest ponowne uruchomienie aplikacji</string>
     <string name="s_group_long_press_menu">Długie naciśnięcie menu</string>
     <string name="s_key_lpm_close_on_action">Zamknij menu po wykonaniu akcji</string>
     <string name="s_key_lpm_increment_play_after">Zwiększenie akcji 'Odtwórz po' przy użyciu</string>

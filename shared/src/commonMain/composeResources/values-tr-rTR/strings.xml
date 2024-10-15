@@ -359,7 +359,6 @@
     <string name="s_sub_interface_lang">Arayüz metni için kullanılan dil</string>
     <string name="s_key_data_lang">Veri dili</string>
     <string name="s_sub_data_lang">Şarkı ve sanatçı başlıkları için kullanılan dil, vb.</string>
-    <string name="language_change_restart_notice">Dil ve yazı tipi değişikliklerinin etkili olması için uygulamanın yeniden başlatılması gerekiyor</string>
     <string name="s_group_long_press_menu">Uzun basma menüsü</string>
     <string name="s_key_lpm_close_on_action">Eylemde menüyü kapat</string>
     <string name="s_key_lpm_increment_play_after">'Sonra oynat' eylemini kullanıldığında artır</string>

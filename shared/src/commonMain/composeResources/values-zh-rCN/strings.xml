@@ -328,7 +328,6 @@
     <string name="s_sub_interface_lang">用于界面文本的语言</string>
     <string name="s_key_data_lang">数据语言</string>
     <string name="s_sub_data_lang">用于歌曲和艺术家标题等的语言</string>
-    <string name="language_change_restart_notice">需要重启应用程序才能使语言和字体更改生效</string>
     <string name="s_group_long_press_menu">长按菜单</string>
     <string name="s_key_lpm_close_on_action">操作后关闭菜单</string>
     <string name="s_key_lpm_increment_play_after">使用后增加 '播放后' 操作</string>

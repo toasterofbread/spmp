@@ -401,7 +401,6 @@
     <string name="s_sub_interface_lang">Language used for interface text</string>
     <string name="s_key_data_lang">Data language</string>
     <string name="s_sub_data_lang">Language used for song and artist titles, etc.</string>
-    <string name="language_change_restart_notice">An app restart is required for language and font changes to take effect</string>
     <string name="s_group_long_press_menu">Long-press menu</string>
     <string name="s_key_lpm_close_on_action">Close menu on action</string>
     <string name="s_key_lpm_increment_play_after">Increment 'Play after' action on use</string>

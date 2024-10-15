@@ -343,7 +343,6 @@
     <string name="s_sub_interface_lang">Язык текста интерфейса</string>
     <string name="s_key_data_lang">Язык данных</string>
     <string name="s_sub_data_lang">Язык названий песен, исполнителей и т. д.</string>
-    <string name="language_change_restart_notice">Требуется перезапуск приложения, чтобы изменения языка и шрифта вступили в силу</string>
     <string name="s_group_long_press_menu">Меню долгого нажатия</string>
     <string name="s_key_lpm_close_on_action">Закрыть меню при активности</string>
     <string name="s_key_lpm_increment_play_after">Увеличить «Играть после» при использовании.</string>

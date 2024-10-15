@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
+import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -16,37 +17,30 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.text.capitalize
-import androidx.compose.ui.text.intl.Locale
+import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.observeUiLanguage
+import com.toasterofbread.spmp.resources.Language
+import com.toasterofbread.spmp.resources.getStringTODO
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.FileSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem.Companion.ItemTitleText
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
-import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
-import dev.toastbits.composekit.utils.composable.WidthShrinkText
-import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
-import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import LocalPlayerState
-import androidx.compose.material3.MaterialTheme
-import com.toasterofbread.spmp.platform.observeUiLanguage
-import com.toasterofbread.spmp.resources.Language
-import com.toasterofbread.spmp.resources.getAvailableLanguages
-import com.toasterofbread.spmp.resources.getStringTODO
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.system_language
-import spmp.shared.generated.resources.language_change_restart_notice
 import spmp.shared.generated.resources.action_confirm_action
 import spmp.shared.generated.resources.action_deny_action
+import spmp.shared.generated.resources.system_language
 
 // TODO Allow setting to any language
 fun getLanguageDropdownItem(
@@ -100,13 +94,6 @@ fun getLanguageDropdownItem(
 
 internal fun getSystemCategoryItems(context: AppContext, available_languages: List<Language>): List<SettingsItem> =
     listOf(
-        ComposableSettingsItem {
-            Text(
-                stringResource(Res.string.language_change_restart_notice),
-                style = MaterialTheme.typography.labelMedium
-            )
-        },
-
         getLanguageDropdownItem(
             context.settings.system.LANG_UI,
             available_languages

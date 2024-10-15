@@ -22,6 +22,7 @@ import org.jetbrains.compose.resources.getString
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.discord_status_unknown_artist_replacement
 import spmp.shared.generated.resources.project_url
+import kotlin.math.absoluteValue
 
 internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context: AppContext) {
     private var discord_rpc: DiscordStatus? = null
@@ -33,7 +34,20 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
         val song: Song?,
         val title: String?,
         val timestamps: Pair<Long, Long>?
-    )
+    ) {
+        override fun equals(other: Any?): Boolean {
+            if (other !is StatusInfo) {
+                return false
+            }
+
+            return (
+                song == other.song
+                && title == other.title
+                && ((timestamps?.first ?: 0) - (other.timestamps?.first ?: 0)).absoluteValue < 500
+                && ((timestamps?.second ?: 0) - (other.timestamps?.second ?: 0)).absoluteValue < 500
+            )
+        }
+    }
 
     private var current_status: StatusInfo? = null
 
@@ -71,7 +85,9 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
             .replace("\$song", title)
     }
 
-    fun updateDiscordStatus(song: Song?): Unit = with(context.database) { load_coroutine_scope.launch {
+    fun updateDiscordStatus(song: Song?): Unit = with(context.database) {
+        val a = RuntimeException()
+        load_coroutine_scope.launch {
         status_update_lock.withLock {
             val status_song: Song? = song ?: player.getSong()
             val song_title: String? = status_song?.getActiveTitle(context.database)
@@ -134,7 +150,8 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                         small_image = images.getOrNull(1)
                     }
                     catch (e: Throwable) {
-                        println("WARNING: Failed loading Discord status images for $status_song ($song_title)\n${e.stackTraceToString()}")
+                        RuntimeException("WARNING: Failed loading Discord status images for $status_song ($song_title)", e).printStackTrace()
+                        a.printStackTrace()
                         return@apply
                     }
 

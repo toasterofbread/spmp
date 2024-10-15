@@ -29,23 +29,14 @@ import com.toasterofbread.spmp.model.mediaitem.song.STATIC_LYRICS_SYNC_OFFSET
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-<<<<<<< Updated upstream:shared/src/androidMain/kotlin/com/toasterofbread/spmp/widget/SpMpMainWidget.kt
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
-import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
-import dev.toastbits.composekit.utils.common.getValue
-=======
->>>>>>> Stashed changes:shared/src/androidMain/kotlin/com/toasterofbread/spmp/widget/LyricsLineHorizontalWidget.kt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 
-<<<<<<< Updated upstream:shared/src/androidMain/kotlin/com/toasterofbread/spmp/widget/SpMpMainWidget.kt
-class SpMpMainWidget: GlanceAppWidget() {
+internal class LyricsLineHorizontalWidget: GlanceAppWidget() {
     private val coroutine_scope = CoroutineScope(Job())
 
-=======
-internal class LyricsLineHorizontalWidget: GlanceAppWidget() {
->>>>>>> Stashed changes:shared/src/androidMain/kotlin/com/toasterofbread/spmp/widget/LyricsLineHorizontalWidget.kt
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val app_context: AppContext = AppContext.create(context, coroutine_scope)
 

@@ -1,0 +1,8 @@
+CREATE TABLE AndroidWidget (
+    id INTEGER NOT NULL PRIMARY KEY,
+    configuration TEXT NOT NULL
+);
+
+configurationById: SELECT configuration FROM AndroidWidget WHERE id == :id;
+
+insertOrReplace: INSERT OR REPLACE INTO AndroidWidget(id, configuration) VALUES(:id, :configuration);

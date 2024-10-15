@@ -107,7 +107,7 @@
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/main_widget_info" />
+                android:resource="@xml/lyrics_line_horizontal_widget_provider" />
         </receiver>
 
     </application>

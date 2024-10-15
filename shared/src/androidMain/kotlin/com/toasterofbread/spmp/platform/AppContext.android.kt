@@ -4,24 +4,15 @@ import android.app.Activity
 import android.content.Context
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
-import dev.toastbits.composekit.platform.ApplicationContext
-import dev.toastbits.composekit.platform.PlatformContext
-import dev.toastbits.composekit.platform.PlatformPreferences
-import dev.toastbits.composekit.platform.PlatformPreferencesImpl
-<<<<<<< Updated upstream
-import com.toasterofbread.spmp.db.Database
-import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.YTApiSettings
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.resources.Language
 import com.toasterofbread.spmp.resources.getAvailableLanguages
 import com.toasterofbread.spmp.youtubeapi.YtmApiType
+import dev.toastbits.composekit.platform.ApplicationContext
 import dev.toastbits.composekit.platform.PlatformContextImpl
-import dev.toastbits.composekit.settings.ui.ThemeManager
-=======
-import dev.toastbits.composekit.settings.ui.Theme
->>>>>>> Stashed changes
+import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PlatformPreferencesImpl
 import dev.toastbits.ytmkt.model.YtmApi
 import kotlinx.coroutines.CoroutineScope
 

@@ -37,7 +37,7 @@ import com.toasterofbread.spmp.platform.visualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
 import com.toasterofbread.spmp.shared.R
-import com.toasterofbread.spmp.widget.SpMpMainWidget
+import com.toasterofbread.spmp.widget.SpMpWidgetType
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
@@ -186,15 +186,19 @@ open class ForegroundPlayerService(
         SongLikedStatusListener.addListener(song_liked_listener)
 
         coroutine_scope.launch {
-            val widget: GlanceAppWidget = SpMpMainWidget()
+            context.application_context
+
+            val widgets: List<GlanceAppWidget> = SpMpWidgetType.entries.map { it.widgetClass.java.getDeclaredConstructor().newInstance() }
             val manager: GlanceAppWidgetManager = GlanceAppWidgetManager(this@ForegroundPlayerService)
 
             while (true) {
-                val ids: List<GlanceId> = manager.getGlanceIds(widget::class.java)
-                for (id in ids) {
-                    widget.update(this@ForegroundPlayerService, id)
+                for (widget in widgets) {
+                    val ids: List<GlanceId> = manager.getGlanceIds(widget::class.java)
+                    for (id in ids) {
+                        widget.update(this@ForegroundPlayerService, id)
+                    }
                 }
-                println("UPDATE WIDGETS $ids ${SpMp.test++}")
+                println("UPDATE WIDGETS ${SpMp.test++}")
 
                 delay(1000)
             }

@@ -1,6 +1,9 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 
+<<<<<<< Updated upstream
 import androidx.compose.foundation.layout.ColumnScope
+=======
+>>>>>>> Stashed changes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.AlertDialog
@@ -42,6 +45,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.RootView
 import com.toasterofbread.spmp.ui.layout.loadingsplash.LoadingSplash
 import com.toasterofbread.spmp.ui.layout.loadingsplash.SplashMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
+<<<<<<< Updated upstream
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import dev.toastbits.composekit.navigation.Screen
 import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
@@ -51,18 +55,27 @@ import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.composable.theme.ApplicationTheme
 import dev.toastbits.composekit.settings.ui.SettingsScreen
+=======
+import com.toasterofbread.spmp.ui.theme.ApplicationTheme
+import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.platform.PlatformPreferences
+>>>>>>> Stashed changes
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.spms.socketapi.shared.SPMS_API_VERSION
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.FontResource
+<<<<<<< Updated upstream
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_close
 import spmp.shared.generated.resources.app_name
 import spmp.shared.generated.resources.warning_spms_api_version_mismatch
 import spmp.shared.generated.resources.`warning_spms_api_version_mismatch_$theirs_$ours`
+=======
+import java.util.logging.Logger
+>>>>>>> Stashed changes
 
 val LocalPlayerState: ProvidableCompositionLocal<PlayerState> = staticCompositionLocalOf { SpMp.player_state }
 val LocalProgramArguments: ProvidableCompositionLocal<ProgramArguments> = staticCompositionLocalOf { ProgramArguments() }
@@ -195,7 +208,7 @@ object SpMp {
             }
         }
 
-        context.theme.ApplicationTheme(context, getFontFamily(context) ?: FontFamily.Default) {
+        Theme(context) {
             LaunchedEffect(open_uri) {
                 if (open_uri != null) {
                     player_state.openUri(open_uri).onFailure {
@@ -312,6 +325,7 @@ object SpMp {
         context.sendToast(exception.toString())
     }
 
+<<<<<<< Updated upstream
     @Composable
     private fun getFontFamily(context: AppContext): FontFamily? {
         val ui_language: String by context.observeUiLanguage()
@@ -324,6 +338,28 @@ object SpMp {
     val app_name: String
         @Composable
         get() = stringResource(Res.string.app_name)
+=======
+    val app_name: String get() = getStringOrNull("app_name") ?: "SpMp"
+>>>>>>> Stashed changes
 }
 
 expect fun isWindowTransparencySupported(): Boolean
+
+@Composable
+fun SpMp.Theme(context: AppContext, content: @Composable () -> Unit) {
+    context.theme.ApplicationTheme(
+        context,
+        getFontFamily(context) ?: FontFamily.Default,
+        content
+    )
+}
+
+@Composable
+private fun getFontFamily(context: AppContext): FontFamily? {
+    val font_mode: FontMode by context.settings.system.FONT.observe()
+    val font_resource: FontResource? = remember(font_mode) {
+        font_mode.getFontResource(context.getUiLanguage())
+    }
+
+    return font_resource?.let { FontFamily(Font(it)) }
+}

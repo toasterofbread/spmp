@@ -93,7 +93,14 @@
             </intent-filter>
         </receiver>
 
-        <receiver android:name=".widget.SpMpWidgetReceiver"
+        <activity android:name=".widget.WidgetConfigurationActivity"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE"/>
+            </intent-filter>
+        </activity>
+
+        <receiver android:name=".widget.LyricsLineHorizontalWidgetReceiver"
             android:exported="true">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />

@@ -6,14 +6,9 @@ import SpMp
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.State
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
@@ -33,18 +28,24 @@ import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.STATIC_LYRICS_SYNC_OFFSET
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+<<<<<<< Updated upstream:shared/src/androidMain/kotlin/com/toasterofbread/spmp/widget/SpMpMainWidget.kt
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import dev.toastbits.composekit.utils.common.getValue
+=======
+>>>>>>> Stashed changes:shared/src/androidMain/kotlin/com/toasterofbread/spmp/widget/LyricsLineHorizontalWidget.kt
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 
+<<<<<<< Updated upstream:shared/src/androidMain/kotlin/com/toasterofbread/spmp/widget/SpMpMainWidget.kt
 class SpMpMainWidget: GlanceAppWidget() {
     private val coroutine_scope = CoroutineScope(Job())
 
+=======
+internal class LyricsLineHorizontalWidget: GlanceAppWidget() {
+>>>>>>> Stashed changes:shared/src/androidMain/kotlin/com/toasterofbread/spmp/widget/LyricsLineHorizontalWidget.kt
     override suspend fun provideGlance(context: Context, id: GlanceId) {
         val app_context: AppContext = AppContext.create(context, coroutine_scope)
 

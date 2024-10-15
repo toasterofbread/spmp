@@ -1,3 +1,4 @@
 <appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
-    android:initialLayout="@layout/glance_default_loading_layout">
+    android:initialLayout="@layout/glance_default_loading_layout"
+    android:configure="com.toasterofbread.spmp.widget.WidgetConfigurationActivity">
 </appwidget-provider>

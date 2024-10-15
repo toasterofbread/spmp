@@ -59,7 +59,13 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
     }
 
     return listOf(
-        ComposableSettingsItem { modifier ->
+        ComposableSettingsItem(
+            shouldShowItem = {
+                val accepted: Boolean by context.settings.discord_auth.DISCORD_WARNING_ACCEPTED.observe()
+                val warning_text: String? = DiscordStatus.getWarningText()
+                return@ComposableSettingsItem warning_text != null && !accepted
+            }
+        ) { modifier ->
             val theme: ThemeValues = LocalApplicationTheme.current
             var accepted: Boolean by context.settings.discord_auth.DISCORD_WARNING_ACCEPTED.observe()
             val warning_text: String? = DiscordStatus.getWarningText()
@@ -95,14 +101,19 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
             }
         },
 
-        ComposableSettingsItem {
+        ComposableSettingsItem(
+            shouldShowItem = {
+                LocalProgramArguments.current.is_flatpak
+            }
+        ) { modifier ->
             val program_arguments: ProgramArguments = LocalProgramArguments.current
             val player: PlayerState = LocalPlayerState.current
 
             if (program_arguments.is_flatpak) {
                 LinkifyText(
                     stringResource(Res.string.`info_flatpak_discord_$url`).replace("\$url", stringResource(Res.string.flatpak_documentation_url) + " "),
-                    player.theme.vibrant_accent
+                    player.theme.vibrant_accent,
+                    modifier = modifier
                 )
             }
         },

@@ -11,9 +11,8 @@ internal fun getShortcutCategoryItems(context: AppContext): List<SettingsItem> =
             listOf(
                 context.settings.shortcut.CONFIGURED_SHORTCUTS,
                 context.settings.shortcut.NAVIGATE_SONG_WITH_NUMBERS
-            ),
-            composable = {
-                ShortcutsEditor(it)
-            }
-        )
+            )
+        ) { modifier ->
+            ShortcutsEditor(modifier)
+        }
     )

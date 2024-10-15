@@ -111,10 +111,12 @@ kotlin {
                 implementation(deps.get("io.github.pdvrieze.xmlutil:serialization", "io.github.pdvrieze.xmlutil"))
                 implementation(deps.get("com.github.teamnewpipe:NewPipeExtractor"))
                 implementation(deps.get("org.zeromq:jeromq"))
-                implementation(deps.get("media.kamel:kamel-image"))
+                implementation(deps.get("io.coil-kt.coil3:coil-compose"))
+                implementation(deps.get("io.coil-kt.coil3:coil-network-ktor3"))
                 implementation(deps.get("io.ktor:ktor-client-core", "io.ktor"))
                 implementation(deps.get("io.ktor:ktor-client-content-negotiation", "io.ktor"))
                 implementation(deps.get("io.ktor:ktor-serialization-kotlinx-json", "io.ktor"))
+
             }
         }
 

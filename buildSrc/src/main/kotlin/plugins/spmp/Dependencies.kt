@@ -194,13 +194,13 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license = "MPL-2.0",
                 license_url = "https://github.com/zeromq/jeromq/blob/30b2bf4e1c7332108497db7e4125cd8b15113ea4/LICENSE"
             ),
-            "media.kamel:kamel-image" to DependencyInfo(
-                version = "1.0.0-beta.6",
-                name = "Kamel",
-                author = "Kamel-Media",
-                url = "https://github.com/Kamel-Media/Kamel",
+            "io.coil-kt.coil3" to DependencyInfo(
+                version = "3.0.0-rc01",
+                name = "Coil",
+                author = "Coil",
+                url = "https://github.com/coil-kt/coil",
                 license = "Apache-2.0",
-                license_url = "https://github.com/Kamel-Media/Kamel/blob/6eb1dd7fea43beb2e30d8e5d162b2b5e212e5950/LICENSE"
+                license_url = "https://github.com/coil-kt/coil/blob/f1e16bdf534dcc6413a0d3763bc741c23aafa441/LICENSE.txt"
             ),
             "io.ktor" to DependencyInfo(
                 version = "3.0.0",

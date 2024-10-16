@@ -47,6 +47,7 @@ import androidx.compose.ui.unit.sp
 import com.anggrayudi.storage.extension.count
 import com.toasterofbread.spmp.model.JsonHttpClient
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.AppThemeManager
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.resources.stringResourceTODO
 import com.toasterofbread.spmp.ui.component.uploadErrorToPasteEe
@@ -87,8 +88,8 @@ class ErrorReportActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        val message = intent.getStringExtra("message") ?: "No message"
-        val stack_trace = intent.getStringExtra("stack_trace") ?: "No stack trace"
+        val message: String = intent.getStringExtra("message") ?: "No message"
+        val stack_trace: String = intent.getStringExtra("stack_trace") ?: "No stack trace"
 
         try {
             context = runBlocking { AppContext.create(this@ErrorReportActivity, coroutine_scope, ApplicationContext(this@ErrorReportActivity)) }
@@ -107,8 +108,9 @@ class ErrorReportActivity : ComponentActivity() {
                     "---STACK TRACE---\n$stack_trace\n---LOGCAT (last $logcat_lines lines)---\n$logcat"
                 }
 
-                if (context != null) {
-                    context!!.theme.ApplicationTheme(context!!) {
+                val theme: AppThemeManager? = context?.theme
+                if (theme?.Update() == true) {
+                    theme.ApplicationTheme(context!!) {
                         ErrorDisplay(message, stack_trace, logcat, error_text)
                     }
                 }

@@ -39,6 +39,7 @@ import com.toasterofbread.spmp.service.playercontroller.RadioHandler
 import com.toasterofbread.spmp.shared.R
 import com.toasterofbread.spmp.widget.SpMpWidgetType
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
+import dev.toastbits.composekit.utils.common.launchSingle
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
@@ -61,6 +62,7 @@ open class ForegroundPlayerService(
     private var stopped: Boolean = false
 
     internal val coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
+    internal val colorblendr_coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
     internal lateinit var player: ExoPlayer
     internal lateinit var media_session: MediaSession
     internal lateinit var audio_sink: AudioSink
@@ -90,6 +92,9 @@ open class ForegroundPlayerService(
                     coroutine_scope.launch {
                         audio_sink.skipSilenceEnabled = context.settings.streaming.ENABLE_SILENCE_SKIPPING.get()
                     }
+                }
+                context.settings.experimental.ANDROID_MONET_COLOUR_ENABLE.key -> {
+                    startColorblendrHeartbeatLoop()
                 }
             }
         }
@@ -185,6 +190,8 @@ open class ForegroundPlayerService(
 
         SongLikedStatusListener.addListener(song_liked_listener)
 
+        startColorblendrHeartbeatLoop()
+
         coroutine_scope.launch {
             context.application_context
 
@@ -243,6 +250,21 @@ open class ForegroundPlayerService(
 
     private fun checkAlive() {
         check(!stopped) { "Attempting to use a stopped foreground player service $this. This is a bug." }
+    }
+
+    private fun startColorblendrHeartbeatLoop() = colorblendr_coroutine_scope.launchSingle {
+        if (!context.settings.experimental.ANDROID_MONET_COLOUR_ENABLE.get()) {
+            return@launchSingle
+        }
+
+        val action: String = "com.drdisagree.colorblendr.SERVICE_HEARTBEAT"
+        val intent: Intent = Intent(action).setPackage("com.drdisagree.colorblendr")
+        intent.putExtra("owner", "com.toasterofbread.spmp")
+
+        while (true) {
+            delay(3000)
+            startService(intent)
+        }
     }
 
     internal fun onPlayerServiceCommand(command: PlayerServiceCommand): Bundle {

@@ -22,6 +22,7 @@ class Settings(context: AppContext, available_languages: List<Language>) {
     val misc: MiscSettings = MiscSettings(context)
     val deps: DependencySettings = DependencySettings(context)
     val search: SearchSettings = SearchSettings(context)
+    val experimental: ExperimentalSettings = ExperimentalSettings(context)
     val ytapi: YTApiSettings = YTApiSettings(context.getPrefs())
 
     val all_groups: Map<String, SettingsGroup> =
@@ -43,6 +44,7 @@ class Settings(context: AppContext, available_languages: List<Language>) {
             platform,
             misc,
             deps,
+            experimental,
 
             ytapi
         ).associateBy { it.group_key }

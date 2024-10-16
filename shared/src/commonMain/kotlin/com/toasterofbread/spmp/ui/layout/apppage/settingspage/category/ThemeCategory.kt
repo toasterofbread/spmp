@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.platform.AppContext

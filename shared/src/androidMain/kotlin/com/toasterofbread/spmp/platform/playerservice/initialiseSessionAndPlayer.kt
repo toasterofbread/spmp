@@ -170,7 +170,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
 
                                     context.onNotificationThumbnailLoaded(formatted_image)
 
-                                    return@fold formatted_image
+                                    return@runBlocking formatted_image
                                 },
                                 { error ->
                                     if (fail_error == null) {

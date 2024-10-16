@@ -10,6 +10,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Density
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.appwidget.GlanceAppWidgetManager
@@ -28,6 +31,7 @@ import com.toasterofbread.spmp.model.lyrics.SongLyrics.Term
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.STATIC_LYRICS_SYNC_OFFSET
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.settings.category.observeCurrentTheme
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
@@ -55,7 +59,11 @@ internal class LyricsLineHorizontalWidget: SpMpWidget() {
                     PlayerState(app_context, ProgramArguments(), composable_coroutine_scope, np_theme_mode, swipe_sensitivity)
                 }
 
-            CompositionLocalProvider(LocalPlayerState provides state) {
+            CompositionLocalProvider(
+                LocalPlayerState provides state,
+                LocalConfiguration provides context.resources.configuration,
+                LocalDensity provides Density(context.resources.displayMetrics.density)
+            ) {
                 Content(app_context, widget_id)
             }
         }
@@ -72,9 +80,7 @@ internal class LyricsLineHorizontalWidget: SpMpWidget() {
 
         val configuration: SpMpWidgetConfiguration by SpMpWidgetConfiguration.observeForWidget(app_context, widget_type, id)
 
-        val themes: List<NamedTheme> by app_context.settings.theme.THEMES.observe()
-        val app_theme_index: Int by app_context.settings.theme.CURRENT_THEME.observe()
-        val theme: NamedTheme = themes[configuration.base_configuration.theme_index ?: app_theme_index]
+        val theme: NamedTheme by observeCurrentTheme(configuration.base_configuration.theme_index)
 
         Column(
             GlanceModifier.fillMaxSize().background(Color.Black)

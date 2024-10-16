@@ -95,13 +95,7 @@ class WidgetConfigurationActivity: ComponentActivity() {
         val navigator: Navigator = ExtendableNavigator(configuration_screen)
 
         setContent {
-            if (!context.theme.Update()) {
-                return@setContent
-            }
-
-            val ui_language: String by context.observeUiLanguage()
             val composable_coroutine_scope: CoroutineScope = rememberCoroutineScope()
-
             val np_theme_mode: ThemeMode by context.settings.theme.NOWPLAYING_THEME_MODE.observe()
             val swipe_sensitivity: Float by context.settings.player.EXPAND_SWIPE_SENSITIVITY.observe()
 
@@ -118,6 +112,12 @@ class WidgetConfigurationActivity: ComponentActivity() {
                     return@providesComputed dummy_player_state!!
                 }
             ) {
+                if (!context.theme.Update()) {
+                    return@CompositionLocalProvider
+                }
+
+                val ui_language: String by context.observeUiLanguage()
+
                 SpMp.Theme(context, ui_language) {
                     Scaffold { inner_padding ->
                         navigator.CurrentScreen(

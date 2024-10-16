@@ -26,7 +26,7 @@ data class BaseWidgetConfiguration(
 
     @Composable
     private fun ThemeIndexItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfiguration) -> Unit) {
-        val theme_index_state: MutableState<Int> = remember { mutableIntStateOf(theme_index ?: 0) }
+        val theme_index_state: MutableState<Int> = remember { mutableIntStateOf(theme_index?.plus(1) ?: 0) }
         val theme_index_property: PreferencesProperty<Int> = remember {
             MutableStatePreferencesProperty(
                 theme_index_state,
@@ -53,7 +53,7 @@ data class BaseWidgetConfiguration(
                     theme_index =
                         theme_index_state.value.let { index ->
                             if (index <= 0) null
-                            else index
+                            else index - 1
                         }
                 )
             )

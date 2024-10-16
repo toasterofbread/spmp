@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.widget
 import LocalPlayerState
 import ProgramArguments
 import SpMp
+import Theme
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -11,14 +12,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
+import androidx.glance.Button
+import androidx.glance.ButtonDefaults
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
-import androidx.glance.layout.Alignment
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import androidx.glance.layout.fillMaxSize
@@ -33,10 +36,14 @@ import com.toasterofbread.spmp.model.mediaitem.song.STATIC_LYRICS_SYNC_OFFSET
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.observeCurrentTheme
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
+import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfiguration
+import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfiguration.ContentColour.*
 import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
 import dev.toastbits.composekit.settings.ui.NamedTheme
+import dev.toastbits.composekit.settings.ui.on_accent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -82,35 +89,57 @@ internal class LyricsLineHorizontalWidget: SpMpWidget() {
 
         val theme: NamedTheme by observeCurrentTheme(configuration.base_configuration.theme_index)
 
+        val on_background_colour: Color =
+            when (configuration.base_configuration.content_colour) {
+                THEME -> theme.theme.on_background
+                LIGHT -> Color.White
+                DARK -> Color.Black
+            }
+
         Column(
-            GlanceModifier.fillMaxSize().background(Color.Black)
+            GlanceModifier
+                .fillMaxSize()
+                .background(
+                    theme.theme.background
+                        .copy(alpha = configuration.base_configuration.background_opacity)
+                )
         ) {
-            val text_style: TextStyle = TextStyle(color = ColorProvider(Color.White))
+            val text_style: TextStyle = TextStyle(color = ColorProvider(on_background_colour))
 
             Text(configuration.toString(), style = text_style)
+
             Text(theme.toString(), style = text_style)
 
-            val l = lyrics?.lyrics
-            if (l == null) {
-                Text("No lyrics", style = text_style)
-            }
-            else {
-                SpMp.test
+            Button(
+                "Test",
+                onClick = {},
+                colors = ButtonDefaults.buttonColors(
+                    backgroundColor = ColorProvider(theme.theme.accent),
+                    contentColor = ColorProvider(theme.theme.on_accent)
+                )
+            )
 
-                Column {
-                    val lyrics_sync_offset: Long = song.getImmediateLyricsSyncOffset(app_context.database, false)
-                    val position: Long? = SpMp._player_state?.status?.getPositionMs()?.plus(lyrics_sync_offset)
-                    println("SYNC OFFSET $lyrics_sync_offset")
-
-                    Text(position.toString(), style = text_style)
-                    Text(l.reference.toString(), style = text_style)
-
-                    val currentLine: List<Term>? = l.getCurrentLine(position ?: 0L, true)
-                    if (currentLine != null) {
-                        LyricsLine(currentLine, text_style)
-                    }
-                }
-            }
+//                val l = lyrics?.lyrics
+//                if (l == null) {
+//                    Text("No lyrics", style = text_style)
+//                }
+//                else {
+//                    SpMp.test
+//
+//                    Column {
+//                        val lyrics_sync_offset: Long = song.getImmediateLyricsSyncOffset(app_context.database, false)
+//                        val position: Long? = SpMp._player_state?.status?.getPositionMs()?.plus(lyrics_sync_offset)
+//                        println("SYNC OFFSET $lyrics_sync_offset")
+//
+//                        Text(position.toString(), style = text_style)
+//                        Text(l.reference.toString(), style = text_style)
+//
+//                        val currentLine: List<Term>? = l.getCurrentLine(position ?: 0L, true)
+//                        if (currentLine != null) {
+//                            LyricsLine(currentLine, text_style)
+//                        }
+//                    }
+//                }
         }
     }
 }

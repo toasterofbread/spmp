@@ -54,6 +54,7 @@ import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.composable.theme.ApplicationTheme
 import dev.toastbits.composekit.settings.ui.SettingsScreen
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.spms.socketapi.shared.SPMS_API_VERSION
 import kotlinx.coroutines.CoroutineScope
@@ -336,8 +337,13 @@ object SpMp {
 expect fun isWindowTransparencySupported(): Boolean
 
 @Composable
-fun SpMp.Theme(context: AppContext, ui_language: String, content: @Composable () -> Unit) {
-    context.theme.ApplicationTheme(
+fun SpMp.Theme(
+    context: AppContext,
+    ui_language: String,
+    theme: ThemeValues = context.theme,
+    content: @Composable () -> Unit
+) {
+    theme.ApplicationTheme(
         context,
         getFontFamily(context, ui_language) ?: FontFamily.Default,
         content

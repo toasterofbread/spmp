@@ -718,6 +718,12 @@
     <string name="s_key_configured_shortcuts">Configured shortcuts</string>
     <string name="s_key_navigate_song_with_numbers">Seek through song with number keys</string>
 
+    <string name="s_key_android_monet_colour_enable">Set Android monet colour</string>
+    <string name="s_sub_android_monet_colour_enable">Android system monet colour will be set using the current song thumbnail colour</string>
+    <string name="info_android_monet">Requires a specific fork of ColorBlendr to be installed and running. Make sure to read the setup instructions on the fork page.</string>
+    <string name="button_android_monet_open_dependency">Go to fork page</string>
+    <string name="url_android_monet_open_dependency" translatable="false">https://github.com/toasterofbread/ColorBlendr</string>
+
     <string name="s_cat_general">General</string>
     <string name="s_cat_desc_general">Language, font, and other options</string>
 
@@ -769,6 +775,9 @@
     <string name="s_cat_search">Search</string>
     <string name="s_cat_youtube_auth">YouTube credentials</string>
     <string name="s_cat_discord_auth">Discord credentials</string>
+
+    <string name="s_cat_experimental">Experimental</string>
+    <string name="s_cat_desc_experimental">Unfinished, janky, or unreliable options</string>
 
     <string name="song_related_page_no_content">Song has no related content</string>
     <string name="song_related_page_empty_row">No content</string>

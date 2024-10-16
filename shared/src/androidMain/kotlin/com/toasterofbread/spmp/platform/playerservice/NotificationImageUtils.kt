@@ -41,7 +41,7 @@ internal fun formatMediaNotificationImage(
     image: Bitmap,
     song: Song,
     context: AppContext,
-    ): Bitmap {
+): Bitmap {
     val offset: IntOffset = song.NotificationImageOffset.get(context.database) ?: IntOffset.Zero
     val square: Boolean = offset.x == 0 && offset.y == 0
     val dimensions: IntSize = getMediaNotificationImageSize(image, square = square)

@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.platform.playerservice
 import android.app.PendingIntent
 import android.content.ComponentName
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
@@ -162,11 +161,16 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
                             val load_result = MediaItemThumbnailLoader.loadItemThumbnail(song, quality, context)
                             load_result.fold(
                                 { image ->
-                                    return@runBlocking formatMediaNotificationImage(
-                                        image.asAndroidBitmap(),
-                                        song,
-                                        context
-                                    )
+                                    val formatted_image: Bitmap =
+                                        formatMediaNotificationImage(
+                                            image.asAndroidBitmap(),
+                                            song,
+                                            context
+                                        )
+
+                                    context.onNotificationThumbnailLoaded(formatted_image)
+
+                                    return@fold formatted_image
                                 },
                                 { error ->
                                     if (fail_error == null) {

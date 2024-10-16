@@ -20,7 +20,6 @@ import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.platform.PlatformContext
 import dev.toastbits.composekit.platform.PlatformContextImpl
 import dev.toastbits.composekit.platform.PlatformPreferences
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
@@ -103,7 +102,7 @@ class AppThemeManager(
         return initialised
     }
 
-    fun onCurrentThumbnnailColourChanged(thumbnail_colour: Color?) {
+    fun onCurrentThumbnailColourChanged(thumbnail_colour: Color?) {
         manager.onThumbnailColourChanged(thumbnail_colour)
     }
 

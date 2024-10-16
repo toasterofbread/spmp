@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.widget.configuration
 
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
+import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.model.mediaitem.db.observeAsState
 import com.toasterofbread.spmp.platform.AppContext
@@ -26,7 +26,7 @@ data class SpMpWidgetConfiguration(
 
     companion object {
         @Composable
-        fun observeForWidget(context: AppContext, type: SpMpWidgetType, id: Int) =
+        fun observeForWidget(context: AppContext, type: SpMpWidgetType, id: Int): State<SpMpWidgetConfiguration> =
             context.database.androidWidgetQueries.configurationById(id.toLong())
                 .observeAsState(
                     id,

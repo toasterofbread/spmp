@@ -24,6 +24,7 @@ import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
+import com.toasterofbread.spmp.widget.configuration.TypeWidgetConfiguration
 import com.toasterofbread.spmp.widget.configuration.ui.screen.WidgetConfigurationScreen
 import dev.toastbits.composekit.navigation.Screen
 import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator

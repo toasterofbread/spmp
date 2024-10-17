@@ -5,6 +5,7 @@ import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.updateAll
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.Tracks
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -30,10 +31,21 @@ class WidgetUpdateListener(private val context: Context): Player.Listener {
 
         song_transition_widget_update_coroutine_scope.launch {
             for ((type, widget) in widgets) {
-                if (type.updateType != WidgetUpdateType.OnSongTransition) {
-                    continue
+                if (type.updateTypes.contains(WidgetUpdateType.OnSongTransition)) {
+                    type.incrementUpdateVariable()
+                    widget.updateAll(context)
                 }
-                widget.updateAll(context)
+            }
+        }
+    }
+
+    override fun onTracksChanged(tracks: Tracks) {
+        song_transition_widget_update_coroutine_scope.launch {
+            for ((type, widget) in widgets) {
+                if (type.updateTypes.contains(WidgetUpdateType.OnQueueChange)) {
+                    type.incrementUpdateVariable()
+                    widget.updateAll(context)
+                }
             }
         }
     }
@@ -45,15 +57,13 @@ class WidgetUpdateListener(private val context: Context): Player.Listener {
         }
 
         for ((type, widget) in widgets) {
-            if (type.updateType !is WidgetUpdateType.DuringPlayback) {
-                continue
-            }
-
-            during_playback_widget_update_coroutine_scope.launch {
-                while (true) {
-                    delay(type.updateType.period)
-                    type.incrementUpdateVariable()
-                    widget.updateAll(context)
+            for (update in type.updateTypes.filterIsInstance<WidgetUpdateType.DuringPlayback>()) {
+                during_playback_widget_update_coroutine_scope.launch {
+                    while (true) {
+                        delay(update.period)
+                        type.incrementUpdateVariable()
+                        widget.updateAll(context)
+                    }
                 }
             }
         }

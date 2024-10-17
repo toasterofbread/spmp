@@ -49,7 +49,13 @@ import spmp.shared.generated.resources.theme_title_system
 
 internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> =
     listOfNotNull(
-        createThemeSelectorSettingsItem(context, context.settings.theme.CURRENT_THEME),
+        createThemeSelectorSettingsItem(
+            context,
+            context.settings.theme.CURRENT_THEME,
+            getFooterModifier = {
+                LocalPlayerState.current.nowPlayingTopOffset(Modifier, NowPlayingTopOffsetSection.PAGE_BAR)
+            }
+        ),
 
         MultipleChoiceSettingsItem(
             context.settings.theme.ACCENT_COLOUR_SOURCE
@@ -136,7 +142,8 @@ private fun getWindowTransparencyItems(context: AppContext): List<SettingsItem> 
 fun createThemeSelectorSettingsItem(
     context: AppContext,
     state: PreferencesProperty<Int>,
-    getExtraStartThemes: @Composable () -> List<NamedTheme> = { emptyList() }
+    getExtraStartThemes: @Composable () -> List<NamedTheme> = { emptyList() },
+    getFooterModifier: @Composable () -> Modifier = { Modifier }
 ) =
     ThemeSelectorSettingsItem(
         state,
@@ -148,9 +155,7 @@ fun createThemeSelectorSettingsItem(
         str_field_card = Res.string.s_theme_editor_field_card,
         str_field_accent = Res.string.s_theme_editor_field_accent,
         str_button_preview = Res.string.s_theme_editor_button_preview,
-        getFooterModifier = {
-            LocalPlayerState.current.nowPlayingTopOffset(Modifier, NowPlayingTopOffsetSection.PAGE_BAR)
-        },
+        getFooterModifier = getFooterModifier,
         getThemeProvider = {
             val extra_start_themes: List<NamedTheme> = getExtraStartThemes()
             val start_theme_count: Int = 1 + extra_start_themes.size
@@ -190,11 +195,19 @@ fun createThemeSelectorSettingsItem(
                 override fun isThemeEditable(index: Int): Boolean =
                     themes.indices.contains(index - start_theme_count)
 
-                override suspend fun createTheme(index: Int) {
+                override suspend fun createTheme(index: Int): Int {
+                    val new_theme_index: Int = (index - start_theme_count).coerceAtLeast(0)
                     val new_themes: List<NamedTheme> = themes.toMutableList().apply {
-                        add(index - start_theme_count, NamedTheme(getString(Res.string.theme_title_new), ThemeValuesData.of(context.theme.manager.current_theme)))
+                        add(
+                            new_theme_index,
+                            NamedTheme(
+                                getString(Res.string.theme_title_new),
+                                getTheme(index - 1)?.theme ?: ThemeValuesData.of(context.theme.manager.current_theme)
+                            )
+                        )
                     }
                     setThemes(new_themes)
+                    return new_theme_index + start_theme_count
                 }
 
                 override suspend fun removeTheme(index: Int) {

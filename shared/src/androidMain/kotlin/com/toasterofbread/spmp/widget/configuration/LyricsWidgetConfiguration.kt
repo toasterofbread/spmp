@@ -43,7 +43,7 @@ internal data class LyricsWidgetConfiguration(
         onChanged: (TypeWidgetConfiguration<LyricsWidgetClickAction>) -> Unit
     ) {
         item {
-            FuriganaModeItem(context, item_modifier, onChanged)
+            FuriganaModeItem(item_modifier, onChanged)
         }
     }
 
@@ -55,7 +55,7 @@ internal data class LyricsWidgetConfiguration(
         copy(click_action = click_action)
 
     @Composable
-    private fun FuriganaModeItem(context: AppContext, modifier: Modifier, onChanged: (TypeWidgetConfiguration<LyricsWidgetClickAction>) -> Unit) {
+    private fun FuriganaModeItem(modifier: Modifier, onChanged: (TypeWidgetConfiguration<LyricsWidgetClickAction>) -> Unit) {
         val furigana_mode_state: MutableState<FuriganaMode> = remember { mutableStateOf(furigana_mode) }
         val furigana_mode_property: PreferencesProperty<FuriganaMode> = remember {
             MutableStatePreferencesProperty(

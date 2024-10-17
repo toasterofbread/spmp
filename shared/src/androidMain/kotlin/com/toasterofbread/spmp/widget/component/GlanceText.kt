@@ -19,6 +19,8 @@ import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
+import androidx.glance.layout.ContentScale
+import androidx.glance.layout.wrapContentWidth
 import androidx.glance.text.Text
 import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
 
@@ -29,9 +31,10 @@ fun GlanceText(
     font: Int?,
     modifier: GlanceModifier = GlanceModifier,
     font_size: TextUnit = 15.sp,
+    alpha: Float = 1f
 ) {
     val context: Context = LocalContext.current
-    val colour: Color = LocalApplicationTheme.current.on_background
+    val colour: Color = LocalApplicationTheme.current.on_background.copy(alpha)
 
     val image: Bitmap =
         remember(text, font_size, colour, font) {
@@ -45,7 +48,7 @@ fun GlanceText(
         } ?: return
 
     Image(
-        modifier = modifier,
+        modifier = modifier.wrapContentWidth(),
         provider = ImageProvider(image),
         contentDescription = text
     )

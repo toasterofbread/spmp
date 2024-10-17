@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.widget.impl
 
 import LocalPlayerState
-import SpMp
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
@@ -66,7 +65,7 @@ internal abstract class LyricsWidget: SpMpWidget<LyricsWidgetClickAction, Lyrics
             val lyrics: SongLyrics? = current_state?.lyrics
 
             if (lyrics == null) {
-                Text(stringResource(Res.string.widget_lyrics_status_no_lyrics))
+                WidgetText(stringResource(Res.string.widget_lyrics_status_no_lyrics))
             }
             else {
                 // Force recomposition
@@ -121,12 +120,12 @@ internal abstract class LyricsWidget: SpMpWidget<LyricsWidgetClickAction, Lyrics
                     for (term in chunk) {
                         Column(horizontalAlignment = Alignment.CenterHorizontally) {
                             if (show_readings_override ?: show_readings) {
-                                Text(
+                                WidgetText(
                                     term.reading.orEmpty(),
                                     font_size = reading_font_size
                                 )
                             }
-                            Text(term.text, font_size = font_size)
+                            WidgetText(term.text, font_size = font_size)
                         }
                     }
                 }

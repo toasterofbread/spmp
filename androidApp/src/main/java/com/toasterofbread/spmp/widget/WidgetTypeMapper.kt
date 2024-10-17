@@ -1,13 +1,13 @@
 package com.toasterofbread.spmp.widget
 
 import android.content.ComponentName
-import android.content.pm.ActivityInfo
 import androidx.glance.appwidget.GlanceAppWidgetReceiver
 import kotlin.reflect.KClass
 
 internal fun SpMpWidgetType.getWidgetReceiverClass(): KClass<out GlanceAppWidgetReceiver> =
     when (this) {
         SpMpWidgetType.LYRICS_LINE_HORIZONTAL -> LyricsLineHorizontalWidgetReceiver::class
+        SpMpWidgetType.SONG_QUEUE -> SongQueueWidgetReceiver::class
     }
 
 internal fun getSpMpWidgetTypeForActivityInfo(provider: ComponentName): SpMpWidgetType =

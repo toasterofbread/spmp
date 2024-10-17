@@ -196,10 +196,11 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfiguration<A
     protected open fun shouldHide(): Boolean = false
 
     @Composable
-    protected fun Text(
+    fun WidgetText(
         text: String,
         modifier: GlanceModifier = GlanceModifier,
-        font_size: TextUnit = 15.sp
+        font_size: TextUnit = 15.sp,
+        alpha: Float = 1f
     ) {
         val ui_language: String by context.observeUiLanguage()
         val app_font_mode: FontMode by context.settings.system.FONT.observe()
@@ -209,7 +210,8 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfiguration<A
             text = text,
             font = font,
             modifier = modifier,
-            font_size = font_size * base_configuration.font_size
+            font_size = font_size * base_configuration.font_size,
+            alpha = alpha
         )
     }
 

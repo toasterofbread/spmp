@@ -111,7 +111,7 @@ class PlayerState(
                 settings.theme.NOWPLAYING_THEME_MODE.key -> coroutine_scope.launch {
                     np_theme_mode = settings.theme.NOWPLAYING_THEME_MODE.get()
                 }
-                settings.theme.ACCENT_COLOUR_SOURCE.key -> theme.manager.updateColours()
+                settings.theme.ACCENT_COLOUR_SOURCE.key -> theme._manager?.updateColours()
                 settings.player.EXPAND_SWIPE_SENSITIVITY.key -> coroutine_scope.launch {
                     np_swipe_sensitivity = settings.player.EXPAND_SWIPE_SENSITIVITY.get()
                 }

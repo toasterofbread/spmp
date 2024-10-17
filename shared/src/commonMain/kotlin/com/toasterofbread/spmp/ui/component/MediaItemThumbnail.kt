@@ -78,6 +78,7 @@ fun MediaItem.Thumbnail(
     container_modifier: Modifier = Modifier,
     disable_cache: Boolean = false,
     show: Boolean = true,
+    contentOverride: (@Composable (ImageBitmap) -> Unit)? = null,
     onLoaded: ((ImageBitmap?) -> Unit)? = null
 ) {
     require(this !is LocalPlaylistRef) { "LocalPlaylistRef must be loaded and passed as a LocalPlaylistData" }
@@ -139,6 +140,13 @@ fun MediaItem.Thumbnail(
     }
 
     if (show) {
+        if (contentOverride != null) {
+            image?.first?.also {
+                contentOverride(it)
+            }
+            return
+        }
+
         Crossfade(image?.first ?: loading, container_modifier) { state ->
             if (state is ImageBitmap) {
                 Image(

@@ -23,6 +23,14 @@ internal fun SqlDriver.migrateToVersion8() = performMigration(
                     playback_position_ms INTEGER NOT NULL
                 """.trimIndent()
             )
+        ),
+        "AndroidWidget" to listOf(
+            Migration.CreateTable(
+                """
+                    id INTEGER NOT NULL PRIMARY KEY,
+                    configuration TEXT NOT NULL
+                """.trimIndent()
+            )
         )
     )
 )

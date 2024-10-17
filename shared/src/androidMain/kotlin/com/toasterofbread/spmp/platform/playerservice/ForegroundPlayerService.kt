@@ -33,13 +33,19 @@ import com.toasterofbread.spmp.platform.visualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
 import com.toasterofbread.spmp.shared.R
+import com.toasterofbread.spmp.widget.WidgetUpdateListener
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.composekit.utils.common.launchSingle
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
 import dev.toastbits.ytmkt.model.implementedOrNull
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @androidx.annotation.OptIn(UnstableApi::class)
 open class ForegroundPlayerService(
@@ -57,6 +63,8 @@ open class ForegroundPlayerService(
     internal lateinit var media_session: MediaSession
     internal lateinit var audio_sink: AudioSink
     internal var loudness_enhancer: LoudnessEnhancer? = null
+
+    private val widget_update_listener: WidgetUpdateListener = WidgetUpdateListener(this)
 
     internal var current_song: Song? = null
     internal var paused_by_device_disconnect: Boolean = false
@@ -181,6 +189,8 @@ open class ForegroundPlayerService(
         SongLikedStatusListener.addListener(song_liked_listener)
 
         startColorblendrHeartbeatLoop()
+
+        player.addListener(widget_update_listener)
     }
 
     override fun onDestroy() {
@@ -194,6 +204,9 @@ open class ForegroundPlayerService(
         media_session.release()
         loudness_enhancer?.release()
         SongLikedStatusListener.removeListener(song_liked_listener)
+
+        player.removeListener(widget_update_listener)
+        widget_update_listener.release()
 
         val audio_manager: AudioManager? = getSystemService()
         audio_manager?.unregisterAudioDeviceCallback(audio_device_callback)

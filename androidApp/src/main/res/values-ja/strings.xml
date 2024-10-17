@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <string name="widget_name_lyrics_line_horizontal_widget">"横書き歌詞行"</string>
+    <string name="widget_name_lyrics_line_horizontal">"横書き歌詞行"</string>
 </resources>

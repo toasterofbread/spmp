@@ -102,13 +102,14 @@
 
         <receiver android:name=".widget.LyricsLineHorizontalWidgetReceiver"
             android:exported="true"
-            android:label="@string/widget_name_lyrics_line_horizontal_widget">
+            android:label="@string/widget_name_lyrics_line_horizontal">
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
             </intent-filter>
             <meta-data
                 android:name="android.appwidget.provider"
-                android:resource="@xml/lyrics_line_horizontal_widget_provider" />
+                android:resource="@xml/lyrics_line_horizontal_widget_provider"
+            />
         </receiver>
 
     </application>

@@ -121,7 +121,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
             context.database.songQueries.lyricsById(song.id).addListener(listener)
 
             onDispose {
-                context.database.songQueries.lyricsById(song.id).addListener(listener)
+                context.database.songQueries.lyricsById(song.id).removeListener(listener)
             }
         }
 

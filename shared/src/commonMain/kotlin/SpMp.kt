@@ -14,7 +14,6 @@ import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.ProvidableCompositionLocal
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
@@ -59,17 +58,17 @@ import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.spms.socketapi.shared.SPMS_API_VERSION
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.Font
-import org.jetbrains.compose.resources.FontResource
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.LocalComposeEnvironment
 import org.jetbrains.compose.resources.ComposeEnvironment
 import org.jetbrains.compose.resources.DensityQualifier
+import org.jetbrains.compose.resources.Font
+import org.jetbrains.compose.resources.FontResource
 import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.LanguageQualifier
+import org.jetbrains.compose.resources.LocalComposeEnvironment
 import org.jetbrains.compose.resources.RegionQualifier
 import org.jetbrains.compose.resources.ResourceEnvironment
 import org.jetbrains.compose.resources.ThemeQualifier
+import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_close
 import spmp.shared.generated.resources.app_name
@@ -88,8 +87,6 @@ object SpMp {
     fun isDebugBuild(): Boolean = ProjectBuildConfig.IS_DEBUG
 
     private lateinit var context: AppContext
-
-    var test: Int by mutableIntStateOf(0)
 
     var _player_state: PlayerState? by mutableStateOf(null)
         private set

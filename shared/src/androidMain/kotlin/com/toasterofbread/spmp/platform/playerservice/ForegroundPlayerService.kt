@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.platform.playerservice
 
-import SpMp
 import android.content.Intent
 import android.media.AudioManager
 import android.media.MediaRouter
@@ -16,9 +15,6 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.getSystemService
-import androidx.glance.GlanceId
-import androidx.glance.appwidget.GlanceAppWidget
-import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -37,7 +33,7 @@ import com.toasterofbread.spmp.platform.visualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
 import com.toasterofbread.spmp.shared.R
-import com.toasterofbread.spmp.widget.SpMpWidgetType
+import com.toasterofbread.spmp.widget.WidgetUpdateListener
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.composekit.utils.common.launchSingle
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
@@ -67,6 +63,8 @@ open class ForegroundPlayerService(
     internal lateinit var media_session: MediaSession
     internal lateinit var audio_sink: AudioSink
     internal var loudness_enhancer: LoudnessEnhancer? = null
+
+    private val widget_update_listener: WidgetUpdateListener = WidgetUpdateListener(this)
 
     internal var current_song: Song? = null
     internal var paused_by_device_disconnect: Boolean = false
@@ -192,22 +190,7 @@ open class ForegroundPlayerService(
 
         startColorblendrHeartbeatLoop()
 
-        coroutine_scope.launch {
-            val widgets: List<GlanceAppWidget> = SpMpWidgetType.entries.map { it.widgetClass.java.getDeclaredConstructor().newInstance() }
-            val manager: GlanceAppWidgetManager = GlanceAppWidgetManager(this@ForegroundPlayerService)
-
-            while (true) {
-                for (widget in widgets) {
-                    val ids: List<GlanceId> = manager.getGlanceIds(widget::class.java)
-                    for (id in ids) {
-                        widget.update(this@ForegroundPlayerService, id)
-                    }
-                }
-                println("UPDATE WIDGETS ${SpMp.test++}")
-
-                delay(1000)
-            }
-        }
+        player.addListener(widget_update_listener)
     }
 
     override fun onDestroy() {
@@ -221,6 +204,9 @@ open class ForegroundPlayerService(
         media_session.release()
         loudness_enhancer?.release()
         SongLikedStatusListener.removeListener(song_liked_listener)
+
+        player.removeListener(widget_update_listener)
+        widget_update_listener.release()
 
         val audio_manager: AudioManager? = getSystemService()
         audio_manager?.unregisterAudioDeviceCallback(audio_device_callback)

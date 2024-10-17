@@ -11,7 +11,7 @@ import com.toasterofbread.spmp.widget.action.LyricsWidgetClickAction
 import com.toasterofbread.spmp.widget.action.WidgetClickAction
 import dev.toastbits.composekit.platform.MutableStatePreferencesProperty
 import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.component.item.MultipleChoiceSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
 import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.StringResource
@@ -70,7 +70,7 @@ internal data class LyricsWidgetConfiguration(
         }
 
         remember {
-            MultipleChoiceSettingsItem(furigana_mode_property) { mode ->
+            DropdownSettingsItem(furigana_mode_property) { mode ->
                 when (mode) {
                     FuriganaMode.APP_DEFAULT -> stringResource(Res.string.widget_config_lyrics_option_furigana_mode_app)
                     FuriganaMode.SHOW -> stringResource(Res.string.widget_config_lyrics_option_furigana_mode_show)

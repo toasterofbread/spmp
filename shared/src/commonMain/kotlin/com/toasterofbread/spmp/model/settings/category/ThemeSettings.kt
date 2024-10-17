@@ -157,8 +157,7 @@ enum class AccentColourSource {
 }
 
 @Composable
-fun observeCurrentTheme(index_override: Int? = null): State<NamedTheme> {
-    val context: AppContext = LocalPlayerState.current.context
+fun observeCurrentTheme(context: AppContext, index_override: Int? = null): State<NamedTheme> {
     val dark_mode: Boolean = isSystemInDarkTheme()
     val system_theme_name: String = stringResource(Res.string.theme_title_system)
 

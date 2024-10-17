@@ -1079,4 +1079,37 @@
     <string name="project_info_dialog_project_source_button">View source code</string>
     <string name="project_info_dialog_project_donate_button">Buy me a hot chocolate</string>
     <string name="project_info_dialog_dependencies_button">Show dependencies</string>
+
+    <string name="widget_config_title">Widget configuration</string>
+    <string name="widget_config_details_$type_$id">Configuring $type widget with ID $id</string>
+    <string name="widget_config_button_cancel">Cancel</string>
+    <string name="widget_config_button_done">Done</string>
+
+    <string name="widget_config_type_name_common">Widget</string>
+    <string name="widget_config_type_name_lyrics">Lyrics</string>
+
+    <string name="widget_click_action_common_none">None</string>
+    <string name="widget_click_action_common_open_spmp">Open SpMp</string>
+    <string name="widget_click_action_common_open_widget_config">Open widget config</string>
+    <string name="widget_click_action_common_toggle_visibility">Toggle visibility</string>
+
+    <string name="widget_click_action_lyrics_toggle_furigana">Toggle furigana</string>
+    <string name="widget_click_action_lyrics_hide_until_next_song">Hide until next song</string>
+
+    <string name="widget_application_theme_label">Application theme</string>
+
+    <string name="widget_config_common_key_theme">Theme</string>
+    <string name="widget_config_common_key_content_colour">Content colour</string>
+    <string name="widget_config_common_option_content_colour_theme">From theme</string>
+    <string name="widget_config_common_option_content_colour_light">Light</string>
+    <string name="widget_config_common_option_content_colour_dark">Dark</string>
+    <string name="widget_config_common_key_background_opacity">Background opacity</string>
+    <string name="widget_config_common_key_hide_when_no_content">Hide when no content</string>
+    <string name="widget_config_common_key_click_action">Tap action</string>
+
+    <string name="widget_config_lyrics_key_furigana_mode">Furigana</string>
+    <string name="widget_config_lyrics_option_furigana_mode_app">App setting</string>
+    <string name="widget_config_lyrics_option_furigana_mode_show">Show</string>
+    <string name="widget_config_lyrics_option_furigana_mode_hide">Hide</string>
+    <string name="widget_config_lyrics_key_font_size">Font size</string>
 </resources>

@@ -168,7 +168,7 @@ android {
             // Widget
             implementation("androidx.glance:glance-appwidget:1.1.0")
             implementation("androidx.glance:glance-material3:1.1.0")
-            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+            implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
             implementation(compose.runtime)
 //            implementation(compose.foundation)
 //            implementation(compose.materialIconsExtended)

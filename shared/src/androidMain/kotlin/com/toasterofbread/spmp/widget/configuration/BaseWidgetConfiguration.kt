@@ -19,6 +19,16 @@ import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
 import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.widget_application_theme_label
+import spmp.shared.generated.resources.widget_config_common_key_background_opacity
+import spmp.shared.generated.resources.widget_config_common_key_content_colour
+import spmp.shared.generated.resources.widget_config_common_key_hide_when_no_content
+import spmp.shared.generated.resources.widget_config_common_key_theme
+import spmp.shared.generated.resources.widget_config_common_option_content_colour_dark
+import spmp.shared.generated.resources.widget_config_common_option_content_colour_light
+import spmp.shared.generated.resources.widget_config_common_option_content_colour_theme
 import kotlin.math.roundToInt
 
 private const val DEFAULT_BACKGROUND_OPACITY: Float = 1f
@@ -51,7 +61,7 @@ data class BaseWidgetConfiguration(
         val theme_index_property: PreferencesProperty<Int> = remember {
             MutableStatePreferencesProperty(
                 theme_index_state,
-                { "WIDGET THEME" },
+                { stringResource(Res.string.widget_config_common_key_theme) },
                 { null }
             )
         }
@@ -62,7 +72,7 @@ data class BaseWidgetConfiguration(
                 theme_index_property,
                 getExtraStartThemes = {
                     listOf(
-                        NamedTheme("APPLICATION THEME", ThemeValuesData.of(context.theme))
+                        NamedTheme(stringResource(Res.string.widget_application_theme_label), ThemeValuesData.of(context.theme))
                     )
                 }
             )
@@ -87,7 +97,7 @@ data class BaseWidgetConfiguration(
         val content_colour_property: PreferencesProperty<ContentColour> = remember {
             MutableStatePreferencesProperty(
                 content_colour_state,
-                { "CONTENT COLOUR" },
+                { stringResource(Res.string.widget_config_common_key_content_colour) },
                 { null }
             )
         }
@@ -95,9 +105,9 @@ data class BaseWidgetConfiguration(
         remember {
             DropdownSettingsItem(content_colour_property) {
                 when (it) {
-                    ContentColour.THEME -> "THEME"
-                    ContentColour.LIGHT -> "LIGHT"
-                    ContentColour.DARK -> "DARK"
+                    ContentColour.THEME -> stringResource(Res.string.widget_config_common_option_content_colour_theme)
+                    ContentColour.LIGHT -> stringResource(Res.string.widget_config_common_option_content_colour_light)
+                    ContentColour.DARK -> stringResource(Res.string.widget_config_common_option_content_colour_dark)
                 }
             }
         }.Item(modifier)
@@ -115,7 +125,7 @@ data class BaseWidgetConfiguration(
         val background_opacity_property: PreferencesProperty<Float> = remember {
             MutableStatePreferencesProperty(
                 background_opacity_state,
-                { "BACKGROUND OPACITY" },
+                { stringResource(Res.string.widget_config_common_key_background_opacity) },
                 { null },
                 getPropertyDefaultValue = { DEFAULT_BACKGROUND_OPACITY },
                 getPropertyDefaultValueComposable = { DEFAULT_BACKGROUND_OPACITY }
@@ -144,7 +154,7 @@ data class BaseWidgetConfiguration(
         val hide_when_no_content_property: PreferencesProperty<Boolean> = remember {
             MutableStatePreferencesProperty(
                 hide_when_no_content_state,
-                { "HIDE WHEN NO CONTENT" },
+                { stringResource(Res.string.widget_config_common_key_hide_when_no_content) },
                 { null },
                 getPropertyDefaultValue = { false },
                 getPropertyDefaultValueComposable = { false }

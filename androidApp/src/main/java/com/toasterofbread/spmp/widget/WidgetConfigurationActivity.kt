@@ -8,6 +8,7 @@ import android.appwidget.AppWidgetManager
 import android.appwidget.AppWidgetProviderInfo
 import android.content.Intent
 import android.os.Bundle
+import android.view.WindowManager
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.layout.PaddingValues
@@ -15,10 +16,10 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.core.view.WindowCompat
 import androidx.glance.GlanceId
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
@@ -26,8 +27,8 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
+import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
 import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
-import com.toasterofbread.spmp.widget.configuration.TypeWidgetConfiguration
 import com.toasterofbread.spmp.widget.configuration.ui.screen.WidgetConfigurationScreen
 import dev.toastbits.composekit.navigation.Screen
 import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
@@ -43,8 +44,6 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 
 class WidgetConfigurationActivity: ComponentActivity() {
     private var app_widget_id: Int = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -52,13 +51,14 @@ class WidgetConfigurationActivity: ComponentActivity() {
     private var dummy_player_state: PlayerState? = null
 
     private suspend fun finishConfiguration(
-        configuration: SpMpWidgetConfiguration,
+        configuration: SpMpWidgetConfiguration<TypeWidgetClickAction>,
         context: AppContext,
         widget_type: SpMpWidgetType
     ) {
         val glance_id: GlanceId = GlanceAppWidgetManager(this).getGlanceIdBy(app_widget_id)
 
-        context.database.androidWidgetQueries.insertOrReplace(glance_id.getId().toLong(), Json.encodeToString(configuration))
+        val serialised: String = SpMpWidgetConfiguration.encodeToString(configuration)
+        context.database.androidWidgetQueries.insertOrReplace(glance_id.getDatabaseId().toLong(), serialised)
 
         val widget: GlanceAppWidget = widget_type.widgetClass.java.getDeclaredConstructor().newInstance()
         widget.update(this, glance_id)
@@ -109,6 +109,12 @@ class WidgetConfigurationActivity: ComponentActivity() {
                 }
             )
         val navigator: Navigator = ExtendableNavigator(configuration_screen)
+
+        WindowCompat.setDecorFitsSystemWindows(window, false)
+        window.setFlags(
+            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS,
+            WindowManager.LayoutParams.FLAG_LAYOUT_NO_LIMITS
+        )
 
         setContent {
             val composable_coroutine_scope: CoroutineScope = rememberCoroutineScope()

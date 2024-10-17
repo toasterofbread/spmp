@@ -89,7 +89,7 @@ class AppThemeManager(
             initialised = true
         }
 
-        val theme: NamedTheme by observeCurrentTheme()
+        val theme: NamedTheme by observeCurrentTheme(context)
 
         LaunchedEffect(theme, initialised) {
             if (!initialised) {

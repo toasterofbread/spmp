@@ -12,6 +12,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -22,24 +23,32 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.widget.SpMpWidgetType
+import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
 import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
 import dev.toastbits.composekit.navigation.Screen
 import dev.toastbits.composekit.navigation.navigator.Navigator
 import dev.toastbits.composekit.utils.common.copy
 import kotlinx.serialization.json.Json
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.widget_config_button_cancel
+import spmp.shared.generated.resources.widget_config_button_done
+import spmp.shared.generated.resources.`widget_config_details_$type_$id`
+import spmp.shared.generated.resources.widget_config_title
 
 class WidgetConfigurationScreen(
     private val context: AppContext,
-    widget_id: Int,
+    private val widget_id: Int,
     private val widget_type: SpMpWidgetType,
     private val onCancel: () -> Unit,
-    private val onDone: (SpMpWidgetConfiguration) -> Unit
+    private val onDone: (SpMpWidgetConfiguration<TypeWidgetClickAction>) -> Unit
 ): Screen {
     private val list_state: LazyListState = LazyListState()
-    private var configuration: SpMpWidgetConfiguration by mutableStateOf(
+    private var configuration: SpMpWidgetConfiguration<TypeWidgetClickAction> by mutableStateOf(
         SpMpWidgetConfiguration.getForWidget(context, widget_type, widget_id)
     )
 
@@ -49,11 +58,24 @@ class WidgetConfigurationScreen(
             LazyColumn(
                 Modifier.fillMaxHeight().weight(1f),
                 state = list_state,
-                verticalArrangement = Arrangement.spacedBy(20.dp),
-                contentPadding = contentPadding.copy(bottom = 0.dp)
+                verticalArrangement = Arrangement.spacedBy(22.dp),
+                contentPadding = contentPadding.copy(bottom = 25.dp)
             ) {
                 item {
-                    Text("WIDGET CONFIGURATION")
+                    Column {
+                        Text(
+                            stringResource(Res.string.widget_config_title),
+                            style = MaterialTheme.typography.headlineMedium
+                        )
+
+                        Text(
+                            stringResource(Res.string.`widget_config_details_$type_$id`)
+                                .replace("\$type", configuration.type_configuration.getTypeName())
+                                .replace("\$id", widget_id.toString()),
+                            style = MaterialTheme.typography.bodySmall,
+                            modifier = Modifier.alpha(0.5f)
+                        )
+                    }
                 }
 
                 with (configuration) {
@@ -63,20 +85,25 @@ class WidgetConfigurationScreen(
                 }
             }
 
-            Row(
+            Column(
                 Modifier
                     .fillMaxWidth()
-                    .padding(contentPadding.copy(top = 0.dp)),
-                horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)
+                    .padding(contentPadding.copy(top = contentPadding.calculateBottomPadding())),
+                verticalArrangement = Arrangement.spacedBy(10.dp)
             ) {
-                OutlinedButton(onCancel) {
-                    Text("Cancel")
-                }
+                Row(
+                    Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp, Alignment.End)
+                ) {
+                    OutlinedButton(onCancel) {
+                        Text(stringResource(Res.string.widget_config_button_cancel))
+                    }
 
-                Button({
-                    onDone(configuration)
-                }) {
-                    Text("Finish")
+                    Button({
+                        onDone(configuration)
+                    }) {
+                        Text(stringResource(Res.string.widget_config_button_done))
+                    }
                 }
             }
         }

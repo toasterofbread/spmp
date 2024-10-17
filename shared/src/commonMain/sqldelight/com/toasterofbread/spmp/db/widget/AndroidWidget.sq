@@ -6,3 +6,5 @@ CREATE TABLE AndroidWidget (
 configurationById: SELECT configuration FROM AndroidWidget WHERE id == :id;
 
 insertOrReplace: INSERT OR REPLACE INTO AndroidWidget(id, configuration) VALUES(:id, :configuration);
+
+remove: DELETE FROM AndroidWidget WHERE id == :id;

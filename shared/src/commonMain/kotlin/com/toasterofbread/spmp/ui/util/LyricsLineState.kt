@@ -88,9 +88,10 @@ class LyricsLineState(val lines: List<List<SongLyrics.Term>>) {
                 state = LyricsLineState(lines).apply { update(getTime(), linger) }
             }
 
-            LaunchedEffect(linger, state, update_interval) {
-                val current_state: LyricsLineState? = state
-                if (update_interval == null || current_state == null) {
+            LaunchedEffect(lyrics, linger, state, update_interval) {
+                val current_state: LyricsLineState = state ?: return@LaunchedEffect
+                if (update_interval == null) {
+                    current_state.update(getTime(), linger)
                     return@LaunchedEffect
                 }
 

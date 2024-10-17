@@ -9,22 +9,31 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
-import com.toasterofbread.spmp.widget.SpMpWidget
-import com.toasterofbread.spmp.widget.SpMpWidgetType
+import com.toasterofbread.spmp.widget.action.LyricsWidgetClickAction
+import com.toasterofbread.spmp.widget.action.WidgetClickAction
 import dev.toastbits.composekit.platform.MutableStatePreferencesProperty
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.settings.ui.component.item.MultipleChoiceSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.SliderSettingsItem
 import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import kotlinx.serialization.Serializable
+import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.widget_config_lyrics_key_font_size
+import spmp.shared.generated.resources.widget_config_lyrics_key_furigana_mode
+import spmp.shared.generated.resources.widget_config_lyrics_option_furigana_mode_app
+import spmp.shared.generated.resources.widget_config_lyrics_option_furigana_mode_hide
+import spmp.shared.generated.resources.widget_config_lyrics_option_furigana_mode_show
+import spmp.shared.generated.resources.widget_config_type_name_lyrics
 
 @Serializable
 internal data class LyricsWidgetConfiguration(
     val furigana_mode: FuriganaMode = FuriganaMode.APP_DEFAULT,
-    val font_size: Float = 1f
-): TypeWidgetConfiguration {
+    val font_size: Float = 1f,
+    override val click_action: WidgetClickAction<LyricsWidgetClickAction> = WidgetClickAction.DEFAULT
+): TypeWidgetConfiguration<LyricsWidgetClickAction>() {
     @Composable
-    override fun getName(): String = "LYRICS"
+    override fun getTypeName(): String = stringResource(Res.string.widget_config_type_name_lyrics)
 
     enum class FuriganaMode {
         APP_DEFAULT,
@@ -35,7 +44,7 @@ internal data class LyricsWidgetConfiguration(
     override fun LazyListScope.ConfigurationItems(
         context: AppContext,
         item_modifier: Modifier,
-        onChanged: (TypeWidgetConfiguration) -> Unit
+        onChanged: (TypeWidgetConfiguration<LyricsWidgetClickAction>) -> Unit
     ) {
         item {
             FuriganaModeItem(context, item_modifier, onChanged)
@@ -45,13 +54,20 @@ internal data class LyricsWidgetConfiguration(
         }
     }
 
+    override fun getActions(): List<LyricsWidgetClickAction> = LyricsWidgetClickAction.entries
+
+    override fun getActionNameResource(action: LyricsWidgetClickAction): StringResource = action.nameResource
+
+    override fun setClickAction(click_action: WidgetClickAction<LyricsWidgetClickAction>): TypeWidgetConfiguration<LyricsWidgetClickAction> =
+        copy(click_action = click_action)
+
     @Composable
-    private fun FuriganaModeItem(context: AppContext, modifier: Modifier, onChanged: (TypeWidgetConfiguration) -> Unit) {
+    private fun FuriganaModeItem(context: AppContext, modifier: Modifier, onChanged: (TypeWidgetConfiguration<LyricsWidgetClickAction>) -> Unit) {
         val furigana_mode_state: MutableState<FuriganaMode> = remember { mutableStateOf(furigana_mode) }
         val furigana_mode_property: PreferencesProperty<FuriganaMode> = remember {
             MutableStatePreferencesProperty(
                 furigana_mode_state,
-                { "FURIGANA MODE" },
+                { stringResource(Res.string.widget_config_lyrics_key_furigana_mode) },
                 { null }
             )
         }
@@ -63,21 +79,21 @@ internal data class LyricsWidgetConfiguration(
         remember {
             MultipleChoiceSettingsItem(furigana_mode_property) { mode ->
                 when (mode) {
-                    FuriganaMode.APP_DEFAULT -> "App default"
-                    FuriganaMode.SHOW -> "Show"
-                    FuriganaMode.HIDE -> "Hide"
+                    FuriganaMode.APP_DEFAULT -> stringResource(Res.string.widget_config_lyrics_option_furigana_mode_app)
+                    FuriganaMode.SHOW -> stringResource(Res.string.widget_config_lyrics_option_furigana_mode_show)
+                    FuriganaMode.HIDE -> stringResource(Res.string.widget_config_lyrics_option_furigana_mode_hide)
                 }
             }
         }.Item(modifier)
     }
 
     @Composable
-    private fun FontSizeItem(context: AppContext, modifier: Modifier, onChanged: (TypeWidgetConfiguration) -> Unit) {
+    private fun FontSizeItem(context: AppContext, modifier: Modifier, onChanged: (TypeWidgetConfiguration<LyricsWidgetClickAction>) -> Unit) {
         val font_size_state: MutableState<Float> = remember { mutableFloatStateOf(font_size) }
         val font_size_property: PreferencesProperty<Float> = remember {
             MutableStatePreferencesProperty(
                 font_size_state,
-                { "FONT SIZE" },
+                { stringResource(Res.string.widget_config_lyrics_key_font_size) },
                 { null },
                 getPropertyDefaultValue = { 1f },
                 getPropertyDefaultValueComposable = { 1f }

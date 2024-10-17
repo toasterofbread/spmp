@@ -7,6 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceModifier
 import androidx.glance.layout.Alignment
@@ -24,6 +25,9 @@ import com.toasterofbread.spmp.ui.util.LyricsLineState
 import com.toasterofbread.spmp.widget.SpMpWidget
 import com.toasterofbread.spmp.widget.action.LyricsWidgetClickAction
 import com.toasterofbread.spmp.widget.configuration.LyricsWidgetConfiguration
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.widget_lyrics_status_no_lyrics
 
 internal class LyricsLineHorizontalWidget: SpMpWidget<LyricsWidgetClickAction, LyricsWidgetConfiguration>() {
     private var current_song: Song? by mutableStateOf(null)
@@ -66,7 +70,7 @@ internal class LyricsLineHorizontalWidget: SpMpWidget<LyricsWidgetClickAction, L
             val lyrics: SongLyrics? = current_state?.lyrics
 
             if (lyrics == null) {
-                Text("No lyrics", style = text_style.copy(fontSize = 15.sp * type_configuration.font_size))
+                Text(stringResource(Res.string.widget_lyrics_status_no_lyrics))
             }
             else {
                 SpMp.test
@@ -96,8 +100,8 @@ internal class LyricsLineHorizontalWidget: SpMpWidget<LyricsWidgetClickAction, L
                     if (show && line != null) {
                         LyricsLine(
                             line,
-                            text_style.copy(fontSize = 15.sp * type_configuration.font_size),
-                            text_style.copy(fontSize = 8.sp * type_configuration.font_size),
+                            15.sp,
+                            8.sp,
                             show_readings_override ?: show_readings
                         )
                     }
@@ -105,33 +109,34 @@ internal class LyricsLineHorizontalWidget: SpMpWidget<LyricsWidgetClickAction, L
             }
         }
     }
-}
 
-@Composable
-private fun LyricsLine(
-    line: List<Term>,
-    text_style: TextStyle,
-    reading_text_style: TextStyle,
-    show_readings: Boolean
-) {
-    Row(verticalAlignment = Alignment.Bottom) {
-        val term_chunks: List<List<Term.Text>> =
-            remember(line) { line.flatMap { it.subterms }.chunked(10) }
+    @Composable
+    private fun LyricsLine(
+        line: List<Term>,
+        font_size: TextUnit,
+        reading_font_size: TextUnit,
+        show_readings: Boolean
+    ) {
+        Row(verticalAlignment = Alignment.Bottom) {
+            val term_chunks: List<List<Term.Text>> =
+                remember(line) { line.flatMap { it.subterms }.chunked(10) }
 
-        for (chunk in term_chunks) {
-            Row(verticalAlignment = Alignment.Bottom) {
-                for (term in chunk) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        if (show_readings) {
-                            Text(
-                                term.reading.orEmpty(),
-                                style = reading_text_style
-                            )
+            for (chunk in term_chunks) {
+                Row(verticalAlignment = Alignment.Bottom) {
+                    for (term in chunk) {
+                        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                            if (show_readings) {
+                                Text(
+                                    term.reading.orEmpty(),
+                                    font_size = reading_font_size
+                                )
+                            }
+                            Text(term.text, font_size = font_size)
                         }
-                        Text(term.text, style = text_style)
                     }
                 }
             }
         }
     }
 }
+

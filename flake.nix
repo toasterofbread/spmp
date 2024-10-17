@@ -33,9 +33,11 @@
 
       android-sdk = (android-nixpkgs.sdk.${system} (sdkPkgs: with sdkPkgs; [
         cmdline-tools-latest
-        build-tools-35-0-0
         platform-tools
+        build-tools-35-0-0
         platforms-android-35
+        build-tools-34-0-0
+        platforms-android-34
       ]));
 
       spmp_package =

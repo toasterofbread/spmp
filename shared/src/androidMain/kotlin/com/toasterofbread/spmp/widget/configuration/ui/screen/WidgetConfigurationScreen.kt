@@ -9,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Text
@@ -36,6 +38,7 @@ class WidgetConfigurationScreen(
     private val onCancel: () -> Unit,
     private val onDone: (SpMpWidgetConfiguration) -> Unit
 ): Screen {
+    private val list_state: LazyListState = LazyListState()
     private var configuration: SpMpWidgetConfiguration by mutableStateOf(
         SpMpWidgetConfiguration.getForWidget(context, widget_type, widget_id)
     )
@@ -45,15 +48,16 @@ class WidgetConfigurationScreen(
         Column(modifier) {
             LazyColumn(
                 Modifier.fillMaxHeight().weight(1f),
-                verticalArrangement = Arrangement.spacedBy(10.dp),
+                state = list_state,
+                verticalArrangement = Arrangement.spacedBy(20.dp),
                 contentPadding = contentPadding.copy(bottom = 0.dp)
             ) {
                 item {
-                    Text("Configuration screen $widget_type")
+                    Text("WIDGET CONFIGURATION")
                 }
 
-                item {
-                    configuration.ConfigurationItems(context, item_modifier = Modifier) {
+                with (configuration) {
+                    ConfigurationItems(context, item_modifier = Modifier) {
                         configuration = it
                     }
                 }

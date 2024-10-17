@@ -91,7 +91,7 @@ object SpMp {
 
     var test: Int by mutableIntStateOf(0)
 
-    var _player_state: PlayerState? = null
+    var _player_state: PlayerState? by mutableStateOf(null)
         private set
     val player_state: PlayerState get() = _player_state!!
 

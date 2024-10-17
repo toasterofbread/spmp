@@ -176,7 +176,7 @@ interface Song: MediaItem.WithArtists {
     @Composable
     fun getLyricsSyncOffset(database: Database, is_topbar: Boolean): State<Long> {
         val player: PlayerState = LocalPlayerState.current
-        val controller: PlayerService = player.controller ?: return mutableStateOf(0)
+        val controller: PlayerService? = player.controller
 
         val internal_offset: Long? by LyricsSyncOffset.observe(database)
         val settings_delay: Float by player.settings.lyrics.SYNC_DELAY.observe()
@@ -194,7 +194,7 @@ interface Song: MediaItem.WithArtists {
             @Suppress("UNUSED_EXPRESSION")
             settings_delay_bt
 
-            if (controller.isPlayingOverLatentDevice()) {
+            if (controller?.isPlayingOverLatentDevice() == true) {
                 delay += settings_delay_bt
             }
 

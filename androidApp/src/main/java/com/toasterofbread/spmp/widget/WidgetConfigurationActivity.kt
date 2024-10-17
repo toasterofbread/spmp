@@ -19,6 +19,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.glance.GlanceId
+import androidx.glance.appwidget.GlanceAppWidget
+import androidx.glance.appwidget.GlanceAppWidgetManager
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -38,6 +41,7 @@ import dev.toastbits.composekit.utils.modifier.background
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
@@ -47,11 +51,18 @@ class WidgetConfigurationActivity: ComponentActivity() {
     private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
     private var dummy_player_state: PlayerState? = null
 
-    private fun finishConfiguration(
+    private suspend fun finishConfiguration(
         configuration: SpMpWidgetConfiguration,
-        context: AppContext
+        context: AppContext,
+        widget_type: SpMpWidgetType
     ) {
-        context.database.androidWidgetQueries.insertOrReplace(app_widget_id.toLong(), Json.encodeToString(configuration))
+        val glance_id: GlanceId = GlanceAppWidgetManager(this).getGlanceIdBy(app_widget_id)
+
+        context.database.androidWidgetQueries.insertOrReplace(glance_id.getId().toLong(), Json.encodeToString(configuration))
+
+        val widget: GlanceAppWidget = widget_type.widgetClass.java.getDeclaredConstructor().newInstance()
+        widget.update(this, glance_id)
+
         setResultAndFinish(true)
     }
 
@@ -91,7 +102,11 @@ class WidgetConfigurationActivity: ComponentActivity() {
                 app_widget_id,
                 widget_type,
                 onCancel = { setResultAndFinish(false) },
-                onDone = { finishConfiguration(it, context) }
+                onDone = {
+                    coroutine_scope.launch {
+                        finishConfiguration(it, context, widget_type)
+                    }
+                }
             )
         val navigator: Navigator = ExtendableNavigator(configuration_screen)
 

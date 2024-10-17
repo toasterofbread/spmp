@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.widget.configuration
 
+import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableFloatStateOf
@@ -15,9 +16,7 @@ import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.settings.ui.NamedTheme
 import dev.toastbits.composekit.settings.ui.ThemeValuesData
 import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.SliderSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.ThemeSelectorSettingsItem
-import dev.toastbits.composekit.utils.common.roundTo
+import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
 import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import kotlinx.serialization.Serializable
 import kotlin.math.roundToInt
@@ -28,13 +27,22 @@ private const val DEFAULT_BACKGROUND_OPACITY: Float = 1f
 data class BaseWidgetConfiguration(
     val theme_index: Int? = null,
     val content_colour: ContentColour = ContentColour.THEME,
-    val background_opacity: Float = DEFAULT_BACKGROUND_OPACITY
+    val background_opacity: Float = DEFAULT_BACKGROUND_OPACITY,
+    val hide_when_no_content: Boolean = false
 ) {
-    @Composable
-    fun ConfigurationItems(context: AppContext, item_modifier: Modifier = Modifier, onChanged: (BaseWidgetConfiguration) -> Unit) {
-        ThemeIndexItem(context, item_modifier, onChanged)
-        ContentColourItem(context, item_modifier, onChanged)
-        BackgroundOpacityItem(context, item_modifier, onChanged)
+    fun LazyListScope.ConfigurationItems(context: AppContext, item_modifier: Modifier = Modifier, onChanged: (BaseWidgetConfiguration) -> Unit) {
+        item {
+            ThemeIndexItem(context, item_modifier, onChanged)
+        }
+        item {
+            ContentColourItem(context, item_modifier, onChanged)
+        }
+        item {
+            BackgroundOpacityItem(context, item_modifier, onChanged)
+        }
+        item {
+            HideWhenNoContentItem(context, item_modifier, onChanged)
+        }
     }
 
     @Composable
@@ -126,6 +134,30 @@ data class BaseWidgetConfiguration(
         OnChangedEffect(background_opacity_state.value) {
             onChanged(
                 this.copy(background_opacity = background_opacity_state.value)
+            )
+        }
+    }
+
+    @Composable
+    private fun HideWhenNoContentItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfiguration) -> Unit) {
+        val hide_when_no_content_state: MutableState<Boolean> = remember { mutableStateOf(hide_when_no_content) }
+        val hide_when_no_content_property: PreferencesProperty<Boolean> = remember {
+            MutableStatePreferencesProperty(
+                hide_when_no_content_state,
+                { "HIDE WHEN NO CONTENT" },
+                { null },
+                getPropertyDefaultValue = { false },
+                getPropertyDefaultValueComposable = { false }
+            )
+        }
+
+        remember {
+            ToggleSettingsItem(hide_when_no_content_property)
+        }.Item(modifier)
+
+        OnChangedEffect(hide_when_no_content_state.value) {
+            onChanged(
+                this.copy(hide_when_no_content = hide_when_no_content_state.value)
             )
         }
     }

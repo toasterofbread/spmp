@@ -1,8 +1,12 @@
 package com.toasterofbread.spmp.widget.configuration
 
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.State
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.db.observeAsState
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.widget.SpMpWidgetType
@@ -14,13 +18,22 @@ data class SpMpWidgetConfiguration(
     val type_configuration: TypeWidgetConfiguration,
     val base_configuration: BaseWidgetConfiguration = BaseWidgetConfiguration()
 ) {
-    @Composable
-    fun ConfigurationItems(context: AppContext, item_modifier: Modifier = Modifier, onChanged: (SpMpWidgetConfiguration) -> Unit) {
-        base_configuration.ConfigurationItems(context, item_modifier) {
-            onChanged(this.copy(base_configuration = it))
+    fun LazyListScope.ConfigurationItems(context: AppContext, item_modifier: Modifier = Modifier, onChanged: (SpMpWidgetConfiguration) -> Unit) {
+        item {
+            Text(type_configuration.getName())
         }
-        type_configuration.ConfigurationItems(context, item_modifier) {
-            onChanged(this.copy(type_configuration = it))
+        with (type_configuration) {
+            ConfigurationItems(context, item_modifier) {
+                onChanged(copy(type_configuration = it))
+            }
+        }
+        item {
+            Text("COMMON", Modifier.padding(top = 50.dp))
+        }
+        with (base_configuration) {
+            ConfigurationItems(context, item_modifier) {
+                onChanged(copy(base_configuration = it))
+            }
         }
     }
 

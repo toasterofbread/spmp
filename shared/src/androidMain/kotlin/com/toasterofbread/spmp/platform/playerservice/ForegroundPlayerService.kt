@@ -193,8 +193,6 @@ open class ForegroundPlayerService(
         startColorblendrHeartbeatLoop()
 
         coroutine_scope.launch {
-            context.application_context
-
             val widgets: List<GlanceAppWidget> = SpMpWidgetType.entries.map { it.widgetClass.java.getDeclaredConstructor().newInstance() }
             val manager: GlanceAppWidgetManager = GlanceAppWidgetManager(this@ForegroundPlayerService)
 

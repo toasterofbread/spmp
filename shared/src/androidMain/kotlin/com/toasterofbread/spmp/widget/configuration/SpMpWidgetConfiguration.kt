@@ -87,8 +87,11 @@ data class SpMpWidgetConfiguration<A: TypeWidgetClickAction>(
     }
 
     companion object {
-        fun encodeToString(configuration: SpMpWidgetConfiguration<TypeWidgetClickAction>): String =
+        fun encodeToString(configuration: SpMpWidgetConfiguration<out TypeWidgetClickAction>): String =
             json.encodeToString(configuration)
+
+        fun decodeFromString(encoded: String): SpMpWidgetConfiguration<TypeWidgetClickAction> =
+            json.decodeFromString(encoded)
 
         @Suppress("UNCHECKED_CAST")
         @Composable
@@ -98,7 +101,7 @@ data class SpMpWidgetConfiguration<A: TypeWidgetClickAction>(
                     id,
                     mapValue = { query ->
                         query.executeAsOneOrNull()
-                            ?.let { json.decodeFromString(it) }
+                            ?.let { decodeFromString(it) }
                             ?: SpMpWidgetConfiguration(type.defaultConfiguration as TypeWidgetConfiguration<TypeWidgetClickAction>)
                     },
                     onExternalChange = null
@@ -108,7 +111,7 @@ data class SpMpWidgetConfiguration<A: TypeWidgetClickAction>(
         fun getForWidget(context: AppContext, type: SpMpWidgetType, id: Int): SpMpWidgetConfiguration<TypeWidgetClickAction> =
             context.database.androidWidgetQueries.configurationById(id.toLong())
                 .executeAsOneOrNull()
-                ?.let { json.decodeFromString(it) }
+                ?.let { decodeFromString(it) }
                 ?: SpMpWidgetConfiguration(type.defaultConfiguration as TypeWidgetConfiguration<TypeWidgetClickAction>)
 
         private val json: Json by lazy {

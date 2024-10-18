@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.widget.impl
 import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -11,7 +10,6 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceModifier
 import androidx.glance.layout.Alignment
-import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.Row
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
@@ -59,8 +57,14 @@ internal abstract class LyricsWidget: SpMpWidget<LyricsWidgetClickAction, Lyrics
     }
 
     @Composable
+    override fun DebugInfoItems(item_modifier: GlanceModifier) {
+        super.DebugInfoItems(item_modifier)
+        WidgetText("Song: ${lyrics_state?.song} (${lyrics_state?.song?.observeActiveTitle()?.value})", item_modifier)
+    }
+
+    @Composable
     final override fun Content(modifier: GlanceModifier) {
-        Box(modifier) {
+        Column(modifier) {
             val current_state: SongLyricsLoader.ItemState? = lyrics_state
             val lyrics: SongLyrics? = current_state?.lyrics
 
@@ -68,9 +72,6 @@ internal abstract class LyricsWidget: SpMpWidget<LyricsWidgetClickAction, Lyrics
                 WidgetText(stringResource(Res.string.widget_lyrics_status_no_lyrics))
             }
             else {
-                // Force recomposition
-                update
-
                 if (show_readings_override == null) {
                     show_readings =
                         when (type_configuration.furigana_mode) {
@@ -94,6 +95,7 @@ internal abstract class LyricsWidget: SpMpWidget<LyricsWidgetClickAction, Lyrics
 
                 if (line_state != null) {
                     line_state.update(position_ms, true)
+
                     LyricsContent(line_state, GlanceModifier)
                 }
             }
@@ -131,9 +133,5 @@ internal abstract class LyricsWidget: SpMpWidget<LyricsWidgetClickAction, Lyrics
                 }
             }
         }
-    }
-
-    companion object {
-        var update: Int by mutableIntStateOf(0)
     }
 }

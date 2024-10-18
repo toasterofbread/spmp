@@ -60,8 +60,7 @@ class WidgetConfigurationActivity: ComponentActivity() {
         val serialised: String = SpMpWidgetConfiguration.encodeToString(configuration)
         context.database.androidWidgetQueries.insertOrReplace(glance_id.getDatabaseId().toLong(), serialised)
 
-        val widget: GlanceAppWidget = widget_type.widgetClass.java.getDeclaredConstructor().newInstance()
-        widget.update(this, glance_id)
+        widget_type.update(this, glance_id)
 
         setResultAndFinish(true)
     }

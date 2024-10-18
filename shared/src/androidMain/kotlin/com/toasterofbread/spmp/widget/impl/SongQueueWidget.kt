@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.widget.impl
 
 import LocalPlayerState
+import SpMp
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -36,6 +37,7 @@ import com.toasterofbread.spmp.widget.SpMpWidget
 import com.toasterofbread.spmp.widget.action.SongQueueWidgetClickAction
 import com.toasterofbread.spmp.widget.configuration.SongQueueWidgetConfiguration
 import dev.toastbits.composekit.utils.common.getValue
+import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
@@ -54,17 +56,14 @@ internal class SongQueueWidget: SpMpWidget<SongQueueWidgetClickAction, SongQueue
 
     @Composable
     override fun Content(modifier: GlanceModifier) {
-        // Force recomposition
-        update
-
         val player: PlayerState = LocalPlayerState.current
         val song: Song? = player.status.m_song
 
         if (song != null) {
             Column(modifier) {
-//                WidgetText("Now playing", font_size = 10.sp, alpha = 0.5f)
+                WidgetText("Now playing", font_size = 10.sp, alpha = 0.5f)
 
-//                GlanceSongPreview(song)
+                GlanceSongPreview(song)
 
                 val playing_index: Int = player.status.m_index
                 val following_songs: MutableList<Song> = mutableListOf()
@@ -87,13 +86,13 @@ internal class SongQueueWidget: SpMpWidget<SongQueueWidgetClickAction, SongQueue
                             GlanceSongPreview(
                                 following,
                                 GlanceModifier
-//                                    .fillMaxWidth()
+                                    .fillMaxWidth()
                                     .clickable(
                                         QueueSeekAction(playing_index + 1 + index)
                                     )
-//                                    .thenIf(index + 1 != following_songs.size) {
-//                                        padding(bottom = 3.dp)
-//                                    }
+                                    .thenIf(index + 1 != following_songs.size) {
+                                        padding(bottom = 3.dp)
+                                    }
                             )
                         }
                     }
@@ -103,10 +102,6 @@ internal class SongQueueWidget: SpMpWidget<SongQueueWidgetClickAction, SongQueue
         else {
             WidgetText("No songs", modifier)
         }
-    }
-
-    companion object {
-        var update: Int by mutableIntStateOf(0)
     }
 }
 

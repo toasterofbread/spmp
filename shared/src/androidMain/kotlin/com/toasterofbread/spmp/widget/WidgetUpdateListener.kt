@@ -14,8 +14,6 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 class WidgetUpdateListener(private val context: Context): Player.Listener {
-    private val widgets: Map<SpMpWidgetType, GlanceAppWidget> = SpMpWidgetType.entries.associateWith { it.widgetClass.java.getDeclaredConstructor().newInstance() }
-
     private val song_transition_widget_update_coroutine_scope: CoroutineScope =
         CoroutineScope(Dispatchers.Default)
     private val during_playback_widget_update_coroutine_scope: CoroutineScope =
@@ -30,10 +28,9 @@ class WidgetUpdateListener(private val context: Context): Player.Listener {
         super.onMediaItemTransition(mediaItem, reason)
 
         song_transition_widget_update_coroutine_scope.launch {
-            for ((type, widget) in widgets) {
+            for (type in SpMpWidgetType.entries) {
                 if (type.updateTypes.contains(WidgetUpdateType.OnSongTransition)) {
-                    type.incrementUpdateVariable()
-                    widget.updateAll(context)
+                    type.updateAll(context)
                 }
             }
         }
@@ -41,10 +38,9 @@ class WidgetUpdateListener(private val context: Context): Player.Listener {
 
     override fun onTracksChanged(tracks: Tracks) {
         song_transition_widget_update_coroutine_scope.launch {
-            for ((type, widget) in widgets) {
+            for (type in SpMpWidgetType.entries) {
                 if (type.updateTypes.contains(WidgetUpdateType.OnQueueChange)) {
-                    type.incrementUpdateVariable()
-                    widget.updateAll(context)
+                    type.updateAll(context)
                 }
             }
         }
@@ -56,13 +52,12 @@ class WidgetUpdateListener(private val context: Context): Player.Listener {
             return
         }
 
-        for ((type, widget) in widgets) {
+        for (type in SpMpWidgetType.entries) {
             for (update in type.updateTypes.filterIsInstance<WidgetUpdateType.DuringPlayback>()) {
                 during_playback_widget_update_coroutine_scope.launch {
                     while (true) {
                         delay(update.period)
-                        type.incrementUpdateVariable()
-                        widget.updateAll(context)
+                        type.updateAll(context)
                     }
                 }
             }

@@ -14,7 +14,10 @@ import kotlinx.coroutines.delay
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.milliseconds
 
-class LyricsLineState(val lines: List<List<SongLyrics.Term>>) {
+class LyricsLineState(
+    val lines: List<List<SongLyrics.Term>>,
+    val lyrics: SongLyrics
+) {
     private var current_line: Int? by mutableStateOf(null)
     private var show_line_a: Boolean by mutableStateOf(true)
 
@@ -79,13 +82,13 @@ class LyricsLineState(val lines: List<List<SongLyrics.Term>>) {
 
             var state: LyricsLineState? by remember { mutableStateOf(null) }
 
-            LaunchedEffect(romanise_furigana) {
+            LaunchedEffect(lyrics.lines, romanise_furigana) {
                 val tokeniser: LyricsFuriganaTokeniser? = LyricsFuriganaTokeniser.getInstance()
                 val lines: List<List<SongLyrics.Term>> =
                     if (tokeniser != null) lyrics.lines.map { tokeniser.mergeAndFuriganiseTerms(it, romanise_furigana) }
                     else lyrics.lines
 
-                state = LyricsLineState(lines).apply { update(getTime(), linger) }
+                state = LyricsLineState(lines, lyrics).apply { update(getTime(), linger) }
             }
 
             LaunchedEffect(lyrics, linger, state, update_interval) {

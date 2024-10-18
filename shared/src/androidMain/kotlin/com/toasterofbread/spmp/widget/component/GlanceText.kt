@@ -43,7 +43,7 @@ fun GlanceText(
                 fontSize = font_size,
                 color = colour,
                 font = font,
-                letterSpacing = 0.1.sp.value
+                letterSpacing = 0.03.sp.value
             )
         } ?: return
 

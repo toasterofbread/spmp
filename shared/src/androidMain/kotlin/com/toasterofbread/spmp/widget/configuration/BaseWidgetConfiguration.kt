@@ -9,12 +9,12 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
+import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.createThemeSelectorSettingsItem
-import com.toasterofbread.spmp.widget.action.LyricsWidgetClickAction
 import dev.toastbits.composekit.platform.MutableStatePreferencesProperty
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.settings.ui.NamedTheme
@@ -27,15 +27,17 @@ import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.widget_application_theme_label
 import spmp.shared.generated.resources.widget_config_common_key_background_opacity
+import spmp.shared.generated.resources.widget_config_common_key_border_radius
 import spmp.shared.generated.resources.widget_config_common_key_content_colour
 import spmp.shared.generated.resources.widget_config_common_key_font
+import spmp.shared.generated.resources.widget_config_common_key_font_size
 import spmp.shared.generated.resources.widget_config_common_key_hide_when_no_content
+import spmp.shared.generated.resources.widget_config_common_key_show_debug_information
 import spmp.shared.generated.resources.widget_config_common_key_theme
 import spmp.shared.generated.resources.widget_config_common_option_content_colour_dark
 import spmp.shared.generated.resources.widget_config_common_option_content_colour_light
 import spmp.shared.generated.resources.widget_config_common_option_content_colour_theme
 import spmp.shared.generated.resources.widget_config_common_option_font_app
-import spmp.shared.generated.resources.widget_config_common_key_font_size
 import kotlin.math.roundToInt
 
 private const val DEFAULT_BACKGROUND_OPACITY: Float = 1f
@@ -47,7 +49,9 @@ data class BaseWidgetConfiguration(
     val font_size: Float = 1f,
     val content_colour: ContentColour = ContentColour.THEME,
     val background_opacity: Float = DEFAULT_BACKGROUND_OPACITY,
+    val border_radius_dp: Float = 0f,
     val hide_when_no_content: Boolean = false,
+    val show_debug_information: Boolean = ProjectBuildConfig.IS_DEBUG
 ) {
     fun LazyListScope.ConfigurationItems(context: AppContext, item_modifier: Modifier = Modifier, onChanged: (BaseWidgetConfiguration) -> Unit) {
         item {
@@ -66,7 +70,13 @@ data class BaseWidgetConfiguration(
             BackgroundOpacityItem(context, item_modifier, onChanged)
         }
         item {
+            BorderRadiusItem(context, item_modifier, onChanged)
+        }
+        item {
             HideWhenNoContentItem(context, item_modifier, onChanged)
+        }
+        item {
+            ShowDebugInformationItem(context, item_modifier, onChanged)
         }
     }
 
@@ -228,6 +238,31 @@ data class BaseWidgetConfiguration(
     }
 
     @Composable
+    private fun BorderRadiusItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfiguration) -> Unit) {
+        val border_radius_state: MutableState<Float> = remember { mutableFloatStateOf(border_radius_dp) }
+        val border_radius_property: PreferencesProperty<Float> = remember {
+            MutableStatePreferencesProperty(
+                border_radius_state,
+                { stringResource(Res.string.widget_config_common_key_border_radius) },
+                { null },
+                getPropertyDefaultValue = { 1f },
+                getPropertyDefaultValueComposable = { 1f }
+            )
+        }
+
+        OnChangedEffect(border_radius_state.value) {
+            onChanged(this.copy(border_radius_dp = border_radius_state.value))
+        }
+
+        remember {
+            AppSliderItem(
+                border_radius_property,
+                range = 0f..5f
+            )
+        }.Item(modifier)
+    }
+
+    @Composable
     private fun HideWhenNoContentItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfiguration) -> Unit) {
         val hide_when_no_content_state: MutableState<Boolean> = remember { mutableStateOf(hide_when_no_content) }
         val hide_when_no_content_property: PreferencesProperty<Boolean> = remember {
@@ -247,6 +282,30 @@ data class BaseWidgetConfiguration(
         OnChangedEffect(hide_when_no_content_state.value) {
             onChanged(
                 this.copy(hide_when_no_content = hide_when_no_content_state.value)
+            )
+        }
+    }
+
+    @Composable
+    private fun ShowDebugInformationItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfiguration) -> Unit) {
+        val show_debug_information_state: MutableState<Boolean> = remember { mutableStateOf(show_debug_information) }
+        val show_debug_information_property: PreferencesProperty<Boolean> = remember {
+            MutableStatePreferencesProperty(
+                show_debug_information_state,
+                { stringResource(Res.string.widget_config_common_key_show_debug_information) },
+                { null },
+                getPropertyDefaultValue = { false },
+                getPropertyDefaultValueComposable = { false }
+            )
+        }
+
+        remember {
+            ToggleSettingsItem(show_debug_information_property)
+        }.Item(modifier)
+
+        OnChangedEffect(show_debug_information_state.value) {
+            onChanged(
+                this.copy(show_debug_information = show_debug_information_state.value)
             )
         }
     }

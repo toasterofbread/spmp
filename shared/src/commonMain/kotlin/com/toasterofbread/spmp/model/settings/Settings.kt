@@ -20,6 +20,7 @@ class Settings(context: AppContext, available_languages: List<Language>) {
     val shortcut: ShortcutSettings = ShortcutSettings(context)
     val platform: PlatformSettings = PlatformSettings(context)
     val misc: MiscSettings = MiscSettings(context)
+    val widget: WidgetSettings = WidgetSettings(context)
     val deps: DependencySettings = DependencySettings(context)
     val search: SearchSettings = SearchSettings(context)
     val experimental: ExperimentalSettings = ExperimentalSettings(context)
@@ -42,6 +43,7 @@ class Settings(context: AppContext, available_languages: List<Language>) {
             streaming,
             shortcut,
             platform,
+            widget,
             misc,
             deps,
             experimental,

@@ -718,6 +718,11 @@
     <string name="s_key_configured_shortcuts">Configured shortcuts</string>
     <string name="s_key_navigate_song_with_numbers">Seek through song with number keys</string>
 
+    <string name="s_key_default_widget_configurations">Default widget settings</string>
+    <string name="prompt_select_widget_type">Select widget type</string>
+    <string name="prompt_select_widget_type_option_base">Base widget</string>
+    <string name="button_widget_settings_change_default_configurations">Configure</string>
+
     <string name="s_key_android_monet_colour_enable">Set Android monet colour</string>
     <string name="s_sub_android_monet_colour_enable">Android system monet colour will be set using the current song thumbnail colour</string>
     <string name="info_android_monet">Requires a specific fork of ColorBlendr to be installed and running. Make sure to read the setup instructions on the fork page.</string>
@@ -768,6 +773,9 @@
 
     <string name="s_cat_misc">Other</string>
     <string name="s_cat_desc_misc">Cache and other miscellaneous options</string>
+
+    <string name="s_cat_widget">Widget</string>
+    <string name="s_cat_desc_widget">TODO</string>
 
     <string name="s_cat_dependencies">Dependencies</string>
     <string name="s_cat_desc_dependencies">View software libraries used by SpMp</string>
@@ -1082,8 +1090,11 @@
 
     <string name="widget_config_title">Widget configuration</string>
     <string name="widget_config_details_$type_$id">Configuring $type widget with ID $id</string>
+    <string name="widget_config_details_$type">Configuring $type widget</string>
+    <string name="widget_config_details_base">Configuring base widget</string>
     <string name="widget_config_button_cancel">Cancel</string>
     <string name="widget_config_button_done">Done</string>
+    <string name="widget_config_button_set_as_default">Set as default</string>
 
     <string name="widget_config_type_name_common">Widget</string>
     <string name="widget_config_type_name_lyrics">Lyrics</string>

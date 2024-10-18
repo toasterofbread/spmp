@@ -106,7 +106,7 @@ class PlayerState(
 
     private val low_memory_listener: () -> Unit
     private val prefs_listner: PlatformPreferencesListener =
-        PlatformPreferencesListener { prefs, key ->
+        PlatformPreferencesListener { key ->
             when (key) {
                 settings.theme.NOWPLAYING_THEME_MODE.key -> coroutine_scope.launch {
                     np_theme_mode = settings.theme.NOWPLAYING_THEME_MODE.get()

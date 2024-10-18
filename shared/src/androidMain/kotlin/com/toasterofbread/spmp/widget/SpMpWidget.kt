@@ -10,8 +10,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import androidx.annotation.FontRes
-import androidx.compose.foundation.isSystemInDarkTheme
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
@@ -345,7 +343,7 @@ internal class WidgetActionCallback: ActionCallback {
     companion object {
         val keyAction: ActionParameters.Key<String> = ActionParameters.Key("action")
 
-        operator fun <A: TypeWidgetClickAction> invoke(configuration: SpMpWidgetConfiguration<A>): Action =
+        operator fun invoke(configuration: SpMpWidgetConfiguration<out TypeWidgetClickAction>): Action =
             actionRunCallback<WidgetActionCallback>(
                 actionParametersOf(keyAction to SpMpWidgetConfiguration.encodeToString(configuration))
             )

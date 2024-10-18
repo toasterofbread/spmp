@@ -28,7 +28,7 @@ internal data class SongQueueWidgetConfiguration(
     @Composable
     override fun getTypeName(): String = stringResource(Res.string.widget_config_type_name_song_queue)
 
-    override fun LazyListScope.ConfigurationItems(
+    override fun LazyListScope.SubConfigurationItems(
         context: AppContext,
         item_modifier: Modifier,
         onChanged: (TypeWidgetConfiguration<SongQueueWidgetClickAction>) -> Unit

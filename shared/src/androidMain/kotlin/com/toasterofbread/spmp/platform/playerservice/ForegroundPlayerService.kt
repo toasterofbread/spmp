@@ -79,7 +79,7 @@ open class ForegroundPlayerService(
     private val audio_device_callback: PlayerAudioDeviceCallback = PlayerAudioDeviceCallback(this)
 
     private val prefs_listener: PlatformPreferencesListener =
-        PlatformPreferencesListener { _, key ->
+        PlatformPreferencesListener {key ->
             when (key) {
                 context.settings.streaming.ENABLE_AUDIO_NORMALISATION.key -> {
                     coroutine_scope.launch {
@@ -149,7 +149,9 @@ open class ForegroundPlayerService(
     override fun onCreate() {
         super.onCreate()
 
-        _context = runBlocking { AppContext.create(this@ForegroundPlayerService, coroutine_scope) }
+        _context = runBlocking {
+            AppContext.create(this@ForegroundPlayerService, coroutine_scope)
+        }
         _context.getPrefs().addListener(prefs_listener)
 
         initialiseSessionAndPlayer(

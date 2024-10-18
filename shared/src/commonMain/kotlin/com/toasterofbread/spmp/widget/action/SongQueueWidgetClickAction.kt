@@ -4,5 +4,4 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.StringResource
 
 @Serializable
-enum class SongQueueWidgetClickAction(val nameResource: StringResource): TypeWidgetClickAction {
-}
+enum class SongQueueWidgetClickAction(val nameResource: StringResource): TypeWidgetClickAction

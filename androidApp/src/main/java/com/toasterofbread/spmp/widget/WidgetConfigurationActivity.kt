@@ -21,7 +21,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.glance.GlanceId
-import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.observeUiLanguage
@@ -29,6 +28,7 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
 import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
+import com.toasterofbread.spmp.widget.configuration.TypeWidgetConfiguration
 import com.toasterofbread.spmp.widget.configuration.ui.screen.WidgetConfigurationScreen
 import dev.toastbits.composekit.navigation.Screen
 import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
@@ -51,7 +51,7 @@ class WidgetConfigurationActivity: ComponentActivity() {
     private var dummy_player_state: PlayerState? = null
 
     private suspend fun finishConfiguration(
-        configuration: SpMpWidgetConfiguration<TypeWidgetClickAction>,
+        configuration: SpMpWidgetConfiguration<out TypeWidgetClickAction>,
         context: AppContext,
         widget_type: SpMpWidgetType
     ) {
@@ -95,18 +95,36 @@ class WidgetConfigurationActivity: ComponentActivity() {
         val widget_info: AppWidgetProviderInfo = AppWidgetManager.getInstance(context.ctx).getAppWidgetInfo(app_widget_id)
         val widget_type: SpMpWidgetType = getSpMpWidgetTypeForActivityInfo(widget_info.provider)
 
-        val configuration_screen: Screen =
-            WidgetConfigurationScreen(
-                context,
-                app_widget_id,
-                widget_type,
-                onCancel = { setResultAndFinish(false) },
-                onDone = {
-                    coroutine_scope.launch {
-                        finishConfiguration(it, context, widget_type)
+        val configuration_screen: Screen = runBlocking {
+            SpMpWidgetConfiguration.getForWidget(context, widget_type, app_widget_id).let { initial_configuration ->
+                WidgetConfigurationScreen(
+                    initial_configuration.base_configuration,
+                    initial_configuration.type_configuration,
+                    context,
+                    widget_type,
+                    app_widget_id,
+                    onCancel = { setResultAndFinish(false) },
+                    onDone = { base, type ->
+                        coroutine_scope.launch {
+                            finishConfiguration(SpMpWidgetConfiguration(type!!, base!!), context, widget_type)
+                        }
+                    },
+                    onSetDefaultBaseConfiguration = { new_base_configuration ->
+                        context.settings.widget.DEFAULT_BASE_WIDGET_CONFIGURATION.set(new_base_configuration)
+                    },
+                    onSetDefaultTypeConfiguration = { new_type_configuration ->
+                        coroutine_scope.launch {
+                            val types: Map<SpMpWidgetType, TypeWidgetConfiguration<out TypeWidgetClickAction>> = context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.get()
+                            context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.set(
+                                types.toMutableMap().apply {
+                                    set(widget_type, new_type_configuration)
+                                }
+                            )
+                        }
                     }
-                }
-            )
+                )
+            }
+        }
         val navigator: Navigator = ExtendableNavigator(configuration_screen)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)

@@ -33,6 +33,7 @@ import com.toasterofbread.spmp.model.appaction.shortcut.LocalShortcutState
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
 import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.ProjectJson
 import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -51,6 +52,7 @@ import dev.toastbits.composekit.navigation.navigator.Navigator
 import dev.toastbits.composekit.platform.LocalContext
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PreferencesGroup
 import dev.toastbits.composekit.platform.composable.theme.ApplicationTheme
 import dev.toastbits.composekit.settings.ui.SettingsScreen
 import dev.toastbits.composekit.settings.ui.ThemeValues

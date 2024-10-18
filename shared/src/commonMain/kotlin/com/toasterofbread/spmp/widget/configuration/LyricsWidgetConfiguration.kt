@@ -37,7 +37,7 @@ internal data class LyricsWidgetConfiguration(
         HIDE
     }
 
-    override fun LazyListScope.ConfigurationItems(
+    override fun LazyListScope.SubConfigurationItems(
         context: AppContext,
         item_modifier: Modifier,
         onChanged: (TypeWidgetConfiguration<LyricsWidgetClickAction>) -> Unit

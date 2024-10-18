@@ -172,7 +172,7 @@ fun createThemeSelectorSettingsItem(
                 }
 
                 private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
-                private val prefs_listener: PlatformPreferencesListener = PlatformPreferencesListener { _, key ->
+                private val prefs_listener: PlatformPreferencesListener = PlatformPreferencesListener { key ->
                     if (key == context.settings.theme.THEMES.key) {
                         coroutine_scope.launch {
                             themes = context.settings.theme.THEMES.get()

@@ -107,7 +107,7 @@ class AppThemeManager(
     }
 
     private val prefs_listener: PlatformPreferencesListener =
-        PlatformPreferencesListener { _, key ->
+        PlatformPreferencesListener { key ->
             when (key) {
                 context.settings.theme.ACCENT_COLOUR_SOURCE.key -> {
                     context.coroutine_scope.launch {

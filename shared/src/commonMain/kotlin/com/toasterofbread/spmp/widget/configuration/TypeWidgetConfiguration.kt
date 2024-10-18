@@ -26,8 +26,23 @@ sealed class TypeWidgetConfiguration<A: TypeWidgetClickAction> {
     @Composable
     abstract fun getTypeName(): String
 
+    fun LazyListScope.ConfigurationItems(context: AppContext, item_modifier: Modifier, onChanged: (TypeWidgetConfiguration<A>) -> Unit) {
+        SubConfigurationItems(context, item_modifier, onChanged)
+        item {
+            ClickActionItem(item_modifier, onChanged)
+        }
+    }
+
+    protected abstract fun LazyListScope.SubConfigurationItems(context: AppContext, item_modifier: Modifier, onChanged: (TypeWidgetConfiguration<A>) -> Unit)
+
+    protected abstract fun getActions(): List<A>
+
+    protected abstract fun getActionNameResource(action: A): StringResource
+
+    protected abstract fun setClickAction(click_action: WidgetClickAction<A>): TypeWidgetConfiguration<A>
+
     @Composable
-    fun ClickActionItem(modifier: Modifier, onChanged: (TypeWidgetConfiguration<A>) -> Unit) {
+    private fun ClickActionItem(modifier: Modifier, onChanged: (TypeWidgetConfiguration<A>) -> Unit) {
         val actions: List<WidgetClickAction<A>> = remember {
             WidgetClickAction.CommonWidgetClickAction.entries + getActions().map { WidgetClickAction.Type(it) }
         }
@@ -59,12 +74,4 @@ sealed class TypeWidgetConfiguration<A: TypeWidgetClickAction> {
             onChanged(setClickAction(actions[click_action_state.value]))
         }
     }
-
-    abstract fun LazyListScope.ConfigurationItems(context: AppContext, item_modifier: Modifier, onChanged: (TypeWidgetConfiguration<A>) -> Unit)
-
-    protected abstract fun getActions(): List<A>
-
-    protected abstract fun getActionNameResource(action: A): StringResource
-
-    protected abstract fun setClickAction(click_action: WidgetClickAction<A>): TypeWidgetConfiguration<A>
 }

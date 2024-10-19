@@ -19,6 +19,7 @@ import androidx.compose.material.icons.filled.ThumbUp
 import androidx.compose.material.icons.filled.TouchApp
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.FilledTonalButton
+import androidx.compose.material3.FilledTonalIconButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
@@ -26,7 +27,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
@@ -34,18 +34,27 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.SettingsAppPage
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.painterResource
-import spmp.shared.generated.resources.*
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_close
-import spmp.shared.generated.resources.project_info_dialog_title
-import spmp.shared.generated.resources.project_info_dialog_section_project
 import spmp.shared.generated.resources.donation_url
-import spmp.shared.generated.resources.project_info_dialog_project_donate_button
-import spmp.shared.generated.resources.project_url
-import spmp.shared.generated.resources.project_info_dialog_project_source_button
+import spmp.shared.generated.resources.ic_github
+import spmp.shared.generated.resources.project_author
 import spmp.shared.generated.resources.project_info_dialog_dependencies_button
+import spmp.shared.generated.resources.project_info_dialog_gesture_dislike
+import spmp.shared.generated.resources.project_info_dialog_gesture_item_long_press_long
+import spmp.shared.generated.resources.project_info_dialog_gesture_item_long_press_normal
+import spmp.shared.generated.resources.project_info_dialog_gesture_item_long_presses
+import spmp.shared.generated.resources.project_info_dialog_gesture_player_swipe_player
+import spmp.shared.generated.resources.project_info_dialog_gesture_player_swipe_queue
+import spmp.shared.generated.resources.project_info_dialog_gesture_player_swipes
+import spmp.shared.generated.resources.`project_info_dialog_project_$author`
+import spmp.shared.generated.resources.`project_info_dialog_project_$license`
 import spmp.shared.generated.resources.project_info_dialog_section_gestures
+import spmp.shared.generated.resources.project_info_dialog_section_project
+import spmp.shared.generated.resources.project_info_dialog_title
+import spmp.shared.generated.resources.project_license
+import spmp.shared.generated.resources.project_url
 
 private val GESTURES: List<Triple<ImageVector, StringResource, List<StringResource>>> = listOf(
     Triple(Icons.Default.SwipeVertical, Res.string.project_info_dialog_gesture_player_swipes, listOf(Res.string.project_info_dialog_gesture_player_swipe_player, Res.string.project_info_dialog_gesture_player_swipe_queue)),
@@ -74,40 +83,37 @@ fun ProjectInfoDialog(modifier: Modifier = Modifier, close: () -> Unit) {
                 verticalArrangement = Arrangement.spacedBy(20.dp)
             ) {
                 InfoSection(stringResource(Res.string.project_info_dialog_section_project)) {
-                    Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Text(stringResource(Res.string.`project_info_dialog_project_$author`).replace("\$author", stringResource(Res.string.project_author)), Modifier.align(Alignment.CenterVertically))
+                    Column(
+                        Modifier.fillMaxWidth()
+                    ) {
+                        FlowRow(
+                            Modifier.fillMaxWidth(),
+                            verticalArrangement = Arrangement.spacedBy(10.dp),
+                            horizontalArrangement = Arrangement.End
+                        ) {
+                            Column(Modifier.fillMaxWidth().weight(1f)) {
+                                Text(stringResource(Res.string.`project_info_dialog_project_$author`).replace("\$author", stringResource(Res.string.project_author)))
 
-                            if (player.context.canOpenUrl()) {
-                                Box(
-                                    Modifier.fillMaxWidth().weight(1f).align(Alignment.CenterVertically),
-                                    contentAlignment = Alignment.CenterEnd
-                                ) {
-                                    val donation_url: String = stringResource(Res.string.donation_url)
-                                    FilledTonalButton({ player.context.openUrl(donation_url) }) {
-                                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                                            Icon(Icons.Default.LocalCafe, null)
-                                            Text(stringResource(Res.string.project_info_dialog_project_donate_button), softWrap = false)
-                                        }
-                                    }
-                                }
+                                Text(
+                                    stringResource(Res.string.`project_info_dialog_project_$license`)
+                                        .replace("\$license", stringResource(Res.string.project_license))
+                                )
                             }
-                        }
-
-                        FlowRow(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
-                            Text(stringResource(Res.string.`project_info_dialog_project_$license`).replace("\$license", stringResource(Res.string.project_license)), Modifier.align(Alignment.CenterVertically))
 
                             if (player.context.canOpenUrl()) {
-                                Box(
-                                    Modifier.fillMaxWidth().weight(1f).align(Alignment.CenterVertically),
-                                    contentAlignment = Alignment.CenterEnd
-                                ) {
+                                Row {
                                     val project_url: String = stringResource(Res.string.project_url)
-                                    FilledTonalButton({ player.context.openUrl(project_url) }) {
-                                        Row(horizontalArrangement = Arrangement.spacedBy(10.dp), verticalAlignment = Alignment.CenterVertically) {
-                                            Icon(painterResource(Res.drawable.ic_github), null)
-                                            Text(stringResource(Res.string.project_info_dialog_project_source_button), softWrap = false)
-                                        }
+                                    FilledTonalIconButton({
+                                        player.context.openUrl(project_url)
+                                    }) {
+                                        Icon(painterResource(Res.drawable.ic_github), null)
+                                    }
+
+                                    val donation_url: String = stringResource(Res.string.donation_url)
+                                    FilledTonalIconButton({
+                                        player.context.openUrl(donation_url)
+                                    }) {
+                                        Icon(Icons.Default.LocalCafe, null)
                                     }
                                 }
                             }
@@ -126,7 +132,10 @@ fun ProjectInfoDialog(modifier: Modifier = Modifier, close: () -> Unit) {
                             },
                             Modifier.fillMaxWidth()
                         ) {
-                            Text(stringResource(Res.string.project_info_dialog_dependencies_button), maxLines = 2)
+                            Text(
+                                stringResource(Res.string.project_info_dialog_dependencies_button),
+                                maxLines = 2
+                            )
                         }
                     }
                 }

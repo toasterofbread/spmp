@@ -33,6 +33,7 @@ import com.toasterofbread.spmp.model.appaction.shortcut.LocalShortcutState
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
 import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.ProjectJson
 import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -51,23 +52,25 @@ import dev.toastbits.composekit.navigation.navigator.Navigator
 import dev.toastbits.composekit.platform.LocalContext
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.platform.PreferencesGroup
 import dev.toastbits.composekit.platform.composable.theme.ApplicationTheme
 import dev.toastbits.composekit.settings.ui.SettingsScreen
+import dev.toastbits.composekit.settings.ui.ThemeValues
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.spms.socketapi.shared.SPMS_API_VERSION
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.Font
-import org.jetbrains.compose.resources.FontResource
-import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.LocalComposeEnvironment
 import org.jetbrains.compose.resources.ComposeEnvironment
 import org.jetbrains.compose.resources.DensityQualifier
+import org.jetbrains.compose.resources.Font
+import org.jetbrains.compose.resources.FontResource
 import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.LanguageQualifier
+import org.jetbrains.compose.resources.LocalComposeEnvironment
 import org.jetbrains.compose.resources.RegionQualifier
 import org.jetbrains.compose.resources.ResourceEnvironment
 import org.jetbrains.compose.resources.ThemeQualifier
+import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_close
 import spmp.shared.generated.resources.app_name
@@ -87,7 +90,7 @@ object SpMp {
 
     private lateinit var context: AppContext
 
-    var _player_state: PlayerState? = null
+    var _player_state: PlayerState? by mutableStateOf(null)
         private set
     val player_state: PlayerState get() = _player_state!!
 
@@ -207,7 +210,7 @@ object SpMp {
 
         val ui_language: String by context.observeUiLanguage()
 
-        context.theme.ApplicationTheme(context, getFontFamily(context, ui_language) ?: FontFamily.Default) {
+        Theme(context, ui_language) {
             LaunchedEffect(open_uri) {
                 if (open_uri != null) {
                     player_state.openUri(open_uri).onFailure {
@@ -325,20 +328,34 @@ object SpMp {
         context.sendToast(exception.toString())
     }
 
-    @Composable
-    private fun getFontFamily(context: AppContext, ui_language: String): FontFamily? {
-        val font_mode: FontMode by context.settings.system.FONT.observe()
-        val font_resource: FontResource? = remember(ui_language, font_mode) { font_mode.getFontResource(ui_language) }
-
-        return font_resource?.let { FontFamily(Font(it)) }
-    }
-
     val app_name: String
         @Composable
         get() = stringResource(Res.string.app_name)
 }
 
 expect fun isWindowTransparencySupported(): Boolean
+
+@Composable
+fun SpMp.Theme(
+    context: AppContext,
+    ui_language: String,
+    theme: ThemeValues = context.theme,
+    content: @Composable () -> Unit
+) {
+    theme.ApplicationTheme(
+        context,
+        getFontFamily(context, ui_language) ?: FontFamily.Default,
+        content
+    )
+}
+
+@Composable
+private fun getFontFamily(context: AppContext, ui_language: String): FontFamily? {
+    val font_mode: FontMode by context.settings.system.FONT.observe()
+    val font_resource: FontResource? = remember(ui_language, font_mode) { font_mode.getFontResource(ui_language) }
+
+    return font_resource?.let { FontFamily(Font(it)) }
+}
 
 private class LocalisedComposeEnvironment(
     private val getUiLanguage: @Composable () -> String

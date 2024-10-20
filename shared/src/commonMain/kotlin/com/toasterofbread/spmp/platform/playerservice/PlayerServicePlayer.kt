@@ -81,7 +81,7 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
     abstract fun onUndoStateChanged()
 
     private val prefs_listener =
-        PlatformPreferencesListener { _, key ->
+        PlatformPreferencesListener { key ->
             when (key) {
 //                Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.name -> {
 //                    vol_notif_enabled = Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.get(preferences = prefs)

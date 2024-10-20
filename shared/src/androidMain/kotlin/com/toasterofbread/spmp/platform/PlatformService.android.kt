@@ -11,14 +11,15 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.runBlocking
-import kotlin.reflect.KClass
 
 actual abstract class PlatformBinder: Binder()
 
 actual open class PlatformServiceImpl: Service(), PlatformService {
     private val coroutine_scope = CoroutineScope(Job())
 
-    actual override val context: AppContext by lazy { runBlocking { AppContext.create(this@PlatformServiceImpl, coroutine_scope) } }
+    actual override val context: AppContext by lazy { runBlocking {
+        AppContext.create(this@PlatformServiceImpl, coroutine_scope) }
+    }
     actual override fun onCreate() {
         super.onCreate()
     }

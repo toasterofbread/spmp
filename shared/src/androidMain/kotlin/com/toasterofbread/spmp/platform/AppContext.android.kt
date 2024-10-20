@@ -27,6 +27,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import kotlinx.serialization.json.Json
 
 actual class AppContext private constructor(
     context: Context,
@@ -46,7 +47,7 @@ actual class AppContext private constructor(
             coroutine_scope: CoroutineScope,
             application_context: ApplicationContext? = null
         ): AppContext {
-            val prefs: PlatformPreferences = PlatformPreferencesImpl.getInstance(context)
+            val prefs: PlatformPreferences = PlatformPreferencesImpl.getInstance(context, ProjectJson.instance)
             val settings: YTApiSettings = YTApiSettings(prefs)
 
             return AppContext(

@@ -41,8 +41,11 @@ sealed class TypeWidgetConfig<A: TypeWidgetClickAction>: WidgetConfig() {
             defaults_mask?.click_action,
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.setClickAction(it)) }
-        ) {
-            ClickActionItem(it, onChanged)
+        ) { modifier, onItemChanged ->
+            ClickActionItem(modifier) {
+                onChanged(it)
+                onItemChanged()
+            }
         }
     }
 

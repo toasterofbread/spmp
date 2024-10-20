@@ -10,6 +10,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import androidx.annotation.FontRes
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableState
@@ -22,8 +23,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -133,11 +136,15 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>: Gla
             active_widgets[widget_id!!] = this
 
             CompositionLocalProvider(
+                // App
                 LocalPlayerState provides state,
-                LocalConfiguration provides context.resources.configuration,
-                LocalContext provides context,
                 dev.toastbits.composekit.platform.LocalContext provides this.context,
-                LocalDensity provides Density(context.resources.displayMetrics.density)
+
+                // System
+                LocalContext provides context,
+                LocalConfiguration provides context.resources.configuration,
+                LocalDensity provides Density(context.resources.displayMetrics.density),
+                LocalLayoutDirection provides if (context.resources.getBoolean(R.bool.is_rtl)) LayoutDirection.Rtl else LayoutDirection.Ltr
             ) {
                 val theme: NamedTheme by observeCurrentTheme(this.context, base_configuration.theme_index)
 
@@ -187,7 +194,6 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>: Gla
                                     .background(theme.theme.card.copy(alpha = base_configuration.background_opacity))
 //                                    .background(android.R.color.system_accent2_50)
                                     .systemCornerRadius()
-                                    .padding(10.dp)
                             ) {
                                 if (base_configuration.show_debug_information) {
                                     DebugInfoItems(GlanceModifier)
@@ -197,7 +203,7 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>: Gla
                                     GlanceModifier.fillMaxSize().defaultWeight(),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Content(GlanceModifier.wrapContentSize())
+                                    Content(GlanceModifier.wrapContentSize(), PaddingValues(15.dp))
                                 }
                             }
                         }
@@ -300,7 +306,7 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>: Gla
     protected abstract fun executeTypeAction(action: A)
 
     @Composable
-    protected abstract fun Content(modifier: GlanceModifier)
+    protected abstract fun Content(modifier: GlanceModifier, content_padding: PaddingValues)
 
     @Composable
     protected open fun hasContent(): Boolean = true

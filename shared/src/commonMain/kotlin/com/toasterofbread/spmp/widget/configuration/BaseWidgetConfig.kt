@@ -1,13 +1,6 @@
 package com.toasterofbread.spmp.widget.configuration
 
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
-import androidx.compose.material3.Icon
-import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -15,10 +8,7 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.graphicsLayer
-import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.platform.AppContext
@@ -31,13 +21,11 @@ import dev.toastbits.composekit.settings.ui.NamedTheme
 import dev.toastbits.composekit.settings.ui.ThemeValuesData
 import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
-import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.widget_application_theme_label
-import spmp.shared.generated.resources.widget_config_button_use_default_value
 import spmp.shared.generated.resources.widget_config_common_key_background_opacity
 import spmp.shared.generated.resources.widget_config_common_key_border_radius
 import spmp.shared.generated.resources.widget_config_common_key_content_colour
@@ -53,49 +41,6 @@ import spmp.shared.generated.resources.widget_config_common_option_font_app
 import kotlin.math.roundToInt
 
 private const val DEFAULT_BACKGROUND_OPACITY: Float = 1f
-
-abstract class WidgetConfig {
-    protected fun LazyListScope.configItem(
-        default_mask_value: Boolean?,
-        modifier: Modifier,
-        onDefaultMaskValueChanged: (Boolean) -> Unit,
-        content: @Composable (Modifier) -> Unit
-    ) {
-        item {
-            Row(
-                modifier,
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                if (default_mask_value != null) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            SpMpWidgetConfiguration.DEFAULTS_ICON,
-                            stringResource(Res.string.widget_config_button_use_default_value),
-                            Modifier.size(15.dp)
-                        )
-                        RadioButton(
-                            default_mask_value,
-                            { onDefaultMaskValueChanged(!default_mask_value) },
-                            Modifier.size(25.dp)
-                        )
-                    }
-                }
-
-                content(
-                    Modifier
-                        .fillMaxWidth()
-                        .weight(1f)
-                        .thenIf(default_mask_value == true) {
-                            graphicsLayer { alpha = 0.5f; clip = false }
-                        }
-                )
-            }
-        }
-    }
-}
 
 @Serializable
 data class BaseWidgetConfig(
@@ -119,57 +64,81 @@ data class BaseWidgetConfig(
             defaults_mask?.theme_index,
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(theme_index = it)) }
-        ) {
-            ThemeIndexItem(context, it, onChanged)
+        ) { modifier, onItemChanged ->
+            ThemeIndexItem(context, modifier) {
+                onChanged(it)
+                onItemChanged()
+            }
         }
         configItem(
             defaults_mask?.font,
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(font = it)) }
-        ) {
-            FontItem(context, it, onChanged)
+        ) { modifier, onItemChanged ->
+            FontItem(context, modifier) {
+                onChanged(it)
+                onItemChanged()
+            }
         }
         configItem(
             defaults_mask?.font_size,
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(font_size = it)) }
-        ) {
-            FontSizeItem(context, it, onChanged)
+        ) { modifier, onItemChanged ->
+            FontSizeItem(context, modifier) {
+                onChanged(it)
+                onItemChanged()
+            }
         }
         configItem(
             defaults_mask?.content_colour,
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(content_colour = it)) }
-        ) {
-            ContentColourItem(context, it, onChanged)
+        ) { modifier, onItemChanged ->
+            ContentColourItem(context, modifier) {
+                onChanged(it)
+                onItemChanged()
+            }
         }
         configItem(
             defaults_mask?.background_opacity,
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(background_opacity = it)) }
-        ) {
-            BackgroundOpacityItem(context, it, onChanged)
+        ) { modifier, onItemChanged ->
+            BackgroundOpacityItem(context, modifier) {
+                onChanged(it)
+                onItemChanged()
+            }
         }
         configItem(
             defaults_mask?.border_radius_dp,
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(border_radius_dp = it)) }
-        ) {
-            BorderRadiusItem(context, it, onChanged)
+        ) { modifier, onItemChanged ->
+            BorderRadiusItem(context, modifier) {
+                onChanged(it)
+                onItemChanged()
+            }
         }
         configItem(
             defaults_mask?.hide_when_no_content,
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(hide_when_no_content = it)) }
-        ) {
-            HideWhenNoContentItem(context, it, onChanged)
+        ) { modifier, onItemChanged ->
+            HideWhenNoContentItem(context, modifier) {
+                onChanged(it)
+                onItemChanged()
+            }
         }
         configItem(
             defaults_mask?.show_debug_information,
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(show_debug_information = it)) }
-        ) {
-            ShowDebugInformationItem(context, it, onChanged)
+        ) { modifier, onItemChanged ->
+            ShowDebugInformationItem(context, modifier) {
+                onChanged(it)
+                onItemChanged()
+            }
         }
     }
 

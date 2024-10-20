@@ -50,8 +50,11 @@ internal data class LyricsWidgetConfig(
             defaults_mask?.furigana_mode,
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(furigana_mode = it)) }
-        ) {
-            FuriganaModeItem(it, onChanged)
+        ) { modifier, onItemChanged ->
+            FuriganaModeItem(modifier) {
+                onChanged(it)
+                onItemChanged()
+            }
         }
     }
 

@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.widget.impl
 
 import LocalPlayerState
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,6 +21,7 @@ import com.toasterofbread.spmp.ui.util.LyricsLineState
 import com.toasterofbread.spmp.widget.SpMpWidget
 import com.toasterofbread.spmp.widget.action.LyricsWidgetClickAction
 import com.toasterofbread.spmp.widget.configuration.LyricsWidgetConfig
+import com.toasterofbread.spmp.widget.modifier.padding
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.widget_lyrics_status_no_lyrics
@@ -63,8 +65,8 @@ internal abstract class LyricsWidget: SpMpWidget<LyricsWidgetClickAction, Lyrics
     }
 
     @Composable
-    final override fun Content(modifier: GlanceModifier) {
-        Column(modifier) {
+    final override fun Content(modifier: GlanceModifier, content_padding: PaddingValues) {
+        Column(modifier.padding(content_padding)) {
             val current_state: SongLyricsLoader.ItemState? = lyrics_state
             val lyrics: SongLyrics? = current_state?.lyrics
 

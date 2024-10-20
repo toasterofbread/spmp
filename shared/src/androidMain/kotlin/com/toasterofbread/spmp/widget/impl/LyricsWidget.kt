@@ -19,12 +19,12 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.util.LyricsLineState
 import com.toasterofbread.spmp.widget.SpMpWidget
 import com.toasterofbread.spmp.widget.action.LyricsWidgetClickAction
-import com.toasterofbread.spmp.widget.configuration.LyricsWidgetConfiguration
+import com.toasterofbread.spmp.widget.configuration.LyricsWidgetConfig
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.widget_lyrics_status_no_lyrics
 
-internal abstract class LyricsWidget: SpMpWidget<LyricsWidgetClickAction, LyricsWidgetConfiguration>() {
+internal abstract class LyricsWidget: SpMpWidget<LyricsWidgetClickAction, LyricsWidgetConfig>() {
     private var current_song: Song? by mutableStateOf(null)
     private var lyrics_state: SongLyricsLoader.ItemState? by mutableStateOf(null)
     private var show_readings: Boolean by mutableStateOf(false)
@@ -75,13 +75,13 @@ internal abstract class LyricsWidget: SpMpWidget<LyricsWidgetClickAction, Lyrics
                 if (show_readings_override == null) {
                     show_readings =
                         when (type_configuration.furigana_mode) {
-                            LyricsWidgetConfiguration.FuriganaMode.APP_DEFAULT ->
+                            LyricsWidgetConfig.FuriganaMode.APP_DEFAULT ->
                                 LocalPlayerState.current.settings.lyrics.DEFAULT_FURIGANA.observe().value
 
-                            LyricsWidgetConfiguration.FuriganaMode.SHOW ->
+                            LyricsWidgetConfig.FuriganaMode.SHOW ->
                                 true
 
-                            LyricsWidgetConfiguration.FuriganaMode.HIDE ->
+                            LyricsWidgetConfig.FuriganaMode.HIDE ->
                                 false
                         }
                 }

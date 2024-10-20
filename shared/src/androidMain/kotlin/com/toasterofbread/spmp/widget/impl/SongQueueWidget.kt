@@ -5,8 +5,6 @@ import SpMp
 import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -35,7 +33,7 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.widget.SpMpWidget
 import com.toasterofbread.spmp.widget.action.SongQueueWidgetClickAction
-import com.toasterofbread.spmp.widget.configuration.SongQueueWidgetConfiguration
+import com.toasterofbread.spmp.widget.configuration.SongQueueWidgetConfig
 import dev.toastbits.composekit.utils.common.getValue
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
@@ -44,7 +42,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-internal class SongQueueWidget: SpMpWidget<SongQueueWidgetClickAction, SongQueueWidgetConfiguration>() {
+internal class SongQueueWidget: SpMpWidget<SongQueueWidgetClickAction, SongQueueWidgetConfig>() {
     override fun executeTypeAction(action: SongQueueWidgetClickAction) =
         when (action) {
             else -> throw IllegalStateException(action.toString())

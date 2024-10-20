@@ -12,6 +12,7 @@ import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import androidx.annotation.FontRes
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -60,21 +61,24 @@ import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClick
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.OPEN_WIDGET_CONFIG
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.TOGGLE_VISIBILITY
 import com.toasterofbread.spmp.widget.component.GlanceText
-import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfiguration
-import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfiguration.ContentColour.DARK
-import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfiguration.ContentColour.LIGHT
-import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfiguration.ContentColour.THEME
+import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfig
+import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfig.ContentColour.DARK
+import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfig.ContentColour.LIGHT
+import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfig.ContentColour.THEME
+import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfigDefaultsMask
 import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
-import com.toasterofbread.spmp.widget.configuration.TypeWidgetConfiguration
+import com.toasterofbread.spmp.widget.configuration.TypeConfigurationDefaultsMask
+import com.toasterofbread.spmp.widget.configuration.TypeWidgetConfig
 import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
 import dev.toastbits.composekit.settings.ui.NamedTheme
 import dev.toastbits.composekit.utils.common.thenIf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.serialization.encodeToString
 
 @Suppress("UNCHECKED_CAST")
-abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfiguration<A>>: GlanceAppWidget() {
+abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>: GlanceAppWidget() {
     companion object {
         private val active_widgets: MutableMap<Int, SpMpWidget<*, *>> = mutableMapOf()
 
@@ -89,14 +93,22 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfiguration<A
     protected val type_configuration: T
         get() = configuration.type_configuration as T
 
-    private val base_configuration: BaseWidgetConfiguration
+    private val base_configuration: BaseWidgetConfig
         get() = configuration.base_configuration
 
-    private val widget_type: SpMpWidgetType = SpMpWidgetType.entries.first { it.widgetClass == this::class }
-    private var configuration: SpMpWidgetConfiguration<out TypeWidgetClickAction> by mutableStateOf(SpMpWidgetConfiguration(widget_type.defaultConfiguration, BaseWidgetConfiguration()))
     private var visible: Boolean by mutableStateOf(true)
     private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
     private var widget_id: Int? by mutableStateOf(null)
+    private val widget_type: SpMpWidgetType = SpMpWidgetType.entries.first { it.widgetClass == this::class }
+    private var configuration: SpMpWidgetConfiguration<A> by
+        mutableStateOf(
+            SpMpWidgetConfiguration(
+                BaseWidgetConfig(),
+                BaseWidgetConfigDefaultsMask(),
+                widget_type.default_config as T,
+                widget_type.default_defaults_mask as TypeConfigurationDefaultsMask<TypeWidgetConfig<A>>
+            )
+        )
 
     final override suspend fun provideGlance(context: Context, id: GlanceId) {
         this.context = AppContext.create(context, coroutine_scope)
@@ -272,7 +284,17 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfiguration<A
 
     @Composable
     private fun ObserveConfiguration(widget_id: Int) {
-        configuration = SpMpWidgetConfiguration.observeForWidget(this.context, widget_type, widget_id).value
+        val config: SpMpWidgetConfiguration<A> by SpMpWidgetConfiguration.observeForWidget(this.context, widget_type, widget_id) as MutableState<SpMpWidgetConfiguration<A>>
+        val base_default: BaseWidgetConfig by context.settings.widget.DEFAULT_BASE_WIDGET_CONFIGURATION.observe()
+        val type_defaults: Map<SpMpWidgetType, TypeWidgetConfig<out TypeWidgetClickAction>> by context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.observe()
+        val type_default: TypeWidgetConfig<A> = (type_defaults[widget_type] ?: widget_type.default_config) as TypeWidgetConfig<A>
+
+        configuration = remember(config, base_default, type_default) {
+            config.copy(
+                base_configuration = config.base_configuration_defaults_mask.applyTo(config.base_configuration, base_default),
+                type_configuration = config.type_configuration_defaults_mask.applyTo(config.type_configuration, type_default)
+            )
+        }
     }
 
     protected abstract fun executeTypeAction(action: A)
@@ -336,7 +358,7 @@ internal class WidgetActionCallback: ActionCallback {
         parameters: ActionParameters
     ) {
         val serialisedAction: String = parameters[keyAction] ?: return
-        val configuration: SpMpWidgetConfiguration<TypeWidgetClickAction> = SpMpWidgetConfiguration.decodeFromString(serialisedAction)
+        val configuration: SpMpWidgetConfiguration<TypeWidgetClickAction> = SpMpWidgetConfiguration.json.decodeFromString(serialisedAction)
         SpMpWidget.runActionOnWidget(configuration.type_configuration.click_action, glanceId)
     }
 
@@ -345,7 +367,7 @@ internal class WidgetActionCallback: ActionCallback {
 
         operator fun invoke(configuration: SpMpWidgetConfiguration<out TypeWidgetClickAction>): Action =
             actionRunCallback<WidgetActionCallback>(
-                actionParametersOf(keyAction to SpMpWidgetConfiguration.encodeToString(configuration))
+                actionParametersOf(keyAction to SpMpWidgetConfiguration.json.encodeToString(configuration))
             )
     }
 }

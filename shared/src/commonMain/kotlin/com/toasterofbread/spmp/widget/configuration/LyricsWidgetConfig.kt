@@ -24,10 +24,10 @@ import spmp.shared.generated.resources.widget_config_lyrics_option_furigana_mode
 import spmp.shared.generated.resources.widget_config_type_name_lyrics
 
 @Serializable
-internal data class LyricsWidgetConfiguration(
+internal data class LyricsWidgetConfig(
     val furigana_mode: FuriganaMode = FuriganaMode.APP_DEFAULT,
     override val click_action: WidgetClickAction<LyricsWidgetClickAction> = WidgetClickAction.DEFAULT
-): TypeWidgetConfiguration<LyricsWidgetClickAction>() {
+): TypeWidgetConfig<LyricsWidgetClickAction>() {
     @Composable
     override fun getTypeName(): String = stringResource(Res.string.widget_config_type_name_lyrics)
 
@@ -39,11 +39,19 @@ internal data class LyricsWidgetConfiguration(
 
     override fun LazyListScope.SubConfigurationItems(
         context: AppContext,
+        defaults_mask: TypeConfigurationDefaultsMask<out TypeWidgetConfig<LyricsWidgetClickAction>>?,
         item_modifier: Modifier,
-        onChanged: (TypeWidgetConfiguration<LyricsWidgetClickAction>) -> Unit
+        onChanged: (TypeWidgetConfig<LyricsWidgetClickAction>) -> Unit,
+        onDefaultsMaskChanged: (TypeConfigurationDefaultsMask<out TypeWidgetConfig<LyricsWidgetClickAction>>) -> Unit
     ) {
-        item {
-            FuriganaModeItem(item_modifier, onChanged)
+        require(defaults_mask is LyricsWidgetConfigDefaultsMask?)
+
+        configItem(
+            defaults_mask?.furigana_mode,
+            item_modifier,
+            { onDefaultsMaskChanged(defaults_mask!!.copy(furigana_mode = it)) }
+        ) {
+            FuriganaModeItem(it, onChanged)
         }
     }
 
@@ -51,11 +59,11 @@ internal data class LyricsWidgetConfiguration(
 
     override fun getActionNameResource(action: LyricsWidgetClickAction): StringResource = action.nameResource
 
-    override fun setClickAction(click_action: WidgetClickAction<LyricsWidgetClickAction>): TypeWidgetConfiguration<LyricsWidgetClickAction> =
+    override fun setClickAction(click_action: WidgetClickAction<LyricsWidgetClickAction>): TypeWidgetConfig<LyricsWidgetClickAction> =
         copy(click_action = click_action)
 
     @Composable
-    private fun FuriganaModeItem(modifier: Modifier, onChanged: (TypeWidgetConfiguration<LyricsWidgetClickAction>) -> Unit) {
+    private fun FuriganaModeItem(modifier: Modifier, onChanged: (TypeWidgetConfig<LyricsWidgetClickAction>) -> Unit) {
         val furigana_mode_state: MutableState<FuriganaMode> = remember { mutableStateOf(furigana_mode) }
         val furigana_mode_property: PreferencesProperty<FuriganaMode> = remember {
             MutableStatePreferencesProperty(

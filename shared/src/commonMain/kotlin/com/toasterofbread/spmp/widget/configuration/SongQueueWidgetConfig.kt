@@ -21,20 +21,28 @@ import spmp.shared.generated.resources.widget_config_song_queue_next_songs_to_sh
 import spmp.shared.generated.resources.widget_config_type_name_song_queue
 
 @Serializable
-internal data class SongQueueWidgetConfiguration(
+data class SongQueueWidgetConfig(
     val next_songs_to_show: Int = 1,
     override val click_action: WidgetClickAction<SongQueueWidgetClickAction> = WidgetClickAction.DEFAULT
-): TypeWidgetConfiguration<SongQueueWidgetClickAction>() {
+): TypeWidgetConfig<SongQueueWidgetClickAction>() {
     @Composable
     override fun getTypeName(): String = stringResource(Res.string.widget_config_type_name_song_queue)
 
     override fun LazyListScope.SubConfigurationItems(
         context: AppContext,
+        defaults_mask: TypeConfigurationDefaultsMask<out TypeWidgetConfig<SongQueueWidgetClickAction>>?,
         item_modifier: Modifier,
-        onChanged: (TypeWidgetConfiguration<SongQueueWidgetClickAction>) -> Unit
+        onChanged: (TypeWidgetConfig<SongQueueWidgetClickAction>) -> Unit,
+        onDefaultsMaskChanged: (TypeConfigurationDefaultsMask<out TypeWidgetConfig<SongQueueWidgetClickAction>>) -> Unit
     ) {
-        item {
-            NextSongsToShowItem(item_modifier, onChanged)
+        require(defaults_mask is SongQueueWidgetConfigDefaultsMask?)
+
+        configItem(
+            defaults_mask?.next_songs_to_show,
+            item_modifier,
+            { onDefaultsMaskChanged(defaults_mask!!.copy(next_songs_to_show = it)) }
+        ) {
+            NextSongsToShowItem(it, onChanged)
         }
     }
 
@@ -42,11 +50,11 @@ internal data class SongQueueWidgetConfiguration(
 
     override fun getActionNameResource(action: SongQueueWidgetClickAction): StringResource = action.nameResource
 
-    override fun setClickAction(click_action: WidgetClickAction<SongQueueWidgetClickAction>): TypeWidgetConfiguration<SongQueueWidgetClickAction> =
+    override fun setClickAction(click_action: WidgetClickAction<SongQueueWidgetClickAction>): TypeWidgetConfig<SongQueueWidgetClickAction> =
         copy(click_action = click_action)
 
     @Composable
-    private fun NextSongsToShowItem(modifier: Modifier, onChanged: (TypeWidgetConfiguration<SongQueueWidgetClickAction>) -> Unit) {
+    private fun NextSongsToShowItem(modifier: Modifier, onChanged: (TypeWidgetConfig<SongQueueWidgetClickAction>) -> Unit) {
         val next_songs_to_show_state: MutableState<Int> = remember { mutableIntStateOf(next_songs_to_show) }
         val next_songs_to_show_property: PreferencesProperty<Int> = remember {
             MutableStatePreferencesProperty(

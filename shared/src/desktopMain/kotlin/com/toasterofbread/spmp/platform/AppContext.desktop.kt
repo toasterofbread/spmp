@@ -29,7 +29,7 @@ actual class AppContext private constructor(
     companion object {
         suspend fun create(coroutine_scope: CoroutineScope): AppContext {
             val app_name: String = getString(Res.string.app_name)
-            val prefs: PlatformPreferences = PlatformPreferencesImpl.getInstance(getDesktopFilesDir(app_name).resolve("preferences.json"))
+            val prefs: PlatformPreferences = PlatformPreferencesImpl.getInstance(getDesktopFilesDir(app_name).resolve("preferences.json"), ProjectJson.instance)
             val settings: YTApiSettings = YTApiSettings(prefs)
 
             return AppContext(

@@ -28,7 +28,7 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
 import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
-import com.toasterofbread.spmp.widget.configuration.TypeWidgetConfiguration
+import com.toasterofbread.spmp.widget.configuration.TypeWidgetConfig
 import com.toasterofbread.spmp.widget.configuration.ui.screen.WidgetConfigurationScreen
 import dev.toastbits.composekit.navigation.Screen
 import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
@@ -44,6 +44,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlinx.serialization.encodeToString
 
 class WidgetConfigurationActivity: ComponentActivity() {
     private var app_widget_id: Int = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -57,7 +58,7 @@ class WidgetConfigurationActivity: ComponentActivity() {
     ) {
         val glance_id: GlanceId = GlanceAppWidgetManager(this).getGlanceIdBy(app_widget_id)
 
-        val serialised: String = SpMpWidgetConfiguration.encodeToString(configuration)
+        val serialised: String = SpMpWidgetConfiguration.json.encodeToString(configuration)
         context.database.androidWidgetQueries.insertOrReplace(glance_id.getDatabaseId().toLong(), serialised)
 
         widget_type.update(this, glance_id)
@@ -96,34 +97,11 @@ class WidgetConfigurationActivity: ComponentActivity() {
         val widget_type: SpMpWidgetType = getSpMpWidgetTypeForActivityInfo(widget_info.provider)
 
         val configuration_screen: Screen = runBlocking {
-            SpMpWidgetConfiguration.getForWidget(context, widget_type, app_widget_id).let { initial_configuration ->
-                WidgetConfigurationScreen(
-                    initial_configuration.base_configuration,
-                    initial_configuration.type_configuration,
-                    context,
-                    widget_type,
-                    app_widget_id,
-                    onCancel = { setResultAndFinish(false) },
-                    onDone = { base, type ->
-                        coroutine_scope.launch {
-                            finishConfiguration(SpMpWidgetConfiguration(type!!, base!!), context, widget_type)
-                        }
-                    },
-                    onSetDefaultBaseConfiguration = { new_base_configuration ->
-                        context.settings.widget.DEFAULT_BASE_WIDGET_CONFIGURATION.set(new_base_configuration)
-                    },
-                    onSetDefaultTypeConfiguration = { new_type_configuration ->
-                        coroutine_scope.launch {
-                            val types: Map<SpMpWidgetType, TypeWidgetConfiguration<out TypeWidgetClickAction>> = context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.get()
-                            context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.set(
-                                types.toMutableMap().apply {
-                                    set(widget_type, new_type_configuration)
-                                }
-                            )
-                        }
-                    }
-                )
-            }
+            createWidgetConfigurationScreen(
+                initial_configuration = SpMpWidgetConfiguration.getForWidget(context, widget_type, app_widget_id),
+                context = context,
+                widget_type = widget_type
+            )
         }
         val navigator: Navigator = ExtendableNavigator(configuration_screen)
 
@@ -170,6 +148,48 @@ class WidgetConfigurationActivity: ComponentActivity() {
             }
         }
     }
+
+    private fun <A: TypeWidgetClickAction> createWidgetConfigurationScreen(
+        initial_configuration: SpMpWidgetConfiguration<A>,
+        context: AppContext,
+        widget_type: SpMpWidgetType
+    ): WidgetConfigurationScreen<A> =
+        WidgetConfigurationScreen(
+            initial_configuration.base_configuration,
+            initial_configuration.base_configuration_defaults_mask,
+            initial_configuration.type_configuration,
+            initial_configuration.type_configuration_defaults_mask,
+            context,
+            widget_type,
+            app_widget_id,
+            onCancel = { setResultAndFinish(false) },
+            onDone = { base, base_defaults_mask, type, type_defaults_mask ->
+                coroutine_scope.launch {
+                    finishConfiguration(
+                        SpMpWidgetConfiguration(
+                            base!!,
+                            base_defaults_mask!!,
+                            type!!,
+                            type_defaults_mask!!
+                        ), context, widget_type
+                    )
+                }
+            },
+            onSetDefaultBaseConfig = { new_base_configuration ->
+                context.settings.widget.DEFAULT_BASE_WIDGET_CONFIGURATION.set(new_base_configuration)
+            },
+            onSetDefaultTypeConfig = { new_type_configuration ->
+                coroutine_scope.launch {
+                    val types: Map<SpMpWidgetType, TypeWidgetConfig<out TypeWidgetClickAction>> =
+                        context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.get()
+                    context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.set(
+                        types.toMutableMap().apply {
+                            set(widget_type, new_type_configuration)
+                        }
+                    )
+                }
+            }
+        )
 
     override fun onDestroy() {
         super.onDestroy()

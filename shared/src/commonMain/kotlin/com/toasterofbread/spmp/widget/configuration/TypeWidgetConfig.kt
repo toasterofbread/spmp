@@ -20,29 +20,48 @@ import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.widget_config_common_key_click_action
 
 @Serializable
-sealed class TypeWidgetConfiguration<A: TypeWidgetClickAction> {
+sealed class TypeWidgetConfig<A: TypeWidgetClickAction>: WidgetConfig() {
     abstract val click_action: WidgetClickAction<A>
 
     @Composable
     abstract fun getTypeName(): String
 
-    fun LazyListScope.ConfigurationItems(context: AppContext, item_modifier: Modifier, onChanged: (TypeWidgetConfiguration<A>) -> Unit) {
-        SubConfigurationItems(context, item_modifier, onChanged)
-        item {
-            ClickActionItem(item_modifier, onChanged)
+    fun LazyListScope.ConfigItems(
+        context: AppContext,
+        defaults_mask: TypeConfigurationDefaultsMask<TypeWidgetConfig<A>>?,
+        item_modifier: Modifier,
+        onChanged: (TypeWidgetConfig<A>) -> Unit,
+        onDefaultsMaskChanged: (TypeConfigurationDefaultsMask<TypeWidgetConfig<A>>) -> Unit
+    ) {
+        SubConfigurationItems(context, defaults_mask, item_modifier, onChanged) {
+            @Suppress("UNCHECKED_CAST")
+            onDefaultsMaskChanged(it as TypeConfigurationDefaultsMask<TypeWidgetConfig<A>>)
+        }
+        configItem(
+            defaults_mask?.click_action,
+            item_modifier,
+            { onDefaultsMaskChanged(defaults_mask!!.setClickAction(it)) }
+        ) {
+            ClickActionItem(it, onChanged)
         }
     }
 
-    protected abstract fun LazyListScope.SubConfigurationItems(context: AppContext, item_modifier: Modifier, onChanged: (TypeWidgetConfiguration<A>) -> Unit)
+    protected abstract fun LazyListScope.SubConfigurationItems(
+        context: AppContext,
+        defaults_mask: TypeConfigurationDefaultsMask<out TypeWidgetConfig<A>>?,
+        item_modifier: Modifier,
+        onChanged: (TypeWidgetConfig<A>) -> Unit,
+        onDefaultsMaskChanged: (TypeConfigurationDefaultsMask<out TypeWidgetConfig<A>>) -> Unit
+    )
 
     protected abstract fun getActions(): List<A>
 
     protected abstract fun getActionNameResource(action: A): StringResource
 
-    protected abstract fun setClickAction(click_action: WidgetClickAction<A>): TypeWidgetConfiguration<A>
+    protected abstract fun setClickAction(click_action: WidgetClickAction<A>): TypeWidgetConfig<A>
 
     @Composable
-    private fun ClickActionItem(modifier: Modifier, onChanged: (TypeWidgetConfiguration<A>) -> Unit) {
+    private fun ClickActionItem(modifier: Modifier, onChanged: (TypeWidgetConfig<A>) -> Unit) {
         val actions: List<WidgetClickAction<A>> = remember {
             WidgetClickAction.CommonWidgetClickAction.entries + getActions().map { WidgetClickAction.Type(it) }
         }

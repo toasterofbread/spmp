@@ -17,8 +17,8 @@ import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.widget.SpMpWidgetType
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
-import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfiguration
-import com.toasterofbread.spmp.widget.configuration.TypeWidgetConfiguration
+import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfig
+import com.toasterofbread.spmp.widget.configuration.TypeWidgetConfig
 import com.toasterofbread.spmp.widget.configuration.ui.screen.WidgetConfigurationScreen
 import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
 import dev.toastbits.composekit.navigation.navigator.Navigator
@@ -37,29 +37,31 @@ internal fun getWidgetCategoryItems(context: AppContext): List<SettingsItem> =
     listOf(
         ComposableSettingsItem {
             val navigator: Navigator = LocalNavigator.current
-            val base_configuration: BaseWidgetConfiguration by context.settings.widget.DEFAULT_BASE_WIDGET_CONFIGURATION.observe()
-            val type_configurations: Map<SpMpWidgetType, TypeWidgetConfiguration<out TypeWidgetClickAction>> by context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.observe()
+            val base_configuration: BaseWidgetConfig by context.settings.widget.DEFAULT_BASE_WIDGET_CONFIGURATION.observe()
+            val type_configurations: Map<SpMpWidgetType, TypeWidgetConfig<out TypeWidgetClickAction>> by context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.observe()
 
             var show_type_selector: Boolean by remember { mutableStateOf(false) }
 
             if (show_type_selector) {
                 WidgetTypeOrBaseSelector(
                     onSelected = { type ->
-                        if (navigator.currentScreen is WidgetConfigurationScreen) {
+                        if (navigator.currentScreen is WidgetConfigurationScreen<*>) {
                             return@WidgetTypeOrBaseSelector
                         }
 
-                        val config_screen: WidgetConfigurationScreen =
+                        val config_screen: WidgetConfigurationScreen<*> =
                             WidgetConfigurationScreen(
                                 if (type == null) base_configuration else null,
-                                if (type != null) type_configurations[type] ?: type.defaultConfiguration else null,
+                                null,
+                                if (type != null) type_configurations[type] ?: type.default_config else null,
+                                null,
                                 context,
                                 type,
                                 null,
                                 onCancel = {
                                     navigator.navigateBackward()
                                 },
-                                onDone = { new_base, new_type ->
+                                onDone = { new_base, _, new_type, _ ->
                                     navigator.navigateBackward()
 
                                     if (new_base != null) {
@@ -128,7 +130,7 @@ private fun WidgetTypeOrBaseSelector(
                         },
                         button_modifier
                     ) {
-                        Text(type.defaultConfiguration.getTypeName())
+                        Text(type.default_config.getTypeName())
                     }
                 }
             }

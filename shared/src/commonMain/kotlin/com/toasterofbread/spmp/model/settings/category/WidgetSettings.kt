@@ -8,8 +8,9 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getWidgetCategoryItems
 import com.toasterofbread.spmp.widget.SpMpWidgetType
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
-import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfiguration
-import com.toasterofbread.spmp.widget.configuration.TypeWidgetConfiguration
+import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfig
+import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
+import com.toasterofbread.spmp.widget.configuration.TypeWidgetConfig
 import dev.toastbits.composekit.platform.Platform
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
@@ -21,16 +22,18 @@ import spmp.shared.generated.resources.s_cat_widget
 class WidgetSettings(
     val context: AppContext
 ): SettingsGroup("WIDGET", context.getPrefs()) {
-    val DEFAULT_BASE_WIDGET_CONFIGURATION: PreferencesProperty<BaseWidgetConfiguration> by serialisableProperty(
+    val DEFAULT_BASE_WIDGET_CONFIGURATION: PreferencesProperty<BaseWidgetConfig> by serialisableProperty(
         getName = { "" },
         getDescription = { null },
-        getDefaultValue = { BaseWidgetConfiguration() }
+        getDefaultValue = { BaseWidgetConfig() },
+        json = SpMpWidgetConfiguration.json
     )
 
-    val DEFAULT_TYPE_WIDGET_CONFIGURATIONS: PreferencesProperty<Map<SpMpWidgetType, TypeWidgetConfiguration<out TypeWidgetClickAction>>> by serialisableProperty(
+    val DEFAULT_TYPE_WIDGET_CONFIGURATIONS: PreferencesProperty<Map<SpMpWidgetType, TypeWidgetConfig<out TypeWidgetClickAction>>> by serialisableProperty(
         getName = { "" },
         getDescription = { null },
-        getDefaultValue = { emptyMap() }
+        getDefaultValue = { emptyMap() },
+        json = SpMpWidgetConfiguration.json
     )
 
     @Composable

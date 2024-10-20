@@ -1,6 +1,13 @@
 package com.toasterofbread.spmp.widget.configuration
 
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyListScope
+import androidx.compose.material3.Icon
+import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -8,7 +15,10 @@ import androidx.compose.runtime.mutableFloatStateOf
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.platform.AppContext
@@ -21,11 +31,13 @@ import dev.toastbits.composekit.settings.ui.NamedTheme
 import dev.toastbits.composekit.settings.ui.ThemeValuesData
 import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
+import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.widget_application_theme_label
+import spmp.shared.generated.resources.widget_config_button_use_default_value
 import spmp.shared.generated.resources.widget_config_common_key_background_opacity
 import spmp.shared.generated.resources.widget_config_common_key_border_radius
 import spmp.shared.generated.resources.widget_config_common_key_content_colour
@@ -42,8 +54,51 @@ import kotlin.math.roundToInt
 
 private const val DEFAULT_BACKGROUND_OPACITY: Float = 1f
 
+abstract class WidgetConfig {
+    protected fun LazyListScope.configItem(
+        default_mask_value: Boolean?,
+        modifier: Modifier,
+        onDefaultMaskValueChanged: (Boolean) -> Unit,
+        content: @Composable (Modifier) -> Unit
+    ) {
+        item {
+            Row(
+                modifier,
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(10.dp)
+            ) {
+                if (default_mask_value != null) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            SpMpWidgetConfiguration.DEFAULTS_ICON,
+                            stringResource(Res.string.widget_config_button_use_default_value),
+                            Modifier.size(15.dp)
+                        )
+                        RadioButton(
+                            default_mask_value,
+                            { onDefaultMaskValueChanged(!default_mask_value) },
+                            Modifier.size(25.dp)
+                        )
+                    }
+                }
+
+                content(
+                    Modifier
+                        .fillMaxWidth()
+                        .weight(1f)
+                        .thenIf(default_mask_value == true) {
+                            graphicsLayer { alpha = 0.5f; clip = false }
+                        }
+                )
+            }
+        }
+    }
+}
+
 @Serializable
-data class BaseWidgetConfiguration(
+data class BaseWidgetConfig(
     val theme_index: Int? = null,
     val font: FontMode? = null,
     val font_size: Float = 1f,
@@ -52,36 +107,74 @@ data class BaseWidgetConfiguration(
     val border_radius_dp: Float = 0f,
     val hide_when_no_content: Boolean = false,
     val show_debug_information: Boolean = ProjectBuildConfig.IS_DEBUG
-) {
-    fun LazyListScope.ConfigurationItems(context: AppContext, item_modifier: Modifier = Modifier, onChanged: (BaseWidgetConfiguration) -> Unit) {
-        item {
-            ThemeIndexItem(context, item_modifier, onChanged)
+): WidgetConfig() {
+    fun LazyListScope.ConfigItems(
+        context: AppContext,
+        defaults_mask: BaseWidgetConfigDefaultsMask?,
+        item_modifier: Modifier = Modifier,
+        onChanged: (BaseWidgetConfig) -> Unit,
+        onDefaultsMaskChanged: (BaseWidgetConfigDefaultsMask) -> Unit
+    ) {
+        configItem(
+            defaults_mask?.theme_index,
+            item_modifier,
+            { onDefaultsMaskChanged(defaults_mask!!.copy(theme_index = it)) }
+        ) {
+            ThemeIndexItem(context, it, onChanged)
         }
-        item {
-            FontItem(context, item_modifier, onChanged)
+        configItem(
+            defaults_mask?.font,
+            item_modifier,
+            { onDefaultsMaskChanged(defaults_mask!!.copy(font = it)) }
+        ) {
+            FontItem(context, it, onChanged)
         }
-        item {
-            FontSizeItem(context, item_modifier, onChanged)
+        configItem(
+            defaults_mask?.font_size,
+            item_modifier,
+            { onDefaultsMaskChanged(defaults_mask!!.copy(font_size = it)) }
+        ) {
+            FontSizeItem(context, it, onChanged)
         }
-        item {
-            ContentColourItem(context, item_modifier, onChanged)
+        configItem(
+            defaults_mask?.content_colour,
+            item_modifier,
+            { onDefaultsMaskChanged(defaults_mask!!.copy(content_colour = it)) }
+        ) {
+            ContentColourItem(context, it, onChanged)
         }
-        item {
-            BackgroundOpacityItem(context, item_modifier, onChanged)
+        configItem(
+            defaults_mask?.background_opacity,
+            item_modifier,
+            { onDefaultsMaskChanged(defaults_mask!!.copy(background_opacity = it)) }
+        ) {
+            BackgroundOpacityItem(context, it, onChanged)
         }
-        item {
-            BorderRadiusItem(context, item_modifier, onChanged)
+        configItem(
+            defaults_mask?.border_radius_dp,
+            item_modifier,
+            { onDefaultsMaskChanged(defaults_mask!!.copy(border_radius_dp = it)) }
+        ) {
+            BorderRadiusItem(context, it, onChanged)
         }
-        item {
-            HideWhenNoContentItem(context, item_modifier, onChanged)
+        configItem(
+            defaults_mask?.hide_when_no_content,
+            item_modifier,
+            { onDefaultsMaskChanged(defaults_mask!!.copy(hide_when_no_content = it)) }
+        ) {
+            HideWhenNoContentItem(context, it, onChanged)
         }
-        item {
-            ShowDebugInformationItem(context, item_modifier, onChanged)
+        configItem(
+            defaults_mask?.show_debug_information,
+            item_modifier,
+            { onDefaultsMaskChanged(defaults_mask!!.copy(show_debug_information = it)) }
+        ) {
+            ShowDebugInformationItem(context, it, onChanged)
         }
     }
 
     @Composable
-    private fun ThemeIndexItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfiguration) -> Unit) {
+    private fun ThemeIndexItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
         val theme_index_state: MutableState<Int> = remember { mutableIntStateOf(theme_index?.plus(1) ?: 0) }
         val theme_index_property: PreferencesProperty<Int> = remember {
             MutableStatePreferencesProperty(
@@ -117,7 +210,7 @@ data class BaseWidgetConfiguration(
     }
 
     @Composable
-    private fun FontItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfiguration) -> Unit) {
+    private fun FontItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
         val font_state: MutableState<Int> = remember { mutableIntStateOf(font?.ordinal?.plus(1) ?: 0) }
         val font_property: PreferencesProperty<Int> = remember {
             MutableStatePreferencesProperty(
@@ -156,7 +249,7 @@ data class BaseWidgetConfiguration(
 
 
     @Composable
-    private fun FontSizeItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfiguration) -> Unit) {
+    private fun FontSizeItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
         val font_size_state: MutableState<Float> = remember { mutableFloatStateOf(font_size) }
         val font_size_property: PreferencesProperty<Float> = remember {
             MutableStatePreferencesProperty(
@@ -181,7 +274,7 @@ data class BaseWidgetConfiguration(
     }
 
     @Composable
-    private fun ContentColourItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfiguration) -> Unit) {
+    private fun ContentColourItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
         val content_colour_state: MutableState<ContentColour> = remember { mutableStateOf(content_colour) }
         val content_colour_property: PreferencesProperty<ContentColour> = remember {
             MutableStatePreferencesProperty(
@@ -209,7 +302,7 @@ data class BaseWidgetConfiguration(
     }
 
     @Composable
-    private fun BackgroundOpacityItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfiguration) -> Unit) {
+    private fun BackgroundOpacityItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
         val background_opacity_state: MutableState<Float> = remember { mutableFloatStateOf(background_opacity) }
         val background_opacity_property: PreferencesProperty<Float> = remember {
             MutableStatePreferencesProperty(
@@ -238,7 +331,7 @@ data class BaseWidgetConfiguration(
     }
 
     @Composable
-    private fun BorderRadiusItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfiguration) -> Unit) {
+    private fun BorderRadiusItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
         val border_radius_state: MutableState<Float> = remember { mutableFloatStateOf(border_radius_dp) }
         val border_radius_property: PreferencesProperty<Float> = remember {
             MutableStatePreferencesProperty(
@@ -263,7 +356,7 @@ data class BaseWidgetConfiguration(
     }
 
     @Composable
-    private fun HideWhenNoContentItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfiguration) -> Unit) {
+    private fun HideWhenNoContentItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
         val hide_when_no_content_state: MutableState<Boolean> = remember { mutableStateOf(hide_when_no_content) }
         val hide_when_no_content_property: PreferencesProperty<Boolean> = remember {
             MutableStatePreferencesProperty(
@@ -287,7 +380,7 @@ data class BaseWidgetConfiguration(
     }
 
     @Composable
-    private fun ShowDebugInformationItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfiguration) -> Unit) {
+    private fun ShowDebugInformationItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
         val show_debug_information_state: MutableState<Boolean> = remember { mutableStateOf(show_debug_information) }
         val show_debug_information_property: PreferencesProperty<Boolean> = remember {
             MutableStatePreferencesProperty(

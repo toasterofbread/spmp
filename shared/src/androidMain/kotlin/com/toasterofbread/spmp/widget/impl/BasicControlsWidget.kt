@@ -1,50 +1,5 @@
 package com.toasterofbread.spmp.widget.impl
 
-import LocalPlayerState
-import ProgramArguments
-import SpMp
-import android.content.Context
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalConfiguration
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.Density
-import androidx.glance.Button
-import androidx.glance.ButtonDefaults
-import androidx.glance.GlanceId
-import androidx.glance.GlanceModifier
-import androidx.glance.appwidget.GlanceAppWidgetManager
-import androidx.glance.appwidget.provideContent
-import androidx.glance.background
-import androidx.glance.layout.Column
-import androidx.glance.layout.Row
-import androidx.glance.layout.fillMaxSize
-import androidx.glance.text.Text
-import androidx.glance.text.TextStyle
-import androidx.glance.unit.ColorProvider
-import com.toasterofbread.spmp.db.Database
-import com.toasterofbread.spmp.model.lyrics.SongLyrics
-import com.toasterofbread.spmp.model.lyrics.SongLyrics.Term
-import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
-import com.toasterofbread.spmp.model.mediaitem.song.STATIC_LYRICS_SYNC_OFFSET
-import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.settings.category.observeCurrentTheme
-import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
-import com.toasterofbread.spmp.widget.SpMpWidget
-import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfiguration.ContentColour.*
-import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
-import dev.toastbits.composekit.settings.ui.NamedTheme
-import dev.toastbits.composekit.settings.ui.on_accent
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
-
 //internal class BasicControlsWidget: SpMpWidget() {
 //
 //

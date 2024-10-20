@@ -8,11 +8,13 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.foundation.lazy.LazyListState
 import androidx.compose.material3.Button
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
@@ -29,8 +31,11 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.widget.SpMpWidgetType
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
-import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfiguration
-import com.toasterofbread.spmp.widget.configuration.TypeWidgetConfiguration
+import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfig
+import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfigDefaultsMask
+import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
+import com.toasterofbread.spmp.widget.configuration.TypeConfigurationDefaultsMask
+import com.toasterofbread.spmp.widget.configuration.TypeWidgetConfig
 import dev.toastbits.composekit.navigation.Screen
 import dev.toastbits.composekit.navigation.navigator.Navigator
 import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
@@ -41,26 +46,38 @@ import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.widget_config_button_cancel
 import spmp.shared.generated.resources.widget_config_button_done
 import spmp.shared.generated.resources.widget_config_button_set_as_default
+import spmp.shared.generated.resources.widget_config_button_use_default_value
 import spmp.shared.generated.resources.`widget_config_details_$type`
 import spmp.shared.generated.resources.`widget_config_details_$type_$id`
 import spmp.shared.generated.resources.widget_config_details_base
 import spmp.shared.generated.resources.widget_config_title
 import spmp.shared.generated.resources.widget_config_type_name_common
 
-class WidgetConfigurationScreen(
-    initial_base_configuration: BaseWidgetConfiguration?,
-    initial_type_configuration: TypeWidgetConfiguration<out TypeWidgetClickAction>?,
+class WidgetConfigurationScreen<A: TypeWidgetClickAction>(
+    initial_base_config: BaseWidgetConfig?,
+    initial_base_config_defaults_mask: BaseWidgetConfigDefaultsMask?,
+    initial_type_config: TypeWidgetConfig<A>?,
+    initial_type_config_defaults_mask: TypeConfigurationDefaultsMask<TypeWidgetConfig<A>>?,
     private val context: AppContext,
     private val widget_type: SpMpWidgetType?,
     private val widget_id: Int?,
     private val onCancel: () -> Unit,
-    private val onDone: (BaseWidgetConfiguration?, TypeWidgetConfiguration<out TypeWidgetClickAction>?) -> Unit,
-    private val onSetDefaultBaseConfiguration: ((BaseWidgetConfiguration) -> Unit)? = null,
-    private val onSetDefaultTypeConfiguration: ((TypeWidgetConfiguration<out TypeWidgetClickAction>) -> Unit)? = null
+    private val onDone: (
+        BaseWidgetConfig?,
+        BaseWidgetConfigDefaultsMask?,
+        TypeWidgetConfig<A>?,
+        TypeConfigurationDefaultsMask<TypeWidgetConfig<A>>?
+    ) -> Unit,
+    private val onSetDefaultBaseConfig: ((BaseWidgetConfig) -> Unit)? = null,
+    private val onSetDefaultTypeConfig: ((TypeWidgetConfig<A>) -> Unit)? = null
 ): Screen {
     private val list_state: LazyListState = LazyListState()
-    private var base_configuration: BaseWidgetConfiguration? by mutableStateOf(initial_base_configuration)
-    private var type_configuration: TypeWidgetConfiguration<out TypeWidgetClickAction>? by mutableStateOf(initial_type_configuration)
+
+    private var base_config: BaseWidgetConfig? by mutableStateOf(initial_base_config)
+    private var base_config_defaults_mask: BaseWidgetConfigDefaultsMask? by mutableStateOf(initial_base_config_defaults_mask)
+    private var type_config_defaults_mask: TypeConfigurationDefaultsMask<TypeWidgetConfig<A>>? by mutableStateOf(initial_type_config_defaults_mask)
+
+    private var type_config: TypeWidgetConfig<A>? by mutableStateOf(initial_type_config)
 
     @Composable
     override fun Content(navigator: Navigator, modifier: Modifier, contentPadding: PaddingValues) {
@@ -81,11 +98,11 @@ class WidgetConfigurationScreen(
                         val subtitle: String =
                             if (widget_type != null && widget_id != null)
                                 stringResource(Res.string.`widget_config_details_$type_$id`)
-                                    .replace("\$type", widget_type.defaultConfiguration.getTypeName())
+                                    .replace("\$type", widget_type.default_config.getTypeName())
                                     .replace("\$id", widget_id.toString())
                             else if (widget_type != null)
                                 stringResource(Res.string.`widget_config_details_$type`)
-                                    .replace("\$type", widget_type.defaultConfiguration.getTypeName())
+                                    .replace("\$type", widget_type.default_config.getTypeName())
                             else
                                 stringResource(Res.string.widget_config_details_base)
 
@@ -94,10 +111,25 @@ class WidgetConfigurationScreen(
                             style = MaterialTheme.typography.bodySmall,
                             modifier = Modifier.alpha(0.5f)
                         )
+
+                        if (base_config_defaults_mask != null) {
+                            Row(
+                                Modifier.padding(top = 10.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(12.dp)
+                            ) {
+                                Icon(
+                                    SpMpWidgetConfiguration.DEFAULTS_ICON,
+                                    null,
+                                    Modifier.size(20.dp)
+                                )
+                                Text(stringResource(Res.string.widget_config_button_use_default_value))
+                            }
+                        }
                     }
                 }
 
-                ConfigurationItems(context)
+                ConfigItems(context)
             }
 
             Row(
@@ -111,7 +143,7 @@ class WidgetConfigurationScreen(
                 }
 
                 Button({
-                    onDone(base_configuration, type_configuration)
+                    onDone(base_config, base_config_defaults_mask, type_config, type_config_defaults_mask)
                 }) {
                     Text(stringResource(Res.string.widget_config_button_done))
                 }
@@ -119,40 +151,48 @@ class WidgetConfigurationScreen(
         }
     }
 
-    private fun LazyListScope.ConfigurationItems(
+    private fun LazyListScope.ConfigItems(
         context: AppContext,
         item_modifier: Modifier = Modifier
     ) {
-        type_configuration?.also { configuration ->
+        type_config?.also { config ->
             item {
                 ItemHeading(
-                    configuration.getTypeName(),
+                    config.getTypeName(),
                     true,
-                    onSetAsDefault = onSetDefaultTypeConfiguration?.let { lambda -> {
-                        lambda(configuration)
+                    onSetAsDefault = onSetDefaultTypeConfig?.let { lambda -> {
+                        lambda(config)
                     } }
                 )
             }
-            with (configuration) {
-                ConfigurationItems(context, item_modifier) {
-                    type_configuration = it
-                }
+            with (config) {
+                ConfigItems(
+                    context,
+                    type_config_defaults_mask,
+                    item_modifier,
+                    onChanged = { type_config = it },
+                    onDefaultsMaskChanged = { type_config_defaults_mask = it }
+                )
             }
         }
 
-        base_configuration?.also { configuration ->
+        base_config?.also { config ->
             item {
                 ItemHeading(
                     stringResource(Res.string.widget_config_type_name_common),
-                    onSetAsDefault = onSetDefaultBaseConfiguration?.let { lambda -> {
-                        lambda(configuration)
+                    onSetAsDefault = onSetDefaultBaseConfig?.let { lambda -> {
+                        lambda(config)
                     } }
                 )
             }
-            with (configuration) {
-                ConfigurationItems(context, item_modifier) {
-                    base_configuration = it
-                }
+            with (config) {
+                ConfigItems(
+                    context,
+                    base_config_defaults_mask,
+                    item_modifier,
+                    onChanged = { base_config = it },
+                    onDefaultsMaskChanged = { base_config_defaults_mask = it }
+                )
             }
         }
     }

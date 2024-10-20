@@ -45,6 +45,10 @@ internal fun getBehaviourCategoryItems(context: AppContext): List<SettingsItem> 
             context.settings.behaviour.STOP_PLAYER_ON_APP_CLOSE
         ),
 
+        ToggleSettingsItem(
+            context.settings.behaviour.INCLUDE_PLAYBACK_POSITION_IN_SHARE_URL
+        ),
+
         GroupSettingsItem(Res.string.s_group_long_press_menu),
 
         ToggleSettingsItem(

@@ -76,14 +76,16 @@ private const val INFO_SPLITTER: String = "\u2022"
 fun MediaItem.getLongPressMenuData(
     multiselect_context: MediaItemMultiSelectContext? = null,
     multiselect_key: Int? = null,
-    getTitle: (@Composable () -> String?)? = null
+    getTitle: (@Composable () -> String?)? = null,
+    queue_index: Int? = null
 ): LongPressMenuData =
     LongPressMenuData(
         this,
         getType().getThumbShape(),
         multiselect_context = multiselect_context,
         multiselect_key = multiselect_key,
-        getTitle = getTitle
+        getTitle = getTitle,
+        queue_index = queue_index
     )
 
 @Composable
@@ -234,13 +236,15 @@ fun MediaItemPreviewLong(
     getExtraInfo: (@Composable () -> List<String>)? = null,
     multiselect_context: MediaItemMultiSelectContext? = null,
     multiselect_key: Int? = null,
+    queue_index: Int? = null,
     getTitle: (@Composable () -> String?)? = null,
     long_press_menu_data: LongPressMenuData =
-        remember(item, multiselect_context, multiselect_key, getTitle) {
+        remember(item, multiselect_context, multiselect_key, getTitle, queue_index) {
             item.getLongPressMenuData(
                 multiselect_context,
                 multiselect_key,
-                getTitle
+                getTitle,
+                queue_index
             )
         }
 ) {

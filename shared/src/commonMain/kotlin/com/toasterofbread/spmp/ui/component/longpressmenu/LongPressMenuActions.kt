@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.toasterofbread.spmp.model.appaction.SongAppAction
 import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -58,7 +59,7 @@ internal fun ColumnScope.LongPressMenuInfoActions(
         verticalArrangement = Arrangement.spacedBy(spacing)
     ) {
         when (data.item) {
-            is Song -> SongLongPressMenuInfo(data.item, data.multiselect_key, getAccentColour)
+            is Song -> SongLongPressMenuInfo(data.item, data.queue_index, getAccentColour)
             is Artist -> ArtistLongPressMenuInfo(data.item, getAccentColour)
             is Playlist -> PlaylistLongPressMenuInfo(data.item, getAccentColour)
         }
@@ -72,10 +73,22 @@ internal fun ColumnScope.LongPressMenuInfoActions(
             getAccentColour,
             onClick = {
                 coroutine_scope.launch {
-                    player.context.shareText(
-                        data.item.getUrl(player.context),
-                        if (data.item is Song) data.item.getActiveTitle(player.database) else null
-                    )
+                    if (
+                        data.item is Song
+                        && data.queue_index != null
+                    ) {
+                        SongAppAction.Action.SHARE.execute(
+                            data.item,
+                            data.queue_index,
+                            player
+                        )
+                    }
+                    else {
+                        player.context.shareText(
+                            data.item.getUrl(player.context),
+                            data.item.getActiveTitle(player.database)
+                        )
+                    }
                 }
             },
             onAction = onAction

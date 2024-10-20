@@ -182,6 +182,7 @@ class QueueTabItem(val song: Song, val key: Int) {
                         show_type = false,
                         multiselect_context = multiselect_context,
                         multiselect_key = index,
+                        queue_index = index,
                         getTitle = { getLPMTitle(index) }
                     )
                 }

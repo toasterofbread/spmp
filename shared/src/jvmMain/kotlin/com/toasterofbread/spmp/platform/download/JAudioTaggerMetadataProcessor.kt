@@ -41,7 +41,7 @@ object JAudioTaggerMetadataProcessor: MetadataProcessor {
         val artist_ids: List<String>? = null,
         val album_id: String? = null,
 
-        // For backwards-compatibility
+        // For backward compatibility
         val artist_id: String? = null
     )
 

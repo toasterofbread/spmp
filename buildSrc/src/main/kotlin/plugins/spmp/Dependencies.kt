@@ -12,7 +12,12 @@ class SpMpDeps(extra: Map<String, Any>) {
     }
 
     fun get(artifact: String, dependency_id: String = artifact): String {
-        return artifact + ":" + getVersion(dependency_id)
+        return (getRedirect(dependency_id) ?: artifact) + ":" + getVersion(dependency_id)
+    }
+
+    fun getRedirect(artifact: String): String? {
+        val dependency: DependencyInfo = findDependency(artifact)
+        return dependency.redirect
     }
 
     fun getVersion(artifact: String): String {

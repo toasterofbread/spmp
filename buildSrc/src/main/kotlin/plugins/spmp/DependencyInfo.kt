@@ -7,5 +7,6 @@ data class DependencyInfo(
     val url: String,
     val license: String,
     val license_url: String,
-    val fork_url: String? = null
+    val fork_url: String? = null,
+    val redirect: String? = null
 )

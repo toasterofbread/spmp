@@ -50,7 +50,7 @@ data class PlayerClickOverrides(
     }
 
     fun onMediaItemAltClicked(item: MediaItem, queue_index: Int, player: PlayerState) {
-        onMediaItemAltClicked(item, player, LongPressMenuData(item, multiselect_key = queue_index))
+        onMediaItemAltClicked(item, player, LongPressMenuData(item, multiselect_key = queue_index, queue_index = queue_index))
     }
     fun onMediaItemAltClicked(item: MediaItem, player: PlayerState, long_press_data: LongPressMenuData? = null) {
         if (onAltClickOverride != null) {

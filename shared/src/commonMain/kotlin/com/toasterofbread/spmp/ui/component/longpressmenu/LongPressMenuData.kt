@@ -38,7 +38,8 @@ data class LongPressMenuData(
     val getTitle: (@Composable () -> String?)? = null,
     val multiselect_context: MediaItemMultiSelectContext? = null,
     val multiselect_key: Int? = null,
-    val playlist_as_song: Boolean = false
+    val playlist_as_song: Boolean = false,
+    val queue_index: Int? = null
 ) {
     var layout_offset: Offset? = null
     var layout_size: IntSize by Delegates.notNull()

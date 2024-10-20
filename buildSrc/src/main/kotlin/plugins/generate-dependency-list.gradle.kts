@@ -31,7 +31,8 @@ fun Task.generateDependencyList() {
             url = "${dep.url}",
             license = "${dep.license}",
             license_url = "${dep.license_url}",
-            fork_url = ${dep.fork_url?.let { "\"$it\"" }}
+            fork_url = ${dep.fork_url?.let { "\"$it\"" }},
+            redirect = ${dep.redirect?.let { "\"$it\"" }}
         ),"""
         )
     }

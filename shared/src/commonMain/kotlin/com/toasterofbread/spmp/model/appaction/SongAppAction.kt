@@ -224,6 +224,17 @@ data class SongAppAction(
                 else -> true
             }
 
+        private suspend fun Song.getCurrentUrl(queue_index: Int, player: PlayerState): String {
+            var url: String = getUrl(player.context)
+            if (queue_index == player.status.index && player.settings.behaviour.INCLUDE_PLAYBACK_POSITION_IN_SHARE_URL.get()) {
+                val position_ms: Long = player.status.getPositionMs()
+                if (position_ms >= 0) {
+                    url += "&t=${position_ms / 1000}"
+                }
+            }
+            return url
+        }
+
         suspend fun execute(song: Song, queue_index: Int, player: PlayerState) {
             when (this) {
                 TOGGLE_LIKE -> {
@@ -287,18 +298,21 @@ data class SongAppAction(
                 }
                 SHARE -> {
                     if (player.context.canShare()) {
-                        player.context.shareText(song.getUrl(player.context), song.Title.get(player.database))
+                        player.context.shareText(
+                            song.getCurrentUrl(queue_index, player),
+                            song.Title.get(player.database)
+                        )
                     }
                 }
                 OPEN_EXTERNALLY -> {
                     if (player.context.canOpenUrl()) {
-                        player.context.openUrl(song.getUrl(player.context))
+                        player.context.openUrl(song.getCurrentUrl(queue_index, player))
                         player.context.vibrateShort()
                     }
                 }
                 COPY_URL -> {
                     if (player.context.canCopyText()) {
-                        player.context.copyText(song.getUrl(player.context))
+                        player.context.copyText(song.getCurrentUrl(queue_index, player))
                         player.context.vibrateShort()
                         player.context.sendToast(getString(Res.string.notif_copied_to_clipboard))
                     }

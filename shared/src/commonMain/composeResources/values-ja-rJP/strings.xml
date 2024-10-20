@@ -414,6 +414,8 @@
     <string name="s_key_stop_player_on_app_close">アプリを閉じたら再生を中止する</string>
     <string name="s_sub_stop_player_on_app_close">最近画面からアプリがクリアされると、音楽再生が終わります</string>
 
+    <string name="s_key_include_playback_position_in_share_url">共有される曲のURLに再生位置を含む</string>
+
     <string name="s_key_player_expand_swipe_sensitivity">プレイヤー拡大ジェスチャーのしやすさ</string>
 
     <string name="s_key_mini_player_show_prev_button">ミニプレイヤーで「前へ」のボタンを表示</string>

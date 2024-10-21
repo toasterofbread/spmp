@@ -43,9 +43,6 @@ dependencyResolutionManagement {
         mavenCentral()
         maven("https://jitpack.io")
 
-        // https://github.com/d1snin/catppuccin-kotlin
-        maven("https://maven.d1s.dev/snapshots")
-
         // https://github.com/KevinnZou/compose-webview-multiplatform
         maven("https://jogamp.org/deployment/maven")
     }

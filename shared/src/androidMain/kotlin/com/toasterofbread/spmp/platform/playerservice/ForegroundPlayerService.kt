@@ -1,15 +1,13 @@
 package com.toasterofbread.spmp.platform.playerservice
 
+import android.app.Service
 import android.content.Intent
 import android.media.AudioManager
 import android.media.MediaRouter
 import android.media.audiofx.LoudnessEnhancer
+import android.os.Binder
 import android.os.Build
 import android.os.Bundle
-import android.os.IBinder
-import android.os.Process
-import android.view.KeyEvent
-import android.view.KeyEvent.KEYCODE_MEDIA_STOP
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -19,37 +17,41 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.audio.AudioSink
-import androidx.media3.session.DefaultMediaNotificationProvider
 import androidx.media3.session.MediaSession
-import androidx.media3.session.MediaSessionService
+import androidx.media3.session.legacy.MediaSessionCompat
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatusListener
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
-import com.toasterofbread.spmp.platform.PlayerServiceCommand
 import com.toasterofbread.spmp.platform.visualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
-import com.toasterofbread.spmp.shared.R
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.composekit.utils.common.launchSingle
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
+import dev.toastbits.ytmkt.model.external.SongLikedStatus
 import dev.toastbits.ytmkt.model.implementedOrNull
-import kotlinx.coroutines.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 
 @androidx.annotation.OptIn(UnstableApi::class)
 open class ForegroundPlayerService(
     private val play_when_ready: Boolean,
     private val playlist_auto_progress: Boolean = true
-): MediaSessionService(), PlayerService {
+): Service(), PlayerService {
     override val load_state: PlayerServiceLoadState = PlayerServiceLoadState(false)
     override val context: AppContext get() = _context
     private lateinit var _context: AppContext
     private var stopped: Boolean = false
+    private lateinit var notification_manager: PlayerServiceNotificationManager
 
     internal val coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
     internal val colorblendr_coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
@@ -61,12 +63,6 @@ open class ForegroundPlayerService(
     internal var current_song: Song? = null
     internal var paused_by_device_disconnect: Boolean = false
     internal var device_connection_changed_playing_status: Boolean = false
-
-    private val song_liked_listener: SongLikedStatusListener = SongLikedStatusListener { song, liked_status ->
-        if (song == current_song) {
-            updatePlayerCustomActions(liked_status)
-        }
-    }
 
     private val audio_device_callback: PlayerAudioDeviceCallback = PlayerAudioDeviceCallback(this)
 
@@ -107,36 +103,19 @@ open class ForegroundPlayerService(
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
-        val keyEvent: KeyEvent? = intent?.extras?.getParcelable(Intent.EXTRA_KEY_EVENT)
-        println("onStartCommand $keyEvent $flags $startId $intent")
+        println("onStartCommand ${intent?.action}")
 
-        // Partial workaround for https://github.com/androidx/media/issues/805
-        if (
-            Build.VERSION.SDK_INT >= Build.VERSION_CODES.UPSIDE_DOWN_CAKE
-            && keyEvent?.keyCode == KEYCODE_MEDIA_STOP
-//            && flags == 0
-        ) {
-            Process.killProcess(Process.myPid())
+        when (intent?.action) {
+            INTENT_SERVICE_STOP -> {
+                stopForeground(STOP_FOREGROUND_REMOVE)
+                stopSelf()
+            }
         }
 
         return START_NOT_STICKY
     }
 
-    override fun onGetSession(controllerInfo: MediaSession.ControllerInfo): MediaSession? {
-        return media_session
-    }
-
-    override fun onBind(intent: Intent?): IBinder? {
-        try {
-            val binder = super.onBind(intent)
-            if (binder != null) {
-                return binder
-            }
-        }
-        catch (_: Throwable) {}
-
-        return PlayerBinder(this)
-    }
+    override fun onBind(intent: Intent?): Binder = PlayerBinder(this)
 
     override fun onCreate() {
         super.onCreate()
@@ -172,15 +151,9 @@ open class ForegroundPlayerService(
         val audio_manager = getSystemService(AUDIO_SERVICE) as AudioManager?
         audio_manager?.registerAudioDeviceCallback(audio_device_callback, null)
 
-        setMediaNotificationProvider(
-            DefaultMediaNotificationProvider(this).apply {
-                setSmallIcon(R.drawable.ic_spmp)
-            }
-        )
-
-        SongLikedStatusListener.addListener(song_liked_listener)
-
         startColorblendrHeartbeatLoop()
+
+        notification_manager = PlayerServiceNotificationManager(context, media_session, getSystemService()!!, this)
     }
 
     override fun onDestroy() {
@@ -193,28 +166,21 @@ open class ForegroundPlayerService(
         player.release()
         media_session.release()
         loudness_enhancer?.release()
-        SongLikedStatusListener.removeListener(song_liked_listener)
 
         val audio_manager: AudioManager? = getSystemService()
         audio_manager?.unregisterAudioDeviceCallback(audio_device_callback)
 
-        clearListener()
+        notification_manager.release()
         super.onDestroy()
     }
 
     override fun onTaskRemoved(intent: Intent?) {
         super.onTaskRemoved(intent)
 
-        if (!player.isPlaying && convertState(player.playbackState) != SpMsPlayerState.BUFFERING) {
-            stopSelf()
-            onDestroy()
-        }
-        else if (intent?.component?.packageName == packageName) {
-            coroutine_scope.launch {
-                if (context.settings.behaviour.STOP_PLAYER_ON_APP_CLOSE.get()) {
-                    stopSelf()
-                    onDestroy()
-                }
+        coroutine_scope.launch {
+            if (context.settings.behaviour.STOP_PLAYER_ON_APP_CLOSE.get()) {
+                stopForeground(STOP_FOREGROUND_REMOVE)
+                stopSelf()
             }
         }
     }
@@ -236,26 +202,6 @@ open class ForegroundPlayerService(
             delay(3000)
             startService(intent)
         }
-    }
-
-    internal fun onPlayerServiceCommand(command: PlayerServiceCommand): Bundle {
-        when (command) {
-            is PlayerServiceCommand.SetLiked -> {
-                val song: Song = current_song ?: return Bundle.EMPTY
-                coroutine_scope.launch {
-                    val endpoint: SetSongLikedEndpoint =
-                        context.ytapi.user_auth_state?.SetSongLiked?.implementedOrNull() ?: return@launch
-
-                    song.updateLiked(
-                        command.value,
-                        endpoint,
-                        context
-                    )
-                }
-            }
-        }
-
-        return Bundle.EMPTY
     }
 
     private lateinit var _service_player: PlayerServicePlayer
@@ -418,5 +364,7 @@ open class ForegroundPlayerService(
     companion object {
         // If there's a better way to provide information to MediaControllers, I'd like to know
         val fft_audio_processor: FFTAudioProcessor = FFTAudioProcessor()
+
+        const val INTENT_SERVICE_STOP: String = "com.toasterofbread.spmp.PLAYER_SERVICE_STOP"
     }
 }

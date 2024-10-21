@@ -109,6 +109,7 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
             }
 
             override fun seekTo(index: Int, position_ms: Long) {
+                println("PROXY SEEK $index $position_ms")
                 server.seekToSong(index)
                 server.seekTo(position_ms)
             }

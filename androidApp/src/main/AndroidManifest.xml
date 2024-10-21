@@ -60,8 +60,7 @@
         <service
             android:name=".platform.playerservice.PlatformInternalPlayerService"
             android:exported="false"
-            android:foregroundServiceType="mediaPlayback"
-            android:stopWithTask="@bool/stopWithTask">
+            android:foregroundServiceType="mediaPlayback">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
                 <action android:name="androidx.media3.session.MediaSessionService" />
@@ -71,13 +70,16 @@
         <service
             android:name=".platform.playerservice.PlatformExternalPlayerService"
             android:exported="false"
-            android:foregroundServiceType="mediaPlayback"
-            android:stopWithTask="@bool/stopWithTask">
+            android:foregroundServiceType="mediaPlayback">
             <intent-filter>
                 <action android:name="android.intent.action.MEDIA_BUTTON" />
                 <action android:name="androidx.media3.session.MediaSessionService" />
             </intent-filter>
         </service>
+
+        <receiver
+            android:name=".platform.playerservice.PlayerServiceNotificationManager$NotificationDismissReceiver"
+            android:exported="false" />
 
         <service
             android:name=".platform.download.PlayerDownloadService"

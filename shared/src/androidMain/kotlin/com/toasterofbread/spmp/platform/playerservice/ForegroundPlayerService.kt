@@ -1,13 +1,14 @@
 package com.toasterofbread.spmp.platform.playerservice
 
+import android.annotation.SuppressLint
 import android.app.Service
 import android.content.Intent
 import android.media.AudioManager
 import android.media.MediaRouter
 import android.media.audiofx.LoudnessEnhancer
+import android.media.session.MediaSession
 import android.os.Binder
 import android.os.Build
-import android.os.Bundle
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
@@ -17,14 +18,11 @@ import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.audio.AudioSink
-import androidx.media3.session.MediaSession
-import androidx.media3.session.legacy.MediaSessionCompat
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatusListener
-import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
+import com.toasterofbread.spmp.platform.playerservice.notification.PlayerServiceNotificationManager
 import com.toasterofbread.spmp.platform.visualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
@@ -32,9 +30,6 @@ import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.composekit.utils.common.launchSingle
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
-import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
-import dev.toastbits.ytmkt.model.external.SongLikedStatus
-import dev.toastbits.ytmkt.model.implementedOrNull
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -42,6 +37,7 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
+@SuppressLint("RestrictedApi")
 @androidx.annotation.OptIn(UnstableApi::class)
 open class ForegroundPlayerService(
     private val play_when_ready: Boolean,
@@ -103,14 +99,7 @@ open class ForegroundPlayerService(
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
 
-        println("onStartCommand ${intent?.action}")
-
-        when (intent?.action) {
-            INTENT_SERVICE_STOP -> {
-                stopForeground(STOP_FOREGROUND_REMOVE)
-                stopSelf()
-            }
-        }
+        println("ForegroundPlayerService.onStartCommand ${intent?.action}")
 
         return START_NOT_STICKY
     }
@@ -126,7 +115,8 @@ open class ForegroundPlayerService(
         initialiseSessionAndPlayer(
             play_when_ready,
             playlist_auto_progress,
-            getNotificationPlayer = { getNotificationPlayer(it) },
+            coroutine_scope,
+            getNotificationPlayer = { getNotificationPlayer(player) },
             onSongReadyToPlay = {
                 listeners.forEach { it.onDurationChanged(player.duration) }
             }
@@ -153,7 +143,7 @@ open class ForegroundPlayerService(
 
         startColorblendrHeartbeatLoop()
 
-        notification_manager = PlayerServiceNotificationManager(context, media_session, getSystemService()!!, this)
+        notification_manager = PlayerServiceNotificationManager(context, media_session, getSystemService()!!, this, player)
     }
 
     override fun onDestroy() {
@@ -179,10 +169,14 @@ open class ForegroundPlayerService(
 
         coroutine_scope.launch {
             if (context.settings.behaviour.STOP_PLAYER_ON_APP_CLOSE.get()) {
-                stopForeground(STOP_FOREGROUND_REMOVE)
-                stopSelf()
+                stop()
             }
         }
+    }
+
+    fun stop() {
+        stopForeground(STOP_FOREGROUND_REMOVE)
+        stopSelf()
     }
 
     private fun checkAlive() {
@@ -288,7 +282,7 @@ open class ForegroundPlayerService(
         checkAlive()
 
         val current: Pair<Int, Long> = getSeekPosition()
-        player.seekToNext()
+        player.seekToNextMediaItem()
 
         if (current != getSeekPosition()) {
             song_seek_undo_stack.add(current)
@@ -299,7 +293,7 @@ open class ForegroundPlayerService(
         checkAlive()
 
         val current: Pair<Int, Long> = getSeekPosition()
-        player.seekToPrevious()
+        player.seekToPreviousMediaItem()
 
         if (current != getSeekPosition()) {
             song_seek_undo_stack.add(current)
@@ -320,7 +314,7 @@ open class ForegroundPlayerService(
     }
 
     override fun getSong(): Song? {
-        return player.currentMediaItem?.getSong()
+        return player.currentMediaItem?.toSong()
     }
 
     override fun getSong(index: Int): Song? {
@@ -328,7 +322,7 @@ open class ForegroundPlayerService(
             return null
         }
 
-        return player.getMediaItemAt(index).getSong()
+        return player.getMediaItemAt(index).toSong()
     }
 
     override fun addSong(song: Song, index: Int) {
@@ -350,7 +344,7 @@ open class ForegroundPlayerService(
     override fun removeSong(index: Int) {
         checkAlive()
 
-        val song: Song = player.getMediaItemAt(index).getSong()
+        val song: Song = player.getMediaItemAt(index).toSong()
         player.removeMediaItem(index)
         listeners.forEach { it.onSongRemoved(index, song) }
     }
@@ -364,7 +358,5 @@ open class ForegroundPlayerService(
     companion object {
         // If there's a better way to provide information to MediaControllers, I'd like to know
         val fft_audio_processor: FFTAudioProcessor = FFTAudioProcessor()
-
-        const val INTENT_SERVICE_STOP: String = "com.toasterofbread.spmp.PLAYER_SERVICE_STOP"
     }
 }

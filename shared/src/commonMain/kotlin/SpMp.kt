@@ -107,7 +107,6 @@ object SpMp {
         val np_theme_mode: ThemeMode = context.settings.theme.NOWPLAYING_THEME_MODE.get()
         val swipe_sensitivity: Float = context.settings.player.EXPAND_SWIPE_SENSITIVITY.get()
         val player: PlayerState = PlayerState(context, launch_arguments, composable_coroutine_scope, np_theme_mode, swipe_sensitivity)
-        player.onStart()
         _player_state = player
         return player
     }
@@ -117,6 +116,7 @@ object SpMp {
     }
 
     fun onStart() {
+        _player_state?.onStart()
     }
 
     fun onStop() {

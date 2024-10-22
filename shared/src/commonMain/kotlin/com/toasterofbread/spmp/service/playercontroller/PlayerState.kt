@@ -197,6 +197,8 @@ class PlayerState(
         }
 
         context.getPrefs().addListener(prefs_listner)
+
+        connectToServiceIfNeeded()
     }
 
     fun switchNowPlayingPage(page: Int) {
@@ -237,19 +239,7 @@ class PlayerState(
 
     fun onStart() {
         SpMp.addLowMemoryListener(low_memory_listener)
-
-        coroutine_scope.launch {
-            if (getServiceCompanion().isServiceRunning(context)) {
-                connectService()
-            }
-            else {
-                coroutine_scope.launch {
-                    if (PersistentQueueHandler.isPopulatedQueueSaved(context)) {
-                        connectService()
-                    }
-                }
-            }
-        }
+        connectToServiceIfNeeded()
     }
 
     fun onStop() {
@@ -274,6 +264,25 @@ class PlayerState(
 
             service_connected_listeners.add {
                 action(_player!!)
+            }
+        }
+    }
+
+    private fun connectToServiceIfNeeded() {
+//        if (_player != null) {
+//            return
+//        }
+
+        coroutine_scope.launch {
+            if (getServiceCompanion().isServiceRunning(context)) {
+                connectService()
+            }
+            else {
+                coroutine_scope.launch {
+                    if (PersistentQueueHandler.isPopulatedQueueSaved(context)) {
+                        connectService()
+                    }
+                }
             }
         }
     }
@@ -704,27 +713,33 @@ class PlayerState(
             service_connection_companion = service_companion
 
             service_connecting = true
-            service_connection = service_companion.connect(
-                context,
-                launch_arguments,
-                _player,
-                { service ->
-                    synchronized(service_connected_listeners) {
-                        _player = service
-                        status.setPlayer(service)
-                        service_connecting = false
+            try {
+                service_connection = service_companion.connect(
+                    context,
+                    launch_arguments,
+                    _player,
+                    { service ->
+                        synchronized(service_connected_listeners) {
+                            _player = service
+                            status.setPlayer(service)
+                            service_connecting = false
 
-                        onConnected?.invoke(service)
-                        for (listener in service_connected_listeners) {
-                            listener.invoke(service)
+                            onConnected?.invoke(service)
+                            for (listener in service_connected_listeners) {
+                                listener.invoke(service)
+                            }
+                            service_connected_listeners.clear()
                         }
-                        service_connected_listeners.clear()
+                    },
+                    {
+                        service_connecting = false
                     }
-                },
-                {
-                    service_connecting = false
-                }
-            )
+                )
+            }
+            catch (e: IllegalStateException) {
+                service_connection = false
+                RuntimeException("Ignoring exception while starting service", e).printStackTrace()
+            }
         }
     }
 

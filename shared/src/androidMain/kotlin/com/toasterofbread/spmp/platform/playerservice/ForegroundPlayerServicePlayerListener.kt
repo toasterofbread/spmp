@@ -15,7 +15,7 @@ class ForegroundPlayerServicePlayerListener(
     private val onSongReadyToPlay: () -> Unit
 ): Player.Listener {
     override fun onMediaItemTransition(media_item: MediaItem?, reason: Int) {
-        val song: Song? = media_item?.getSong()
+        val song: Song? = media_item?.toSong()
         if (song?.id == service.current_song?.id) {
             return
         }

@@ -1,5 +1,7 @@
 package com.toasterofbread.spmp.platform.playerservice
 
+import android.media.session.MediaSession
+import android.os.Bundle
 import android.os.Handler
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
@@ -17,15 +19,18 @@ import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
-import androidx.media3.session.MediaSession
+import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 
 @OptIn(UnstableApi::class)
 internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
     play_when_ready: Boolean,
     playlist_auto_progress: Boolean,
-    getNotificationPlayer: (ExoPlayer) -> Player = { it },
+    coroutine_scope: CoroutineScope,
+    getNotificationPlayer: () -> Player,
     onSongReadyToPlay: () -> Unit = {}
 ) = runBlocking {
     val service: ForegroundPlayerService = this@initialiseSessionAndPlayer
@@ -104,5 +109,56 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
     player.pauseAtEndOfMediaItems = !playlist_auto_progress
     player.prepare()
 
-    media_session = MediaSession.Builder(service, getNotificationPlayer(player)).build()
+    media_session = MediaSession(service, "ForegroundPlayerService")
+    media_session.setCallback(PlayerSessionCallback(getNotificationPlayer(), context, coroutine_scope))
+    media_session.isActive = true
+}
+
+class PlayerSessionCallback(
+    private val player: Player,
+    private val context: AppContext,
+    private val coroutine_scope: CoroutineScope
+): MediaSession.Callback() {
+    override fun onSkipToNext() {
+        player.seekToNext()
+    }
+
+    override fun onSkipToPrevious() {
+        player.seekToPrevious()
+    }
+
+    override fun onPlay() {
+        player.play()
+    }
+
+    override fun onPause() {
+        player.pause()
+    }
+
+    override fun onSeekTo(pos: Long) {
+        player.seekTo(pos)
+    }
+
+    override fun onStop() {
+        player.stop()
+    }
+
+    override fun onCustomAction(action: String, extras: Bundle?) {
+        val custom_action: PlayerServiceNotificationCustomAction? =
+            PlayerServiceNotificationCustomAction.entries.firstOrNull { it.name == action }
+
+        if (custom_action == null) {
+            println("Received unknown custom notification action: '$action'")
+            return
+        }
+
+        coroutine_scope.launch {
+            try {
+                custom_action.execute(player, context)
+            }
+            catch (e: Throwable) {
+                RuntimeException("Ignoring exception when executing custom notification action $custom_action", e).printStackTrace()
+            }
+        }
+    }
 }

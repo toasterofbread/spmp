@@ -2,11 +2,13 @@ package com.toasterofbread.spmp.platform.playerservice
 
 import ProgramArguments
 import android.app.ActivityManager
+import android.app.ServiceStartNotAllowedException
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.ServiceConnection
 import android.os.Binder
+import android.os.Build
 import android.os.IBinder
 import com.toasterofbread.spmp.platform.AppContext
 import kotlin.reflect.KClass

@@ -5,12 +5,10 @@ import androidx.core.net.toUri
 import androidx.media3.common.MediaMetadata
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
-import com.toasterofbread.spmp.model.settings.category.StreamingSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.db.Database
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import androidx.media3.common.MediaItem as ExoMediaItem
-import androidx.compose.material.icons.filled.Album
 
 internal fun Song.buildExoMediaItem(context: AppContext): ExoMediaItem =
     ExoMediaItem.Builder()
@@ -37,7 +35,7 @@ internal fun Song.buildExoMediaItem(context: AppContext): ExoMediaItem =
 fun convertState(exo_state: Int): SpMsPlayerState =
     SpMsPlayerState.entries[exo_state - 1]
 
-fun ExoMediaItem.getSong(): Song =
+fun ExoMediaItem.toSong(): Song =
     SongRef(mediaMetadata.artworkUri.toString())
 
 internal suspend fun LoudnessEnhancer.update(song: Song?, context: AppContext) {

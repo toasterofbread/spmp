@@ -30,7 +30,11 @@ fun ApiAuthenticationState.Companion.packSetData(
 fun ApiAuthenticationState.Companion.unpackSetData(
     set: Set<String>,
     context: AppContext
-): Pair<String?, Headers> {
+): Pair<String?, Headers>? {
+    if (set.isEmpty()) {
+        return null
+    }
+
     var own_channel_id: String? = null
     val headers_builder: HeadersBuilder = HeadersBuilder()
 

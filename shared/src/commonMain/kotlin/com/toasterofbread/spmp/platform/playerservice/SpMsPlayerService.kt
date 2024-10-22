@@ -527,7 +527,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                 ApiAuthenticationState.unpackSetData(
                     context.settings.youtube_auth.YTM_AUTH.get(),
                     context
-                ).takeIf { it.first != null }
+                ).takeIf { it?.first != null }
             sendAuthInfoToPlayers(ytm_auth)
         }
     }

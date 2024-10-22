@@ -1,0 +1,239 @@
+package com.toasterofbread.spmp.platform.playerservice.notification
+
+import android.app.Notification
+import android.app.NotificationChannel
+import android.app.NotificationManager
+import android.app.PendingIntent
+import android.content.Intent
+import android.graphics.Bitmap
+import android.media.MediaMetadata
+import android.media.session.MediaSession
+import android.media.session.PlaybackState
+import androidx.annotation.OptIn
+import androidx.compose.runtime.snapshotFlow
+import androidx.compose.ui.graphics.ImageBitmap
+import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
+import androidx.media3.ui.PlayerNotificationManager
+import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatusListener
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.PlayerListener
+import com.toasterofbread.spmp.platform.playerservice.ForegroundPlayerService
+import com.toasterofbread.spmp.platform.playerservice.formatMediaNotificationImage
+import com.toasterofbread.spmp.platform.playerservice.toSong
+import com.toasterofbread.spmp.shared.R
+import dev.toastbits.composekit.platform.isAppInForeground
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.flow.launchIn
+import kotlinx.coroutines.flow.onEach
+import kotlinx.coroutines.launch
+
+@OptIn(UnstableApi::class)
+class PlayerServiceNotificationManager(
+    private val context: AppContext,
+    private val media_session: MediaSession,
+    private val notification_manager: NotificationManager,
+    private val service: ForegroundPlayerService,
+    player: Player
+) {
+    private var current_song: Song? = null
+    private val thumbnail_load_scope: CoroutineScope = CoroutineScope(Job())
+    private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
+
+    private val metadata_builder: MediaMetadata.Builder = MediaMetadata.Builder()
+    private val state: NotificationStateManager = NotificationStateManager(media_session, player)
+
+    private val notification_listener: PlayerNotificationManager.NotificationListener =
+        object : PlayerNotificationManager.NotificationListener {
+            override fun onNotificationPosted(
+                notificationId: Int,
+                notification: Notification,
+                ongoing: Boolean
+            ) {
+                service.startForeground(notificationId, notification)
+            }
+
+            override fun onNotificationCancelled(
+                notificationId: Int,
+                dismissedByUser: Boolean
+            ) {
+                if (!service.isAppInForeground()) {
+                    service.stop()
+                }
+            }
+        }
+
+    private val player_listener: PlayerListener =
+        object : PlayerListener() {
+            override fun onSongTransition(song: Song?, manual: Boolean) {
+                current_song = song
+                state.update(current_liked_status = song?.Liked?.get(context.database))
+            }
+
+            override fun onPlayingChanged(is_playing: Boolean) {
+                state.update(paused = !is_playing)
+            }
+
+            override fun onStateChanged(state: SpMsPlayerState) {
+                this@PlayerServiceNotificationManager.state.update(
+                    playback_state =
+                        when (state) {
+                            SpMsPlayerState.IDLE -> PlaybackState.STATE_NONE
+                            SpMsPlayerState.BUFFERING -> PlaybackState.STATE_BUFFERING
+                            SpMsPlayerState.READY -> null
+                            SpMsPlayerState.ENDED -> PlaybackState.STATE_STOPPED
+                        }
+                )
+            }
+
+            override fun onDurationChanged(duration_ms: Long) {
+                updateMetadata {
+                    putLong(MediaMetadata.METADATA_KEY_DURATION, duration_ms)
+                }
+            }
+        }
+
+    private val song_liked_listener: SongLikedStatusListener =
+        SongLikedStatusListener { song, liked_status ->
+            if (song == current_song) {
+                state.update(current_liked_status = liked_status)
+            }
+        }
+
+    init {
+        service.addListener(player_listener)
+        SongLikedStatusListener.addListener(song_liked_listener)
+
+        ensureNotificationChannel()
+
+        val manager: PlayerNotificationManager = createNotificationManager()
+        manager.setUseFastForwardAction(false)
+        manager.setUseRewindAction(false)
+        manager.setUsePlayPauseActions(true)
+        manager.setPlayer(player)
+        manager.setMediaSessionToken(media_session.sessionToken)
+        manager.setSmallIcon(R.drawable.ic_spmp)
+
+        snapshotFlow { context.ytapi.user_auth_state }
+            .onEach {
+                state.update(authenticated = it != null)
+            }
+            .launchIn(coroutine_scope)
+    }
+
+    fun release() {
+        service.removeListener(player_listener)
+        SongLikedStatusListener.removeListener(song_liked_listener)
+        state.release()
+        thumbnail_load_scope.cancel()
+        coroutine_scope.cancel()
+    }
+
+    private fun onThumbnailLoaded(image: Bitmap) {
+        updateMetadata {
+            putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, image)
+        }
+        context.onNotificationThumbnailLoaded(image)
+    }
+
+    private fun updateMetadata(update: MediaMetadata.Builder.() -> Unit) {
+        update(metadata_builder)
+        media_session.setMetadata(metadata_builder.build())
+    }
+
+    private suspend fun loadThumbnail(song: Song): Bitmap? {
+        for (quality in listOf(ThumbnailProvider.Quality.HIGH)) {
+            val image: ImageBitmap =
+                MediaItemThumbnailLoader.loadItemThumbnail(song, quality, context).getOrNull()
+                ?: continue
+
+            val formatted_image: Bitmap =
+                formatMediaNotificationImage(
+                    image.asAndroidBitmap(),
+                    song,
+                    context
+                )
+
+            onThumbnailLoaded(formatted_image)
+
+            return formatted_image
+        }
+        return null
+    }
+
+    private fun ensureNotificationChannel() {
+        if (notification_manager.getNotificationChannel(NOTIFICATION_CHANNEL_ID) != null) {
+            return
+        }
+
+        notification_manager.createNotificationChannel(
+            NotificationChannel(
+                NOTIFICATION_CHANNEL_ID,
+                "Playing media",
+                NotificationManager.IMPORTANCE_LOW
+            ).apply {
+                setSound(null, null)
+                enableLights(false)
+                enableVibration(false)
+            }
+        )
+    }
+
+    private fun createNotificationManager(): PlayerNotificationManager {
+        val manager_builder: PlayerNotificationManager.Builder =
+            PlayerNotificationManager.Builder(
+                context.ctx,
+                NOTIFICATION_ID,
+                NOTIFICATION_CHANNEL_ID
+            )
+
+        manager_builder.setMediaDescriptionAdapter(
+            object : PlayerNotificationManager.MediaDescriptionAdapter {
+                override fun getCurrentContentTitle(player: Player): CharSequence =
+                    player.currentMediaItem?.toSong()?.getActiveTitle(context.database).orEmpty()
+
+                override fun getCurrentContentText(player: Player): CharSequence =
+                    player.currentMediaItem?.toSong()?.Artists?.get(context.database)?.firstOrNull()
+                        ?.getActiveTitle(context.database).orEmpty()
+
+                override fun createCurrentContentIntent(player: Player): PendingIntent =
+                    PendingIntent.getActivity(
+                        context.ctx, 0,
+                        Intent(context.ctx, AppContext.main_activity),
+                        PendingIntent.FLAG_IMMUTABLE
+                    )
+
+                override fun getCurrentLargeIcon(
+                    player: Player,
+                    callback: PlayerNotificationManager.BitmapCallback
+                ): Bitmap? {
+                    val song: Song? = player.currentMediaItem?.toSong()
+                    if (song != null) {
+                        thumbnail_load_scope.launch {
+                            val image: Bitmap = loadThumbnail(song) ?: return@launch
+                            callback.onBitmap(image)
+                        }
+                    }
+                    return null
+                }
+            }
+        )
+
+        manager_builder.setNotificationListener(notification_listener)
+
+        return manager_builder.build()
+    }
+
+    companion object {
+        const val NOTIFICATION_ID: Int = 10
+        const val NOTIFICATION_CHANNEL_ID: String = "media_channel_id"
+    }
+}

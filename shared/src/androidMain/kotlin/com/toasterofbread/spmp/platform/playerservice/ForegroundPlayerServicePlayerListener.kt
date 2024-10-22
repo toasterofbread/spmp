@@ -10,18 +10,17 @@ import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import kotlinx.coroutines.launch
 
 @OptIn(UnstableApi::class)
-class InternalPlayerServicePlayerListener(
+class ForegroundPlayerServicePlayerListener(
     private val service: ForegroundPlayerService,
     private val onSongReadyToPlay: () -> Unit
 ): Player.Listener {
     override fun onMediaItemTransition(media_item: MediaItem?, reason: Int) {
-        val song: Song? = media_item?.getSong()
+        val song: Song? = media_item?.toSong()
         if (song?.id == service.current_song?.id) {
             return
         }
 
         service.current_song = song
-        service.updatePlayerCustomActions()
 
         if (service.loudness_enhancer == null) {
             service.loudness_enhancer = LoudnessEnhancer(service.player.audioSessionId)

@@ -1,19 +1,13 @@
 package com.toasterofbread.spmp.platform.playerservice
 
-import android.app.PendingIntent
-import android.content.ComponentName
-import android.graphics.Bitmap
-import android.net.Uri
+import android.media.session.MediaSession
 import android.os.Bundle
 import android.os.Handler
 import androidx.annotation.OptIn
-import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
-import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
 import androidx.media3.common.audio.SonicAudioProcessor
-import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.RenderersFactory
@@ -25,31 +19,18 @@ import androidx.media3.exoplayer.audio.SilenceSkippingAudioProcessor
 import androidx.media3.exoplayer.mediacodec.MediaCodecSelector
 import androidx.media3.exoplayer.source.DefaultMediaSourceFactory
 import androidx.media3.exoplayer.upstream.LoadErrorHandlingPolicy
-import androidx.media3.extractor.DefaultExtractorsFactory
-import androidx.media3.extractor.mkv.MatroskaExtractor
-import androidx.media3.extractor.mp4.FragmentedMp4Extractor
-import androidx.media3.session.MediaController
-import androidx.media3.session.MediaSession
-import androidx.media3.session.SessionCommand
-import androidx.media3.session.SessionError
-import androidx.media3.session.SessionResult
-import androidx.media3.session.SessionToken
-import com.google.common.util.concurrent.Futures
-import com.google.common.util.concurrent.ListenableFuture
-import com.google.common.util.concurrent.MoreExecutors
-import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
-import com.toasterofbread.spmp.model.mediaitem.song.SongRef
-import com.toasterofbread.spmp.platform.PlayerServiceCommand
+import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
-import dev.toastbits.ytmkt.model.external.ThumbnailProvider
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
-import java.util.concurrent.Executors
 
 @OptIn(UnstableApi::class)
 internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
     play_when_ready: Boolean,
     playlist_auto_progress: Boolean,
-    getNotificationPlayer: (ExoPlayer) -> Player = { it },
+    coroutine_scope: CoroutineScope,
+    getNotificationPlayer: () -> Player,
     onSongReadyToPlay: () -> Unit = {}
 ) = runBlocking {
     val service: ForegroundPlayerService = this@initialiseSessionAndPlayer
@@ -117,8 +98,8 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
         .setUsePlatformDiagnostics(false)
         .build()
 
-    val player_listener: InternalPlayerServicePlayerListener =
-        InternalPlayerServicePlayerListener(
+    val player_listener: ForegroundPlayerServicePlayerListener =
+        ForegroundPlayerServicePlayerListener(
             service,
             onSongReadyToPlay = onSongReadyToPlay
         )
@@ -128,110 +109,56 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
     player.pauseAtEndOfMediaItems = !playlist_auto_progress
     player.prepare()
 
-    val controller_future: ListenableFuture<MediaController> =
-        MediaController.Builder(
-            service,
-            SessionToken(service, ComponentName(service, service::class.java))
-        ).buildAsync()
+    media_session = MediaSession(service, "ForegroundPlayerService")
+    media_session.setCallback(PlayerSessionCallback(getNotificationPlayer(), context, coroutine_scope))
+    media_session.isActive = true
+}
 
-    controller_future.addListener(
-        { controller_future.get() },
-        MoreExecutors.directExecutor()
-    )
+class PlayerSessionCallback(
+    private val player: Player,
+    private val context: AppContext,
+    private val coroutine_scope: CoroutineScope
+): MediaSession.Callback() {
+    override fun onSkipToNext() {
+        player.seekToNext()
+    }
 
-    media_session = MediaSession.Builder(service, getNotificationPlayer(player))
-        .setBitmapLoader(object : BitmapLoader {
-            val executor = MoreExecutors.listeningDecorator(Executors.newSingleThreadExecutor())
+    override fun onSkipToPrevious() {
+        player.seekToPrevious()
+    }
 
-            override fun decodeBitmap(data: ByteArray): ListenableFuture<Bitmap> {
-                throw NotImplementedError()
+    override fun onPlay() {
+        player.play()
+    }
+
+    override fun onPause() {
+        player.pause()
+    }
+
+    override fun onSeekTo(pos: Long) {
+        player.seekTo(pos)
+    }
+
+    override fun onStop() {
+        player.stop()
+    }
+
+    override fun onCustomAction(action: String, extras: Bundle?) {
+        val custom_action: PlayerServiceNotificationCustomAction? =
+            PlayerServiceNotificationCustomAction.entries.firstOrNull { it.name == action }
+
+        if (custom_action == null) {
+            println("Received unknown custom notification action: '$action'")
+            return
+        }
+
+        coroutine_scope.launch {
+            try {
+                custom_action.execute(player, context)
             }
-
-            override fun supportsMimeType(mimeType: String): Boolean = true
-
-            override fun loadBitmap(uri: Uri): ListenableFuture<Bitmap> {
-                return executor.submit<Bitmap> {
-                    runBlocking {
-                        val song = SongRef(uri.toString())
-                        var fail_error: Throwable? = null
-
-                        for (quality in ThumbnailProvider.Quality.byQuality()) {
-                            val load_result = MediaItemThumbnailLoader.loadItemThumbnail(song, quality, context)
-                            load_result.fold(
-                                { image ->
-                                    val formatted_image: Bitmap =
-                                        formatMediaNotificationImage(
-                                            image.asAndroidBitmap(),
-                                            song,
-                                            context
-                                        )
-
-                                    context.onNotificationThumbnailLoaded(formatted_image)
-
-                                    return@runBlocking formatted_image
-                                },
-                                { error ->
-                                    if (fail_error == null) {
-                                        fail_error = error
-                                    }
-                                }
-                            )
-                        }
-
-                        throw fail_error!!
-                    }
-                }
+            catch (e: Throwable) {
+                RuntimeException("Ignoring exception when executing custom notification action $custom_action", e).printStackTrace()
             }
-        })
-        .setSessionActivity(
-            PendingIntent.getActivity(
-                service,
-                1,
-                packageManager.getLaunchIntentForPackage(packageName),
-                PendingIntent.FLAG_IMMUTABLE
-            )
-        )
-        .setCallback(object : MediaSession.Callback {
-            override fun onAddMediaItems(
-                media_session: MediaSession,
-                controller: MediaSession.ControllerInfo,
-                media_items: List<MediaItem>,
-            ): ListenableFuture<List<MediaItem>> {
-                val updated_media_items = media_items.map { item ->
-                    item.buildUpon()
-                        .setUri(item.requestMetadata.mediaUri)
-                        .setMediaId(item.requestMetadata.mediaUri.toString())
-                        .build()
-                }
-                return Futures.immediateFuture(updated_media_items)
-            }
-
-            override fun onConnect(session: MediaSession, controller: MediaSession.ControllerInfo): MediaSession.ConnectionResult {
-                val result = super.onConnect(session, controller)
-                val session_commands = result.availableSessionCommands
-                    .buildUpon()
-
-                for (command in PlayerServiceCommand.getBaseSessionCommands()) {
-                    session_commands.add(command)
-                }
-
-                return MediaSession.ConnectionResult.accept(session_commands.build(), result.availablePlayerCommands)
-            }
-
-            override fun onCustomCommand(
-                session: MediaSession,
-                controller: MediaSession.ControllerInfo,
-                customCommand: SessionCommand,
-                args: Bundle,
-            ): ListenableFuture<SessionResult> {
-                val command: PlayerServiceCommand? = PlayerServiceCommand.fromSessionCommand(customCommand, args)
-                if (command == null) {
-                    return Futures.immediateFuture(SessionResult(SessionError.ERROR_BAD_VALUE))
-                }
-
-                val result: Bundle = onPlayerServiceCommand(command)
-                return Futures.immediateFuture(SessionResult(SessionResult.RESULT_SUCCESS, result))
-            }
-        })
-        .build()
+        }
+    }
 }

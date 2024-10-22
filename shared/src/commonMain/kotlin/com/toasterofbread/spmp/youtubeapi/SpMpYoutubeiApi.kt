@@ -1,44 +1,47 @@
 package com.toasterofbread.spmp.youtubeapi
 
-import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.getUiLanguage
-import com.toasterofbread.spmp.platform.getDataLanguage
-import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.model.settings.category.VideoFormatsEndpointType
-import com.toasterofbread.spmp.model.settings.unpackSetData
-import com.toasterofbread.spmp.model.mediaitem.toMediaItemData
-import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import com.toasterofbread.spmp.model.mediaitem.song.toSongData
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
+import com.toasterofbread.spmp.db.Database
+import com.toasterofbread.spmp.model.AppUiString
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.artist.toArtistData
-import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
+import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.toRemotePlaylistData
-import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
-import com.toasterofbread.spmp.model.AppUiString
-import com.toasterofbread.spmp.youtubeapi.SpMpYoutubeiAuthenticationState
-import com.toasterofbread.spmp.db.Database
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
+import com.toasterofbread.spmp.model.mediaitem.song.toSongData
+import com.toasterofbread.spmp.model.mediaitem.toMediaItemData
+import com.toasterofbread.spmp.model.settings.category.VideoFormatsEndpointType
+import com.toasterofbread.spmp.model.settings.category.instantiate
+import com.toasterofbread.spmp.model.settings.unpackSetData
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.getDataLanguage
+import com.toasterofbread.spmp.resources.Language
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
-import dev.toastbits.composekit.platform.PlatformPreferences
-import dev.toastbits.ytmkt.impl.youtubei.YoutubeiApi
-import dev.toastbits.ytmkt.impl.youtubei.endpoint.*
-import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState
-import dev.toastbits.ytmkt.model.external.RelatedGroup
-import dev.toastbits.ytmkt.model.ApiAuthenticationState
-import dev.toastbits.ytmkt.model.external.YoutubePage
-import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
-import dev.toastbits.ytmkt.model.external.mediaitem.YtmArtist
-import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
-import dev.toastbits.ytmkt.model.external.ItemLayoutType
-import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
-import dev.toastbits.ytmkt.endpoint.SongFeedLoadResult
 import dev.toastbits.ytmkt.endpoint.ArtistWithParamsRow
 import dev.toastbits.ytmkt.endpoint.SearchResults
+import dev.toastbits.ytmkt.endpoint.SongFeedLoadResult
+import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
+import dev.toastbits.ytmkt.impl.youtubei.YoutubeiApi
+import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState
+import dev.toastbits.ytmkt.impl.youtubei.endpoint.YTMArtistWithParamsEndpoint
+import dev.toastbits.ytmkt.impl.youtubei.endpoint.YTMGetSongFeedEndpoint
+import dev.toastbits.ytmkt.impl.youtubei.endpoint.YTMLoadArtistEndpoint
+import dev.toastbits.ytmkt.impl.youtubei.endpoint.YTMLoadPlaylistEndpoint
+import dev.toastbits.ytmkt.impl.youtubei.endpoint.YTMLoadSongEndpoint
+import dev.toastbits.ytmkt.impl.youtubei.endpoint.YTMSearchEndpoint
+import dev.toastbits.ytmkt.impl.youtubei.endpoint.YTMSongRelatedContentEndpoint
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
+import dev.toastbits.ytmkt.model.external.ItemLayoutType
+import dev.toastbits.ytmkt.model.external.RelatedGroup
+import dev.toastbits.ytmkt.model.external.YoutubePage
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmArtist
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
+import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
 import dev.toastbits.ytmkt.radio.RadioContinuation
 import dev.toastbits.ytmkt.uistrings.UiString
-import androidx.compose.runtime.*
-import com.toasterofbread.spmp.model.settings.category.instantiate
-import com.toasterofbread.spmp.resources.Language
 import kotlinx.coroutines.launch
 
 internal class SpMpYoutubeiApi(
@@ -81,10 +84,11 @@ internal class SpMpYoutubeiApi(
         }
     }
 
-    private suspend fun getCurrentUserAuthState() =
-        ApiAuthenticationState.unpackSetData(context.settings.youtube_auth.YTM_AUTH.get(), context).let { data ->
-            SpMpYoutubeiAuthenticationState(context.database, this, data.first, data.second)
-        }
+    private suspend fun getCurrentUserAuthState(): SpMpYoutubeiAuthenticationState? =
+        ApiAuthenticationState.unpackSetData(context.settings.youtube_auth.YTM_AUTH.get(), context)
+            ?.let { data ->
+                SpMpYoutubeiAuthenticationState(context.database, this, data.first, data.second)
+            }
 
     // // -- User auth ---
     // override val YoutubeChannelCreationForm = YTMYoutubeChannelCreationFormEndpoint(this)

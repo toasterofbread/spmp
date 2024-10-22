@@ -6,7 +6,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import com.toasterofbread.spmp.platform.playerservice.convertState
-import com.toasterofbread.spmp.platform.playerservice.getSong
+import com.toasterofbread.spmp.platform.playerservice.toSong
 
 actual abstract class PlayerListener {
     actual open fun onSongTransition(song: Song?, manual: Boolean) {}
@@ -27,7 +27,7 @@ actual abstract class PlayerListener {
     private val player_listener = object : Player.Listener {
         var current_song: Song? = null
         override fun onMediaItemTransition(item: MediaItem?, reason: Int) {
-            val song = item?.getSong()
+            val song = item?.toSong()
             if (song?.id == current_song?.id) {
                 return
             }

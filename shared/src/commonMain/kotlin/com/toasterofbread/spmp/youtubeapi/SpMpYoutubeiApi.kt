@@ -81,10 +81,11 @@ internal class SpMpYoutubeiApi(
         }
     }
 
-    private suspend fun getCurrentUserAuthState() =
-        ApiAuthenticationState.unpackSetData(context.settings.youtube_auth.YTM_AUTH.get(), context).let { data ->
-            SpMpYoutubeiAuthenticationState(context.database, this, data.first, data.second)
-        }
+    private suspend fun getCurrentUserAuthState(): SpMpYoutubeiAuthenticationState? =
+        ApiAuthenticationState.unpackSetData(context.settings.youtube_auth.YTM_AUTH.get(), context)
+            ?.let { data ->
+                SpMpYoutubeiAuthenticationState(context.database, this, data.first, data.second)
+            }
 
     // // -- User auth ---
     // override val YoutubeChannelCreationForm = YTMYoutubeChannelCreationFormEndpoint(this)

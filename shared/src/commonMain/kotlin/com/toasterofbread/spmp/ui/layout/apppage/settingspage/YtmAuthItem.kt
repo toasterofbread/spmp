@@ -115,8 +115,8 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String
 //            }
 
             val auth: Set<String> by ytm_auth.observe()
-            val data: Pair<String?, Headers> = ApiAuthenticationState.unpackSetData(auth, context)
-            if (data.first != null) {
+            val data: Pair<String?, Headers>? = ApiAuthenticationState.unpackSetData(auth, context)
+            if (data?.first != null) {
                 own_channel = ArtistRef(data.first!!)
             }
 

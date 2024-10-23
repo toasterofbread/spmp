@@ -16,7 +16,9 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.ui.PlayerNotificationManager
+import app.cash.sqldelight.Query
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
+import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatusListener
 import com.toasterofbread.spmp.platform.AppContext
@@ -26,10 +28,10 @@ import com.toasterofbread.spmp.platform.playerservice.formatMediaNotificationIma
 import com.toasterofbread.spmp.platform.playerservice.toSong
 import com.toasterofbread.spmp.shared.R
 import dev.toastbits.composekit.platform.isAppInForeground
+import dev.toastbits.composekit.utils.common.launchSingle
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.launchIn
@@ -46,7 +48,8 @@ class PlayerServiceNotificationManager(
 ) {
     private var current_song: Song? = null
     private val thumbnail_load_scope: CoroutineScope = CoroutineScope(Job())
-    private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
+    private val auth_state_observe_scope: CoroutineScope = CoroutineScope(Job())
+    private val song_liked_load_scope: CoroutineScope = CoroutineScope(Job())
 
     private val metadata_builder: MediaMetadata.Builder = MediaMetadata.Builder()
     private val state: NotificationStateManager = NotificationStateManager(media_session, player)
@@ -74,8 +77,30 @@ class PlayerServiceNotificationManager(
     private val player_listener: PlayerListener =
         object : PlayerListener() {
             override fun onSongTransition(song: Song?, manual: Boolean) {
+                if (current_song == song) {
+                    return
+                }
+
+                current_song?.also { current ->
+                    context.database.songQueries.likedById(current.id).removeListener(song_liked_listener)
+                }
+
                 current_song = song
                 state.update(current_liked_status = song?.Liked?.get(context.database))
+
+                if (song != null) {
+                    context.database.songQueries.likedById(song.id).addListener(song_liked_listener)
+
+                    song_liked_load_scope.launchSingle {
+                        SongLikedLoader.loadSongLiked(
+                            song.id,
+                            context,
+                            context.ytapi.user_auth_state?.SongLiked
+                        ).onFailure {
+                            RuntimeException("Ignoring exception while loading song (${song.id}) liked status for player notification", it).printStackTrace()
+                        }
+                    }
+                }
             }
 
             override fun onPlayingChanged(is_playing: Boolean) {
@@ -101,16 +126,12 @@ class PlayerServiceNotificationManager(
             }
         }
 
-    private val song_liked_listener: SongLikedStatusListener =
-        SongLikedStatusListener { song, liked_status ->
-            if (song == current_song) {
-                state.update(current_liked_status = liked_status)
-            }
-        }
+    private val song_liked_listener: Query.Listener = Query.Listener {
+        state.update(current_liked_status = current_song?.Liked?.get(context.database))
+    }
 
     init {
         service.addListener(player_listener)
-        SongLikedStatusListener.addListener(song_liked_listener)
 
         ensureNotificationChannel()
 
@@ -126,15 +147,14 @@ class PlayerServiceNotificationManager(
             .onEach {
                 state.update(authenticated = it != null)
             }
-            .launchIn(coroutine_scope)
+            .launchIn(auth_state_observe_scope)
     }
 
     fun release() {
         service.removeListener(player_listener)
-        SongLikedStatusListener.removeListener(song_liked_listener)
         state.release()
         thumbnail_load_scope.cancel()
-        coroutine_scope.cancel()
+        auth_state_observe_scope.cancel()
     }
 
     private fun onThumbnailLoaded(image: Bitmap) {

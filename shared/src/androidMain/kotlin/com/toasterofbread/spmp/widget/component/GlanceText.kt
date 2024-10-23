@@ -21,6 +21,8 @@ import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.layout.ContentScale
+import androidx.glance.layout.fillMaxWidth
+import androidx.glance.layout.wrapContentSize
 import androidx.glance.layout.wrapContentWidth
 import com.toasterofbread.spmp.widget.mapper.toAndroidTypeface
 import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
@@ -60,7 +62,7 @@ fun GlanceText(
         modifier = modifier.wrapContentWidth(),
         provider = ImageProvider(image),
         contentDescription = text,
-        contentScale = ContentScale.Crop
+        contentScale = ContentScale.FillBounds
     )
 }
 

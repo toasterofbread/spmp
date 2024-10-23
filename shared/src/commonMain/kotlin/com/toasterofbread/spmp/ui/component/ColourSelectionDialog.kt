@@ -55,6 +55,9 @@ import spmp.shared.generated.resources.theme_colour_background
 import spmp.shared.generated.resources.theme_colour_accent
 import spmp.shared.generated.resources.theme_colour_vibrant_accent
 import spmp.shared.generated.resources.theme_colour_card
+import spmp.shared.generated.resources.theme_colour_on_background
+import spmp.shared.generated.resources.theme_colour_on_accent
+import spmp.shared.generated.resources.theme_colour_error
 
 @Composable
 fun ColourSelectionDialog(
@@ -209,5 +212,7 @@ fun ThemeValues.Colour.getReadable(): String =
         ThemeValues.Colour.ACCENT -> stringResource(Res.string.theme_colour_accent)
         ThemeValues.Colour.VIBRANT_ACCENT -> stringResource(Res.string.theme_colour_vibrant_accent)
         ThemeValues.Colour.CARD -> stringResource(Res.string.theme_colour_card)
-        else -> throw NotImplementedError(this.toString())
+        ThemeValues.Colour.ON_BACKGROUND -> stringResource(Res.string.theme_colour_on_background)
+        ThemeValues.Colour.ON_ACCENT -> stringResource(Res.string.theme_colour_on_accent)
+        ThemeValues.Colour.ERROR -> stringResource(Res.string.theme_colour_error)
     }

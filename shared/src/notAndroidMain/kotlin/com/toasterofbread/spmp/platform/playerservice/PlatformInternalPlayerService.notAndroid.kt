@@ -2,8 +2,21 @@ package com.toasterofbread.spmp.platform.playerservice
 
 import ProgramArguments
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.mediasession.MediaSession
 
 actual class PlatformInternalPlayerService: ExternalPlayerService(plays_audio = false), PlayerService {
+    private var media_session: MediaSession? = null
+
+    actual override fun onCreate() {
+        super.onCreate()
+        media_session = createDesktopMediaSession(this)
+    }
+
+    actual override fun onDestroy() {
+        super.onDestroy()
+        media_session = null
+    }
+
     private suspend fun autoLaunchLocalServer() {
         if (!context.settings.platform.SERVER_LOCAL_START_AUTOMATICALLY.get()) {
             return

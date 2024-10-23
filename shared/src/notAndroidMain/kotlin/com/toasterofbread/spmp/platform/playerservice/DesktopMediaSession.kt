@@ -19,7 +19,7 @@ internal fun createDesktopMediaSession(service: PlayerService): MediaSession? {
             )
         }
         catch (e: Throwable) {
-            e.printStackTrace()
+            RuntimeException("Ignoring exception during MediaSession creation", e).printStackTrace()
             return null
         }
 

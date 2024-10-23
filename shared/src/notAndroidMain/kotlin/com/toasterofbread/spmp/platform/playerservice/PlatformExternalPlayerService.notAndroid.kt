@@ -2,8 +2,21 @@ package com.toasterofbread.spmp.platform.playerservice
 
 import ProgramArguments
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.mediasession.MediaSession
 
 actual class PlatformExternalPlayerService: ExternalPlayerService(plays_audio = false), PlayerService {
+    private var media_session: MediaSession? = null
+
+    override fun onCreate() {
+        super.onCreate()
+        media_session = createDesktopMediaSession(this)
+    }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        media_session = null
+    }
+
     actual companion object: PlayerServiceCompanion {
         override fun isAvailable(context: AppContext, launch_arguments: ProgramArguments): Boolean = true
 

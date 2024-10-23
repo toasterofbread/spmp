@@ -172,6 +172,19 @@ open class ForegroundPlayerService(
 
         notification_manager.release()
         super.onDestroy()
+
+        println("ForegroundPlayerService stopped, notifying listeners and updating all widgets")
+
+        for (listener in listeners) {
+            listener.onPlayingChanged(false)
+            listener.onStateChanged(SpMsPlayerState.ENDED)
+            listener.onSongTransition(null, false)
+        }
+        listeners.clear()
+
+        runBlocking {
+            widget_update_listener.updateAll()
+        }
     }
 
     override fun onTaskRemoved(intent: Intent?) {

@@ -135,6 +135,8 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>: Gla
             ObserveConfiguration(widget_id!!)
             active_widgets[widget_id!!] = this
 
+            println("Widget $widget_id ($widget_type) updated")
+
             CompositionLocalProvider(
                 // App
                 LocalPlayerState provides state,

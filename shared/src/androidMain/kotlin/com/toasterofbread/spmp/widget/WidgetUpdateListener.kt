@@ -22,6 +22,12 @@ class WidgetUpdateListener(private val context: Context): Player.Listener {
         during_playback_widget_update_coroutine_scope.cancel()
     }
 
+    suspend fun updateAll() {
+        for (type in SpMpWidgetType.entries) {
+            type.updateAll(context)
+        }
+    }
+
     override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
         super.onMediaItemTransition(mediaItem, reason)
 

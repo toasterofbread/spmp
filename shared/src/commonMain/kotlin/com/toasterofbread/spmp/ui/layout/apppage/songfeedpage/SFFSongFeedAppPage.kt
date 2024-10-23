@@ -68,12 +68,14 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
     val player: PlayerState = LocalPlayerState.current
     val form_factor: FormFactor by FormFactor.observe()
 
-    val artists_layout: AppMediaItemLayout = remember {
-        AppMediaItemLayout(
-            mutableStateListOf(),
-            null,
-            null,
-            type = ItemLayoutType.ROW
+    var artists_layout: AppMediaItemLayout by remember {
+        mutableStateOf(
+            AppMediaItemLayout(
+                emptyList(),
+                null,
+                null,
+                type = ItemLayoutType.ROW
+            )
         )
     }
 
@@ -106,15 +108,19 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
         }
     }
 
-    LaunchedEffect(layouts) {
-        val items = artists_layout.items as MutableList<YtmMediaItem>
-        items.clear()
-        items.addAll(
-            populateArtistsLayout(
-                layouts,
-                player.context.ytapi.user_auth_state?.own_channel_id,
-                player.context
-            )
+    LaunchedEffect(layouts, hidden_row_titles) {
+        artists_layout = artists_layout.copy(
+            items =
+                populateArtistsLayout(
+                    layouts?.filter { layout ->
+                        val title: String? =
+                            layout.title?.getString(player.context)
+
+                        return@filter title == null || hidden_row_titles.none { it == title }
+                    },
+                    player.context.ytapi.user_auth_state?.own_channel_id,
+                    player.context
+                )
         )
     }
 

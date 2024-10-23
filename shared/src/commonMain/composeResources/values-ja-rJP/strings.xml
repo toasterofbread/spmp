@@ -928,6 +928,9 @@
     <string name="theme_colour_accent">アクセント</string>
     <string name="theme_colour_vibrant_accent">明るいアクセント</string>
     <string name="theme_colour_card">カード</string>
+    <string name="theme_colour_on_background">背景の上</string>
+    <string name="theme_colour_on_accent">アクセントの上</string>
+    <string name="theme_colour_error">エラー</string>
 
     <string name="shortcut_trigger_none">なし</string>
     <string name="shortcut_trigger_keyboard">キーボード</string>

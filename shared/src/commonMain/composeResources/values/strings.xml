@@ -991,6 +991,9 @@
     <string name="theme_colour_accent">Accent</string>
     <string name="theme_colour_vibrant_accent">Vibrant accent</string>
     <string name="theme_colour_card">Card</string>
+    <string name="theme_colour_on_background">On background</string>
+    <string name="theme_colour_on_accent">On accent</string>
+    <string name="theme_colour_error">Error</string>
 
     <string name="shortcut_trigger_none">None</string>
     <string name="shortcut_trigger_keyboard">Keyboard</string>

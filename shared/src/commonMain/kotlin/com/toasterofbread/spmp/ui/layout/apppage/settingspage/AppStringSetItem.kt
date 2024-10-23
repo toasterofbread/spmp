@@ -16,7 +16,7 @@ fun AppStringSetItem(
     state: PreferencesProperty<Set<String>>,
     add_dialog_title: StringResource,
     single_line_content: Boolean = true,
-    max_height: Dp = 300.dp,
+    height: Dp = 300.dp,
     itemToText: @Composable (String) -> String = { it },
     textToItem: (String) -> String = { it }
 ): StringSetSettingsItem =
@@ -26,7 +26,7 @@ fun AppStringSetItem(
         msg_item_already_added = Res.string.settings_string_set_item_already_added,
         msg_set_empty = Res.string.settings_string_set_item_empty,
         single_line_content = single_line_content,
-        max_height = max_height,
+        height = height,
         itemToText = itemToText,
         textToItem = textToItem,
         getFieldModifier = { Modifier.appTextField() }

@@ -7,12 +7,15 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.scale
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
+import androidx.glance.LocalSize
 import androidx.glance.action.Action
 import androidx.glance.action.ActionParameters
 import androidx.glance.action.actionParametersOf
@@ -44,7 +47,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 
-internal class SongQueueWidget: SpMpWidget<SongQueueWidgetClickAction, SongQueueWidgetConfig>() {
+internal class SongQueueWidget: SpMpWidget<SongQueueWidgetClickAction, SongQueueWidgetConfig>(true) {
     override fun executeTypeAction(action: SongQueueWidgetClickAction) =
         when (action) {
             else -> throw IllegalStateException(action.toString())
@@ -129,24 +132,31 @@ internal fun SpMpWidget<*, *>.GlanceSongPreview(
         val artist: Artist? = song.Artists.observe(player.database).value?.firstOrNull()
         val artist_title: String? by artist?.observeActiveTitle()
 
-        song.Thumbnail(
-            ThumbnailProvider.Quality.LOW,
-            contentOverride = {
-                Image(
-                    ImageProvider(it.asAndroidBitmap()),
-                    title,
-                    GlanceModifier
-                        .size(50.dp)
-                        .padding(end = 10.dp)
-                )
-            }
-        )
+        val image_size: Dp = 50.dp
+        val spacing: Dp = 10.dp
+
+        val showing: Boolean =
+            song.Thumbnail(
+                ThumbnailProvider.Quality.LOW,
+                contentOverride = {
+                    Image(
+                        ImageProvider(it.asAndroidBitmap().scale(100, 100, true)),
+                        title,
+                        GlanceModifier
+                            .size(image_size)
+                            .padding(end = spacing)
+                    )
+                }
+            )
 
         Column {
+            val text_width: Dp = LocalSize.current.width.thenIf(showing) { this - image_size - spacing }
+
             title?.also { text ->
                 WidgetText(
                     text,
-                    font_size = 17.sp
+                    font_size = 17.sp,
+                    max_width = text_width
                 )
             }
 
@@ -154,7 +164,8 @@ internal fun SpMpWidget<*, *>.GlanceSongPreview(
                 WidgetText(
                     text,
                     font_size = 12.sp,
-                    alpha = 0.75f
+                    alpha = 0.75f,
+                    max_width = text_width
                 )
             }
         }

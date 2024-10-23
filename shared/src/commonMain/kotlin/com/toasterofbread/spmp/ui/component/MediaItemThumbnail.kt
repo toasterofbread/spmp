@@ -80,7 +80,7 @@ fun MediaItem.Thumbnail(
     show: Boolean = true,
     contentOverride: (@Composable (ImageBitmap) -> Unit)? = null,
     onLoaded: ((ImageBitmap?) -> Unit)? = null
-) {
+): Boolean {
     require(this !is LocalPlaylistRef) { "LocalPlaylistRef must be loaded and passed as a LocalPlaylistData" }
 
     val player: PlayerState = LocalPlayerState.current
@@ -144,7 +144,7 @@ fun MediaItem.Thumbnail(
             image?.first?.also {
                 contentOverride(it)
             }
-            return
+            return true
         }
 
         Crossfade(image?.first ?: loading, container_modifier) { state ->
@@ -169,4 +169,6 @@ fun MediaItem.Thumbnail(
             }
         }
     }
+
+    return show && !loading && image?.first != null
 }

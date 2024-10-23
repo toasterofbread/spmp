@@ -7,20 +7,20 @@ import android.graphics.Paint
 import android.graphics.Typeface
 import android.text.TextPaint
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.text.font.Font
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
+import androidx.core.graphics.withClip
 import androidx.core.util.TypedValueCompat.spToPx
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
+import androidx.glance.layout.ContentScale
 import androidx.glance.layout.wrapContentWidth
 import com.toasterofbread.spmp.widget.mapper.toAndroidTypeface
 import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
@@ -33,27 +33,34 @@ fun GlanceText(
     modifier: GlanceModifier = GlanceModifier,
     font: FontResource? = null,
     font_size: TextUnit = 15.sp,
-    alpha: Float = 1f
+    alpha: Float = 1f,
+    max_width: Dp? = null
 ) {
     val context: Context = LocalContext.current
     val colour: Color = LocalApplicationTheme.current.on_background.copy(alpha)
     val typeface: Typeface? = font?.let { Font(it) }?.toAndroidTypeface()
 
+    val max_width_px: Int? = with (LocalDensity.current) {
+        max_width?.roundToPx()
+    }
+
     val image: Bitmap =
-        remember(text, font_size, colour, typeface) {
+        remember(text, font_size, colour, typeface, max_width_px) {
             context.textAsBitmap(
                 text = text,
                 fontSize = font_size,
                 color = colour,
                 font = typeface,
-                letterSpacing = 0.03.sp.value
+                letterSpacing = 0.03.sp.value,
+                maxWidth = max_width_px
             )
         } ?: return
 
     Image(
         modifier = modifier.wrapContentWidth(),
         provider = ImageProvider(image),
-        contentDescription = text
+        contentDescription = text,
+        contentScale = ContentScale.Crop
     )
 }
 
@@ -63,7 +70,8 @@ private fun Context.textAsBitmap(
     fontSize: TextUnit,
     color: Color = Color.Black,
     letterSpacing: Float = 0.1f,
-    font: Typeface? = null
+    font: Typeface? = null,
+    maxWidth: Int? = null
 ): Bitmap? {
     val paint: TextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
     paint.textSize = spToPx(fontSize.value, this.resources.displayMetrics)
@@ -72,15 +80,29 @@ private fun Context.textAsBitmap(
     paint.typeface = font ?: Typeface.DEFAULT
 
     val baseline: Float = -paint.ascent()
-    val width: Int = (paint.measureText(text)).toInt()
+    val width: Int = paint.measureText(text).toInt()
     val height: Int = (baseline + paint.descent()).toInt()
 
     if (width <= 0 || height <= 0) {
         return null
     }
 
-    val image: Bitmap = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888)
+    val image: Bitmap = Bitmap.createBitmap(minOf(width, maxWidth ?: width), height, Bitmap.Config.ARGB_8888)
     val canvas: Canvas = Canvas(image)
-    canvas.drawText(text, 0f, baseline, paint)
+
+    if (maxWidth == null || width <= maxWidth) {
+        canvas.drawText(text, 0f, baseline, paint)
+        return image
+    }
+
+    val ellipsis: String = "..."
+    val ellipsisWidth: Float = paint.measureText(ellipsis)
+
+    canvas.withClip(0f, 0f, maxWidth - ellipsisWidth, height.toFloat()) {
+        drawText(text, 0f, baseline, paint)
+    }
+
+    canvas.drawText(ellipsis, maxWidth - ellipsisWidth, baseline, paint)
+
     return image
 }

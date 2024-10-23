@@ -47,6 +47,7 @@ import kotlinx.serialization.json.JsonPrimitive
 import kotlin.random.Random
 import kotlin.random.nextInt
 import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 private val UPDATE_INTERVAL: Duration = with (Duration) { 30.seconds }
 //private const val VOL_NOTIF_SHOW_DURATION: Long = 1000
@@ -540,7 +541,7 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
                 if (
                     !song_marked_as_watched
                     && is_playing
-                    && with (Duration) { current_position_ms.milliseconds } >= SONG_MARK_WATCHED_POSITION
+                    && current_position_ms.milliseconds >= SONG_MARK_WATCHED_POSITION
                 ) {
                     song_marked_as_watched = true
 

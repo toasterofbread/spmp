@@ -36,13 +36,11 @@ object SpMpWidgetUpdater {
         update_values[this]!!
 
     suspend fun SpMpWidgetType.updateAll(context: Context) {
-        println("Updating all widgets of type $this")
         incrementUpdateValue()
         widget_instances[this]!!.updateAll(context)
     }
 
     suspend fun SpMpWidgetType.update(context: Context, id: GlanceId) {
-        println("Updating widget $id of type $this")
         incrementUpdateValue()
         widget_instances[this]!!.update(context, id)
     }

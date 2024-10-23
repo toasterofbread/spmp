@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.widget
 import android.content.Context
 import androidx.media3.common.MediaItem
 import androidx.media3.common.Player
+import androidx.media3.common.Timeline
 import androidx.media3.common.Tracks
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -40,7 +41,7 @@ class WidgetUpdateListener(private val context: Context): Player.Listener {
         }
     }
 
-    override fun onTracksChanged(tracks: Tracks) {
+    override fun onTimelineChanged(timeline: Timeline, reason: Int) {
         song_transition_widget_update_coroutine_scope.launch {
             for (type in SpMpWidgetType.entries) {
                 if (type.update_types.contains(WidgetUpdateType.OnQueueChange)) {

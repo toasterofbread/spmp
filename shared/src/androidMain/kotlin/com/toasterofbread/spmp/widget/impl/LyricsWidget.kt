@@ -26,7 +26,7 @@ import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.widget_lyrics_status_no_lyrics
 
-internal abstract class LyricsWidget: SpMpWidget<LyricsWidgetClickAction, LyricsWidgetConfig>() {
+internal abstract class LyricsWidget: SpMpWidget<LyricsWidgetClickAction, LyricsWidgetConfig>(false) {
     private var current_song: Song? by mutableStateOf(null)
     private var lyrics_state: SongLyricsLoader.ItemState? by mutableStateOf(null)
     private var show_readings: Boolean by mutableStateOf(false)

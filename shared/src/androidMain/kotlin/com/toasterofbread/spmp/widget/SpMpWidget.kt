@@ -25,21 +25,19 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.action.Action
-import androidx.glance.action.ActionParameters
-import androidx.glance.action.actionParametersOf
+import androidx.glance.LocalSize
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.AppWidgetId
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
-import androidx.glance.appwidget.action.ActionCallback
-import androidx.glance.appwidget.action.actionRunCallback
+import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
@@ -77,19 +75,13 @@ import dev.toastbits.composekit.utils.common.thenIf
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
-import kotlinx.serialization.encodeToString
 import org.jetbrains.compose.resources.FontResource
 
 @Suppress("UNCHECKED_CAST")
-abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>: GlanceAppWidget() {
-    companion object {
-        private val active_widgets: MutableMap<Int, SpMpWidget<*, *>> = mutableMapOf()
-
-        fun runActionOnWidget(action: WidgetClickAction<TypeWidgetClickAction>, widget_glance_id: GlanceId) {
-            val widget: SpMpWidget<*, *> = SpMpWidget.active_widgets[widget_glance_id.getDatabaseId()]!!
-            widget.runAction(action, widget_glance_id)
-        }
-    }
+abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(exact_size: Boolean): GlanceAppWidget() {
+    override val sizeMode: SizeMode =
+        if (exact_size) SizeMode.Exact
+        else SizeMode.Single
 
     protected lateinit var context: AppContext
 
@@ -134,8 +126,6 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>: Gla
             widget_id = id.getDatabaseId()
             ObserveConfiguration(widget_id!!)
             active_widgets[widget_id!!] = this
-
-            println("Widget $widget_id ($widget_type) updated")
 
             CompositionLocalProvider(
                 // App
@@ -205,7 +195,12 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>: Gla
                                     GlanceModifier.fillMaxSize().defaultWeight(),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    Content(GlanceModifier.wrapContentSize(), PaddingValues(15.dp))
+                                    val padding: Dp = 15.dp
+                                    CompositionLocalProvider(
+                                        LocalSize provides LocalSize.current.minus(DpSize(padding * 2, padding * 2))
+                                    ) {
+                                        Content(GlanceModifier.wrapContentSize(), PaddingValues(padding))
+                                    }
                                 }
                             }
                         }
@@ -327,7 +322,8 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>: Gla
         text: String,
         modifier: GlanceModifier = GlanceModifier,
         font_size: TextUnit = 15.sp,
-        alpha: Float = 1f
+        alpha: Float = 1f,
+        max_width: Dp? = null
     ) {
         val ui_language: String by context.observeUiLanguage()
         val app_font_mode: FontMode by context.settings.system.FONT.observe()
@@ -338,8 +334,18 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>: Gla
             font = font,
             modifier = modifier,
             font_size = font_size * base_configuration.font_size,
-            alpha = alpha
+            alpha = alpha,
+            max_width = max_width
         )
+    }
+
+    companion object {
+        private val active_widgets: MutableMap<Int, SpMpWidget<*, *>> = mutableMapOf()
+
+        fun runActionOnWidget(action: WidgetClickAction<TypeWidgetClickAction>, widget_glance_id: GlanceId) {
+            val widget: SpMpWidget<*, *> = SpMpWidget.active_widgets[widget_glance_id.getDatabaseId()]!!
+            widget.runAction(action, widget_glance_id)
+        }
     }
 }
 
@@ -349,25 +355,3 @@ fun GlanceId.getDatabaseId(): Int =
         is AppWidgetId -> appWidgetId
         else -> throw NotImplementedError(this::class.toString())
     }
-
-// Must not be private
-internal class WidgetActionCallback: ActionCallback {
-    override suspend fun onAction(
-        context: Context,
-        glanceId: GlanceId,
-        parameters: ActionParameters
-    ) {
-        val serialisedAction: String = parameters[keyAction] ?: return
-        val configuration: SpMpWidgetConfiguration<TypeWidgetClickAction> = SpMpWidgetConfiguration.json.decodeFromString(serialisedAction)
-        SpMpWidget.runActionOnWidget(configuration.type_configuration.click_action, glanceId)
-    }
-
-    companion object {
-        val keyAction: ActionParameters.Key<String> = ActionParameters.Key("action")
-
-        operator fun invoke(configuration: SpMpWidgetConfiguration<out TypeWidgetClickAction>): Action =
-            actionRunCallback<WidgetActionCallback>(
-                actionParametersOf(keyAction to SpMpWidgetConfiguration.json.encodeToString(configuration))
-            )
-    }
-}

@@ -6,43 +6,46 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.text.TextPaint
-import androidx.annotation.FontRes
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
-import androidx.core.content.res.ResourcesCompat
 import androidx.core.util.TypedValueCompat.spToPx
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
-import androidx.glance.layout.ContentScale
 import androidx.glance.layout.wrapContentWidth
-import androidx.glance.text.Text
+import com.toasterofbread.spmp.widget.mapper.toAndroidTypeface
 import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
+import org.jetbrains.compose.resources.Font
+import org.jetbrains.compose.resources.FontResource
 
 @Composable
 fun GlanceText(
     text: String,
-    @FontRes
-    font: Int?,
     modifier: GlanceModifier = GlanceModifier,
+    font: FontResource? = null,
     font_size: TextUnit = 15.sp,
     alpha: Float = 1f
 ) {
     val context: Context = LocalContext.current
     val colour: Color = LocalApplicationTheme.current.on_background.copy(alpha)
+    val typeface: Typeface? = font?.let { Font(it) }?.toAndroidTypeface()
 
     val image: Bitmap =
-        remember(text, font_size, colour, font) {
+        remember(text, font_size, colour, typeface) {
             context.textAsBitmap(
                 text = text,
                 fontSize = font_size,
                 color = colour,
-                font = font,
+                font = typeface,
                 letterSpacing = 0.03.sp.value
             )
         } ?: return
@@ -60,16 +63,13 @@ private fun Context.textAsBitmap(
     fontSize: TextUnit,
     color: Color = Color.Black,
     letterSpacing: Float = 0.1f,
-    @FontRes
-    font: Int?
+    font: Typeface? = null
 ): Bitmap? {
     val paint: TextPaint = TextPaint(Paint.ANTI_ALIAS_FLAG)
     paint.textSize = spToPx(fontSize.value, this.resources.displayMetrics)
     paint.color = color.toArgb()
     paint.letterSpacing = letterSpacing
-    paint.typeface =
-        font?.let { ResourcesCompat.getFont(this, font) }
-            ?: Typeface.DEFAULT
+    paint.typeface = font ?: Typeface.DEFAULT
 
     val baseline: Float = -paint.ascent()
     val width: Int = (paint.measureText(text)).toInt()

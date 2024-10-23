@@ -9,7 +9,6 @@ import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
-import androidx.annotation.FontRes
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -79,6 +78,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.serialization.encodeToString
+import org.jetbrains.compose.resources.FontResource
 
 @Suppress("UNCHECKED_CAST")
 abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>: GlanceAppWidget() {
@@ -329,7 +329,7 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>: Gla
     ) {
         val ui_language: String by context.observeUiLanguage()
         val app_font_mode: FontMode by context.settings.system.FONT.observe()
-        val font: Int? = (base_configuration.font ?: app_font_mode).getAndroidFontResource(ui_language)
+        val font: FontResource? = (base_configuration.font ?: app_font_mode).getFontResource(ui_language)
 
         GlanceText(
             text = text,
@@ -339,14 +339,6 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>: Gla
             alpha = alpha
         )
     }
-
-    @FontRes
-    private fun FontMode.getAndroidFontResource(ui_language: String): Int? =
-        when (this) {
-            FontMode.DEFAULT -> FontMode.getDefaultFont(ui_language).getAndroidFontResource(ui_language)
-            FontMode.SYSTEM -> null
-            FontMode.HC_MARU_GOTHIC -> R.font.hc_maru_gothic
-        }
 }
 
 @SuppressLint("RestrictedApi")

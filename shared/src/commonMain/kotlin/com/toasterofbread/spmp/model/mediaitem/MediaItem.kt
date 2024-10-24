@@ -43,6 +43,8 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import com.toasterofbread.spmp.platform.toImageBitmap
+import io.ktor.http.isSuccess
+import kotlinx.io.IOException
 
 private const val DEFAULT_CONNECT_TIMEOUT: Int = 10000
 val MEDIA_ITEM_RELATED_CONTENT_ICON: ImageVector get() = Icons.Default.GridView
@@ -106,8 +108,12 @@ interface MediaItem: MediaItemHolder, YtmMediaItem {
     }
 
     suspend fun downloadThumbnailData(url: String, client: HttpClient): Result<ImageBitmap> = withContext(Dispatchers.PlatformIO) {
-        return@withContext runCatching {
+        runCatching {
             val response: HttpResponse = client.get(url)
+            if (!response.status.isSuccess()) {
+                throw IOException("Downloading thumbnail from $url failed (${response.status})")
+            }
+
             val bytes: ByteArray = response.body()
             return@runCatching bytes.toImageBitmap()
         }

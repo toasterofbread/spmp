@@ -12,11 +12,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceModifier
-import androidx.glance.appwidget.LinearProgressIndicator
-import androidx.glance.appwidget.cornerRadius
 import androidx.glance.background
 import androidx.glance.layout.Alignment
-import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
@@ -26,14 +23,12 @@ import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
 import androidx.glance.layout.size
-import androidx.glance.layout.wrapContentHeight
-import androidx.glance.layout.wrapContentSize
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.widget.SpMpWidget
 import com.toasterofbread.spmp.widget.action.SongImageWidgetClickAction
 import com.toasterofbread.spmp.widget.component.GlanceLargePlayPauseButton
-import com.toasterofbread.spmp.widget.component.GlanceSongThumbnail
+import com.toasterofbread.spmp.widget.component.spmp.GlanceSongThumbnail
 import com.toasterofbread.spmp.widget.configuration.type.SongImageWidgetConfig
 import com.toasterofbread.spmp.widget.modifier.padding
 import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
@@ -67,6 +62,8 @@ internal class SongImageWidget: SpMpWidget<SongImageWidgetClickAction, SongImage
                 verticalAlignment = Alignment.Bottom
             ) {
                 var image_accent: Color? by remember { mutableStateOf(null) }
+                val current_accent: Color = song_theme ?: image_accent ?: theme.accent
+
                 val image_showing: Boolean =
                     GlanceSongThumbnail(
                         song,
@@ -89,9 +86,9 @@ internal class SongImageWidget: SpMpWidget<SongImageWidgetClickAction, SongImage
                     GlanceModifier
                         .background(widget_background_colour)
                         .systemCornerRadius()
-                        .padding(content_padding)
+                        .padding(content_padding),
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    val current_accent: Color = song_theme ?: image_accent ?: theme.accent
                     CompositionLocalProvider(
                         LocalApplicationTheme provides ThemeValuesData.of(theme).copy(accent = current_accent)
                     ) {
@@ -114,7 +111,8 @@ internal class SongImageWidget: SpMpWidget<SongImageWidgetClickAction, SongImage
                 GlanceModifier
                     .fillMaxWidth()
                     .defaultWeight()
-                    .padding(end = 5.dp)
+                    .padding(end = 5.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
                 val title: String? by song.observeActiveTitle()
                 title?.also {
@@ -123,7 +121,12 @@ internal class SongImageWidget: SpMpWidget<SongImageWidgetClickAction, SongImage
 
                 val artist_title: String? by song.Artists.observe(player.database).value?.firstOrNull()?.observeActiveTitle()
                 artist_title?.also {
-                    WidgetText(it, font_size = 10.sp)
+                    WidgetText(
+                        it,
+                        GlanceModifier.padding(top = 3.dp),
+                        font_size = 13.sp,
+                        alpha = 0.7f
+                    )
                 }
             }
 

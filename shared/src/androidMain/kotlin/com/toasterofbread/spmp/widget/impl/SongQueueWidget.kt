@@ -14,10 +14,10 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.widget.SpMpWidget
 import com.toasterofbread.spmp.widget.action.SongQueueWidgetClickAction
-import com.toasterofbread.spmp.widget.component.GlanceSongPreview
 import com.toasterofbread.spmp.widget.component.GlanceLazyColumn
 import com.toasterofbread.spmp.widget.configuration.type.SongQueueWidgetConfig
 import com.toasterofbread.spmp.widget.action.QueueSeekAction
+import com.toasterofbread.spmp.widget.component.spmp.GlanceSongPreview
 import dev.toastbits.composekit.utils.common.thenIf
 
 internal class SongQueueWidget: SpMpWidget<SongQueueWidgetClickAction, SongQueueWidgetConfig>(false) {

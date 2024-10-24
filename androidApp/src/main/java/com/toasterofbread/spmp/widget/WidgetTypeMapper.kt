@@ -9,6 +9,7 @@ internal fun SpMpWidgetType.getWidgetReceiverClass(): KClass<out GlanceAppWidget
         SpMpWidgetType.LYRICS_LINE_HORIZONTAL -> LyricsLineHorizontalWidgetReceiver::class
         SpMpWidgetType.SONG_QUEUE -> SongQueueWidgetReceiver::class
         SpMpWidgetType.SONG_IMAGE -> SongImageWidgetReceiver::class
+        SpMpWidgetType.SPLIT_IMAGE_CONTROLS -> SplitImageControlsWidgetReceiver::class
     }
 
 internal fun getSpMpWidgetTypeForActivityInfo(provider: ComponentName): SpMpWidgetType =

@@ -14,8 +14,6 @@ import spmp.shared.generated.resources.widget_config_type_name_song_image
 
 @Serializable
 data class SongImageWidgetConfig(
-    val show_current_song: Boolean = true,
-    val next_songs_to_show: Int = -1,
     override val click_action: WidgetClickAction<SongImageWidgetClickAction> = WidgetClickAction.DEFAULT
 ): TypeWidgetConfig<SongImageWidgetClickAction>() {
     @Composable

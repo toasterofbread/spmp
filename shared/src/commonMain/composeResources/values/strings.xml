@@ -1112,6 +1112,9 @@
     <string name="widget_click_action_common_open_spmp">Open SpMp</string>
     <string name="widget_click_action_common_open_widget_config">Open widget config</string>
     <string name="widget_click_action_common_toggle_visibility">Toggle visibility</string>
+    <string name="widget_click_action_common_play_pause">Play/pause</string>
+    <string name="widget_click_action_common_seek_next">Seek to next</string>
+    <string name="widget_click_action_common_seek_previous">Seek to previous</string>
 
     <string name="widget_click_action_lyrics_toggle_furigana">Toggle furigana</string>
     <string name="widget_click_action_lyrics_hide_until_next_song">Hide until next song</string>

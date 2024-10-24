@@ -59,6 +59,9 @@ import com.toasterofbread.spmp.widget.action.WidgetClickAction
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.NONE
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.OPEN_SPMP
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.OPEN_WIDGET_CONFIG
+import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.PLAY_PAUSE
+import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.SEEK_NEXT
+import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.SEEK_PREVIOUS
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.TOGGLE_VISIBILITY
 import com.toasterofbread.spmp.widget.component.GlanceText
 import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfig
@@ -73,8 +76,10 @@ import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
 import dev.toastbits.composekit.settings.ui.NamedTheme
 import dev.toastbits.composekit.utils.common.thenIf
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.FontResource
 
 @Suppress("UNCHECKED_CAST")
@@ -160,7 +165,7 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
                     Box(
                         GlanceModifier
                             .fillMaxSize()
-                            .clickable(WidgetActionCallback(configuration)),
+                            .clickable(WidgetActionCallback(configuration.type_configuration.click_action)),
                         contentAlignment = Alignment.Center
                     ) {
                         if (base_configuration.show_debug_information) {
@@ -200,12 +205,7 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
                                     GlanceModifier.fillMaxSize().defaultWeight(),
                                     contentAlignment = Alignment.Center
                                 ) {
-                                    val padding: Dp = 15.dp
-                                    CompositionLocalProvider(
-                                        LocalSize provides LocalSize.current.minus(DpSize(padding * 2, padding * 2))
-                                    ) {
-                                        Content(GlanceModifier.wrapContentSize(), PaddingValues(padding))
-                                    }
+                                    Content(GlanceModifier.wrapContentSize(), PaddingValues(15.dp))
                                 }
                             }
                         }
@@ -256,7 +256,7 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
         }
     }
 
-    private fun executeCommonAction(action: WidgetClickAction.CommonWidgetClickAction, id: GlanceId) {
+    private fun executeCommonAction(action: WidgetClickAction.CommonWidgetClickAction, id: GlanceId) = coroutine_scope.launch(Dispatchers.Main) {
         when (action) {
             NONE -> {}
             OPEN_SPMP -> {
@@ -274,6 +274,9 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
             TOGGLE_VISIBILITY -> {
                 visible = !visible
             }
+            PLAY_PAUSE -> SpMp._player_state?.controller?.playPause()
+            SEEK_NEXT -> SpMp._player_state?.controller?.seekToNext()
+            SEEK_PREVIOUS -> SpMp._player_state?.controller?.seekToPrevious()
         }
     }
 

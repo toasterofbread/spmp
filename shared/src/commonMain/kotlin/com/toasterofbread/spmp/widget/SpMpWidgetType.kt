@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.widget
 import com.toasterofbread.spmp.widget.action.LyricsWidgetClickAction
 import com.toasterofbread.spmp.widget.action.SongImageWidgetClickAction
 import com.toasterofbread.spmp.widget.action.SongQueueWidgetClickAction
+import com.toasterofbread.spmp.widget.action.SplitImageControlsWidgetClickAction
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
 import com.toasterofbread.spmp.widget.configuration.type.LyricsWidgetConfig
 import com.toasterofbread.spmp.widget.configuration.type.LyricsWidgetConfigDefaultsMask
@@ -10,6 +11,8 @@ import com.toasterofbread.spmp.widget.configuration.type.SongImageWidgetConfig
 import com.toasterofbread.spmp.widget.configuration.type.SongImageWidgetConfigDefaultsMask
 import com.toasterofbread.spmp.widget.configuration.type.SongQueueWidgetConfig
 import com.toasterofbread.spmp.widget.configuration.type.SongQueueWidgetConfigDefaultsMask
+import com.toasterofbread.spmp.widget.configuration.type.SplitImageControlsWidgetConfig
+import com.toasterofbread.spmp.widget.configuration.type.SplitImageControlsWidgetConfigDefaultsMask
 import com.toasterofbread.spmp.widget.configuration.type.TypeConfigurationDefaultsMask
 import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
 import kotlin.reflect.KClass
@@ -38,6 +41,12 @@ enum class SpMpWidgetType(
         default_config = SongImageWidgetConfig(),
         default_defaults_mask = SongImageWidgetConfigDefaultsMask(),
         click_action_class = SongImageWidgetClickAction::class,
+        update_types = listOf(WidgetUpdateType.OnSongTransition, WidgetUpdateType.OnPlayingChange)
+    ),
+    SPLIT_IMAGE_CONTROLS(
+        default_config = SplitImageControlsWidgetConfig(),
+        default_defaults_mask = SplitImageControlsWidgetConfigDefaultsMask(),
+        click_action_class = SplitImageControlsWidgetClickAction::class,
         update_types = listOf(WidgetUpdateType.OnSongTransition, WidgetUpdateType.OnPlayingChange)
     );
 

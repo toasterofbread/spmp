@@ -7,6 +7,7 @@ import androidx.glance.appwidget.updateAll
 import com.toasterofbread.spmp.widget.impl.LyricsLineHorizontalWidget
 import com.toasterofbread.spmp.widget.impl.SongImageWidget
 import com.toasterofbread.spmp.widget.impl.SongQueueWidget
+import com.toasterofbread.spmp.widget.impl.SplitImageControlsWidget
 import kotlin.reflect.KClass
 
 val SpMpWidgetType.widgetClass: KClass<out SpMpWidget<*, *>>
@@ -14,6 +15,7 @@ val SpMpWidgetType.widgetClass: KClass<out SpMpWidget<*, *>>
         SpMpWidgetType.LYRICS_LINE_HORIZONTAL -> LyricsLineHorizontalWidget::class
         SpMpWidgetType.SONG_QUEUE -> SongQueueWidget::class
         SpMpWidgetType.SONG_IMAGE -> SongImageWidget::class
+        SpMpWidgetType.SPLIT_IMAGE_CONTROLS -> SplitImageControlsWidget::class
     }
 
 object SpMpWidgetUpdater {

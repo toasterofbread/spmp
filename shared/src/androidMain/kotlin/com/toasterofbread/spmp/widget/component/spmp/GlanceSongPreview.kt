@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.widget.component
+package com.toasterofbread.spmp.widget.component.spmp
 
 import LocalPlayerState
 import androidx.compose.runtime.Composable

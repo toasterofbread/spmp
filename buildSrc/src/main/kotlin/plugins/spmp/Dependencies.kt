@@ -184,7 +184,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 fork_url = "https://github.com/marcoc1712/jaudiotagger"
             ),
             "com.github.teamnewpipe:NewPipeExtractor" to DependencyInfo(
-                version = "v0.24.0",
+                version = "v0.24.2",
                 name = "NewPipe Extractor",
                 author = "Team NewPipe",
                 url = "https://github.com/TeamNewPipe/NewPipeExtractor",

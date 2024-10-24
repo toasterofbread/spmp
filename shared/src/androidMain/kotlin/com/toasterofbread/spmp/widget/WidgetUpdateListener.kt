@@ -1,0 +1,76 @@
+package com.toasterofbread.spmp.widget
+
+import android.content.Context
+import androidx.media3.common.MediaItem
+import androidx.media3.common.Player
+import androidx.media3.common.Timeline
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+
+class WidgetUpdateListener(private val context: Context): Player.Listener {
+    private val widget_update_coroutine_scope: CoroutineScope =
+        CoroutineScope(Dispatchers.Default)
+    private val during_playback_widget_update_coroutine_scope: CoroutineScope =
+        CoroutineScope(Dispatchers.Default)
+
+    fun release() {
+        widget_update_coroutine_scope.cancel()
+        during_playback_widget_update_coroutine_scope.cancel()
+    }
+
+    suspend fun updateAll() {
+        for (type in SpMpWidgetType.entries) {
+            type.updateAll(context)
+        }
+    }
+
+    override fun onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
+        super.onMediaItemTransition(mediaItem, reason)
+
+        widget_update_coroutine_scope.launch {
+            for (type in SpMpWidgetType.entries) {
+                if (type.update_types.contains(WidgetUpdateType.OnSongTransition)) {
+                    type.updateAll(context)
+                }
+            }
+        }
+    }
+
+    override fun onTimelineChanged(timeline: Timeline, reason: Int) {
+        widget_update_coroutine_scope.launch {
+            for (type in SpMpWidgetType.entries) {
+                if (type.update_types.contains(WidgetUpdateType.OnQueueChange)) {
+                    type.updateAll(context)
+                }
+            }
+        }
+    }
+
+    override fun onIsPlayingChanged(isPlaying: Boolean) {
+        if (!isPlaying) {
+            during_playback_widget_update_coroutine_scope.coroutineContext.cancelChildren()
+            return
+        }
+
+        widget_update_coroutine_scope.launch {
+            for (type in SpMpWidgetType.entries) {
+                if (type.update_types.contains(WidgetUpdateType.OnPlayingChange)) {
+                    type.updateAll(context)
+                }
+
+                for (update in type.update_types.filterIsInstance<WidgetUpdateType.DuringPlayback>()) {
+                    during_playback_widget_update_coroutine_scope.launch {
+                        while (true) {
+                            delay(update.period)
+                            type.updateAll(context)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}

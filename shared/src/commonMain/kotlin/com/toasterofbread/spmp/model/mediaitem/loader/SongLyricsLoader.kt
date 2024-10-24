@@ -81,7 +81,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
     }
 
     interface ItemState {
-        val song_id: String
+        val song: Song
         val lyrics: SongLyrics?
         val loading: Boolean
         val is_none: Boolean
@@ -92,20 +92,20 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
         var song_lyrics_reference: LyricsReference? by remember { mutableStateOf(song.Lyrics.get(context.database)) }
         val state: ItemState = remember(song.id) {
             object : ItemState {
-                override val song_id: String = song.id
+                override val song: Song = song
                 override val lyrics: SongLyrics?
                     get() =
                         try {
-                            loaded_by_song[song_id] ?: loaded_by_reference[song_lyrics_reference]
+                            loaded_by_song[song.id] ?: loaded_by_reference[song_lyrics_reference]
                         }
                         catch (_: IllegalStateException) { null }
                 override val loading: Boolean
-                    get() = loading_by_id.containsKey(song_id) || loading_by_reference.containsKey(song_lyrics_reference)
+                    get() = loading_by_id.containsKey(song.id) || loading_by_reference.containsKey(song_lyrics_reference)
                 override val is_none: Boolean
                     get() = song_lyrics_reference?.isNone() == true
 
                 override fun toString(): String =
-                    "LyricsItemState(id=$song_id, loading=$loading, lyrics=${lyrics?.reference})"
+                    "LyricsItemState(id=${song.id}, loading=$loading, lyrics=${lyrics?.reference})"
             }
         }
 
@@ -121,7 +121,7 @@ internal object SongLyricsLoader: Loader<SongLyrics>() {
             context.database.songQueries.lyricsById(song.id).addListener(listener)
 
             onDispose {
-                context.database.songQueries.lyricsById(song.id).addListener(listener)
+                context.database.songQueries.lyricsById(song.id).removeListener(listener)
             }
         }
 

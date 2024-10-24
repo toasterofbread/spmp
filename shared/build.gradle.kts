@@ -18,7 +18,7 @@ plugins {
     id("app.cash.sqldelight")
 }
 
-val DATABASE_VERSION: Int = 8 // post-v0.3.2
+val DATABASE_VERSION: Int = 9 // since #368
 
 kotlin {
     androidTarget()
@@ -96,7 +96,7 @@ kotlin {
                 implementation(deps.get("dev.toastbits.kana-kt:kanakt"))
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.1")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
 
                 implementation(deps.get("org.apache.commons:commons-text"))
@@ -116,7 +116,6 @@ kotlin {
                 implementation(deps.get("io.ktor:ktor-client-core", "io.ktor"))
                 implementation(deps.get("io.ktor:ktor-client-content-negotiation", "io.ktor"))
                 implementation(deps.get("io.ktor:ktor-serialization-kotlinx-json", "io.ktor"))
-
             }
         }
 
@@ -136,7 +135,7 @@ kotlin {
 
                 implementation("androidx.palette:palette:1.0.0")
                 implementation("androidx.localbroadcastmanager:localbroadcastmanager:1.1.0")
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.7.1")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-protobuf:1.7.3")
                 implementation(deps.get("androidx.media3:media3-exoplayer", "androidx.media3"))
                 implementation(deps.get("androidx.media3:media3-ui", "androidx.media3"))
                 implementation(deps.get("androidx.media3:media3-session", "androidx.media3"))
@@ -150,6 +149,10 @@ kotlin {
                 implementation(deps.get("com.anggrayudi:storage"))
                 implementation(deps.get("io.github.jan-tennert.supabase:functions-kt"))
                 implementation(deps.get("io.ktor:ktor-client-cio"))
+
+                // Widget
+                implementation("androidx.glance:glance-appwidget:1.1.1")
+                implementation("androidx.glance:glance-material3:1.1.1")
             }
         }
 

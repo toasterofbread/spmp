@@ -1,0 +1,13 @@
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:configure="com.toasterofbread.spmp.widget.WidgetConfigurationActivity"
+    android:description="@string/widget_description_lyrics_line_horizontal"
+    android:previewImage="@drawable/widget_preview_lyrics_line_horizontal"
+    android:initialLayout="@layout/glance_default_loading_layout"
+    android:widgetFeatures="reconfigurable|configuration_optional"
+    android:targetCellHeight="1"
+    android:targetCellWidth="4"
+    android:resizeMode="horizontal|vertical"
+    android:widgetCategory="home_screen|keyguard|searchbox"
+    tools:ignore="UnusedAttribute">
+</appwidget-provider>

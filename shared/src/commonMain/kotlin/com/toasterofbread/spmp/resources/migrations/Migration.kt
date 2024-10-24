@@ -6,7 +6,7 @@ import app.cash.sqldelight.db.SqlDriver
 
 // SqlDelight migration is buggy and inconsistent between platforms, this hopefully won't be
 object Migration {
-    private val DATABASE_VERSION: Int = 8
+    private val DATABASE_VERSION: Int = 9
 
     fun updateDriverIfNeeded(driver: SqlDriver) {
         val driver_version: Int = driver.getVersion()
@@ -22,6 +22,7 @@ object Migration {
                     5 -> driver.migrateToVersion6()
                     6 -> driver.migrateToVersion7()
                     7 -> driver.migrateToVersion8()
+                    8 -> driver.migrateToVersion9()
                     else -> throw NotImplementedError(version.toString())
                 }
             }

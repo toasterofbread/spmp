@@ -1,29 +1,45 @@
 package com.toasterofbread.spmp.platform.playerservice
 
-import dev.toastbits.ytmkt.model.ApiAuthenticationState
+import PlatformIO
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import dev.toastbits.composekit.platform.PlatformPreferences
-import dev.toastbits.composekit.platform.PlatformPreferencesListener
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.platform.synchronized
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.radio.RadioState
 import com.toasterofbread.spmp.model.settings.unpackSetData
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.getUiLanguage
-import com.toasterofbread.spmp.model.radio.RadioState
+import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.composekit.platform.getPlatformHostName
 import dev.toastbits.composekit.platform.getPlatformOSName
+import dev.toastbits.composekit.platform.synchronized
+import dev.toastbits.spms.server.CLIENT_HEARTBEAT_MAX_PERIOD
+import dev.toastbits.spms.server.CLIENT_HEARTBEAT_TARGET_PERIOD
+import dev.toastbits.spms.socketapi.shared.SPMS_EXPECT_REPLY_CHAR
+import dev.toastbits.spms.socketapi.shared.SpMsActionReply
+import dev.toastbits.spms.socketapi.shared.SpMsClientHandshake
+import dev.toastbits.spms.socketapi.shared.SpMsClientInfo
+import dev.toastbits.spms.socketapi.shared.SpMsClientType
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerEvent
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
+import dev.toastbits.spms.socketapi.shared.SpMsServerHandshake
+import dev.toastbits.spms.zmq.ZmqSocket
+import dev.toastbits.spms.zmq.ZmqSocketType
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import io.ktor.http.Headers
 import io.ktor.util.flattenEntries
-import kotlinx.coroutines.*
-import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.CancellationException
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancelChildren
+import kotlinx.coroutines.channels.Channel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -31,22 +47,16 @@ import kotlinx.serialization.json.add
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.decodeFromJsonElement
-import kotlinx.serialization.json.put
 import kotlinx.serialization.json.encodeToJsonElement
-import dev.toastbits.spms.socketapi.shared.*
-import dev.toastbits.spms.server.CLIENT_HEARTBEAT_TARGET_PERIOD
-import dev.toastbits.spms.server.CLIENT_HEARTBEAT_MAX_PERIOD
-import dev.toastbits.spms.zmq.ZmqSocket
-import dev.toastbits.spms.zmq.ZmqSocketType
-import kotlin.time.*
-import kotlin.time.Duration
-import PlatformIO
+import kotlinx.serialization.json.put
 import org.jetbrains.compose.resources.getString
-import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.app_name
 import spmp.shared.generated.resources.loading_splash_setting_initial_state
 import spmp.shared.generated.resources.unknown_host_name
+import kotlin.time.Duration
+import kotlin.time.TimeMark
+import kotlin.time.TimeSource
 
 private val SERVER_REPLY_TIMEOUT: Duration = with (Duration) { 1.seconds }
 
@@ -70,7 +80,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
     }
 
     private val prefs_listener: PlatformPreferencesListener =
-        PlatformPreferencesListener { _, key ->
+        PlatformPreferencesListener { key ->
             when (key) {
                 context.settings.youtube_auth.YTM_AUTH.key -> {
                     sendYtmAuthToPlayers()

@@ -163,7 +163,7 @@ class PlayerServiceNotificationManager(
         context.onNotificationThumbnailLoaded(image)
     }
 
-    private fun updateMetadata(update: MediaMetadata.Builder.() -> Unit) {
+    private fun updateMetadata(update: MediaMetadata.Builder.() -> Unit) = synchronized(metadata_builder) {
         update(metadata_builder)
         media_session.setMetadata(metadata_builder.build())
     }

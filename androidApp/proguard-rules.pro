@@ -42,6 +42,12 @@
 # Ktor
 -dontwarn io.ktor.**
 
+-dontwarn java.beans.BeanDescriptor
+-dontwarn java.beans.BeanInfo
+-dontwarn java.beans.IntrospectionException
+-dontwarn java.beans.Introspector
+-dontwarn java.beans.PropertyDescriptor
+
 # From proguard-android-optimize.txt
 
 -optimizations !code/simplification/arithmetic,!code/simplification/cast,!field/*,!class/merging/*

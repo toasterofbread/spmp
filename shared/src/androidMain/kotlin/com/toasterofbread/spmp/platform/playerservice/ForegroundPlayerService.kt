@@ -48,6 +48,7 @@ open class ForegroundPlayerService(
     private lateinit var _context: AppContext
     private var stopped: Boolean = false
     private lateinit var notification_manager: PlayerServiceNotificationManager
+    private lateinit var media_data_spec_processor: MediaDataSpecProcessor
 
     internal val coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
     internal val colorblendr_coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
@@ -112,10 +113,13 @@ open class ForegroundPlayerService(
         _context = runBlocking { AppContext.create(this@ForegroundPlayerService, coroutine_scope) }
         _context.getPrefs().addListener(prefs_listener)
 
+        media_data_spec_processor = MediaDataSpecProcessor(context)
+
         initialiseSessionAndPlayer(
             play_when_ready,
             playlist_auto_progress,
             coroutine_scope,
+            media_data_spec_processor,
             getNotificationPlayer = { getNotificationPlayer(player) },
             onSongReadyToPlay = {
                 listeners.forEach { it.onDurationChanged(player.duration) }
@@ -156,11 +160,12 @@ open class ForegroundPlayerService(
         player.release()
         media_session.release()
         loudness_enhancer?.release()
+        media_data_spec_processor.release()
+        notification_manager.release()
 
         val audio_manager: AudioManager? = getSystemService()
         audio_manager?.unregisterAudioDeviceCallback(audio_device_callback)
 
-        notification_manager.release()
         super.onDestroy()
     }
 

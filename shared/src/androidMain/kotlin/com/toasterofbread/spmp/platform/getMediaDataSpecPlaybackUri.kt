@@ -1,8 +1,9 @@
 package com.toasterofbread.spmp.platform
 
 import android.net.Uri
+import androidx.annotation.OptIn
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.datasource.DataSpec
-import dev.toastbits.composekit.platform.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef
@@ -10,14 +11,23 @@ import com.toasterofbread.spmp.model.mediaitem.song.getSongTargetAudioFormat
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.platform.playerservice.AUTO_DOWNLOAD_SOFT_TIMEOUT
+import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
 import dev.toastbits.ytmkt.model.external.YoutubeVideoFormat
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.coroutines.withTimeoutOrNull
 
-internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppContext, metered: Boolean): DataSpec {
+@OptIn(UnstableApi::class)
+internal suspend fun getMediaDataSpecPlaybackUri(
+    data_spec: DataSpec,
+    context: AppContext,
+    endpoint: VideoFormatsEndpoint? = null
+): Result<Uri> = runCatching {
     val song: SongRef = SongRef(data_spec.uri.toString())
+
+    println("Loading playback URI for song using ${endpoint ?: "default endpoint"}")
 
     val download_manager: PlayerDownloadManager = context.download_manager
 
@@ -28,7 +38,7 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
 
     if (local_file != null) {
         println("Playing song ${song.id} from local file $local_file")
-        return data_spec.withUri(Uri.parse(local_file.uri))
+        return@runCatching Uri.parse(local_file.uri)
     }
 
     val auto_download_enabled: Boolean = context.settings.streaming.AUTO_DOWNLOAD_ENABLED.get()
@@ -36,7 +46,7 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
     if (
         auto_download_enabled
         && song.getPlayCount(context.database, 7) >= context.settings.streaming.AUTO_DOWNLOAD_THRESHOLD.get()
-        && (context.settings.streaming.AUTO_DOWNLOAD_ON_METERED.get() || !metered)
+        && (context.settings.streaming.AUTO_DOWNLOAD_ON_METERED.get() || !context.isConnectionMetered())
         && !MediaItemLibrary.song_sync_in_progress
     ) {
         var done: Boolean = false
@@ -89,19 +99,19 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
 
         if (local_file != null) {
             println("Playing song ${song.id} from local file $local_file")
-            return data_spec.withUri(Uri.parse(local_file!!.uri))
+            return@runCatching Uri.parse(local_file!!.uri)
         }
     }
 
     println("Loading stream format for song ${song.id}")
 
     val format: YoutubeVideoFormat =
-        getSongTargetAudioFormat(song.id, context).fold(
+        getSongTargetAudioFormat(song.id, context, endpoint).fold(
             { it },
             {
                 MediaItemLibrary.getLocalSong(song, context)?.file?.also { local_file ->
                     println("Playing song ${song.id} from local file $local_file")
-                    return data_spec.withUri(Uri.parse(local_file.uri))
+                    return@runCatching Uri.parse(local_file.uri)
                 }
 
                 it.printStackTrace()
@@ -117,5 +127,5 @@ internal suspend fun processMediaDataSpec(data_spec: DataSpec, context: AppConte
     }
 
     println("Playing song ${song.id} from external format $format stream_url=${format.url}")
-    return data_spec.withUri(Uri.parse(format.url))
+    return@runCatching Uri.parse(format.url)
 }

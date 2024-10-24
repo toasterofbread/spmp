@@ -30,6 +30,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
     play_when_ready: Boolean,
     playlist_auto_progress: Boolean,
     coroutine_scope: CoroutineScope,
+    data_spec_processor: MediaDataSpecProcessor,
     getNotificationPlayer: () -> Player,
     onSongReadyToPlay: () -> Unit = {}
 ) = runBlocking {
@@ -63,31 +64,31 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
     player = ExoPlayer.Builder(
         service,
         renderers_factory,
-        DefaultMediaSourceFactory(createDataSourceFactory())
-        .setLoadErrorHandlingPolicy(
-            object : LoadErrorHandlingPolicy {
-                override fun getFallbackSelectionFor(
-                    fallbackOptions: LoadErrorHandlingPolicy.FallbackOptions,
-                    loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo,
-                ): LoadErrorHandlingPolicy.FallbackSelection? {
-                    return null
-                }
-
-                override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
-                    loadErrorInfo.exception.printStackTrace()
-
-                    if (loadErrorInfo.exception.cause is VideoFormatsEndpoint.YoutubeMusicPremiumContentException) {
-                        // Returning Long.MAX_VALUE leads to immediate retry, and returning C.TIME_UNSET cancels the notification entirely for some reason
-                        return 10000000
+        DefaultMediaSourceFactory(createDataSourceFactory(data_spec_processor))
+            .setLoadErrorHandlingPolicy(
+                object : LoadErrorHandlingPolicy {
+                    override fun getFallbackSelectionFor(
+                        fallbackOptions: LoadErrorHandlingPolicy.FallbackOptions,
+                        loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo,
+                    ): LoadErrorHandlingPolicy.FallbackSelection? {
+                        return null
                     }
-                    return 1000 * 10
-                }
 
-                override fun getMinimumLoadableRetryCount(dataType: Int): Int {
-                    return Int.MAX_VALUE
+                    override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
+                        data_spec_processor.onLoadFailure(loadErrorInfo)
+
+                        if (loadErrorInfo.exception.cause is VideoFormatsEndpoint.YoutubeMusicPremiumContentException) {
+                            // Returning Long.MAX_VALUE leads to immediate retry, and returning C.TIME_UNSET cancels the notification entirely for some reason
+                            return 10000000
+                        }
+                        return 1000 * 10
+                    }
+
+                    override fun getMinimumLoadableRetryCount(dataType: Int): Int {
+                        return Int.MAX_VALUE
+                    }
                 }
-            }
-        )
+            )
     )
         .setAudioAttributes(
             AudioAttributes.Builder()

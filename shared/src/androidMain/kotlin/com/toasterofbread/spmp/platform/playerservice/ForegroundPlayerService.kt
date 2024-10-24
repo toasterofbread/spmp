@@ -45,6 +45,7 @@ open class ForegroundPlayerService(
     override val load_state: PlayerServiceLoadState = PlayerServiceLoadState(false)
     override val context: AppContext get() = _context
     private lateinit var _context: AppContext
+    private lateinit var media_data_spec_processor: MediaDataSpecProcessor
 
     internal val coroutine_scope: CoroutineScope = CoroutineScope(Dispatchers.Main)
     internal lateinit var player: ExoPlayer
@@ -118,9 +119,12 @@ open class ForegroundPlayerService(
         _context = AppContext(this, coroutine_scope)
         _context.getPrefs().addListener(prefs_listener)
 
+        media_data_spec_processor = MediaDataSpecProcessor(context)
+
         initialiseSessionAndPlayer(
             play_when_ready,
             playlist_auto_progress,
+            media_data_spec_processor,
             getNotificationPlayer = { getNotificationPlayer(it) }
         )
 
@@ -162,6 +166,7 @@ open class ForegroundPlayerService(
         media_session.release()
         loudness_enhancer?.release()
         SongLikedStatusListener.removeListener(song_liked_listener)
+        media_data_spec_processor.release()
 
         val audio_manager = getSystemService(AUDIO_SERVICE) as AudioManager?
         audio_manager?.unregisterAudioDeviceCallback(audio_device_callback)

@@ -7,6 +7,7 @@ import android.graphics.BitmapFactory
 import android.net.Uri
 import android.os.Bundle
 import android.os.Handler
+import androidx.annotation.OptIn
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
@@ -14,6 +15,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.common.audio.SonicAudioProcessor
 import androidx.media3.common.util.BitmapLoader
 import androidx.media3.common.Player
+import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.RenderersFactory
 import androidx.media3.exoplayer.audio.AudioRendererEventListener
@@ -39,9 +41,11 @@ import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
 import kotlinx.coroutines.runBlocking
 import java.util.concurrent.Executors
 
+@OptIn(UnstableApi::class)
 internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
     play_when_ready: Boolean,
     playlist_auto_progress: Boolean,
+    data_spec_processor: MediaDataSpecProcessor,
     getNotificationPlayer: (ExoPlayer) -> Player = { it }
 ) {
     audio_sink = DefaultAudioSink.Builder(context.ctx)
@@ -73,33 +77,33 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
         this,
         renderers_factory,
         DefaultMediaSourceFactory(
-            createDataSourceFactory(),
+            createDataSourceFactory(data_spec_processor),
             { arrayOf(MatroskaExtractor(), FragmentedMp4Extractor()) }
         )
-        .setLoadErrorHandlingPolicy(
-            object : LoadErrorHandlingPolicy {
-                override fun getFallbackSelectionFor(
-                    fallbackOptions: LoadErrorHandlingPolicy.FallbackOptions,
-                    loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo,
-                ): LoadErrorHandlingPolicy.FallbackSelection? {
-                    return null
-                }
-
-                override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
-                    loadErrorInfo.exception.printStackTrace()
-
-                    if (loadErrorInfo.exception.cause is VideoFormatsEndpoint.YoutubeMusicPremiumContentException) {
-                        // Returning Long.MAX_VALUE leads to immediate retry, and returning C.TIME_UNSET cancels the notification entirely for some reason
-                        return 10000000
+            .setLoadErrorHandlingPolicy(
+                object : LoadErrorHandlingPolicy {
+                    override fun getFallbackSelectionFor(
+                        fallbackOptions: LoadErrorHandlingPolicy.FallbackOptions,
+                        loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo,
+                    ): LoadErrorHandlingPolicy.FallbackSelection? {
+                        return null
                     }
-                    return 1000 * 10
-                }
 
-                override fun getMinimumLoadableRetryCount(dataType: Int): Int {
-                    return Int.MAX_VALUE
+                    override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
+                        data_spec_processor.onLoadFailure(loadErrorInfo)
+
+                        if (loadErrorInfo.exception.cause is VideoFormatsEndpoint.YoutubeMusicPremiumContentException) {
+                            // Returning Long.MAX_VALUE leads to immediate retry, and returning C.TIME_UNSET cancels the notification entirely for some reason
+                            return 10000000
+                        }
+                        return 1000 * 10
+                    }
+
+                    override fun getMinimumLoadableRetryCount(dataType: Int): Int {
+                        return Int.MAX_VALUE
+                    }
                 }
-            }
-        )
+            )
     )
         .setAudioAttributes(
             AudioAttributes.Builder()

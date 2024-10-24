@@ -81,11 +81,13 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
                 override fun getFallbackSelectionFor(
                     fallbackOptions: LoadErrorHandlingPolicy.FallbackOptions,
                     loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo,
-                    ): LoadErrorHandlingPolicy.FallbackSelection? {
+                ): LoadErrorHandlingPolicy.FallbackSelection? {
                     return null
                 }
 
                 override fun getRetryDelayMsFor(loadErrorInfo: LoadErrorHandlingPolicy.LoadErrorInfo): Long {
+                    loadErrorInfo.exception.printStackTrace()
+
                     if (loadErrorInfo.exception.cause is VideoFormatsEndpoint.YoutubeMusicPremiumContentException) {
                         // Returning Long.MAX_VALUE leads to immediate retry, and returning C.TIME_UNSET cancels the notification entirely for some reason
                         return 10000000

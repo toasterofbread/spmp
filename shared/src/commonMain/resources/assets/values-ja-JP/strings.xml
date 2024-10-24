@@ -550,6 +550,7 @@
     <string name="s_option_audio_quality_low">低</string>
 
     <string name="s_key_video_formats_endpoint">曲のストリーム・ダウンロード方式</string>
+    <string name="s_key_enable_video_format_fallback">他のストリーム方式にフォールバックする</string>
 
     <string name="s_key_auto_download_enabled">曲を自動的にダウンロードする</string>
     <string name="s_key_auto_download_threshold">自動曲ダウンロード最低再生数</string>

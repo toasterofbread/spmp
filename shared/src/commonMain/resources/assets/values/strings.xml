@@ -583,6 +583,7 @@
     <string name="s_option_audio_quality_low">Low</string>
 
     <string name="s_key_video_formats_endpoint">Song stream/download method</string>
+    <string name="s_key_enable_video_format_fallback">Fall back to other stream methods</string>
 
     <string name="s_key_auto_download_enabled">Enable song auto-download</string>
     <string name="s_key_auto_download_threshold">Auto-download threshold</string>

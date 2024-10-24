@@ -21,6 +21,11 @@ class StreamingSettings(val context: AppContext): SettingsGroup("STREAMING", con
         getDescription = { null },
         getDefaultValue = { VideoFormatsEndpointType.DEFAULT }
     )
+    val ENABLE_VIDEO_FORMAT_FALLBACK: PreferencesProperty<Boolean> by property(
+        getName = { getString("s_key_enable_video_format_fallback") },
+        getDescription = { null },
+        getDefaultValue = { true }
+    )
     val AUTO_DOWNLOAD_ENABLED: PreferencesProperty<Boolean> by property(
         getName = { getString("s_key_auto_download_enabled") },
         getDescription = { null },

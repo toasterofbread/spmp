@@ -26,6 +26,7 @@ import spmp.shared.generated.resources.s_key_enable_silence_skipping
 import spmp.shared.generated.resources.s_key_skip_download_method_confirmation
 import spmp.shared.generated.resources.s_key_stream_audio_quality
 import spmp.shared.generated.resources.s_key_video_formats_endpoint
+import spmp.shared.generated.resources.s_key_enable_video_format_fallback
 import spmp.shared.generated.resources.s_sub_auto_download_threshold
 import spmp.shared.generated.resources.s_sub_download_audio_quality
 import spmp.shared.generated.resources.s_sub_download_method
@@ -41,6 +42,11 @@ class StreamingSettings(val context: AppContext): SettingsGroup("STREAMING", con
         getName = { stringResource(Res.string.s_key_video_formats_endpoint) },
         getDescription = { null },
         getDefaultValue = { VideoFormatsEndpointType.DEFAULT }
+    )
+    val ENABLE_VIDEO_FORMAT_FALLBACK: PreferencesProperty<Boolean> by property(
+        getName = { stringResource(Res.string.s_key_enable_video_format_fallback) },
+        getDescription = { null },
+        getDefaultValue = { true }
     )
     val AUTO_DOWNLOAD_ENABLED: PreferencesProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_auto_download_enabled) },

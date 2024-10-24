@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.model.mediaitem.song
 
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
 import dev.toastbits.ytmkt.model.external.YoutubeVideoFormat
 
 enum class SongAudioQuality {
@@ -14,10 +15,16 @@ suspend fun AppContext.getSongTargetStreamQuality(): SongAudioQuality =
 suspend fun AppContext.getSongTargetDownloadQuality(): SongAudioQuality =
     settings.streaming.DOWNLOAD_AUDIO_QUALITY.get()
 
-suspend fun getSongAudioFormatByQuality(song_id: String, quality: SongAudioQuality, context: AppContext): Result<YoutubeVideoFormat> =
+suspend fun getSongAudioFormatByQuality(
+    song_id: String,
+    quality: SongAudioQuality,
+    context: AppContext,
+    endpoint: VideoFormatsEndpoint? = null
+): Result<YoutubeVideoFormat> =
     getSongFormats(
         song_id,
         context,
+        endpoint,
         filter = { format ->
             format.mimeType.startsWith("audio/mp4")
         }
@@ -26,21 +33,23 @@ suspend fun getSongAudioFormatByQuality(song_id: String, quality: SongAudioQuali
         { Result.failure(it) }
     )
 
-suspend fun getSongTargetAudioFormat(song_id: String, context: AppContext): Result<YoutubeVideoFormat> =
-    getSongAudioFormatByQuality(song_id, context.getSongTargetStreamQuality(), context)
+suspend fun getSongTargetAudioFormat(song_id: String, context: AppContext, endpoint: VideoFormatsEndpoint? = null): Result<YoutubeVideoFormat> =
+    getSongAudioFormatByQuality(song_id, context.getSongTargetStreamQuality(), context, endpoint)
 
 suspend fun getSongFormats(
     song_id: String,
     context: AppContext,
+    endpoint: VideoFormatsEndpoint? = null,
     filter: (YoutubeVideoFormat) -> Boolean = { true }
 ): Result<List<YoutubeVideoFormat>> {
     val result: Result<List<YoutubeVideoFormat>> =
-        context.ytapi.VideoFormats.getVideoFormats(song_id, filter = filter)
+        (endpoint ?: context.ytapi.VideoFormats).getVideoFormats(song_id, filter = filter)
 
-    val formats: List<YoutubeVideoFormat> = result.fold(
-        { it },
-        { return Result.failure(it) }
-    )
+    val formats: List<YoutubeVideoFormat> =
+        result.fold(
+            { it },
+            { return Result.failure(it) }
+        ).filter { it.url != null }
 
     if (formats.isEmpty()) {
         return Result.failure(RuntimeException("No valid formats returned by getVideoFormats($song_id)"))

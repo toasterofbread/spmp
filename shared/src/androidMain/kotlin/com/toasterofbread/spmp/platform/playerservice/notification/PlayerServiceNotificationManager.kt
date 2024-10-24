@@ -20,7 +20,6 @@ import app.cash.sqldelight.Query
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.song.SongLikedStatusListener
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.playerservice.ForegroundPlayerService
@@ -157,20 +156,20 @@ class PlayerServiceNotificationManager(
         auth_state_observe_scope.cancel()
     }
 
-    private fun onThumbnailLoaded(image: Bitmap) {
+    private fun onThumbnailLoaded(image: Bitmap?) {
         updateMetadata {
             putBitmap(MediaMetadata.METADATA_KEY_ALBUM_ART, image)
         }
         context.onNotificationThumbnailLoaded(image)
     }
 
-    private fun updateMetadata(update: MediaMetadata.Builder.() -> Unit) {
+    private fun updateMetadata(update: MediaMetadata.Builder.() -> Unit) = synchronized(metadata_builder) {
         update(metadata_builder)
         media_session.setMetadata(metadata_builder.build())
     }
 
     private suspend fun loadThumbnail(song: Song): Bitmap? {
-        for (quality in listOf(ThumbnailProvider.Quality.HIGH)) {
+        for (quality in ThumbnailProvider.Quality.byQuality()) {
             val image: ImageBitmap =
                 MediaItemThumbnailLoader.loadItemThumbnail(song, quality, context).getOrNull()
                 ?: continue
@@ -182,10 +181,9 @@ class PlayerServiceNotificationManager(
                     context
                 )
 
-            onThumbnailLoaded(formatted_image)
-
             return formatted_image
         }
+
         return null
     }
 
@@ -238,8 +236,12 @@ class PlayerServiceNotificationManager(
                     val song: Song? = player.currentMediaItem?.toSong()
                     if (song != null) {
                         thumbnail_load_scope.launch {
-                            val image: Bitmap = loadThumbnail(song) ?: return@launch
-                            callback.onBitmap(image)
+                            val image: Bitmap? = loadThumbnail(song)
+                            onThumbnailLoaded(image)
+
+                            if (image != null) {
+                                callback.onBitmap(image)
+                            }
                         }
                     }
                     return null

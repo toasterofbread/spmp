@@ -53,7 +53,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/toasterofbread/ComposeKit/blob/136f216e65395660255d3270af9b79c90ae2254c/LICENSE"
             ),
             "dev.toastbits.ytmkt" to DependencyInfo(
-                version = "0.3.2",
+                version = "0.3.3",
                 name = "ytm-kt",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/ytm-kt",
@@ -184,7 +184,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 fork_url = "https://github.com/marcoc1712/jaudiotagger"
             ),
             "com.github.teamnewpipe:NewPipeExtractor" to DependencyInfo(
-                version = "v0.24.0",
+                version = "v0.24.2",
                 name = "NewPipe Extractor",
                 author = "Team NewPipe",
                 url = "https://github.com/TeamNewPipe/NewPipeExtractor",

@@ -31,6 +31,10 @@ internal fun getStreamingCategoryItems(context: AppContext): List<SettingsItem> 
         ),
 
         ToggleSettingsItem(
+            context.settings.streaming.ENABLE_VIDEO_FORMAT_FALLBACK
+        ),
+
+        ToggleSettingsItem(
             context.settings.streaming.AUTO_DOWNLOAD_ENABLED
         ),
 

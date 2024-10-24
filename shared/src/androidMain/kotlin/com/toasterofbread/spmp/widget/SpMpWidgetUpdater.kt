@@ -5,6 +5,7 @@ import androidx.compose.runtime.mutableStateMapOf
 import androidx.glance.GlanceId
 import androidx.glance.appwidget.updateAll
 import com.toasterofbread.spmp.widget.impl.LyricsLineHorizontalWidget
+import com.toasterofbread.spmp.widget.impl.SongImageWidget
 import com.toasterofbread.spmp.widget.impl.SongQueueWidget
 import kotlin.reflect.KClass
 
@@ -12,6 +13,7 @@ val SpMpWidgetType.widgetClass: KClass<out SpMpWidget<*, *>>
     get() = when (this) {
         SpMpWidgetType.LYRICS_LINE_HORIZONTAL -> LyricsLineHorizontalWidget::class
         SpMpWidgetType.SONG_QUEUE -> SongQueueWidget::class
+        SpMpWidgetType.SONG_IMAGE -> SongImageWidget::class
     }
 
 object SpMpWidgetUpdater {

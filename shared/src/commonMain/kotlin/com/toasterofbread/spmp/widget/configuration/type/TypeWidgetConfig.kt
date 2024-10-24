@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.widget.configuration
+package com.toasterofbread.spmp.widget.configuration.type
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
@@ -9,6 +9,7 @@ import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
 import com.toasterofbread.spmp.widget.action.WidgetClickAction
+import com.toasterofbread.spmp.widget.configuration.WidgetConfig
 import dev.toastbits.composekit.platform.MutableStatePreferencesProperty
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
@@ -66,10 +67,15 @@ sealed class TypeWidgetConfig<A: TypeWidgetClickAction>: WidgetConfig() {
     @Composable
     private fun ClickActionItem(modifier: Modifier, onChanged: (TypeWidgetConfig<A>) -> Unit) {
         val actions: List<WidgetClickAction<A>> = remember {
-            WidgetClickAction.CommonWidgetClickAction.entries + getActions().map { WidgetClickAction.Type(it) }
+            WidgetClickAction.CommonWidgetClickAction.entries + getActions().map {
+                WidgetClickAction.Type(
+                    it
+                )
+            }
         }
 
-        val click_action_state: MutableState<Int> = remember { mutableIntStateOf(actions.indexOf(click_action)) }
+        val click_action_state: MutableState<Int> =
+            remember { mutableIntStateOf(actions.indexOf(click_action)) }
         val click_action_property: PreferencesProperty<Int> = remember {
             MutableStatePreferencesProperty(
                 click_action_state,

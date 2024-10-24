@@ -31,11 +31,11 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.widget.SpMpWidgetType
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
-import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfig
-import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfigDefaultsMask
+import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfig
+import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfigDefaultsMask
 import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
-import com.toasterofbread.spmp.widget.configuration.TypeConfigurationDefaultsMask
-import com.toasterofbread.spmp.widget.configuration.TypeWidgetConfig
+import com.toasterofbread.spmp.widget.configuration.type.TypeConfigurationDefaultsMask
+import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
 import dev.toastbits.composekit.navigation.Screen
 import dev.toastbits.composekit.navigation.navigator.Navigator
 import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme

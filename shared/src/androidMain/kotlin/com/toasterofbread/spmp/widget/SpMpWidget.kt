@@ -61,14 +61,14 @@ import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClick
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.OPEN_WIDGET_CONFIG
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.TOGGLE_VISIBILITY
 import com.toasterofbread.spmp.widget.component.GlanceText
-import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfig
-import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfig.ContentColour.DARK
-import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfig.ContentColour.LIGHT
-import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfig.ContentColour.THEME
-import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfigDefaultsMask
+import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfig
+import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfig.ContentColour.DARK
+import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfig.ContentColour.LIGHT
+import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfig.ContentColour.THEME
+import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfigDefaultsMask
 import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
-import com.toasterofbread.spmp.widget.configuration.TypeConfigurationDefaultsMask
-import com.toasterofbread.spmp.widget.configuration.TypeWidgetConfig
+import com.toasterofbread.spmp.widget.configuration.type.TypeConfigurationDefaultsMask
+import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
 import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
 import dev.toastbits.composekit.settings.ui.NamedTheme
 import dev.toastbits.composekit.utils.common.thenIf
@@ -78,7 +78,10 @@ import kotlinx.coroutines.cancel
 import org.jetbrains.compose.resources.FontResource
 
 @Suppress("UNCHECKED_CAST")
-abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(exact_size: Boolean): GlanceAppWidget() {
+abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
+    exact_size: Boolean = false,
+    private val custom_background: Boolean = false
+): GlanceAppWidget() {
     override val sizeMode: SizeMode =
         if (exact_size) SizeMode.Exact
         else SizeMode.Single
@@ -90,6 +93,10 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(exac
 
     private val base_configuration: BaseWidgetConfig
         get() = configuration.base_configuration
+
+    protected val widget_background_colour: Color
+        @Composable
+        get() = LocalApplicationTheme.current.card.copy(alpha = base_configuration.background_opacity)
 
     private var visible: Boolean by mutableStateOf(true)
     private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
@@ -177,14 +184,12 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(exac
                                 .fillMaxSize()
                                 .systemCornerRadius()
                         ) {
-                            // Dark: android.R.color.system_accent2_800
-                            // Light: android.R.color.system_accent2_50
-
                             Column(
                                 GlanceModifier
                                     .fillMaxSize()
-                                    .background(theme.theme.card.copy(alpha = base_configuration.background_opacity))
-//                                    .background(android.R.color.system_accent2_50)
+                                    .thenIf(!custom_background) {
+                                        background(widget_background_colour)
+                                    }
                                     .systemCornerRadius()
                             ) {
                                 if (base_configuration.show_debug_information) {

@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.widget.configuration
+package com.toasterofbread.spmp.widget.configuration.base
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
@@ -15,6 +15,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.createThemeSelectorSettingsItem
+import com.toasterofbread.spmp.widget.configuration.WidgetConfig
 import dev.toastbits.composekit.platform.MutableStatePreferencesProperty
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.settings.ui.NamedTheme
@@ -144,7 +145,8 @@ data class BaseWidgetConfig(
 
     @Composable
     private fun ThemeIndexItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
-        val theme_index_state: MutableState<Int> = remember { mutableIntStateOf(theme_index?.plus(1) ?: 0) }
+        val theme_index_state: MutableState<Int> =
+            remember { mutableIntStateOf(theme_index?.plus(1) ?: 0) }
         val theme_index_property: PreferencesProperty<Int> = remember {
             MutableStatePreferencesProperty(
                 theme_index_state,
@@ -159,7 +161,10 @@ data class BaseWidgetConfig(
                 theme_index_property,
                 getExtraStartThemes = {
                     listOf(
-                        NamedTheme(stringResource(Res.string.widget_application_theme_label), ThemeValuesData.of(context.theme))
+                        NamedTheme(
+                            stringResource(Res.string.widget_application_theme_label),
+                            ThemeValuesData.of(context.theme)
+                        )
                     )
                 }
             )
@@ -169,10 +174,10 @@ data class BaseWidgetConfig(
             onChanged(
                 this.copy(
                     theme_index =
-                        theme_index_state.value.let { index ->
-                            if (index <= 0) null
-                            else index - 1
-                        }
+                    theme_index_state.value.let { index ->
+                        if (index <= 0) null
+                        else index - 1
+                    }
                 )
             )
         }
@@ -180,7 +185,8 @@ data class BaseWidgetConfig(
 
     @Composable
     private fun FontItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
-        val font_state: MutableState<Int> = remember { mutableIntStateOf(font?.ordinal?.plus(1) ?: 0) }
+        val font_state: MutableState<Int> =
+            remember { mutableIntStateOf(font?.ordinal?.plus(1) ?: 0) }
         val font_property: PreferencesProperty<Int> = remember {
             MutableStatePreferencesProperty(
                 font_state,
@@ -198,8 +204,7 @@ data class BaseWidgetConfig(
             ) {
                 if (it == 0) {
                     stringResource(Res.string.widget_config_common_option_font_app)
-                }
-                else {
+                } else {
                     FontMode.entries[it - 1].getReadable(ui_language)
                 }
             }
@@ -244,7 +249,8 @@ data class BaseWidgetConfig(
 
     @Composable
     private fun ContentColourItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
-        val content_colour_state: MutableState<ContentColour> = remember { mutableStateOf(content_colour) }
+        val content_colour_state: MutableState<ContentColour> =
+            remember { mutableStateOf(content_colour) }
         val content_colour_property: PreferencesProperty<ContentColour> = remember {
             MutableStatePreferencesProperty(
                 content_colour_state,
@@ -272,7 +278,8 @@ data class BaseWidgetConfig(
 
     @Composable
     private fun BackgroundOpacityItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
-        val background_opacity_state: MutableState<Float> = remember { mutableFloatStateOf(background_opacity) }
+        val background_opacity_state: MutableState<Float> =
+            remember { mutableFloatStateOf(background_opacity) }
         val background_opacity_property: PreferencesProperty<Float> = remember {
             MutableStatePreferencesProperty(
                 background_opacity_state,
@@ -301,7 +308,8 @@ data class BaseWidgetConfig(
 
     @Composable
     private fun BorderRadiusItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
-        val border_radius_state: MutableState<Float> = remember { mutableFloatStateOf(border_radius_dp) }
+        val border_radius_state: MutableState<Float> =
+            remember { mutableFloatStateOf(border_radius_dp) }
         val border_radius_property: PreferencesProperty<Float> = remember {
             MutableStatePreferencesProperty(
                 border_radius_state,
@@ -326,7 +334,8 @@ data class BaseWidgetConfig(
 
     @Composable
     private fun HideWhenNoContentItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
-        val hide_when_no_content_state: MutableState<Boolean> = remember { mutableStateOf(hide_when_no_content) }
+        val hide_when_no_content_state: MutableState<Boolean> =
+            remember { mutableStateOf(hide_when_no_content) }
         val hide_when_no_content_property: PreferencesProperty<Boolean> = remember {
             MutableStatePreferencesProperty(
                 hide_when_no_content_state,
@@ -350,7 +359,8 @@ data class BaseWidgetConfig(
 
     @Composable
     private fun ShowDebugInformationItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
-        val show_debug_information_state: MutableState<Boolean> = remember { mutableStateOf(show_debug_information) }
+        val show_debug_information_state: MutableState<Boolean> =
+            remember { mutableStateOf(show_debug_information) }
         val show_debug_information_property: PreferencesProperty<Boolean> = remember {
             MutableStatePreferencesProperty(
                 show_debug_information_state,

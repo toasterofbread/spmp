@@ -4,4 +4,6 @@
     <string name="widget_description_lyrics_line_horizontal"></string>
     <string name="widget_name_song_queue">Song queue</string>
     <string name="widget_description_song_queue" />
+    <string name="widget_name_song_image">Song image</string>
+    <string name="widget_description_song_image" />
 </resources>

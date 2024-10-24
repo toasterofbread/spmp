@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.widget.configuration
+package com.toasterofbread.spmp.widget.configuration.type
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
@@ -30,7 +30,8 @@ data class SongQueueWidgetConfig(
     override val click_action: WidgetClickAction<SongQueueWidgetClickAction> = WidgetClickAction.DEFAULT
 ): TypeWidgetConfig<SongQueueWidgetClickAction>() {
     @Composable
-    override fun getTypeName(): String = stringResource(Res.string.widget_config_type_name_song_queue)
+    override fun getTypeName(): String =
+        stringResource(Res.string.widget_config_type_name_song_queue)
 
     override fun LazyListScope.SubConfigurationItems(
         context: AppContext,
@@ -73,7 +74,8 @@ data class SongQueueWidgetConfig(
 
     @Composable
     private fun ShowCurrentSongItem(modifier: Modifier, onChanged: (TypeWidgetConfig<SongQueueWidgetClickAction>) -> Unit) {
-        val show_current_song_state: MutableState<Boolean> = remember { mutableStateOf(show_current_song) }
+        val show_current_song_state: MutableState<Boolean> =
+            remember { mutableStateOf(show_current_song) }
         val show_current_song_property: PreferencesProperty<Boolean> = remember {
             MutableStatePreferencesProperty(
                 show_current_song_state,
@@ -93,7 +95,8 @@ data class SongQueueWidgetConfig(
 
     @Composable
     private fun NextSongsToShowItem(modifier: Modifier, onChanged: (TypeWidgetConfig<SongQueueWidgetClickAction>) -> Unit) {
-        val next_songs_to_show_state: MutableState<Int> = remember { mutableIntStateOf(next_songs_to_show) }
+        val next_songs_to_show_state: MutableState<Int> =
+            remember { mutableIntStateOf(next_songs_to_show) }
         val next_songs_to_show_property: PreferencesProperty<Int> = remember {
             MutableStatePreferencesProperty(
                 next_songs_to_show_state,

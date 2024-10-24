@@ -17,8 +17,8 @@ import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.widget.SpMpWidgetType
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
-import com.toasterofbread.spmp.widget.configuration.BaseWidgetConfig
-import com.toasterofbread.spmp.widget.configuration.TypeWidgetConfig
+import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfig
+import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
 import com.toasterofbread.spmp.widget.configuration.ui.screen.WidgetConfigurationScreen
 import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
 import dev.toastbits.composekit.navigation.navigator.Navigator

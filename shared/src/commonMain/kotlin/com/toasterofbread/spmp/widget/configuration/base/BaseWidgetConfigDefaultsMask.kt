@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.widget.configuration
+package com.toasterofbread.spmp.widget.configuration.base
 
 import kotlinx.serialization.Serializable
 

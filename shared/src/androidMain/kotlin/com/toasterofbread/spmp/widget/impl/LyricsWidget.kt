@@ -20,7 +20,7 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.util.LyricsLineState
 import com.toasterofbread.spmp.widget.SpMpWidget
 import com.toasterofbread.spmp.widget.action.LyricsWidgetClickAction
-import com.toasterofbread.spmp.widget.configuration.LyricsWidgetConfig
+import com.toasterofbread.spmp.widget.configuration.type.LyricsWidgetConfig
 import com.toasterofbread.spmp.widget.modifier.padding
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res

@@ -9,6 +9,10 @@ import com.toasterofbread.spmp.model.mediaitem.db.observeAsState
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.widget.SpMpWidgetType
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
+import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfig
+import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfigDefaultsMask
+import com.toasterofbread.spmp.widget.configuration.type.TypeConfigurationDefaultsMask
+import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.Serializable

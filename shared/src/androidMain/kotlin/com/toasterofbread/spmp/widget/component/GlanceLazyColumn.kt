@@ -10,7 +10,7 @@ import com.toasterofbread.spmp.widget.modifier.padding
 import dev.toastbits.composekit.utils.modifier.horizontal
 
 @Composable
-fun LazyColumn(content_padding: PaddingValues, modifier: GlanceModifier, content: LazyListScope.() -> Unit) {
+internal fun GlanceLazyColumn(content_padding: PaddingValues, modifier: GlanceModifier, content: LazyListScope.() -> Unit) {
     androidx.glance.appwidget.lazy.LazyColumn(
         modifier.padding(content_padding.horizontal)
     ) {

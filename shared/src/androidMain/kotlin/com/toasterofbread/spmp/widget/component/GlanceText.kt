@@ -21,8 +21,6 @@ import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalContext
 import androidx.glance.layout.ContentScale
-import androidx.glance.layout.fillMaxWidth
-import androidx.glance.layout.wrapContentSize
 import androidx.glance.layout.wrapContentWidth
 import com.toasterofbread.spmp.widget.mapper.toAndroidTypeface
 import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
@@ -30,7 +28,7 @@ import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.FontResource
 
 @Composable
-fun GlanceText(
+internal fun GlanceText(
     text: String,
     modifier: GlanceModifier = GlanceModifier,
     font: FontResource? = null,

@@ -1,4 +1,4 @@
-package com.toasterofbread.spmp.widget.configuration
+package com.toasterofbread.spmp.widget.configuration.type
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
@@ -67,7 +67,8 @@ internal data class LyricsWidgetConfig(
 
     @Composable
     private fun FuriganaModeItem(modifier: Modifier, onChanged: (TypeWidgetConfig<LyricsWidgetClickAction>) -> Unit) {
-        val furigana_mode_state: MutableState<FuriganaMode> = remember { mutableStateOf(furigana_mode) }
+        val furigana_mode_state: MutableState<FuriganaMode> =
+            remember { mutableStateOf(furigana_mode) }
         val furigana_mode_property: PreferencesProperty<FuriganaMode> = remember {
             MutableStatePreferencesProperty(
                 furigana_mode_state,

@@ -67,7 +67,7 @@ actual class AppContext private constructor(
     private val colorblendr_coroutine_scope = CoroutineScope(Dispatchers.Default)
     private var current_colorblendr_song: Song? = null
 
-    fun onNotificationThumbnailLoaded(image: Bitmap) {
+    fun onNotificationThumbnailLoaded(image: Bitmap?) {
         colorblendr_coroutine_scope.launchSingle {
             if (!settings.experimental.ANDROID_MONET_COLOUR_ENABLE.get()) {
                 return@launchSingle
@@ -85,7 +85,7 @@ actual class AppContext private constructor(
             }
             current_colorblendr_song = song
 
-            val colour: Color? = image.asImageBitmap().getThemeColour()
+            val colour: Color? = image?.asImageBitmap()?.getThemeColour()
 
             val action: String =
                 if (colour != null) "com.drdisagree.colorblendr.SET_PRIMARY_COLOR"

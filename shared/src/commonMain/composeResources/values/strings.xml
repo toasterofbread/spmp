@@ -17,8 +17,8 @@
                 - This updates the referenced location of strings.xml used for update checking
                 - Cannot be merged before release, because UpdateCheckData must be valid for at least one existing tag
     -->
-    <string name="version_string" translatable="false">0.4.1</string>
-    <string name="version_code" translatable="false">21</string>
+    <string name="version_string" translatable="false">0.4.2</string>
+    <string name="version_code" translatable="false">22</string>
 
     <string name="app_name" translatable="false">SpMp</string>
     <string name="app_name_debug" translatable="false">SpMp (debug)</string>

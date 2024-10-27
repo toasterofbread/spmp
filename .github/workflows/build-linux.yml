@@ -37,3 +37,19 @@ jobs:
       with:
         name: spmp-linux-release
         path: desktopApp/build/outputs/*.tar.gz
+
+    - name: Rename tarball
+      run: mv desktopApp/build/outputs/*.tar.gz desktopApp/build/outputs/spmp-nightly-linux-x86_64.tar.gz
+
+    - name: Get current date and time
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d %H:%M:%S')"
+
+    - name: Update nightly release
+      uses: mini-bomba/create-github-release@v1.1.3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: nightly-latest
+        name: Nightly ${{ steps.date.outputs.date }}
+        files: desktopApp/build/outputs/spmp-nightly-linux-x86_64.tar.gz
+        clear_attachments: false

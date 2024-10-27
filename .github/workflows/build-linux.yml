@@ -38,7 +38,7 @@ jobs:
         name: spmp-linux-release
         path: desktopApp/build/outputs/*.tar.gz
 
-    - name: Rename tarball
+    - name: Rename output file
       run: mv desktopApp/build/outputs/*.tar.gz desktopApp/build/outputs/spmp-nightly-linux-x86_64.tar.gz
 
     - name: Get current date and time

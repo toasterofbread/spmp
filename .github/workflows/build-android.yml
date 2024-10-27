@@ -38,7 +38,7 @@ jobs:
         name: spmp-android-release
         path: androidApp/build/outputs/apk/release/*.apk
 
-    - name: Rename APK files
+    - name: Rename output files
       run: |
         mv androidApp/build/outputs/apk/release/*.apk androidApp/build/outputs/apk/release/spmp-nightly-android-universal.apk 
         mv androidApp/build/outputs/apk/debug/*.apk androidApp/build/outputs/apk/debug/spmp-nightly-android-universal-debug.apk 

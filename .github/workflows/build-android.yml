@@ -47,11 +47,11 @@ jobs:
       run: echo "::set-output name=date::$(date +'%Y-%m-%d %H:%M:%S')"
 
     - name: Update nightly release
-      uses: johnwbyrd/update-release@v1
+      uses: mini-bomba/create-github-release@v1.1.3
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
-        release: Nightly ${{ steps.date.outputs.date }}
         tag: nightly-latest
+        name: Nightly ${{ steps.date.outputs.date }}
         files: androidApp/build/outputs/apk/release/spmp-nightly-android-universal.apk
 
     - name: Get short commit hash

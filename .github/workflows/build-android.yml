@@ -38,6 +38,27 @@ jobs:
         name: spmp-android-release
         path: androidApp/build/outputs/apk/release/*.apk
 
+    - name: Rename output files
+      run: |
+        mv androidApp/build/outputs/apk/release/*.apk androidApp/build/outputs/apk/release/spmp-nightly-android-universal.apk 
+        mv androidApp/build/outputs/apk/debug/*.apk androidApp/build/outputs/apk/debug/spmp-nightly-android-universal-debug.apk 
+
+    - name: Get current date and time
+      id: date
+      run: echo "::set-output name=date::$(date +'%Y-%m-%d %H:%M:%S')"
+
+    - name: Update nightly release
+      uses: mini-bomba/create-github-release@v1.1.3
+      if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        tag: nightly-latest
+        name: Nightly ${{ steps.date.outputs.date }}
+        files: |
+          androidApp/build/outputs/apk/release/spmp-nightly-android-universal.apk 
+          androidApp/build/outputs/apk/debug/spmp-nightly-android-universal-debug.apk
+        clear_attachments: false
+
     - name: Get short commit hash
       run: echo "COMMIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
 

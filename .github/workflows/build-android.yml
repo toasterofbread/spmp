@@ -49,6 +49,7 @@ jobs:
 
     - name: Update nightly release
       uses: mini-bomba/create-github-release@v1.1.3
+      if: env.BUILD_NOTIFICATION_DISCORD_WEBHOOK != null && github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         tag: nightly-latest

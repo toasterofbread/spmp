@@ -53,6 +53,7 @@ jobs:
         tag: nightly-latest
         name: Nightly ${{ steps.date.outputs.date }}
         files: androidApp/build/outputs/apk/debug/spmp-nightly-android-universal-debug.apk
+        clear_attachments: false
 
     - name: Get short commit hash
       run: echo "COMMIT_SHA=$(git rev-parse --short HEAD)" >> $GITHUB_ENV

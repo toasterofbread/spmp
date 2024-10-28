@@ -54,6 +54,12 @@
     </categories>
 
     <releases>
+        <release version="v0.4.2" date="2024-10-25">
+            <url type="details">https://github.com/toasterofbread/spmp/releases/tag/v0.4.2</url>
+            <description>
+                <p>Fix the issue of song streams failing to load when not signed in to YouTube Music.</p>
+            </description>
+        </release>
         <release version="v0.4.1" date="2024-08-24">
             <url type="details">https://github.com/toasterofbread/spmp/releases/tag/v0.4.1</url>
             <description>

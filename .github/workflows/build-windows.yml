@@ -64,3 +64,23 @@ jobs:
       with:
         name: spmp-windows-release-exe
         path: desktopApp/build/compose/binaries/main-release/exe/*.exe
+
+    # - name: Rename output files
+    #   run: |
+    #     mv desktopApp/build/outputs/*.zip desktopApp/build/outputs/spmp-nightly-windows-x86_64-standalone.zip
+    #     mv desktopApp/build/compose/binaries/main-release/exe/*.exe desktopApp/build/compose/binaries/main-release/exe/spmp-nightly-windows-x86_64-installer.exe
+
+    # - name: Get current date and time
+    #   id: date
+    #   run: echo "::set-output name=date::$(date +'%Y-%m-%d %H:%M:%S')"
+
+    # - name: Update nightly release
+    #   uses: mini-bomba/create-github-release@v1.1.3
+    #   if: github.event_name != 'pull_request' && github.ref == 'refs/heads/main'
+    #   with:
+    #     token: ${{ secrets.GITHUB_TOKEN }}
+    #     tag: nightly-latest
+    #     name: Nightly ${{ steps.date.outputs.date }}
+    #     files: desktopApp/build/outputs/spmp-nightly-windows-x86_64-standalone.zip desktopApp/build/compose/binaries/main-release/exe/spmp-nightly-windows-x86_64-installer.exe
+    #     clear_attachments: false
+

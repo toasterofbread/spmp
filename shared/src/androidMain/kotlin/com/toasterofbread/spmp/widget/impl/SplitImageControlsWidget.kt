@@ -43,6 +43,8 @@ import com.toasterofbread.spmp.widget.SpMpWidget
 import com.toasterofbread.spmp.widget.action.SplitImageControlsWidgetClickAction
 import com.toasterofbread.spmp.widget.component.GlanceActionButtonGrid
 import com.toasterofbread.spmp.widget.component.GlanceActionButtonGridMode
+import com.toasterofbread.spmp.widget.component.styledcolumn.GLANCE_STYLED_COLUMN_DEFAULT_SPACING
+import com.toasterofbread.spmp.widget.component.util.WithCurrentSongImage
 import com.toasterofbread.spmp.widget.configuration.enum.WidgetSectionThemeMode
 import com.toasterofbread.spmp.widget.configuration.type.SplitImageControlsWidgetConfig
 import com.toasterofbread.spmp.widget.modifier.systemCornerRadius
@@ -54,37 +56,6 @@ import dev.toastbits.composekit.utils.common.blendWith
 import dev.toastbits.composekit.utils.common.getThemeColour
 import dev.toastbits.composekit.utils.common.getValue
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
-
-val DEFAULT_WIDGET_AREA_SPACING: Dp = 12.dp
-
-@Composable
-fun WithCurrentSongImage(
-    content: @Composable (Song?, Bitmap?) -> Unit
-) {
-    val player: PlayerState = LocalPlayerState.current
-    val song: Song? = player.status.m_song
-
-    if (song != null) {
-        song.Thumbnail(
-            ThumbnailProvider.Quality.HIGH,
-            contentOverride = {
-                val theme: ThemeValues = LocalApplicationTheme.current
-                val song_theme: Color? by song.ThemeColour.observe(player.database)
-                val image_accent: Color? = it?.getThemeColour()
-                val current_accent: Color = song_theme ?: image_accent ?: theme.accent
-
-                CompositionLocalProvider(
-                    LocalApplicationTheme provides ThemeValuesData.of(theme).copy(accent = current_accent)
-                ) {
-                    content(song, it?.asAndroidBitmap())
-                }
-            }
-        )
-    }
-    else {
-        content(null, null)
-    }
-}
 
 internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClickAction, SplitImageControlsWidgetConfig>(
     custom_background = true,
@@ -129,7 +100,7 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
                                     WidgetSectionThemeMode.TRANSPARENT -> LocalContentColor.current
                                 }
 
-                            WidgetText(it, font_size = 20.sp, colour = colour)
+                            WidgetText(it, font_size = 18.sp, colour = colour)
                         }
 
                         val artist_title: String? by song.Artists.observe(player.database).value?.firstOrNull()?.observeActiveTitle()
@@ -137,7 +108,7 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
                             WidgetText(
                                 it,
                                 GlanceModifier.padding(top = 3.dp),
-                                font_size = 15.sp,
+                                font_size = 14.sp,
                                 alpha = 0.7f
                             )
                         }
@@ -148,7 +119,7 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
                         GlanceModifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.End
                     ) {
-                        val height: Dp = LocalSize.current.height - top_bar_height - DEFAULT_WIDGET_AREA_SPACING - content_padding.calculateTopPadding() - content_padding.calculateBottomPadding()
+                        val height: Dp = LocalSize.current.height - top_bar_height - GLANCE_STYLED_COLUMN_DEFAULT_SPACING - content_padding.calculateTopPadding() - content_padding.calculateBottomPadding()
                         val max_button_grid_size: Dp = 150.dp
                         val button_grid_size: Dp = height.coerceAtMost(max_button_grid_size)
 
@@ -158,7 +129,7 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
                                 - content_padding.calculateStartPadding(LocalLayoutDirection.current)
                                 - content_padding.calculateEndPadding(LocalLayoutDirection.current)
                                 - button_grid_size
-                                - DEFAULT_WIDGET_AREA_SPACING
+                                - GLANCE_STYLED_COLUMN_DEFAULT_SPACING
                             )
                             val image_size: Dp = minOf(image_available_width, height)
 
@@ -173,7 +144,7 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
                         }
 
                         Spacer(GlanceModifier.fillMaxWidth().defaultWeight())
-                        Spacer(GlanceModifier.width(DEFAULT_WIDGET_AREA_SPACING))
+                        Spacer(GlanceModifier.width(GLANCE_STYLED_COLUMN_DEFAULT_SPACING))
 
                         val show_icon = (button_grid_size - max_button_grid_size) >= 20.dp
 
@@ -199,7 +170,7 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
                                     when (type_configuration.content_row_theme_mode) {
                                         WidgetSectionThemeMode.BACKGROUND,
                                         WidgetSectionThemeMode.TRANSPARENT -> LocalApplicationTheme.current.vibrant_accent
-                                        WidgetSectionThemeMode.ACCENT -> LocalApplicationTheme.current.background.copy(alpha = 1f)
+                                        WidgetSectionThemeMode.ACCENT -> widget_background_colour.copy(alpha = 1f)
                                     },
                                 modifier = GlanceModifier.defaultWeight()
                             )
@@ -221,8 +192,7 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
                     .fillMaxWidth()
                     .systemCornerRadius(),
                 content_padding = content_padding,
-                vertical_alignment = Alignment.Bottom,
-                spacing = DEFAULT_WIDGET_AREA_SPACING
+                vertical_alignment = Alignment.Bottom
             )
         }
     }

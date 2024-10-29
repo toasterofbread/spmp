@@ -32,6 +32,8 @@ import com.toasterofbread.spmp.widget.modifier.padding
 import dev.toastbits.composekit.utils.common.getContrasted
 import dev.toastbits.composekit.utils.composable.wave.wavePath
 
+val GLANCE_STYLED_COLUMN_DEFAULT_SPACING: Dp = 12.dp
+
 @Composable
 internal fun GlanceStyledColumn(
     border_mode: WidgetStyledBorderMode,
@@ -39,7 +41,7 @@ internal fun GlanceStyledColumn(
     vararg content: @Composable ColumnScope.() -> Unit,
     modifier: GlanceModifier = GlanceModifier,
     vertical_alignment: Alignment.Vertical = Alignment.Top,
-    spacing: Dp = 0.dp,
+    spacing: Dp = GLANCE_STYLED_COLUMN_DEFAULT_SPACING,
     content_padding: PaddingValues = PaddingValues(),
     getBackgroundColour: @Composable (WidgetSectionThemeMode) -> Color = { it.colour }
 ) {

@@ -375,7 +375,8 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
         modifier: GlanceModifier = GlanceModifier,
         vertical_alignment: Alignment.Vertical = Alignment.Top,
         spacing: Dp = GLANCE_STYLED_COLUMN_DEFAULT_SPACING,
-        content_padding: PaddingValues = PaddingValues()
+        content_padding: PaddingValues = PaddingValues(),
+        order: List<Int> = section_theme_modes.indices.toList()
     ) {
         GlanceStyledColumn(
             border_mode = base_configuration.styled_border_mode,
@@ -385,6 +386,7 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
             vertical_alignment = vertical_alignment,
             spacing = spacing,
             content_padding = content_padding,
+            order = order,
             getBackgroundColour = {
                 when (it.mode) {
                     WidgetSectionTheme.Mode.BACKGROUND -> widget_background_colour.copy(alpha = it.opacity)

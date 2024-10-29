@@ -1153,6 +1153,7 @@
     <string name="widget_config_song_queue_show_current_song">Show current song</string>
     <string name="widget_config_song_queue_next_songs_to_show">Upcoming songs to display</string>
 
+    <string name="widget_config_split_image_controls_swap_title_content_rows">Swap title and content positions</string>
     <string name="widget_config_split_image_controls_title_row_theme">Title row theme</string>
     <string name="widget_config_split_image_controls_content_row_theme">Content row theme</string>
     <string name="widget_config_split_image_controls_top_start_button_action">Top-left button</string>

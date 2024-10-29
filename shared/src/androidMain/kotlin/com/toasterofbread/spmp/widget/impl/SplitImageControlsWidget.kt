@@ -69,10 +69,8 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
         modifier: GlanceModifier,
         content_padding: PaddingValues
     ) {
-        val player: PlayerState = LocalPlayerState.current
-
         if (song == null) {
-            WidgetText("No song", modifier)
+            WidgetText("NO SONG", modifier)
             return
         }
 
@@ -81,115 +79,150 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
         StyledColumn(
             listOf(type_configuration.title_row_theme, type_configuration.content_row_theme),
             {
-                Column(
-                    GlanceModifier.height(top_bar_height - content_padding.calculateTopPadding() - content_padding.calculateBottomPadding()),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    val title: String? by song.observeActiveTitle()
-                    title?.also {
-                        val colour: Color =
-                            when (type_configuration.title_row_theme.mode) {
-                                WidgetSectionTheme.Mode.BACKGROUND -> with (LocalApplicationTheme.current) {
-                                        accent.blendWith(on_background, 0.4f)
-                                    }
-                                WidgetSectionTheme.Mode.ACCENT,
-                                WidgetSectionTheme.Mode.TRANSPARENT -> LocalContentColor.current
-                            }
-
-                        WidgetText(it, font_size = 18.sp, colour = colour)
-                    }
-
-                    val artist_title: String? by song.Artists.observe(player.database).value?.firstOrNull()?.observeActiveTitle()
-                    artist_title?.also {
-                        WidgetText(
-                            it,
-                            GlanceModifier.padding(top = 3.dp),
-                            font_size = 14.sp,
-                            alpha = 0.7f
-                        )
-                    }
-                }
+                TitleSection(top_bar_height, content_padding, song)
             },
             {
-                Row(
-                    GlanceModifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.End
-                ) {
-                    val height: Dp = LocalSize.current.height - top_bar_height - GLANCE_STYLED_COLUMN_DEFAULT_SPACING - content_padding.calculateTopPadding() - content_padding.calculateBottomPadding()
-                    val max_button_grid_size: Dp = 150.dp
-                    val button_grid_size: Dp = height.coerceAtMost(max_button_grid_size)
-
-                    if (song_image != null) {
-                        val image_available_width: Dp = (
-                            LocalSize.current.width
-                            - content_padding.calculateStartPadding(LocalLayoutDirection.current)
-                            - content_padding.calculateEndPadding(LocalLayoutDirection.current)
-                            - button_grid_size
-                            - GLANCE_STYLED_COLUMN_DEFAULT_SPACING
-                        )
-                        val image_size: Dp = minOf(image_available_width, height)
-
-                        Image(
-                            ImageProvider(song_image),
-                            null,
-                            GlanceModifier
-                                .size(image_size)
-                                .systemCornerRadius(),
-                            contentScale = ContentScale.Crop
-                        )
-                    }
-
-                    Spacer(GlanceModifier.fillMaxWidth().defaultWeight())
-                    Spacer(GlanceModifier.width(GLANCE_STYLED_COLUMN_DEFAULT_SPACING))
-
-                    val show_icon = (button_grid_size - max_button_grid_size) >= 20.dp
-
-                    Column(
-                        GlanceModifier.wrapContentWidth().fillMaxHeight(),
-                        horizontalAlignment = Alignment.End
-                    ) {
-                        GlanceActionButtonGrid(
-                            DpSize(
-                                button_grid_size,
-                                button_grid_size
-                            ),
-                            GlanceActionButtonGridMode.NO_FILL,
-                            type_configuration.top_start_button_action,
-                            type_configuration.top_end_button_action,
-                            type_configuration.bottom_start_button_action,
-                            type_configuration.bottom_end_button_action,
-                            { it.getIcon() },
-                            button_modifier = GlanceModifier.systemCornerRadius(),
-                            spacing = 7.dp,
-                            alignment = Alignment.TopStart,
-                            button_background_colour =
-                                when (type_configuration.content_row_theme.mode) {
-                                    WidgetSectionTheme.Mode.BACKGROUND,
-                                    WidgetSectionTheme.Mode.TRANSPARENT -> LocalApplicationTheme.current.vibrant_accent
-                                    WidgetSectionTheme.Mode.ACCENT -> widget_background_colour.copy(alpha = 1f)
-                                },
-                            modifier = GlanceModifier.defaultWeight()
-                        )
-
-                        Spacer(GlanceModifier.fillMaxHeight().defaultWeight())
-
-                        if (show_icon) {
-                            Image(
-                                ImageProvider(R.drawable.ic_spmp),
-                                null,
-                                GlanceModifier.size(20.dp),
-                                colorFilter = ColorFilter.tint(ColorProvider(LocalContentColor.current))
-                            )
-                        }
-                    }
-                }
+                ContentSection(top_bar_height, content_padding, song_image)
             },
             modifier = GlanceModifier
                 .fillMaxWidth()
                 .systemCornerRadius(),
             content_padding = content_padding,
-            vertical_alignment = Alignment.Bottom
+            vertical_alignment = Alignment.Bottom,
+            order =
+                if (type_configuration.swap_title_content_rows) listOf(1, 0)
+                else listOf(0, 1)
         )
+    }
+
+    @Composable
+    private fun TitleSection(
+        top_bar_height: Dp,
+        content_padding: PaddingValues,
+        song: Song
+    ) {
+        val player: PlayerState = LocalPlayerState.current
+
+        Column(
+            GlanceModifier
+                .height(
+                    top_bar_height - content_padding.calculateTopPadding() - content_padding.calculateBottomPadding()
+                ),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            val title: String? by song.observeActiveTitle()
+            title?.also {
+                val colour: Color =
+                    when (type_configuration.title_row_theme.mode) {
+                        WidgetSectionTheme.Mode.BACKGROUND -> with(LocalApplicationTheme.current) {
+                            accent.blendWith(on_background, 0.4f)
+                        }
+
+                        WidgetSectionTheme.Mode.ACCENT,
+                        WidgetSectionTheme.Mode.TRANSPARENT -> LocalContentColor.current
+                    }
+
+                WidgetText(it, font_size = 18.sp, colour = colour)
+            }
+
+            val artist_title: String? by song.Artists.observe(player.database).value?.firstOrNull()
+                ?.observeActiveTitle()
+            artist_title?.also {
+                WidgetText(
+                    it,
+                    GlanceModifier.padding(top = 3.dp),
+                    font_size = 14.sp,
+                    alpha = 0.7f
+                )
+            }
+        }
+    }
+
+    @Composable
+    private fun ContentSection(
+        top_bar_height: Dp,
+        content_padding: PaddingValues,
+        song_image: Bitmap?
+    ) {
+        Row(
+            GlanceModifier.fillMaxWidth(),
+            horizontalAlignment = Alignment.End
+        ) {
+            val height: Dp = (
+                LocalSize.current.height
+                    - top_bar_height
+                    - GLANCE_STYLED_COLUMN_DEFAULT_SPACING
+                    - content_padding.calculateTopPadding()
+                    - content_padding.calculateBottomPadding()
+            )
+            val max_button_grid_size: Dp = 150.dp
+            val button_grid_size: Dp = height.coerceAtMost(max_button_grid_size)
+
+            if (song_image != null) {
+                val image_available_width: Dp = (
+                    LocalSize.current.width
+                        - content_padding.calculateStartPadding(LocalLayoutDirection.current)
+                        - content_padding.calculateEndPadding(LocalLayoutDirection.current)
+                        - button_grid_size
+                        - GLANCE_STYLED_COLUMN_DEFAULT_SPACING
+                    )
+                val image_size: Dp = minOf(image_available_width, height)
+
+                Image(
+                    ImageProvider(song_image),
+                    null,
+                    GlanceModifier
+                        .size(image_size)
+                        .systemCornerRadius(),
+                    contentScale = ContentScale.Crop
+                )
+            }
+
+            Spacer(GlanceModifier.fillMaxWidth().defaultWeight())
+            Spacer(GlanceModifier.width(GLANCE_STYLED_COLUMN_DEFAULT_SPACING))
+
+            val show_icon = (button_grid_size - max_button_grid_size) >= 20.dp
+
+            Column(
+                GlanceModifier.wrapContentWidth(),
+                horizontalAlignment = Alignment.End
+            ) {
+                GlanceActionButtonGrid(
+                    DpSize(
+                        button_grid_size,
+                        button_grid_size
+                    ),
+                    GlanceActionButtonGridMode.NO_FILL,
+                    type_configuration.top_start_button_action,
+                    type_configuration.top_end_button_action,
+                    type_configuration.bottom_start_button_action,
+                    type_configuration.bottom_end_button_action,
+                    { it.getIcon() },
+                    button_modifier = GlanceModifier.systemCornerRadius(),
+                    spacing = 7.dp,
+                    alignment = Alignment.TopStart,
+                    button_background_colour =
+                    when (type_configuration.content_row_theme.mode) {
+                        WidgetSectionTheme.Mode.BACKGROUND,
+                        WidgetSectionTheme.Mode.TRANSPARENT -> LocalApplicationTheme.current.vibrant_accent
+
+                        WidgetSectionTheme.Mode.ACCENT -> widget_background_colour.copy(alpha = 1f)
+                    },
+                    modifier = GlanceModifier.defaultWeight()
+                )
+
+                Spacer(GlanceModifier.fillMaxHeight().defaultWeight())
+
+                if (show_icon) {
+                    Image(
+                        ImageProvider(R.drawable.ic_spmp),
+                        null,
+                        GlanceModifier.size(20.dp),
+                        colorFilter = ColorFilter.tint(ColorProvider(LocalContentColor.current))
+                    )
+                }
+            }
+        }
     }
 }
 

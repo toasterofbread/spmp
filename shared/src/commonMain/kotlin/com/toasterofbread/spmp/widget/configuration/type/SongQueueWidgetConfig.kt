@@ -47,8 +47,12 @@ data class SongQueueWidgetConfig(
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(show_current_song = it)) }
         ) { modifier, onItemChanged ->
-            ShowCurrentSongItem(modifier) {
-                onChanged(it)
+            ToggleItem(
+                show_current_song,
+                Res.string.widget_config_song_queue_show_current_song,
+                modifier
+            ) {
+                onChanged(copy(show_current_song = it))
                 onItemChanged()
             }
         }
@@ -58,8 +62,14 @@ data class SongQueueWidgetConfig(
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(next_songs_to_show = it)) }
         ) { modifier, onItemChanged ->
-            NextSongsToShowItem(modifier) {
-                onChanged(it)
+            SliderItem(
+                next_songs_to_show,
+                1,
+                Res.string.widget_config_song_queue_next_songs_to_show,
+                modifier,
+                range = -1f..5f
+            ) {
+                onChanged(copy(next_songs_to_show = it))
                 onItemChanged()
             }
         }
@@ -71,51 +81,4 @@ data class SongQueueWidgetConfig(
 
     override fun setClickAction(click_action: WidgetClickAction<SongQueueWidgetClickAction>): TypeWidgetConfig<SongQueueWidgetClickAction> =
         copy(click_action = click_action)
-
-    @Composable
-    private fun ShowCurrentSongItem(modifier: Modifier, onChanged: (TypeWidgetConfig<SongQueueWidgetClickAction>) -> Unit) {
-        val show_current_song_state: MutableState<Boolean> =
-            remember { mutableStateOf(show_current_song) }
-        val show_current_song_property: PreferencesProperty<Boolean> = remember {
-            MutableStatePreferencesProperty(
-                show_current_song_state,
-                { stringResource(Res.string.widget_config_song_queue_show_current_song) },
-                { null }
-            )
-        }
-
-        OnChangedEffect(show_current_song_state.value) {
-            onChanged(this.copy(show_current_song = show_current_song_state.value))
-        }
-
-        remember {
-            ToggleSettingsItem(show_current_song_property)
-        }.Item(modifier)
-    }
-
-    @Composable
-    private fun NextSongsToShowItem(modifier: Modifier, onChanged: (TypeWidgetConfig<SongQueueWidgetClickAction>) -> Unit) {
-        val next_songs_to_show_state: MutableState<Int> =
-            remember { mutableIntStateOf(next_songs_to_show) }
-        val next_songs_to_show_property: PreferencesProperty<Int> = remember {
-            MutableStatePreferencesProperty(
-                next_songs_to_show_state,
-                { stringResource(Res.string.widget_config_song_queue_next_songs_to_show) },
-                { null },
-                getPropertyDefaultValue = { 1 },
-                getPropertyDefaultValueComposable = { 1 }
-            )
-        }
-
-        OnChangedEffect(next_songs_to_show_state.value) {
-            onChanged(this.copy(next_songs_to_show = next_songs_to_show_state.value))
-        }
-
-        remember {
-            AppSliderItem(
-                next_songs_to_show_property,
-                range = -1f..5f
-            )
-        }.Item(modifier)
-    }
 }

@@ -14,6 +14,7 @@ import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.widget_config_split_image_controls_bottom_end_button_action
 import spmp.shared.generated.resources.widget_config_split_image_controls_bottom_start_button_action
 import spmp.shared.generated.resources.widget_config_split_image_controls_content_row_theme
+import spmp.shared.generated.resources.widget_config_split_image_controls_swap_title_content_rows
 import spmp.shared.generated.resources.widget_config_split_image_controls_title_row_theme
 import spmp.shared.generated.resources.widget_config_split_image_controls_top_end_button_action
 import spmp.shared.generated.resources.widget_config_split_image_controls_top_start_button_action
@@ -22,13 +23,12 @@ import spmp.shared.generated.resources.widget_config_type_name_song_image
 @Serializable
 data class SplitImageControlsWidgetConfig(
     val display_lyrics: Boolean = true, // TODO
+    val swap_title_content_rows: Boolean = false, // TODO
 
     val title_row_theme: WidgetSectionTheme =
         WidgetSectionTheme(WidgetSectionTheme.Mode.BACKGROUND, 0.7f),
     val content_row_theme: WidgetSectionTheme =
         WidgetSectionTheme(WidgetSectionTheme.Mode.ACCENT),
-
-    val swap_title_content_rows: Boolean = false, // TODO
 
     val top_start_button_action: WidgetClickAction<SplitImageControlsWidgetClickAction> =
         WidgetClickAction.CommonWidgetClickAction.TOGGLE_LIKE,
@@ -54,6 +54,21 @@ data class SplitImageControlsWidgetConfig(
         onDefaultsMaskChanged: (TypeConfigurationDefaultsMask<out TypeWidgetConfig<SplitImageControlsWidgetClickAction>>) -> Unit
     ) {
         require(defaults_mask is SplitImageControlsWidgetConfigDefaultsMask?)
+
+        configItem(
+            defaults_mask?.swap_title_content_rows,
+            item_modifier,
+            { onDefaultsMaskChanged(defaults_mask!!.copy(swap_title_content_rows = it)) }
+        ) { modifier, onItemChanged ->
+            ToggleItem(
+                swap_title_content_rows,
+                Res.string.widget_config_split_image_controls_swap_title_content_rows,
+                modifier
+            ) {
+                onChanged(copy(swap_title_content_rows = it))
+                onItemChanged()
+            }
+        }
 
         configItem(
             defaults_mask?.title_row_theme,

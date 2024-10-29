@@ -43,13 +43,15 @@ internal fun GlanceStyledColumn(
     vertical_alignment: Alignment.Vertical = Alignment.Top,
     spacing: Dp = GLANCE_STYLED_COLUMN_DEFAULT_SPACING,
     content_padding: PaddingValues = PaddingValues(),
+    order: List<Int> = content.indices.toList(),
     getBackgroundColour: @Composable (WidgetSectionTheme) -> Color = { it.colour }
 ) {
-    require(section_theme_modes.size == content.size)
+    require(section_theme_modes.size == order.size)
+    require(content.size == order.size)
 
     Column(modifier, verticalAlignment = vertical_alignment) {
-        for ((index, part) in content.withIndex()) {
-            val background_colour: Color = getBackgroundColour(section_theme_modes[index])
+        for ((index, part_index) in order.withIndex()) {
+            val background_colour: Color = getBackgroundColour(section_theme_modes[part_index])
 
             Box(
                 GlanceModifier
@@ -58,12 +60,12 @@ internal fun GlanceStyledColumn(
                     .fillMaxWidth()
             ) {
                 CompositionLocalProvider(LocalContentColor provides background_colour.getContrasted()) {
-                    part()
+                    content[part_index]()
                 }
             }
 
             if (index + 1 != content.size) {
-                val next_background_colour: Color = getBackgroundColour(section_theme_modes[index + 1])
+                val next_background_colour: Color = getBackgroundColour(section_theme_modes[order[index + 1]])
 
                 when (border_mode) {
                     WidgetStyledBorderMode.WAVE ->

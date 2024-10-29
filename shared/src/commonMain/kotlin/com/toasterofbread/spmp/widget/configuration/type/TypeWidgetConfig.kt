@@ -6,7 +6,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.material.icons.Icons
@@ -14,7 +13,6 @@ import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Opacity
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -34,8 +32,8 @@ import dev.toastbits.composekit.platform.MutableStatePreferencesProperty
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.SliderSettingsItem
+import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
 import dev.toastbits.composekit.utils.composable.OnChangedEffect
-import dev.toastbits.composekit.utils.composable.StickyWidthRow
 import dev.toastbits.composekit.utils.composable.WithStickySize
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.StringResource
@@ -46,6 +44,7 @@ import spmp.shared.generated.resources.widget_config_common_key_section_theme_op
 import spmp.shared.generated.resources.widget_config_common_option_section_theme_mode_accent
 import spmp.shared.generated.resources.widget_config_common_option_section_theme_mode_background
 import spmp.shared.generated.resources.widget_config_common_option_section_theme_mode_transparent
+import spmp.shared.generated.resources.widget_config_song_queue_next_songs_to_show
 
 @Serializable
 sealed class TypeWidgetConfig<A: TypeWidgetClickAction>: WidgetConfig() {
@@ -218,5 +217,65 @@ sealed class TypeWidgetConfig<A: TypeWidgetClickAction>: WidgetConfig() {
         OnChangedEffect(click_action_state.value) {
             onChanged(actions[click_action_state.value])
         }
+    }
+
+    @Composable
+    protected fun ToggleItem(
+        state: Boolean,
+        title: StringResource,
+        modifier: Modifier = Modifier,
+        onChanged: (Boolean) -> Unit
+    ) {
+        val current_state: MutableState<Boolean> =
+            remember { mutableStateOf(state) }
+
+        val state_property: PreferencesProperty<Boolean> = remember {
+            MutableStatePreferencesProperty(
+                current_state,
+                { stringResource(title) },
+                { null }
+            )
+        }
+
+        OnChangedEffect(current_state.value) {
+            onChanged(current_state.value)
+        }
+
+        remember {
+            ToggleSettingsItem(state_property)
+        }.Item(modifier)
+    }
+
+    @Composable
+    protected fun <T: Number> SliderItem(
+        value: T,
+        default_value: T,
+        title: StringResource,
+        modifier: Modifier = Modifier,
+        range: ClosedFloatingPointRange<Float> = 0f .. 1f,
+        onChanged: (T) -> Unit
+    ) {
+        val value_state: MutableState<T> =
+            remember { mutableStateOf(value) }
+        val value_property: PreferencesProperty<T> = remember {
+            MutableStatePreferencesProperty(
+                value_state,
+                { stringResource(title) },
+                { null },
+                getPropertyDefaultValue = { default_value },
+                getPropertyDefaultValueComposable = { default_value }
+            )
+        }
+
+        OnChangedEffect(value_state.value) {
+            onChanged(value_state.value)
+        }
+
+        remember {
+            AppSliderItem(
+                value_property,
+                range = range
+            )
+        }.Item(modifier)
     }
 }

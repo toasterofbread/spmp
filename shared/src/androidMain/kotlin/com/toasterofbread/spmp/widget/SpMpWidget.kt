@@ -10,6 +10,7 @@ import android.content.Context
 import android.content.Intent
 import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.MutableState
@@ -45,6 +46,8 @@ import androidx.glance.layout.ColumnScope
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
 import androidx.glance.layout.wrapContentSize
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.model.settings.category.observeCurrentTheme
 import com.toasterofbread.spmp.platform.AppContext
@@ -52,6 +55,7 @@ import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.shared.R
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
+import com.toasterofbread.spmp.util.getToggleTarget
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
 import com.toasterofbread.spmp.widget.action.WidgetClickAction
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.NONE
@@ -60,6 +64,7 @@ import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClick
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.PLAY_PAUSE
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.SEEK_NEXT
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.SEEK_PREVIOUS
+import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.TOGGLE_LIKE
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.TOGGLE_VISIBILITY
 import com.toasterofbread.spmp.widget.component.GlanceText
 import com.toasterofbread.spmp.widget.component.styledcolumn.GlanceStyledColumn
@@ -77,6 +82,7 @@ import com.toasterofbread.spmp.widget.modifier.systemCornerRadius
 import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
 import dev.toastbits.composekit.settings.ui.NamedTheme
 import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.ytmkt.model.external.SongLikedStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
@@ -267,6 +273,11 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
             PLAY_PAUSE -> SpMp._player_state?.controller?.playPause()
             SEEK_NEXT -> SpMp._player_state?.controller?.seekToNext()
             SEEK_PREVIOUS -> SpMp._player_state?.controller?.seekToPrevious()
+            TOGGLE_LIKE -> {
+                val song: Song = SpMp._player_state?.status?.song ?: return@launch
+                val liked: SongLikedStatus? = song.Liked.get(context.database)
+                song.updateLiked(liked.getToggleTarget(), context.ytapi.user_auth_state?.SetSongLiked, context)
+            }
         }
     }
 
@@ -320,6 +331,7 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
         text: String,
         modifier: GlanceModifier = GlanceModifier,
         font_size: TextUnit = 15.sp,
+        colour: Color = LocalContentColor.current,
         alpha: Float = 1f,
         max_width: Dp? = null
     ) {
@@ -332,8 +344,8 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
             font = font,
             modifier = modifier,
             font_size = font_size * base_configuration.font_size,
-            alpha = alpha,
-            max_width = max_width
+            max_width = max_width,
+            colour = colour.copy(alpha = alpha)
         )
     }
 

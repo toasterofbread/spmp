@@ -1115,6 +1115,7 @@
     <string name="widget_click_action_common_play_pause">Play/pause</string>
     <string name="widget_click_action_common_seek_next">Seek to next</string>
     <string name="widget_click_action_common_seek_previous">Seek to previous</string>
+    <string name="widget_click_action_common_toggle_like">Toggle like</string>
 
     <string name="widget_click_action_lyrics_toggle_furigana">Toggle furigana</string>
     <string name="widget_click_action_lyrics_hide_until_next_song">Hide until next song</string>

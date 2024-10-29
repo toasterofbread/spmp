@@ -58,7 +58,7 @@ open class ForegroundPlayerService(
     internal lateinit var audio_sink: AudioSink
     internal var loudness_enhancer: LoudnessEnhancer? = null
 
-    private val widget_update_listener: WidgetUpdateListener = WidgetUpdateListener(this)
+    private lateinit var widget_update_listener: WidgetUpdateListener
 
     internal var current_song: Song? = null
     internal var paused_by_device_disconnect: Boolean = false
@@ -152,6 +152,7 @@ open class ForegroundPlayerService(
 
         startColorblendrHeartbeatLoop()
 
+        widget_update_listener = WidgetUpdateListener(this, context)
         player.addListener(widget_update_listener)
 
         notification_manager = PlayerServiceNotificationManager(context, media_session, getSystemService()!!, this, player)

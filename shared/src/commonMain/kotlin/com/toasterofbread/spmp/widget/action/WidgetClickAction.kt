@@ -9,6 +9,7 @@ import spmp.shared.generated.resources.widget_click_action_common_open_widget_co
 import spmp.shared.generated.resources.widget_click_action_common_play_pause
 import spmp.shared.generated.resources.widget_click_action_common_seek_next
 import spmp.shared.generated.resources.widget_click_action_common_seek_previous
+import spmp.shared.generated.resources.widget_click_action_common_toggle_like
 import spmp.shared.generated.resources.widget_click_action_common_toggle_visibility
 
 @Serializable
@@ -21,7 +22,8 @@ sealed interface WidgetClickAction<in A: TypeWidgetClickAction> {
         TOGGLE_VISIBILITY(Res.string.widget_click_action_common_toggle_visibility),
         PLAY_PAUSE(Res.string.widget_click_action_common_play_pause),
         SEEK_NEXT(Res.string.widget_click_action_common_seek_next),
-        SEEK_PREVIOUS(Res.string.widget_click_action_common_seek_previous);
+        SEEK_PREVIOUS(Res.string.widget_click_action_common_seek_previous),
+        TOGGLE_LIKE(Res.string.widget_click_action_common_toggle_like);
     }
 
     @Serializable

@@ -33,11 +33,10 @@ internal fun GlanceText(
     modifier: GlanceModifier = GlanceModifier,
     font: FontResource? = null,
     font_size: TextUnit = 15.sp,
-    alpha: Float = 1f,
+    colour: Color = LocalContentColor.current,
     max_width: Dp? = null
 ) {
     val context: Context = LocalContext.current
-    val colour: Color = LocalContentColor.current.copy(alpha)
     val typeface: Typeface? = font?.let { Font(it) }?.toAndroidTypeface()
 
     val max_width_px: Int? = with (LocalDensity.current) {

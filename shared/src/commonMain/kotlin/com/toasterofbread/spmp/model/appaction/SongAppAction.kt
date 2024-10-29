@@ -1,58 +1,73 @@
 package com.toasterofbread.spmp.model.appaction
 
-import kotlinx.serialization.Serializable
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import LocalPlayerState
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Album
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.Favorite
+import androidx.compose.material.icons.filled.GridView
+import androidx.compose.material.icons.filled.OpenInNew
+import androidx.compose.material.icons.filled.PushPin
+import androidx.compose.material.icons.filled.Radio
+import androidx.compose.material.icons.filled.Share
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material.icons.outlined.PushPin
+import androidx.compose.material3.Button
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
+import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
+import com.toasterofbread.spmp.model.mediaitem.db.togglePinned
+import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
+import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
-import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
-import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.AppContext
-import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
-import dev.toastbits.composekit.platform.vibrateShort
-import androidx.compose.material3.Icon
-import androidx.compose.material3.Text
-import androidx.compose.material3.Button
-import androidx.compose.material3.IconButton
-import androidx.compose.runtime.*
-import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Row
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material.icons.outlined.PushPin
-import com.toasterofbread.spmp.model.mediaitem.db.togglePinned
-import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
-import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
+import com.toasterofbread.spmp.platform.download.DownloadStatus
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
-import LocalPlayerState
-import dev.toastbits.ytmkt.model.external.SongLikedStatus
-import dev.toastbits.ytmkt.endpoint.SongLikedEndpoint
+import com.toasterofbread.spmp.util.getToggleTarget
+import dev.toastbits.composekit.platform.vibrateShort
+import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
 import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
+import dev.toastbits.ytmkt.endpoint.SongLikedEndpoint
+import dev.toastbits.ytmkt.model.external.SongLikedStatus
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.appaction_config_song_action
-import spmp.shared.generated.resources.appaction_song_action_toggle_like
-import spmp.shared.generated.resources.appaction_song_action_toggle_pin
-import spmp.shared.generated.resources.appaction_song_action_hide
-import spmp.shared.generated.resources.appaction_song_action_start_radio
+import spmp.shared.generated.resources.appaction_song_action_copy_url
 import spmp.shared.generated.resources.appaction_song_action_download
+import spmp.shared.generated.resources.appaction_song_action_hide
 import spmp.shared.generated.resources.appaction_song_action_open_album
+import spmp.shared.generated.resources.appaction_song_action_open_externally
 import spmp.shared.generated.resources.appaction_song_action_open_related
 import spmp.shared.generated.resources.appaction_song_action_remove_from_queue
 import spmp.shared.generated.resources.appaction_song_action_share
-import spmp.shared.generated.resources.appaction_song_action_open_externally
-import spmp.shared.generated.resources.appaction_song_action_copy_url
-import spmp.shared.generated.resources.notif_download_finished
+import spmp.shared.generated.resources.appaction_song_action_start_radio
+import spmp.shared.generated.resources.appaction_song_action_toggle_like
+import spmp.shared.generated.resources.appaction_song_action_toggle_pin
+import spmp.shared.generated.resources.notif_copied_to_clipboard
+import spmp.shared.generated.resources.notif_download_already_downloading
 import spmp.shared.generated.resources.notif_download_already_finished
 import spmp.shared.generated.resources.notif_download_cancelled
-import spmp.shared.generated.resources.notif_download_already_downloading
-import spmp.shared.generated.resources.notif_copied_to_clipboard
+import spmp.shared.generated.resources.notif_download_finished
 
 @Serializable
 data class SongAppAction(
@@ -245,10 +260,7 @@ data class SongAppAction(
                         ?: song.Liked.get(player.database)
 
                     song.updateLiked(
-                        when (liked) {
-                            SongLikedStatus.LIKED, SongLikedStatus.DISLIKED -> SongLikedStatus.NEUTRAL
-                            SongLikedStatus.NEUTRAL, null -> SongLikedStatus.LIKED
-                        },
+                        liked.getToggleTarget(),
                         set_liked_endpoint,
                         player.context
                     )

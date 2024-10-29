@@ -58,4 +58,6 @@ sealed interface WidgetUpdateType {
     data object OnSongTransition: WidgetUpdateType
     data object OnQueueChange: WidgetUpdateType
     data object OnPlayingChange: WidgetUpdateType
+    data object OnCurrentSongLikedChanged: WidgetUpdateType
+    data object OnAuthStateChanged: WidgetUpdateType
 }

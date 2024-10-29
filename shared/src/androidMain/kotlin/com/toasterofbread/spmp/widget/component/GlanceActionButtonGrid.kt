@@ -53,7 +53,7 @@ fun <T: TypeWidgetClickAction> GlanceActionButtonGrid(
     button_background_colour: Color = LocalApplicationTheme.current.vibrant_accent
 ) {
     val button_size: DpSize = mode.getButtonSize(size, spacing)
-    val button_icon_size: Dp = minOf(button_size.width, button_size.height) * 0.35f
+    val button_icon_size: Dp = minOf(button_size.width, button_size.height) * 0.4f
 
     Column(
         modifier.size(size),

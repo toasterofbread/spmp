@@ -3,12 +3,15 @@ package com.toasterofbread.spmp.widget.impl
 import LocalPlayerState
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.asAndroidBitmap
+import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.coerceAtMost
@@ -25,7 +28,6 @@ import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxHeight
-import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
@@ -48,6 +50,7 @@ import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
 import dev.toastbits.composekit.settings.ui.ThemeValues
 import dev.toastbits.composekit.settings.ui.ThemeValuesData
 import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.utils.common.blendWith
 import dev.toastbits.composekit.utils.common.getThemeColour
 import dev.toastbits.composekit.utils.common.getValue
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
@@ -117,7 +120,16 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
                     ) {
                         val title: String? by song.observeActiveTitle()
                         title?.also {
-                            WidgetText(it, font_size = 15.sp)
+                            val colour: Color =
+                                when (type_configuration.title_row_theme_mode) {
+                                    WidgetSectionThemeMode.BACKGROUND -> with (LocalApplicationTheme.current) {
+                                            accent.blendWith(on_background, 0.4f)
+                                        }
+                                    WidgetSectionThemeMode.ACCENT,
+                                    WidgetSectionThemeMode.TRANSPARENT -> LocalContentColor.current
+                                }
+
+                            WidgetText(it, font_size = 20.sp, colour = colour)
                         }
 
                         val artist_title: String? by song.Artists.observe(player.database).value?.firstOrNull()?.observeActiveTitle()
@@ -125,7 +137,7 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
                             WidgetText(
                                 it,
                                 GlanceModifier.padding(top = 3.dp),
-                                font_size = 13.sp,
+                                font_size = 15.sp,
                                 alpha = 0.7f
                             )
                         }
@@ -136,24 +148,32 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
                         GlanceModifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.End
                     ) {
+                        val height: Dp = LocalSize.current.height - top_bar_height - DEFAULT_WIDGET_AREA_SPACING - content_padding.calculateTopPadding() - content_padding.calculateBottomPadding()
+                        val max_button_grid_size: Dp = 150.dp
+                        val button_grid_size: Dp = height.coerceAtMost(max_button_grid_size)
+
                         if (image != null) {
+                            val image_available_width: Dp = (
+                                LocalSize.current.width
+                                - content_padding.calculateStartPadding(LocalLayoutDirection.current)
+                                - content_padding.calculateEndPadding(LocalLayoutDirection.current)
+                                - button_grid_size
+                                - DEFAULT_WIDGET_AREA_SPACING
+                            )
+                            val image_size: Dp = minOf(image_available_width, height)
+
                             Image(
                                 ImageProvider(image),
                                 null,
                                 GlanceModifier
-                                    .fillMaxSize()
-                                    .defaultWeight()
+                                    .size(image_size)
                                     .systemCornerRadius(),
                                 contentScale = ContentScale.Crop
                             )
                         }
 
+                        Spacer(GlanceModifier.fillMaxWidth().defaultWeight())
                         Spacer(GlanceModifier.width(DEFAULT_WIDGET_AREA_SPACING))
-
-                        val max_button_grid_size: Dp = 150.dp
-                        val button_grid_size: Dp = (
-                            LocalSize.current.height - top_bar_height - DEFAULT_WIDGET_AREA_SPACING
-                        ).coerceAtMost(max_button_grid_size) - content_padding.calculateTopPadding() - content_padding.calculateBottomPadding()
 
                         val show_icon = (button_grid_size - max_button_grid_size) >= 20.dp
 

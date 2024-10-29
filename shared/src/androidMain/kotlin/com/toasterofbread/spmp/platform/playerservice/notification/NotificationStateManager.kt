@@ -5,7 +5,7 @@ import android.media.session.PlaybackState
 import android.os.SystemClock
 import androidx.media3.common.Player
 import com.toasterofbread.spmp.platform.playerservice.PlayerServiceNotificationCustomAction
-import com.toasterofbread.spmp.shared.R
+import com.toasterofbread.spmp.ui.getAndroidIcon
 import dev.toastbits.composekit.utils.common.launchSingle
 import dev.toastbits.ytmkt.model.external.SongLikedStatus
 import kotlinx.coroutines.CoroutineScope
@@ -77,20 +77,7 @@ class NotificationStateManager(
             PlaybackState.CustomAction.Builder(
                 like_action.name,
                 like_action.name,
-                if (authenticated)
-                    when (current_liked_status) {
-                        null,
-                        SongLikedStatus.NEUTRAL -> R.drawable.ic_thumb_up_off
-                        SongLikedStatus.LIKED -> R.drawable.ic_thumb_up
-                        SongLikedStatus.DISLIKED -> R.drawable.ic_thumb_down
-                    }
-                else
-                    when (current_liked_status) {
-                        null,
-                        SongLikedStatus.DISLIKED,
-                        SongLikedStatus.NEUTRAL -> R.drawable.ic_heart_off
-                        SongLikedStatus.LIKED -> R.drawable.ic_heart
-                    }
+                current_liked_status.getAndroidIcon(authenticated)
             ).build()
         )
 

@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.widget.component
 
 import LocalPlayerState
+import androidx.annotation.DrawableRes
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import androidx.glance.ColorFilter
@@ -12,7 +13,9 @@ import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.unit.ColorProvider
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.shared.R
+import com.toasterofbread.spmp.ui.getAndroidIcon
 import com.toasterofbread.spmp.widget.WidgetActionCallback
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
 import com.toasterofbread.spmp.widget.action.WidgetClickAction
@@ -22,12 +25,13 @@ import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClick
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.PLAY_PAUSE
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.SEEK_NEXT
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.SEEK_PREVIOUS
+import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.TOGGLE_LIKE
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.TOGGLE_VISIBILITY
 import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
-import dev.toastbits.composekit.settings.ui.ThemeValues
-import dev.toastbits.composekit.settings.ui.on_accent
 import dev.toastbits.composekit.settings.ui.vibrant_accent
 import dev.toastbits.composekit.utils.common.getContrasted
+import dev.toastbits.composekit.utils.common.getValue
+import dev.toastbits.ytmkt.model.external.SongLikedStatus
 
 @Composable
 internal fun <T: TypeWidgetClickAction> CommonActionButton(
@@ -63,6 +67,7 @@ internal fun <T: TypeWidgetClickAction> CommonActionButton(
 }
 
 @Composable
+@DrawableRes
 private fun WidgetClickAction.CommonWidgetClickAction.getIcon(): Int? =
     when (this) {
         NONE -> null
@@ -74,4 +79,13 @@ private fun WidgetClickAction.CommonWidgetClickAction.getIcon(): Int? =
             else R.drawable.ic_play
         SEEK_NEXT -> R.drawable.ic_skip_next
         SEEK_PREVIOUS -> R.drawable.ic_skip_previous
+        TOGGLE_LIKE -> {
+            val player: PlayerState = LocalPlayerState.current
+            val liked: SongLikedStatus? by player.status.m_song?.Liked?.observe(player.database)
+            liked.getAndroidIcon(isAuthenticated())
+        }
     }
+
+@Composable
+private fun isAuthenticated(): Boolean =
+    LocalPlayerState.current.context.ytapi.user_auth_state != null

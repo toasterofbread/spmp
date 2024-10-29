@@ -185,6 +185,7 @@ class WidgetConfigurationScreen<A: TypeWidgetClickAction>(
             with (config) {
                 ConfigItems(
                     context,
+                    widget_type,
                     base_config_defaults_mask,
                     item_modifier,
                     onChanged = { base_config = it },

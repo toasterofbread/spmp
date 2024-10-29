@@ -23,7 +23,8 @@ enum class SpMpWidgetType(
     val default_config: TypeWidgetConfig<*>,
     val default_defaults_mask: TypeConfigurationDefaultsMask<*>,
     val click_action_class: KClass<out TypeWidgetClickAction>,
-    val update_types: List<WidgetUpdateType>
+    val update_types: List<WidgetUpdateType>,
+    val uses_standard_background: Boolean = true
 ) {
     LYRICS_LINE_HORIZONTAL(
         default_config = LyricsWidgetConfig(),
@@ -47,7 +48,8 @@ enum class SpMpWidgetType(
         default_config = SplitImageControlsWidgetConfig(),
         default_defaults_mask = SplitImageControlsWidgetConfigDefaultsMask(),
         click_action_class = SplitImageControlsWidgetClickAction::class,
-        update_types = listOf(WidgetUpdateType.OnSongTransition, WidgetUpdateType.OnPlayingChange)
+        update_types = listOf(WidgetUpdateType.OnSongTransition, WidgetUpdateType.OnPlayingChange),
+        uses_standard_background = false
     );
 
     companion object

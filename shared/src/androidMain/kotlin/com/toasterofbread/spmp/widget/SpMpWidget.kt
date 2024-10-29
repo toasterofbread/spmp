@@ -79,7 +79,7 @@ import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfig.Conten
 import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfig.ContentColour.LIGHT
 import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfig.ContentColour.THEME
 import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfigDefaultsMask
-import com.toasterofbread.spmp.widget.configuration.enum.WidgetSectionThemeMode
+import com.toasterofbread.spmp.widget.configuration.enum.WidgetSectionTheme
 import com.toasterofbread.spmp.widget.configuration.enum.colour
 import com.toasterofbread.spmp.widget.configuration.type.TypeConfigurationDefaultsMask
 import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
@@ -370,7 +370,7 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
 
     @Composable
     fun StyledColumn(
-        section_theme_modes: List<WidgetSectionThemeMode>,
+        section_theme_modes: List<WidgetSectionTheme>,
         vararg content: @Composable ColumnScope.() -> Unit,
         modifier: GlanceModifier = GlanceModifier,
         vertical_alignment: Alignment.Vertical = Alignment.Top,
@@ -386,8 +386,8 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
             spacing = spacing,
             content_padding = content_padding,
             getBackgroundColour = {
-                when (it) {
-                    WidgetSectionThemeMode.BACKGROUND -> widget_background_colour
+                when (it.mode) {
+                    WidgetSectionTheme.Mode.BACKGROUND -> widget_background_colour.copy(alpha = it.opacity)
                     else -> it.colour
                 }
             }

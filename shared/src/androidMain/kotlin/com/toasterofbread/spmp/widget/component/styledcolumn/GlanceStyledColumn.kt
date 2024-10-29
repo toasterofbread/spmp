@@ -25,7 +25,7 @@ import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import com.toasterofbread.spmp.widget.component.GlanceCanvas
-import com.toasterofbread.spmp.widget.configuration.enum.WidgetSectionThemeMode
+import com.toasterofbread.spmp.widget.configuration.enum.WidgetSectionTheme
 import com.toasterofbread.spmp.widget.configuration.enum.WidgetStyledBorderMode
 import com.toasterofbread.spmp.widget.configuration.enum.colour
 import com.toasterofbread.spmp.widget.modifier.padding
@@ -37,13 +37,13 @@ val GLANCE_STYLED_COLUMN_DEFAULT_SPACING: Dp = 12.dp
 @Composable
 internal fun GlanceStyledColumn(
     border_mode: WidgetStyledBorderMode,
-    section_theme_modes: List<WidgetSectionThemeMode>,
+    section_theme_modes: List<WidgetSectionTheme>,
     vararg content: @Composable ColumnScope.() -> Unit,
     modifier: GlanceModifier = GlanceModifier,
     vertical_alignment: Alignment.Vertical = Alignment.Top,
     spacing: Dp = GLANCE_STYLED_COLUMN_DEFAULT_SPACING,
     content_padding: PaddingValues = PaddingValues(),
-    getBackgroundColour: @Composable (WidgetSectionThemeMode) -> Color = { it.colour }
+    getBackgroundColour: @Composable (WidgetSectionTheme) -> Color = { it.colour }
 ) {
     require(section_theme_modes.size == content.size)
 

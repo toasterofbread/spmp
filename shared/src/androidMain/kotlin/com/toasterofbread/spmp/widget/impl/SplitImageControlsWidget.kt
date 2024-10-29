@@ -41,7 +41,7 @@ import com.toasterofbread.spmp.widget.action.SplitImageControlsWidgetClickAction
 import com.toasterofbread.spmp.widget.component.GlanceActionButtonGrid
 import com.toasterofbread.spmp.widget.component.GlanceActionButtonGridMode
 import com.toasterofbread.spmp.widget.component.styledcolumn.GLANCE_STYLED_COLUMN_DEFAULT_SPACING
-import com.toasterofbread.spmp.widget.configuration.enum.WidgetSectionThemeMode
+import com.toasterofbread.spmp.widget.configuration.enum.WidgetSectionTheme
 import com.toasterofbread.spmp.widget.configuration.type.SplitImageControlsWidgetConfig
 import com.toasterofbread.spmp.widget.modifier.systemCornerRadius
 import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
@@ -79,7 +79,7 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
         val top_bar_height: Dp = 100.dp
 
         StyledColumn(
-            listOf(type_configuration.title_row_theme_mode, type_configuration.content_row_theme_mode),
+            listOf(type_configuration.title_row_theme, type_configuration.content_row_theme),
             {
                 Column(
                     GlanceModifier.height(top_bar_height - content_padding.calculateTopPadding() - content_padding.calculateBottomPadding()),
@@ -88,12 +88,12 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
                     val title: String? by song.observeActiveTitle()
                     title?.also {
                         val colour: Color =
-                            when (type_configuration.title_row_theme_mode) {
-                                WidgetSectionThemeMode.BACKGROUND -> with (LocalApplicationTheme.current) {
+                            when (type_configuration.title_row_theme.mode) {
+                                WidgetSectionTheme.Mode.BACKGROUND -> with (LocalApplicationTheme.current) {
                                         accent.blendWith(on_background, 0.4f)
                                     }
-                                WidgetSectionThemeMode.ACCENT,
-                                WidgetSectionThemeMode.TRANSPARENT -> LocalContentColor.current
+                                WidgetSectionTheme.Mode.ACCENT,
+                                WidgetSectionTheme.Mode.TRANSPARENT -> LocalContentColor.current
                             }
 
                         WidgetText(it, font_size = 18.sp, colour = colour)
@@ -163,10 +163,10 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
                             spacing = 7.dp,
                             alignment = Alignment.TopStart,
                             button_background_colour =
-                                when (type_configuration.content_row_theme_mode) {
-                                    WidgetSectionThemeMode.BACKGROUND,
-                                    WidgetSectionThemeMode.TRANSPARENT -> LocalApplicationTheme.current.vibrant_accent
-                                    WidgetSectionThemeMode.ACCENT -> widget_background_colour.copy(alpha = 1f)
+                                when (type_configuration.content_row_theme.mode) {
+                                    WidgetSectionTheme.Mode.BACKGROUND,
+                                    WidgetSectionTheme.Mode.TRANSPARENT -> LocalApplicationTheme.current.vibrant_accent
+                                    WidgetSectionTheme.Mode.ACCENT -> widget_background_colour.copy(alpha = 1f)
                                 },
                             modifier = GlanceModifier.defaultWeight()
                         )

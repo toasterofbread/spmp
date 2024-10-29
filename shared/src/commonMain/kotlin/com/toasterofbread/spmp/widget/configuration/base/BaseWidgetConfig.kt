@@ -16,6 +16,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.createThemeSelectorSettingsItem
+import com.toasterofbread.spmp.widget.SpMpWidgetType
 import com.toasterofbread.spmp.widget.configuration.WidgetConfig
 import com.toasterofbread.spmp.widget.configuration.enum.WidgetStyledBorderMode
 import dev.toastbits.composekit.platform.MutableStatePreferencesProperty
@@ -63,6 +64,7 @@ data class BaseWidgetConfig(
 ): WidgetConfig() {
     fun LazyListScope.ConfigItems(
         context: AppContext,
+        widget_type: SpMpWidgetType?,
         defaults_mask: BaseWidgetConfigDefaultsMask?,
         item_modifier: Modifier = Modifier,
         onChanged: (BaseWidgetConfig) -> Unit,
@@ -118,14 +120,16 @@ data class BaseWidgetConfig(
                 onItemChanged()
             }
         }
-        configItem(
-            defaults_mask?.background_opacity,
-            item_modifier,
-            { onDefaultsMaskChanged(defaults_mask!!.copy(background_opacity = it)) }
-        ) { modifier, onItemChanged ->
-            BackgroundOpacityItem(modifier) {
-                onChanged(it)
-                onItemChanged()
+        if (widget_type?.uses_standard_background != false) {
+            configItem(
+                defaults_mask?.background_opacity,
+                item_modifier,
+                { onDefaultsMaskChanged(defaults_mask!!.copy(background_opacity = it)) }
+            ) { modifier, onItemChanged ->
+                BackgroundOpacityItem(modifier) {
+                    onChanged(it)
+                    onItemChanged()
+                }
             }
         }
         configItem(

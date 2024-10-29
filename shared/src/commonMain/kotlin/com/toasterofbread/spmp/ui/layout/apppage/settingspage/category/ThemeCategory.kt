@@ -60,10 +60,7 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> =
         MultipleChoiceSettingsItem(
             context.settings.theme.ACCENT_COLOUR_SOURCE
         ) { source ->
-            when (source) {
-                AccentColourSource.THEME -> stringResource(Res.string.s_option_accent_theme)
-                AccentColourSource.THUMBNAIL -> stringResource(Res.string.s_option_accent_thumbnail)
-            }
+            stringResource(source.getNameResource())
         },
 
         MultipleChoiceSettingsItem(

@@ -14,7 +14,7 @@ import androidx.glance.layout.size
 import androidx.glance.layout.width
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
 import com.toasterofbread.spmp.widget.action.WidgetClickAction
-import com.toasterofbread.spmp.widget.impl.DEFAULT_WIDGET_AREA_SPACING
+import com.toasterofbread.spmp.widget.component.styledcolumn.GLANCE_STYLED_COLUMN_DEFAULT_SPACING
 import com.toasterofbread.spmp.widget.modifier.size
 import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
 import dev.toastbits.composekit.settings.ui.vibrant_accent
@@ -48,12 +48,12 @@ fun <T: TypeWidgetClickAction> GlanceActionButtonGrid(
     getTypeActionIcon: (T) -> Int?,
     modifier: GlanceModifier = GlanceModifier,
     button_modifier: GlanceModifier = GlanceModifier,
-    spacing: Dp = DEFAULT_WIDGET_AREA_SPACING,
+    spacing: Dp = GLANCE_STYLED_COLUMN_DEFAULT_SPACING,
     alignment: Alignment = Alignment.Center,
     button_background_colour: Color = LocalApplicationTheme.current.vibrant_accent
 ) {
     val button_size: DpSize = mode.getButtonSize(size, spacing)
-    val button_icon_size: Dp = minOf(button_size.width, button_size.height) * 0.4f
+    val button_icon_size: Dp = minOf(button_size.width, button_size.height) * 0.37f
 
     Column(
         modifier.size(size),

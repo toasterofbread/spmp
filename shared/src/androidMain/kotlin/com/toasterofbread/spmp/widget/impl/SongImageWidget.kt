@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.widget.impl
 
 import LocalPlayerState
+import android.graphics.Bitmap
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
@@ -50,7 +51,12 @@ internal class SongImageWidget: SpMpWidget<SongImageWidgetClickAction, SongImage
         LocalPlayerState.current.status.m_song != null
 
     @Composable
-    override fun Content(modifier: GlanceModifier, content_padding: PaddingValues) {
+    override fun Content(
+        song: Song?,
+        song_image: Bitmap?,
+        modifier: GlanceModifier,
+        content_padding: PaddingValues
+    ) {
         val player: PlayerState = LocalPlayerState.current
         val theme: ThemeValues = LocalApplicationTheme.current
         val song: Song? = player.status.m_song

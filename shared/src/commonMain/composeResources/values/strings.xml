@@ -1123,6 +1123,8 @@
     <string name="widget_application_theme_label">Application theme</string>
 
     <string name="widget_config_common_key_theme">Theme</string>
+    <string name="widget_config_common_key_accent_colour_source">Accent colour source</string>
+    <string name="widget_config_common_option_accent_colour_source_app">App setting</string>
     <string name="widget_config_common_key_font">Font</string>
     <string name="widget_config_common_key_font_size">Font size</string>
     <string name="widget_config_common_option_font_app">App setting</string>

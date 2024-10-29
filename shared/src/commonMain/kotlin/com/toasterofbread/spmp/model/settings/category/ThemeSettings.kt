@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.model.settings.category
 
-import LocalPlayerState
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Palette
@@ -19,6 +18,7 @@ import dev.toastbits.composekit.settings.ui.NamedTheme
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.getDefaultCatppuccinThemes
 import dev.toastbits.composekit.settings.ui.getSystemTheme
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_cat_desc_theme
@@ -40,6 +40,8 @@ import spmp.shared.generated.resources.s_key_np_default_wave_speed
 import spmp.shared.generated.resources.s_key_np_theme_mode
 import spmp.shared.generated.resources.s_key_show_expanded_player_wave
 import spmp.shared.generated.resources.s_key_window_background_opacity
+import spmp.shared.generated.resources.s_option_accent_theme
+import spmp.shared.generated.resources.s_option_accent_thumbnail
 import spmp.shared.generated.resources.s_sub_enable_window_transparency
 import spmp.shared.generated.resources.s_sub_window_background_opacity
 import spmp.shared.generated.resources.s_theme_editor_title
@@ -59,7 +61,7 @@ class ThemeSettings(val context: AppContext): SettingsGroup("THEME", context.get
     val ACCENT_COLOUR_SOURCE: PreferencesProperty<AccentColourSource> by enumProperty(
         getName = { stringResource(Res.string.s_key_accent_source) },
         getDescription = { null },
-        getDefaultValue = { AccentColourSource.THUMBNAIL }
+        getDefaultValue = { AccentColourSource.DEFAULT }
     )
     val NOWPLAYING_THEME_MODE: PreferencesProperty<ThemeMode> by enumProperty(
         getName = { stringResource(Res.string.s_key_np_theme_mode) },
@@ -153,7 +155,17 @@ class ThemeSettings(val context: AppContext): SettingsGroup("THEME", context.get
 }
 
 enum class AccentColourSource {
-    THEME, THUMBNAIL
+    THEME, THUMBNAIL;
+
+    fun getNameResource(): StringResource =
+        when (this) {
+            THEME -> Res.string.s_option_accent_theme
+            THUMBNAIL -> Res.string.s_option_accent_thumbnail
+        }
+
+    companion object {
+        val DEFAULT: AccentColourSource = THUMBNAIL
+    }
 }
 
 @Composable

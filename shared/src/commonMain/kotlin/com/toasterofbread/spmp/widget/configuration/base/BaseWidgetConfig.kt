@@ -10,6 +10,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.ProjectBuildConfig
+import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.observeUiLanguage
@@ -28,6 +29,7 @@ import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.widget_application_theme_label
+import spmp.shared.generated.resources.widget_config_common_key_accent_colour_source
 import spmp.shared.generated.resources.widget_config_common_key_background_opacity
 import spmp.shared.generated.resources.widget_config_common_key_border_radius
 import spmp.shared.generated.resources.widget_config_common_key_content_colour
@@ -37,6 +39,7 @@ import spmp.shared.generated.resources.widget_config_common_key_hide_when_no_con
 import spmp.shared.generated.resources.widget_config_common_key_show_debug_information
 import spmp.shared.generated.resources.widget_config_common_key_styled_border_mode
 import spmp.shared.generated.resources.widget_config_common_key_theme
+import spmp.shared.generated.resources.widget_config_common_option_accent_colour_source_app
 import spmp.shared.generated.resources.widget_config_common_option_content_colour_dark
 import spmp.shared.generated.resources.widget_config_common_option_content_colour_light
 import spmp.shared.generated.resources.widget_config_common_option_content_colour_theme
@@ -48,6 +51,7 @@ import kotlin.math.roundToInt
 @Serializable
 data class BaseWidgetConfig(
     val theme_index: Int? = null,
+    val accent_colour_source: AccentColourSource? = null,
     val font: FontMode? = null,
     val font_size: Float = 1f,
     val content_colour: ContentColour = ContentColour.THEME,
@@ -70,6 +74,16 @@ data class BaseWidgetConfig(
             { onDefaultsMaskChanged(defaults_mask!!.copy(theme_index = it)) }
         ) { modifier, onItemChanged ->
             ThemeIndexItem(context, modifier) {
+                onChanged(it)
+                onItemChanged()
+            }
+        }
+        configItem(
+            defaults_mask?.accent_colour_source,
+            item_modifier,
+            { onDefaultsMaskChanged(defaults_mask!!.copy(accent_colour_source = it)) }
+        ) { modifier, onItemChanged ->
+            AccentColourSourceItem(modifier) {
                 onChanged(it)
                 onItemChanged()
             }
@@ -197,6 +211,43 @@ data class BaseWidgetConfig(
     }
 
     @Composable
+    private fun AccentColourSourceItem(modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
+        val accent_colour_source_state: MutableState<Int> =
+            remember { mutableIntStateOf(accent_colour_source?.ordinal?.plus(1) ?: 0) }
+        val accent_colour_source_property: PreferencesProperty<Int> = remember {
+            MutableStatePreferencesProperty(
+                accent_colour_source_state,
+                { stringResource(Res.string.widget_config_common_key_accent_colour_source) },
+                { null }
+            )
+        }
+
+        remember {
+            DropdownSettingsItem(
+                accent_colour_source_property,
+                AccentColourSource.entries.size + 1
+            ) {
+                if (it == 0) {
+                    stringResource(Res.string.widget_config_common_option_accent_colour_source_app)
+                }
+                else {
+                    stringResource(AccentColourSource.entries[it - 1].getNameResource())
+                }
+            }
+        }.Item(modifier)
+
+        OnChangedEffect(accent_colour_source_state.value) {
+            onChanged(
+                this.copy(
+                    accent_colour_source = accent_colour_source_state.value.let {
+                        if (it == 0) null else AccentColourSource.entries[it - 1]
+                    }
+                )
+            )
+        }
+    }
+
+    @Composable
     private fun FontItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
         val font_state: MutableState<Int> =
             remember { mutableIntStateOf(font?.ordinal?.plus(1) ?: 0) }
@@ -217,7 +268,8 @@ data class BaseWidgetConfig(
             ) {
                 if (it == 0) {
                     stringResource(Res.string.widget_config_common_option_font_app)
-                } else {
+                }
+                else {
                     FontMode.entries[it - 1].getReadable(ui_language)
                 }
             }

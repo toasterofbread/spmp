@@ -7,12 +7,17 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.dp
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
 import androidx.glance.ImageProvider
 
 @Composable
 fun GlanceCanvas(size: DpSize, modifier: GlanceModifier, draw: @Composable Canvas.(Size) -> Unit) {
+    if (size.width <= 0.dp || size.height <= 0.dp) {
+        return
+    }
+
     val image: ImageBitmap =
         with (LocalDensity.current) {
             ImageBitmap(size.width.roundToPx(), size.height.roundToPx())

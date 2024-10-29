@@ -25,25 +25,23 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
-import androidx.glance.LocalSize
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.AppWidgetId
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
-import androidx.glance.appwidget.cornerRadius
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
 import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
+import androidx.glance.layout.ColumnScope
 import androidx.glance.layout.fillMaxSize
 import androidx.glance.layout.padding
 import androidx.glance.layout.wrapContentSize
@@ -64,14 +62,18 @@ import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClick
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.SEEK_PREVIOUS
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.TOGGLE_VISIBILITY
 import com.toasterofbread.spmp.widget.component.GlanceText
+import com.toasterofbread.spmp.widget.component.styledcolumn.GlanceStyledColumn
+import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
 import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfig
 import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfig.ContentColour.DARK
 import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfig.ContentColour.LIGHT
 import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfig.ContentColour.THEME
 import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfigDefaultsMask
-import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
+import com.toasterofbread.spmp.widget.configuration.enum.WidgetSectionThemeMode
+import com.toasterofbread.spmp.widget.configuration.enum.colour
 import com.toasterofbread.spmp.widget.configuration.type.TypeConfigurationDefaultsMask
 import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
+import com.toasterofbread.spmp.widget.modifier.systemCornerRadius
 import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
 import dev.toastbits.composekit.settings.ui.NamedTheme
 import dev.toastbits.composekit.utils.common.thenIf
@@ -216,18 +218,6 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
     }
 
     @Composable
-    fun GlanceModifier.systemCornerRadius(): GlanceModifier {
-        if (android.os.Build.VERSION.SDK_INT >= 31) {
-            val systemCornerRadiusDefined: Boolean =
-                androidx.glance.LocalContext.current.resources.getResourceName(android.R.dimen.system_app_widget_background_radius) != null
-            if (systemCornerRadiusDefined) {
-                return cornerRadius(android.R.dimen.system_app_widget_background_radius)
-            }
-        }
-        return this
-    }
-
-    @Composable
     fun GlanceBorderBox(
         border_radius: Dp,
         border_colour: Color,
@@ -344,6 +334,32 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
             font_size = font_size * base_configuration.font_size,
             alpha = alpha,
             max_width = max_width
+        )
+    }
+
+    @Composable
+    fun StyledColumn(
+        section_theme_modes: List<WidgetSectionThemeMode>,
+        vararg content: @Composable ColumnScope.() -> Unit,
+        modifier: GlanceModifier = GlanceModifier,
+        vertical_alignment: Alignment.Vertical = Alignment.Top,
+        spacing: Dp = 0.dp,
+        content_padding: PaddingValues = PaddingValues()
+    ) {
+        GlanceStyledColumn(
+            border_mode = base_configuration.styled_border_mode,
+            section_theme_modes = section_theme_modes,
+            content = content,
+            modifier = modifier,
+            vertical_alignment = vertical_alignment,
+            spacing = spacing,
+            content_padding = content_padding,
+            getBackgroundColour = {
+                when (it) {
+                    WidgetSectionThemeMode.BACKGROUND -> widget_background_colour
+                    else -> it.colour
+                }
+            }
         )
     }
 

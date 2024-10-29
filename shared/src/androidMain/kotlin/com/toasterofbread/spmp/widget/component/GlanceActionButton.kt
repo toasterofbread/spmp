@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.widget.component
 
 import LocalPlayerState
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.glance.ColorFilter
 import androidx.glance.GlanceModifier
 import androidx.glance.Image
@@ -26,18 +27,19 @@ import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
 import dev.toastbits.composekit.settings.ui.ThemeValues
 import dev.toastbits.composekit.settings.ui.on_accent
 import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.utils.common.getContrasted
 
 @Composable
 internal fun <T: TypeWidgetClickAction> CommonActionButton(
     action: WidgetClickAction<T>,
     modifier: GlanceModifier = GlanceModifier,
     icon_modifier: GlanceModifier = GlanceModifier,
+    background_colour: Color = LocalApplicationTheme.current.vibrant_accent,
     getTypeActionIcon: (T) -> Int?
 ) {
-    val theme: ThemeValues = LocalApplicationTheme.current
     Box(
         modifier
-            .background(theme.vibrant_accent)
+            .background(background_colour)
             .clickable(
                 WidgetActionCallback(action)
             ),
@@ -54,7 +56,7 @@ internal fun <T: TypeWidgetClickAction> CommonActionButton(
                 ImageProvider(icon),
                 null,
                 icon_modifier,
-                colorFilter = ColorFilter.tint(ColorProvider(theme.on_accent.copy(alpha = 0.85f)))
+                colorFilter = ColorFilter.tint(ColorProvider(background_colour.getContrasted().copy(alpha = 0.85f)))
             )
         }
     }

@@ -31,6 +31,7 @@ import com.toasterofbread.spmp.widget.component.GlanceLargePlayPauseButton
 import com.toasterofbread.spmp.widget.component.spmp.GlanceSongThumbnail
 import com.toasterofbread.spmp.widget.configuration.type.SongImageWidgetConfig
 import com.toasterofbread.spmp.widget.modifier.padding
+import com.toasterofbread.spmp.widget.modifier.systemCornerRadius
 import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
 import dev.toastbits.composekit.settings.ui.ThemeValues
 import dev.toastbits.composekit.settings.ui.ThemeValuesData

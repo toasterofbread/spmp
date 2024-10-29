@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.widget.component
 
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.glance.GlanceModifier
@@ -15,6 +16,8 @@ import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
 import com.toasterofbread.spmp.widget.action.WidgetClickAction
 import com.toasterofbread.spmp.widget.impl.DEFAULT_WIDGET_AREA_SPACING
 import com.toasterofbread.spmp.widget.modifier.size
+import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
+import dev.toastbits.composekit.settings.ui.vibrant_accent
 
 enum class GlanceActionButtonGridMode {
     FILL,
@@ -46,7 +49,8 @@ fun <T: TypeWidgetClickAction> GlanceActionButtonGrid(
     modifier: GlanceModifier = GlanceModifier,
     button_modifier: GlanceModifier = GlanceModifier,
     spacing: Dp = DEFAULT_WIDGET_AREA_SPACING,
-    alignment: Alignment = Alignment.Center
+    alignment: Alignment = Alignment.Center,
+    button_background_colour: Color = LocalApplicationTheme.current.vibrant_accent
 ) {
     val button_size: DpSize = mode.getButtonSize(size, spacing)
     val button_icon_size: Dp = minOf(button_size.width, button_size.height) * 0.35f
@@ -63,7 +67,8 @@ fun <T: TypeWidgetClickAction> GlanceActionButtonGrid(
                 top_start_button_action,
                 button_modifier.size(button_size),
                 getTypeActionIcon = getTypeActionIcon,
-                icon_modifier = GlanceModifier.size(button_icon_size)
+                icon_modifier = GlanceModifier.size(button_icon_size),
+                background_colour = button_background_colour
             )
 
             Spacer(GlanceModifier.width(spacing))
@@ -72,7 +77,8 @@ fun <T: TypeWidgetClickAction> GlanceActionButtonGrid(
                 top_end_button_action,
                 button_modifier.size(button_size),
                 getTypeActionIcon = getTypeActionIcon,
-                icon_modifier = GlanceModifier.size(button_icon_size)
+                icon_modifier = GlanceModifier.size(button_icon_size),
+                background_colour = button_background_colour
             )
         }
 
@@ -86,7 +92,8 @@ fun <T: TypeWidgetClickAction> GlanceActionButtonGrid(
                 bottom_start_button_action,
                 button_modifier.size(button_size),
                 getTypeActionIcon = getTypeActionIcon,
-                icon_modifier = GlanceModifier.size(button_icon_size)
+                icon_modifier = GlanceModifier.size(button_icon_size),
+                background_colour = button_background_colour
             )
 
             Spacer(GlanceModifier.width(spacing))
@@ -95,7 +102,8 @@ fun <T: TypeWidgetClickAction> GlanceActionButtonGrid(
                 bottom_end_button_action,
                 button_modifier.size(button_size),
                 getTypeActionIcon = getTypeActionIcon,
-                icon_modifier = GlanceModifier.size(button_icon_size)
+                icon_modifier = GlanceModifier.size(button_icon_size),
+                background_colour = button_background_colour
             )
         }
     }

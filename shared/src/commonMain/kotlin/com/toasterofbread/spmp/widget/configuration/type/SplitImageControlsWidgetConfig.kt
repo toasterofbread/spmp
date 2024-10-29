@@ -6,6 +6,7 @@ import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.widget.action.SplitImageControlsWidgetClickAction
 import com.toasterofbread.spmp.widget.action.WidgetClickAction
+import com.toasterofbread.spmp.widget.configuration.enum.WidgetSectionThemeMode
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -15,7 +16,10 @@ import spmp.shared.generated.resources.widget_config_type_name_song_image
 @Serializable
 data class SplitImageControlsWidgetConfig(
     // TODO Mask
-    val display_lyrics: Boolean = true,
+    val display_lyrics: Boolean = true, // TODO
+    val title_row_theme_mode: WidgetSectionThemeMode = WidgetSectionThemeMode.TRANSPARENT,
+    val content_row_theme_mode: WidgetSectionThemeMode = WidgetSectionThemeMode.BACKGROUND,
+    val swap_title_content_rows: Boolean = false,
     val top_start_button_action: WidgetClickAction<SplitImageControlsWidgetClickAction> =
         WidgetClickAction.CommonWidgetClickAction.SEEK_PREVIOUS,
     val top_end_button_action: WidgetClickAction<SplitImageControlsWidgetClickAction> =

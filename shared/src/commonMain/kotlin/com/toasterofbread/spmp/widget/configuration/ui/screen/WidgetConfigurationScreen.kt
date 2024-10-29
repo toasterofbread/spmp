@@ -129,7 +129,7 @@ class WidgetConfigurationScreen<A: TypeWidgetClickAction>(
                     }
                 }
 
-                ConfigItems(context)
+                ConfigItems()
             }
 
             Row(
@@ -151,10 +151,7 @@ class WidgetConfigurationScreen<A: TypeWidgetClickAction>(
         }
     }
 
-    private fun LazyListScope.ConfigItems(
-        context: AppContext,
-        item_modifier: Modifier = Modifier
-    ) {
+    private fun LazyListScope.ConfigItems(item_modifier: Modifier = Modifier) {
         type_config?.also { config ->
             item {
                 ItemHeading(

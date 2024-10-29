@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Paint
 import android.graphics.Typeface
 import android.text.TextPaint
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
@@ -23,7 +24,6 @@ import androidx.glance.LocalContext
 import androidx.glance.layout.ContentScale
 import androidx.glance.layout.wrapContentWidth
 import com.toasterofbread.spmp.widget.mapper.toAndroidTypeface
-import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
 import org.jetbrains.compose.resources.Font
 import org.jetbrains.compose.resources.FontResource
 
@@ -37,7 +37,7 @@ internal fun GlanceText(
     max_width: Dp? = null
 ) {
     val context: Context = LocalContext.current
-    val colour: Color = LocalApplicationTheme.current.on_background.copy(alpha)
+    val colour: Color = LocalContentColor.current.copy(alpha)
     val typeface: Typeface? = font?.let { Font(it) }?.toAndroidTypeface()
 
     val max_width_px: Int? = with (LocalDensity.current) {

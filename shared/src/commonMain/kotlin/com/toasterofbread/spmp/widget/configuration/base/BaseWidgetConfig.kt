@@ -16,6 +16,7 @@ import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.createThemeSelectorSettingsItem
 import com.toasterofbread.spmp.widget.configuration.WidgetConfig
+import com.toasterofbread.spmp.widget.configuration.enum.WidgetStyledBorderMode
 import dev.toastbits.composekit.platform.MutableStatePreferencesProperty
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.settings.ui.NamedTheme
@@ -34,14 +35,15 @@ import spmp.shared.generated.resources.widget_config_common_key_font
 import spmp.shared.generated.resources.widget_config_common_key_font_size
 import spmp.shared.generated.resources.widget_config_common_key_hide_when_no_content
 import spmp.shared.generated.resources.widget_config_common_key_show_debug_information
+import spmp.shared.generated.resources.widget_config_common_key_styled_border_mode
 import spmp.shared.generated.resources.widget_config_common_key_theme
 import spmp.shared.generated.resources.widget_config_common_option_content_colour_dark
 import spmp.shared.generated.resources.widget_config_common_option_content_colour_light
 import spmp.shared.generated.resources.widget_config_common_option_content_colour_theme
 import spmp.shared.generated.resources.widget_config_common_option_font_app
+import spmp.shared.generated.resources.widget_config_common_option_styled_border_mode_none
+import spmp.shared.generated.resources.widget_config_common_option_styled_border_mode_wave
 import kotlin.math.roundToInt
-
-private const val DEFAULT_BACKGROUND_OPACITY: Float = 1f
 
 @Serializable
 data class BaseWidgetConfig(
@@ -49,7 +51,8 @@ data class BaseWidgetConfig(
     val font: FontMode? = null,
     val font_size: Float = 1f,
     val content_colour: ContentColour = ContentColour.THEME,
-    val background_opacity: Float = DEFAULT_BACKGROUND_OPACITY,
+    val background_opacity: Float = 1f,
+    val styled_border_mode: WidgetStyledBorderMode = WidgetStyledBorderMode.WAVE,
     val border_radius_dp: Float = 0f,
     val hide_when_no_content: Boolean = false,
     val show_debug_information: Boolean = ProjectBuildConfig.IS_DEBUG
@@ -86,7 +89,7 @@ data class BaseWidgetConfig(
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(font_size = it)) }
         ) { modifier, onItemChanged ->
-            FontSizeItem(context, modifier) {
+            FontSizeItem(modifier) {
                 onChanged(it)
                 onItemChanged()
             }
@@ -96,7 +99,7 @@ data class BaseWidgetConfig(
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(content_colour = it)) }
         ) { modifier, onItemChanged ->
-            ContentColourItem(context, modifier) {
+            ContentColourItem(modifier) {
                 onChanged(it)
                 onItemChanged()
             }
@@ -106,7 +109,17 @@ data class BaseWidgetConfig(
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(background_opacity = it)) }
         ) { modifier, onItemChanged ->
-            BackgroundOpacityItem(context, modifier) {
+            BackgroundOpacityItem(modifier) {
+                onChanged(it)
+                onItemChanged()
+            }
+        }
+        configItem(
+            defaults_mask?.styled_border_mode,
+            item_modifier,
+            { onDefaultsMaskChanged(defaults_mask!!.copy(styled_border_mode = it)) }
+        ) { modifier, onItemChanged ->
+            StyledBorderModeItem(modifier) {
                 onChanged(it)
                 onItemChanged()
             }
@@ -116,7 +129,7 @@ data class BaseWidgetConfig(
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(border_radius_dp = it)) }
         ) { modifier, onItemChanged ->
-            BorderRadiusItem(context, modifier) {
+            BorderRadiusItem(modifier) {
                 onChanged(it)
                 onItemChanged()
             }
@@ -126,7 +139,7 @@ data class BaseWidgetConfig(
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(hide_when_no_content = it)) }
         ) { modifier, onItemChanged ->
-            HideWhenNoContentItem(context, modifier) {
+            HideWhenNoContentItem(modifier) {
                 onChanged(it)
                 onItemChanged()
             }
@@ -136,7 +149,7 @@ data class BaseWidgetConfig(
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(show_debug_information = it)) }
         ) { modifier, onItemChanged ->
-            ShowDebugInformationItem(context, modifier) {
+            ShowDebugInformationItem(modifier) {
                 onChanged(it)
                 onItemChanged()
             }
@@ -223,15 +236,15 @@ data class BaseWidgetConfig(
 
 
     @Composable
-    private fun FontSizeItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
+    private fun FontSizeItem(modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
         val font_size_state: MutableState<Float> = remember { mutableFloatStateOf(font_size) }
         val font_size_property: PreferencesProperty<Float> = remember {
             MutableStatePreferencesProperty(
                 font_size_state,
                 { stringResource(Res.string.widget_config_common_key_font_size) },
                 { null },
-                getPropertyDefaultValue = { 1f },
-                getPropertyDefaultValueComposable = { 1f }
+                getPropertyDefaultValue = { DEFAULT.font_size },
+                getPropertyDefaultValueComposable = { DEFAULT.font_size }
             )
         }
 
@@ -248,7 +261,7 @@ data class BaseWidgetConfig(
     }
 
     @Composable
-    private fun ContentColourItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
+    private fun ContentColourItem(modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
         val content_colour_state: MutableState<ContentColour> =
             remember { mutableStateOf(content_colour) }
         val content_colour_property: PreferencesProperty<ContentColour> = remember {
@@ -277,7 +290,7 @@ data class BaseWidgetConfig(
     }
 
     @Composable
-    private fun BackgroundOpacityItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
+    private fun BackgroundOpacityItem(modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
         val background_opacity_state: MutableState<Float> =
             remember { mutableFloatStateOf(background_opacity) }
         val background_opacity_property: PreferencesProperty<Float> = remember {
@@ -285,8 +298,8 @@ data class BaseWidgetConfig(
                 background_opacity_state,
                 { stringResource(Res.string.widget_config_common_key_background_opacity) },
                 { null },
-                getPropertyDefaultValue = { DEFAULT_BACKGROUND_OPACITY },
-                getPropertyDefaultValueComposable = { DEFAULT_BACKGROUND_OPACITY }
+                getPropertyDefaultValue = { DEFAULT.background_opacity },
+                getPropertyDefaultValueComposable = { DEFAULT.background_opacity }
             )
         }
 
@@ -307,7 +320,35 @@ data class BaseWidgetConfig(
     }
 
     @Composable
-    private fun BorderRadiusItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
+    private fun StyledBorderModeItem(modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
+        val styled_border_mode_state: MutableState<WidgetStyledBorderMode> =
+            remember { mutableStateOf(styled_border_mode) }
+        val styled_border_mode_property: PreferencesProperty<WidgetStyledBorderMode> = remember {
+            MutableStatePreferencesProperty(
+                styled_border_mode_state,
+                { stringResource(Res.string.widget_config_common_key_styled_border_mode) },
+                { null }
+            )
+        }
+
+        remember {
+            DropdownSettingsItem(styled_border_mode_property) {
+                when (it) {
+                    WidgetStyledBorderMode.WAVE -> stringResource(Res.string.widget_config_common_option_styled_border_mode_wave)
+                    WidgetStyledBorderMode.NONE -> stringResource(Res.string.widget_config_common_option_styled_border_mode_none)
+                }
+            }
+        }.Item(modifier)
+
+        OnChangedEffect(styled_border_mode_state.value) {
+            onChanged(
+                this.copy(styled_border_mode = styled_border_mode_state.value)
+            )
+        }
+    }
+
+    @Composable
+    private fun BorderRadiusItem(modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
         val border_radius_state: MutableState<Float> =
             remember { mutableFloatStateOf(border_radius_dp) }
         val border_radius_property: PreferencesProperty<Float> = remember {
@@ -333,7 +374,7 @@ data class BaseWidgetConfig(
     }
 
     @Composable
-    private fun HideWhenNoContentItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
+    private fun HideWhenNoContentItem(modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
         val hide_when_no_content_state: MutableState<Boolean> =
             remember { mutableStateOf(hide_when_no_content) }
         val hide_when_no_content_property: PreferencesProperty<Boolean> = remember {
@@ -358,7 +399,7 @@ data class BaseWidgetConfig(
     }
 
     @Composable
-    private fun ShowDebugInformationItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
+    private fun ShowDebugInformationItem(modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
         val show_debug_information_state: MutableState<Boolean> =
             remember { mutableStateOf(show_debug_information) }
         val show_debug_information_property: PreferencesProperty<Boolean> = remember {
@@ -386,5 +427,9 @@ data class BaseWidgetConfig(
         THEME,
         LIGHT,
         DARK
+    }
+
+    companion object {
+        private val DEFAULT: BaseWidgetConfig = BaseWidgetConfig()
     }
 }

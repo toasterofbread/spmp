@@ -124,8 +124,7 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
 
             val title: String? by song.observeActiveTitle()
             title?.also {
-
-                WidgetText(it, font_size = 18.sp, colour = theme_colour)
+                WidgetText(it, font_size = 18.sp)
             }
 
             val artist_title: String? by song.Artists.observe(player.database).value?.firstOrNull()
@@ -135,7 +134,7 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
                     it,
                     GlanceModifier.padding(top = 3.dp),
                     font_size = 14.sp,
-                    alpha = 0.7f
+                    colour = theme_colour
                 )
             }
 

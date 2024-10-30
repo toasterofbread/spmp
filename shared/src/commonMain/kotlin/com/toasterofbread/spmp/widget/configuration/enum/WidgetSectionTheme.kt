@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
 import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
 import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.utils.common.blendWith
 import dev.toastbits.composekit.utils.common.thenIf
 import kotlinx.serialization.Serializable
 
@@ -23,10 +24,14 @@ data class WidgetSectionTheme(
 
 val WidgetSectionTheme.colour: Color
     @Composable
+    get() = mode.colour.thenIf(mode.opacity_configurable) { copy(alpha = opacity) }
+
+val WidgetSectionTheme.Mode.colour: Color
+    @Composable
     get() = with (LocalApplicationTheme.current) {
-        when (mode) {
+        when (this@colour) {
             WidgetSectionTheme.Mode.BACKGROUND -> background
-            WidgetSectionTheme.Mode.ACCENT -> vibrant_accent
+            WidgetSectionTheme.Mode.ACCENT -> card.blendWith(accent, 0.2f)
             WidgetSectionTheme.Mode.TRANSPARENT -> Color.Transparent
-        }.thenIf(mode.opacity_configurable) { copy(alpha = opacity) }
+        }
     }

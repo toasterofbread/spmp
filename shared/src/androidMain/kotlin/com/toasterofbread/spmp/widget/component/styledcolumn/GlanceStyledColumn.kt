@@ -92,9 +92,6 @@ private fun ColumnWaveBorder(
 ) {
     val size: DpSize = DpSize(LocalSize.current.width, height)
 
-    // I spent over an hour trying to figure out why BlendMode doesn't behave as stated in the docs
-    // Turns out that, in the docs, "source image" refers to the drawn image and "destination image" is the original image?
-    // Surely "source image" should mean the original/base image? And the destination should mean the target/provided image?
     GlanceCanvas(size, modifier.height(height)) { image_size ->
         if (bottom_colour.alpha == 0f) {
             drawWave(
@@ -118,18 +115,31 @@ private fun ColumnWaveBorder(
                 color = top_colour
             }
         )
-        drawWave(
-            9,
-            image_size,
+
+        val bottom_wave_path: Path = Path()
+        wavePath(
+            path = bottom_wave_path,
+            size = image_size,
+            waves = 9,
+            fill_direction = -1,
+            width_multiplier = 1f
+        )
+
+        drawPath(
+            bottom_wave_path,
+            Paint().apply {
+                color = Color.White
+                style = PaintingStyle.Fill
+                blendMode = BlendMode.DstOut
+            }
+        )
+
+        drawPath(
+            bottom_wave_path,
             Paint().apply {
                 color = bottom_colour
                 style = PaintingStyle.Fill
-
-                blendMode =
-                    if (top_colour.alpha == 0f) BlendMode.SrcOver
-                    else BlendMode.SrcOver
-            },
-            fill_direction = -1
+            }
         )
     }
 }

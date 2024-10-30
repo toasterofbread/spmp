@@ -43,7 +43,7 @@ class PlayerServiceNotificationManager(
     private val media_session: MediaSession,
     private val notification_manager: NotificationManager,
     private val service: ForegroundPlayerService,
-    player: Player
+    private val player: Player
 ) {
     private var current_song: Song? = null
     private val thumbnail_load_scope: CoroutineScope = CoroutineScope(Job())
@@ -51,7 +51,7 @@ class PlayerServiceNotificationManager(
     private val song_liked_load_scope: CoroutineScope = CoroutineScope(Job())
 
     private val metadata_builder: MediaMetadata.Builder = MediaMetadata.Builder()
-    private val state: NotificationStateManager = NotificationStateManager(media_session, player)
+    private val state: NotificationStateManager = NotificationStateManager(media_session)
 
     private val notification_listener: PlayerNotificationManager.NotificationListener =
         object : PlayerNotificationManager.NotificationListener {
@@ -85,7 +85,10 @@ class PlayerServiceNotificationManager(
                 }
 
                 current_song = song
-                state.update(current_liked_status = song?.Liked?.get(context.database))
+                state.update(
+                    current_liked_status = song?.Liked?.get(context.database),
+                    position_ms = player.currentPosition
+                )
 
                 if (song != null) {
                     context.database.songQueries.likedById(song.id).addListener(song_liked_listener)
@@ -102,8 +105,16 @@ class PlayerServiceNotificationManager(
                 }
             }
 
+            override fun onSeeked(position_ms: Long) {
+                state.update(position_ms = position_ms)
+            }
+
             override fun onPlayingChanged(is_playing: Boolean) {
                 state.update(paused = !is_playing)
+            }
+
+            override fun onEvents() {
+                state.update(position_ms = player.currentPosition)
             }
 
             override fun onStateChanged(state: SpMsPlayerState) {

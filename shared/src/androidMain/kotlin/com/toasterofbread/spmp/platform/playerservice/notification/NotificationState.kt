@@ -7,5 +7,6 @@ data class NotificationState(
     val playback_state: Int? = PlaybackState.STATE_NONE,
     val paused: Boolean = true,
     val current_liked_status: SongLikedStatus? = null,
-    val authenticated: Boolean = false
+    val authenticated: Boolean = false,
+    val position_ms: Long? = null
 )

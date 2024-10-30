@@ -21,11 +21,11 @@ import androidx.glance.Image
 import androidx.glance.ImageProvider
 import androidx.glance.LocalSize
 import androidx.glance.layout.Alignment
+import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
-import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
@@ -110,19 +110,22 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
                 ),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            val theme_colour: Color =
+                when (type_configuration.title_row_theme.mode) {
+                    WidgetSectionTheme.Mode.BACKGROUND ->
+                        with(LocalApplicationTheme.current) {
+                            accent.blendWith(on_background, 0.35f)
+                        }
+                    WidgetSectionTheme.Mode.ACCENT,
+                    WidgetSectionTheme.Mode.TRANSPARENT -> LocalContentColor.current
+                }
+
+            AppIcon(theme_colour, GlanceModifier.fillMaxWidth(), show = !type_configuration.swap_title_content_rows)
+
             val title: String? by song.observeActiveTitle()
             title?.also {
-                val colour: Color =
-                    when (type_configuration.title_row_theme.mode) {
-                        WidgetSectionTheme.Mode.BACKGROUND -> with(LocalApplicationTheme.current) {
-                            accent.blendWith(on_background, 0.4f)
-                        }
 
-                        WidgetSectionTheme.Mode.ACCENT,
-                        WidgetSectionTheme.Mode.TRANSPARENT -> LocalContentColor.current
-                    }
-
-                WidgetText(it, font_size = 18.sp, colour = colour)
+                WidgetText(it, font_size = 18.sp, colour = theme_colour)
             }
 
             val artist_title: String? by song.Artists.observe(player.database).value?.firstOrNull()
@@ -135,6 +138,8 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
                     alpha = 0.7f
                 )
             }
+
+            AppIcon(theme_colour, GlanceModifier.fillMaxWidth(), show = type_configuration.swap_title_content_rows)
         }
     }
 
@@ -181,8 +186,6 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
             Spacer(GlanceModifier.fillMaxWidth().defaultWeight())
             Spacer(GlanceModifier.width(GLANCE_STYLED_COLUMN_DEFAULT_SPACING))
 
-            val show_icon = (button_grid_size - max_button_grid_size) >= 20.dp
-
             Column(
                 GlanceModifier.wrapContentWidth(),
                 horizontalAlignment = Alignment.End
@@ -210,17 +213,6 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
                     },
                     modifier = GlanceModifier.defaultWeight()
                 )
-
-                Spacer(GlanceModifier.fillMaxHeight().defaultWeight())
-
-                if (show_icon) {
-                    Image(
-                        ImageProvider(R.drawable.ic_spmp),
-                        null,
-                        GlanceModifier.size(20.dp),
-                        colorFilter = ColorFilter.tint(ColorProvider(LocalContentColor.current))
-                    )
-                }
             }
         }
     }

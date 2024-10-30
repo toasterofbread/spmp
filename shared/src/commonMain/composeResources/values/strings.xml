@@ -1138,6 +1138,7 @@
     <string name="widget_config_common_option_styled_border_mode_none">None</string>
     <string name="widget_config_common_key_border_radius">Border radius (dp)</string>
     <string name="widget_config_common_key_hide_when_no_content">Hide when no content</string>
+    <string name="widget_config_common_key_show_app_icon">Show app icon</string>
     <string name="widget_config_common_key_show_debug_information">Show debug information</string>
     <string name="widget_config_common_key_click_action">Tap action</string>
     <string name="widget_config_common_key_section_theme_opacity">Opacity</string>

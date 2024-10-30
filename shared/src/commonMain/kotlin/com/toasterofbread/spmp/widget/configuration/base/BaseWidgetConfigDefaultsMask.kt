@@ -13,6 +13,7 @@ data class BaseWidgetConfigDefaultsMask(
     val styled_border_mode: Boolean = true,
     val border_radius_dp: Boolean = true,
     val hide_when_no_content: Boolean = true,
+    val show_app_icon: Boolean = true,
     val show_debug_information: Boolean = true
 ) {
     fun applyTo(config: BaseWidgetConfig, default: BaseWidgetConfig): BaseWidgetConfig =
@@ -26,6 +27,7 @@ data class BaseWidgetConfigDefaultsMask(
             styled_border_mode = if (this.styled_border_mode) default.styled_border_mode else config.styled_border_mode,
             border_radius_dp = if (this.border_radius_dp) default.border_radius_dp else config.border_radius_dp,
             hide_when_no_content = if (this.hide_when_no_content) default.hide_when_no_content else config.hide_when_no_content,
+            show_app_icon = if (this.show_app_icon) default.show_app_icon else config.show_app_icon,
             show_debug_information = if (this.show_debug_information) default.show_debug_information else config.show_debug_information,
         )
 }

@@ -32,8 +32,11 @@ import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.glance.ColorFilter
 import androidx.glance.GlanceId
 import androidx.glance.GlanceModifier
+import androidx.glance.Image
+import androidx.glance.ImageProvider
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.AppWidgetId
 import androidx.glance.appwidget.GlanceAppWidget
@@ -45,9 +48,13 @@ import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import androidx.glance.layout.Column
 import androidx.glance.layout.ColumnScope
+import androidx.glance.layout.Spacer
 import androidx.glance.layout.fillMaxSize
+import androidx.glance.layout.height
 import androidx.glance.layout.padding
+import androidx.glance.layout.size
 import androidx.glance.layout.wrapContentSize
+import androidx.glance.unit.ColorProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
@@ -394,6 +401,32 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
                 }
             }
         )
+    }
+
+    @Composable
+    fun AppIcon(
+        colour: Color,
+        modifier: GlanceModifier = GlanceModifier,
+        show: Boolean = true
+    ) {
+        val size: Dp = 20.dp
+
+        if (show && base_configuration.show_app_icon) {
+            Box(
+                modifier.height(size),
+                contentAlignment = Alignment.TopEnd
+            ) {
+                Image(
+                    ImageProvider(R.drawable.ic_spmp),
+                    null,
+                    GlanceModifier.size(size - 2.dp),
+                    colorFilter = ColorFilter.tint(ColorProvider(colour))
+                )
+            }
+        }
+        else {
+            Spacer(modifier.height(size / 2))
+        }
     }
 
     @Composable

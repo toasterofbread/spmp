@@ -2,17 +2,35 @@ package com.toasterofbread.spmp.ui.component.multiselect_context
 
 import LocalPlayerState
 import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.automirrored.filled.PlaylistAdd
+import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material.icons.filled.Download
+import androidx.compose.material.icons.filled.VisibilityOff
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateListOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.platform.vibrateShort
-import dev.toastbits.composekit.utils.composable.PlatformClickableButton
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.createLocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.InteractivePlaylistEditor
@@ -23,21 +41,24 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
 import com.toasterofbread.spmp.platform.getOrNotify
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.composekit.platform.vibrateShort
 import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.utils.composable.PlatformClickableButton
+import dev.toastbits.composekit.utils.composable.ShapedIconButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.song_add_to_playlist
 import spmp.shared.generated.resources.lpm_action_download
-import spmp.shared.generated.resources.toast_playlist_added
+import spmp.shared.generated.resources.lpm_action_hide
 import spmp.shared.generated.resources.playlist_create
 import spmp.shared.generated.resources.song_add_to_playlist
+import spmp.shared.generated.resources.toast_playlist_added
 
 @Composable
 internal fun ColumnScope.MultiSelectOverflowActions(
@@ -75,9 +96,22 @@ internal fun ColumnScope.MultiSelectOverflowActions(
         Button({
             adding_to_playlist = multiselect_context.getUniqueSelectedItems().filterIsInstance<Song>()
         }) {
-            Icon(Icons.Default.PlaylistAdd, null)
+            Icon(Icons.AutoMirrored.Filled.PlaylistAdd, null, Modifier.padding(end = 5.dp))
             Text(stringResource(Res.string.song_add_to_playlist))
         }
+    }
+
+    // Hide
+    Button({
+        player.database.transaction {
+            for (item in multiselect_context.getUniqueSelectedItems().filterIsInstance<MediaItem>()) {
+                item.Hidden.set(true, player.database)
+            }
+        }
+        multiselect_context.onActionPerformed()
+    }) {
+        Icon(Icons.Default.VisibilityOff, null, Modifier.padding(end = 5.dp))
+        Text(stringResource(Res.string.lpm_action_hide))
     }
 
     // Download
@@ -95,7 +129,7 @@ internal fun ColumnScope.MultiSelectOverflowActions(
                 player.context.vibrateShort()
             }
         ) {
-            Icon(Icons.Default.Download, null)
+            Icon(Icons.Default.Download, null, Modifier.padding(end = 5.dp))
             Text(stringResource(Res.string.lpm_action_download))
         }
     }

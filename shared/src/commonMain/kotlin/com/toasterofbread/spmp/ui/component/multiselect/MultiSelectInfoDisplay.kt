@@ -174,7 +174,9 @@ fun MediaItemMultiSelectContext.MultiSelectInfoDisplayContent(
                         Text(title_text)
                     },
                     text = {
-                        Column {
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(10.dp)
+                        ) {
                             MultiSelectOverflowActions(this@MultiSelectInfoDisplayContent, additionalSelectedItemActions)
                         }
                     }

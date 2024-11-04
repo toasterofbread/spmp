@@ -2,6 +2,7 @@ package com.toasterofbread.spmp.platform
 
 import SpMp
 import android.app.Activity
+import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
 import android.graphics.Bitmap
@@ -39,8 +40,6 @@ actual class AppContext private constructor(
     application_context: ApplicationContext? = null
 ): PlatformContextImpl(context, coroutine_scope, application_context) {
     companion object {
-        lateinit var main_activity: Class<out Activity>
-
         suspend fun create(
             context: Context,
             coroutine_scope: CoroutineScope,
@@ -60,6 +59,9 @@ actual class AppContext private constructor(
                 application_context
             )
         }
+
+        fun getMainActivityIntent(context: Context): Intent =
+            Intent().setComponent(ComponentName(context, "com.toasterofbread.spmp.MainActivity"))
     }
 
     actual fun getPrefs(): PlatformPreferences = prefs

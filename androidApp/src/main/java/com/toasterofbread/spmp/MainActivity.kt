@@ -35,8 +35,6 @@ class MainActivity: ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        AppContext.main_activity = MainActivity::class.java
-
         Thread.setDefaultUncaughtExceptionHandler { _: Thread, error: Throwable ->
             if (
                 error is java.nio.channels.UnresolvedAddressException // Thrown by Kizzy

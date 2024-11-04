@@ -131,7 +131,13 @@ internal fun CurrentRadioIndicator(
 }
 
 @Composable
-private fun RadioFilterChip(selected: Boolean, getAccentColour: () -> Color, onClick: () -> Unit, modifier: Modifier = Modifier, content: @Composable () -> Unit) {
+private fun RadioFilterChip(
+    selected: Boolean,
+    getAccentColour: () -> Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
     FilterChip(
         selected,
         modifier = modifier.height(32.dp),
@@ -175,9 +181,13 @@ private fun FiltersRow(
                         radio.setRadioFilter(-1)
                     }
                 },
-                modifier = Modifier.width(48.dp)
+                modifier = Modifier.width(40.dp)
             ) {
-                Icon(MediaItemType.ARTIST.getIcon(), null, Modifier.offset(x = (-4).dp))
+                Icon(
+                    MediaItemType.ARTIST.getIcon(),
+                    null,
+                    Modifier.requiredSize(18.dp)
+                )
             }
         }
 

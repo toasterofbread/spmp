@@ -6,6 +6,7 @@ import android.annotation.SuppressLint
 import android.app.Notification
 import android.app.NotificationManager
 import android.app.PendingIntent
+import android.content.ComponentName
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC
@@ -347,7 +348,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
     private suspend fun getNotificationBuilder(): NotificationCompat.Builder {
         val content_intent: PendingIntent = PendingIntent.getActivity(
             this, 0,
-            Intent(this@PlayerDownloadService, AppContext.main_activity),
+            AppContext.getMainActivityIntent(this),
             PendingIntent.FLAG_IMMUTABLE
         )
 

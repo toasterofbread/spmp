@@ -324,7 +324,6 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
                         },
                         onSuccessfulLoad = onSuccessfulLoad,
                         insertion_index = index,
-                        skip_existing = false,
                         clear_after = true
                     )
                 }

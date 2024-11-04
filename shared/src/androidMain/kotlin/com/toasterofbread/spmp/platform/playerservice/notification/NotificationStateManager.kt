@@ -14,10 +14,7 @@ import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.withContext
 
-class NotificationStateManager(
-    private val media_session: MediaSession,
-    private val player: Player
-) {
+class NotificationStateManager(private val media_session: MediaSession) {
     var current: NotificationState = NotificationState()
         private set
 
@@ -27,14 +24,16 @@ class NotificationStateManager(
         playback_state: Int? = current.playback_state,
         paused: Boolean = current.paused,
         current_liked_status: SongLikedStatus? = current.current_liked_status,
-        authenticated: Boolean = current.authenticated
+        authenticated: Boolean = current.authenticated,
+        position_ms: Long? = current.position_ms
     ) {
         val new_state: NotificationState =
             NotificationState(
                 playback_state,
                 paused,
                 current_liked_status,
-                authenticated
+                authenticated,
+                position_ms
             )
 
         if (new_state == current) {
@@ -58,7 +57,7 @@ class NotificationStateManager(
         state_builder.setState(
             playback_state
                 ?: if (paused) PlaybackState.STATE_PAUSED else PlaybackState.STATE_PLAYING,
-            player.currentPosition,
+            position_ms ?: 0,
             if (paused) 0f else 1f,
             SystemClock.elapsedRealtime()
         )

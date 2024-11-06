@@ -4,8 +4,6 @@
     <string name="widget_description_lyrics_line_horizontal"></string>
     <string name="widget_name_song_queue">Song queue</string>
     <string name="widget_description_song_queue" />
-    <string name="widget_name_song_image">Large song image</string>
-    <string name="widget_description_song_image" />
-    <string name="widget_name_split_image_controls">Split image and controls</string>
+    <string name="widget_name_split_image_controls">Image and controls</string>
     <string name="widget_description_split_image_controls" />
 </resources>

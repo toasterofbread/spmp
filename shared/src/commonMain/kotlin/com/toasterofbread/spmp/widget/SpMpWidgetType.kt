@@ -38,12 +38,6 @@ enum class SpMpWidgetType(
         click_action_class = SongQueueWidgetClickAction::class,
         update_types = listOf(WidgetUpdateType.OnSongTransition, WidgetUpdateType.OnQueueChange)
     ),
-    SONG_IMAGE(
-        default_config = SongImageWidgetConfig(),
-        default_defaults_mask = SongImageWidgetConfigDefaultsMask(),
-        click_action_class = SongImageWidgetClickAction::class,
-        update_types = listOf(WidgetUpdateType.OnSongTransition, WidgetUpdateType.OnPlayingChange)
-    ),
     SPLIT_IMAGE_CONTROLS(
         default_config = SplitImageControlsWidgetConfig(),
         default_defaults_mask = SplitImageControlsWidgetConfigDefaultsMask(),

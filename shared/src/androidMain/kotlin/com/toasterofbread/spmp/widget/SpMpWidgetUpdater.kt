@@ -10,7 +10,6 @@ import androidx.glance.GlanceId
 import androidx.glance.appwidget.updateAll
 import com.toasterofbread.spmp.widget.SpMpWidgetUpdater.getUpdateValue
 import com.toasterofbread.spmp.widget.impl.LyricsLineHorizontalWidget
-import com.toasterofbread.spmp.widget.impl.SongImageWidget
 import com.toasterofbread.spmp.widget.impl.SongQueueWidget
 import com.toasterofbread.spmp.widget.impl.SplitImageControlsWidget
 import kotlin.reflect.KClass
@@ -19,7 +18,6 @@ val SpMpWidgetType.widgetClass: KClass<out SpMpWidget<*, *>>
     get() = when (this) {
         SpMpWidgetType.LYRICS_LINE_HORIZONTAL -> LyricsLineHorizontalWidget::class
         SpMpWidgetType.SONG_QUEUE -> SongQueueWidget::class
-        SpMpWidgetType.SONG_IMAGE -> SongImageWidget::class
         SpMpWidgetType.SPLIT_IMAGE_CONTROLS -> SplitImageControlsWidget::class
     }
 
@@ -32,14 +30,12 @@ object SpMpWidgetUpdater {
 
     private var update_value_LYRICS_LINE_HORIZONTAL: Int by mutableIntStateOf(0)
     private var update_value_SONG_QUEUE: Int by mutableStateOf(0)
-    private var update_value_SONG_IMAGE: Int by mutableStateOf(0)
     private var update_value_SPLIT_IMAGE_CONTROLS: Int by mutableStateOf(0)
 
     private fun SpMpWidgetType.incrementUpdateValue() {
         when (this) {
             SpMpWidgetType.LYRICS_LINE_HORIZONTAL -> update_value_LYRICS_LINE_HORIZONTAL++
             SpMpWidgetType.SONG_QUEUE -> update_value_SONG_QUEUE++
-            SpMpWidgetType.SONG_IMAGE -> update_value_SONG_IMAGE++
             SpMpWidgetType.SPLIT_IMAGE_CONTROLS -> update_value_SPLIT_IMAGE_CONTROLS++
         }
     }
@@ -48,7 +44,6 @@ object SpMpWidgetUpdater {
         when (this) {
             SpMpWidgetType.LYRICS_LINE_HORIZONTAL -> update_value_LYRICS_LINE_HORIZONTAL
             SpMpWidgetType.SONG_QUEUE -> update_value_SONG_QUEUE
-            SpMpWidgetType.SONG_IMAGE -> update_value_SONG_IMAGE
             SpMpWidgetType.SPLIT_IMAGE_CONTROLS -> update_value_SPLIT_IMAGE_CONTROLS
         }
 

@@ -23,7 +23,7 @@ import spmp.shared.generated.resources.widget_config_type_name_song_image
 @Serializable
 data class SplitImageControlsWidgetConfig(
     val display_lyrics: Boolean = true, // TODO
-    val swap_title_content_rows: Boolean = false, // TODO
+    val swap_title_content_rows: Boolean = false,
 
     val title_row_theme: WidgetSectionTheme =
         WidgetSectionTheme(WidgetSectionTheme.Mode.BACKGROUND, 0.7f),

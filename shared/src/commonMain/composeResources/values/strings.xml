@@ -1162,5 +1162,10 @@
     <string name="widget_config_split_image_controls_bottom_start_button_action">Bottom-left button</string>
     <string name="widget_config_split_image_controls_bottom_end_button_action">Bottom-right button</string>
 
+    <string name="widget_empty_status_nothing_playing">Nothing playing</string>
+
     <string name="widget_lyrics_status_no_lyrics">No lyrics</string>
+
+    <string name="widget_queue_heading_now_playing">Now playing</string>
+    <string name="widget_queue_heading_up_next">Up next</string>
 </resources>

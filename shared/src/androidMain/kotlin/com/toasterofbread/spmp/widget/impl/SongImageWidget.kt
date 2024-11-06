@@ -39,6 +39,9 @@ import dev.toastbits.composekit.settings.ui.ThemeValuesData
 import dev.toastbits.composekit.utils.common.getThemeColour
 import dev.toastbits.composekit.utils.common.getValue
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.widget_empty_status_nothing_playing
 
 internal class SongImageWidget: SpMpWidget<SongImageWidgetClickAction, SongImageWidgetConfig>(custom_background = true) {
     override fun executeTypeAction(action: SongImageWidgetClickAction) =
@@ -59,7 +62,6 @@ internal class SongImageWidget: SpMpWidget<SongImageWidgetClickAction, SongImage
     ) {
         val player: PlayerState = LocalPlayerState.current
         val theme: ThemeValues = LocalApplicationTheme.current
-        val song: Song? = player.status.m_song
 
         if (song != null) {
             val song_theme: Color? by song.ThemeColour.observe(player.database)
@@ -105,7 +107,7 @@ internal class SongImageWidget: SpMpWidget<SongImageWidgetClickAction, SongImage
             }
         }
         else {
-            WidgetText("No song", modifier)
+            WidgetText(stringResource(Res.string.widget_empty_status_nothing_playing), modifier)
         }
     }
 

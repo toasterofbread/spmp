@@ -44,6 +44,9 @@ import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
 import dev.toastbits.composekit.settings.ui.vibrant_accent
 import dev.toastbits.composekit.utils.common.blendWith
 import dev.toastbits.composekit.utils.common.getValue
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.widget_empty_status_nothing_playing
 
 internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClickAction, SplitImageControlsWidgetConfig>(
     custom_background = true,
@@ -66,7 +69,7 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
         content_padding: PaddingValues
     ) {
         if (song == null) {
-            WidgetText("NO SONG", modifier)
+            WidgetText(stringResource(Res.string.widget_empty_status_nothing_playing), modifier)
             return
         }
 

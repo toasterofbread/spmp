@@ -20,6 +20,11 @@ import com.toasterofbread.spmp.widget.configuration.type.SongQueueWidgetConfig
 import com.toasterofbread.spmp.widget.action.QueueSeekAction
 import com.toasterofbread.spmp.widget.component.spmp.GlanceSongPreview
 import dev.toastbits.composekit.utils.common.thenIf
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.widget_empty_status_nothing_playing
+import spmp.shared.generated.resources.widget_queue_heading_now_playing
+import spmp.shared.generated.resources.widget_queue_heading_up_next
 
 internal class SongQueueWidget: SpMpWidget<SongQueueWidgetClickAction, SongQueueWidgetConfig>(false) {
     override fun executeTypeAction(action: SongQueueWidgetClickAction) =
@@ -32,6 +37,16 @@ internal class SongQueueWidget: SpMpWidget<SongQueueWidgetClickAction, SongQueue
         LocalPlayerState.current.status.m_song != null
 
     @Composable
+    private fun Heading(text: String, modifier: GlanceModifier = GlanceModifier) {
+        WidgetText(
+            text,
+            modifier.padding(bottom = 5.dp),
+            font_size = 15.sp,
+            alpha = 0.5f
+        )
+    }
+
+    @Composable
     override fun Content(
         song: Song?,
         song_image: Bitmap?,
@@ -39,7 +54,6 @@ internal class SongQueueWidget: SpMpWidget<SongQueueWidgetClickAction, SongQueue
         content_padding: PaddingValues
     ) {
         val player: PlayerState = LocalPlayerState.current
-        val song: Song? = player.status.m_song
 
         if (song != null) {
             GlanceLazyColumn(
@@ -48,7 +62,7 @@ internal class SongQueueWidget: SpMpWidget<SongQueueWidgetClickAction, SongQueue
             ) {
                 if (type_configuration.show_current_song) {
                     item {
-                        WidgetText("NOW PLAYING", font_size = 13.sp, alpha = 0.5f)
+                        Heading(stringResource(Res.string.widget_queue_heading_now_playing))
                     }
 
                     item {
@@ -66,11 +80,9 @@ internal class SongQueueWidget: SpMpWidget<SongQueueWidgetClickAction, SongQueue
 
                 if (following_songs.isNotEmpty()) {
                     item {
-                        WidgetText(
-                            "UP NEXT",
-                            GlanceModifier.padding(vertical = 5.dp),
-                            font_size = 13.sp,
-                            alpha = 0.5f
+                        Heading(
+                            stringResource(Res.string.widget_queue_heading_up_next),
+                            GlanceModifier.padding(top = 15.dp)
                         )
                     }
 
@@ -91,7 +103,7 @@ internal class SongQueueWidget: SpMpWidget<SongQueueWidgetClickAction, SongQueue
             }
         }
         else {
-            WidgetText("No songs", modifier)
+            WidgetText(stringResource(Res.string.widget_empty_status_nothing_playing), modifier)
         }
     }
 }

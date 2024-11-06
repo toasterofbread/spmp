@@ -186,7 +186,10 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
                     }
 
                 CompositionLocalProvider(
-                    LocalApplicationTheme provides theme.theme.copy(on_background = on_background_colour)
+                    *listOfNotNull(
+                        LocalApplicationTheme provides theme.theme.copy(on_background = on_background_colour),
+                        if (!custom_background) LocalContentColor provides on_background_colour else null
+                    ).toTypedArray()
                 ) {
                     Box(
                         GlanceModifier

@@ -1,9 +1,14 @@
 package com.toasterofbread.spmp.widget
 
 import android.content.Context
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateMapOf
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.glance.GlanceId
 import androidx.glance.appwidget.updateAll
+import com.toasterofbread.spmp.widget.SpMpWidgetUpdater.getUpdateValue
 import com.toasterofbread.spmp.widget.impl.LyricsLineHorizontalWidget
 import com.toasterofbread.spmp.widget.impl.SongImageWidget
 import com.toasterofbread.spmp.widget.impl.SongQueueWidget
@@ -25,19 +30,27 @@ object SpMpWidgetUpdater {
         }
     }
 
-    private val update_values: MutableMap<SpMpWidgetType, Int> =
-        mutableStateMapOf<SpMpWidgetType, Int>().apply {
-            for (type in SpMpWidgetType.entries) {
-                put(type, 0)
-            }
-        }
+    private var update_value_LYRICS_LINE_HORIZONTAL: Int by mutableIntStateOf(0)
+    private var update_value_SONG_QUEUE: Int by mutableStateOf(0)
+    private var update_value_SONG_IMAGE: Int by mutableStateOf(0)
+    private var update_value_SPLIT_IMAGE_CONTROLS: Int by mutableStateOf(0)
 
     private fun SpMpWidgetType.incrementUpdateValue() {
-        update_values[this] = update_values[this]!! + 1
+        when (this) {
+            SpMpWidgetType.LYRICS_LINE_HORIZONTAL -> update_value_LYRICS_LINE_HORIZONTAL++
+            SpMpWidgetType.SONG_QUEUE -> update_value_SONG_QUEUE++
+            SpMpWidgetType.SONG_IMAGE -> update_value_SONG_IMAGE++
+            SpMpWidgetType.SPLIT_IMAGE_CONTROLS -> update_value_SPLIT_IMAGE_CONTROLS++
+        }
     }
 
     fun SpMpWidgetType.getUpdateValue(): Any =
-        update_values[this]!!
+        when (this) {
+            SpMpWidgetType.LYRICS_LINE_HORIZONTAL -> update_value_LYRICS_LINE_HORIZONTAL
+            SpMpWidgetType.SONG_QUEUE -> update_value_SONG_QUEUE
+            SpMpWidgetType.SONG_IMAGE -> update_value_SONG_IMAGE
+            SpMpWidgetType.SPLIT_IMAGE_CONTROLS -> update_value_SPLIT_IMAGE_CONTROLS
+        }
 
     suspend fun SpMpWidgetType.updateAll(context: Context) {
         incrementUpdateValue()

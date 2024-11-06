@@ -163,6 +163,8 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
             ObserveConfiguration(widget_id!!)
             active_widgets[widget_id!!] = this
 
+            println("Widget $widget_id update received ($widget_type)")
+
             CompositionLocalProvider(
                 // App
                 LocalPlayerState provides state,

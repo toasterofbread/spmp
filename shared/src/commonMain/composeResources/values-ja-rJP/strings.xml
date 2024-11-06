@@ -676,6 +676,11 @@
     <string name="s_key_configured_shortcuts">設定済みのショートカット</string>
     <string name="s_key_navigate_song_with_numbers">数字キーで曲内をシーク</string>
 
+    <string name="s_key_default_widget_configurations">デフォルトのウィジェット設定</string>
+    <string name="prompt_select_widget_type">ウィジェットのタイプを選択</string>
+    <string name="prompt_select_widget_type_option_base">ベースウィジェット</string>
+    <string name="button_widget_settings_change_default_configurations">設定</string>
+
     <string name="s_cat_general">一般</string>
     <string name="s_cat_desc_general">言語などのオプション</string>
 
@@ -720,6 +725,9 @@
 
     <string name="s_cat_misc">その他</string>
     <string name="s_cat_desc_misc">キャッシュなどの設定</string>
+
+    <string name="s_cat_widget">ウィジェット</string>
+    <string name="s_cat_desc_widget">ウィジェットのデフォルト等の設定</string>
 
     <string name="s_cat_dependencies">ソフトウェア依存関係</string>
     <string name="s_cat_desc_dependencies">SpMpが使用しているソフトライブラリを見る</string>
@@ -1030,4 +1038,79 @@
     <string name="project_info_dialog_project_source_button">ソースコードを見る</string>
     <string name="project_info_dialog_project_donate_button">ココアを奢る</string>
     <string name="project_info_dialog_dependencies_button">ソフトウェア依存関係を表示</string>
+
+    <string name="widget_config_title">ウィジェット設定</string>
+    <string name="widget_config_details_$type_$id">ID $id の$typeウィジェットの設定</string>
+    <string name="widget_config_details_$type">$typeウィジェットの設定</string>
+    <string name="widget_config_details_base">ベースウィジェットの設定</string>
+    <string name="widget_config_button_cancel">キャンセル</string>
+    <string name="widget_config_button_done">完了</string>
+    <string name="widget_config_button_set_as_default">デフォルトとして保存</string>
+    <string name="widget_config_button_use_default_value">デフォルトを使用</string>
+
+    <string name="widget_config_type_name_common">ウィジェット</string>
+    <string name="widget_config_type_name_lyrics">歌詞</string>
+    <string name="widget_config_type_name_song_queue">曲キュー</string>
+    <string name="widget_config_type_name_song_image">曲画像</string>
+
+    <string name="widget_click_action_common_none">なし</string>
+    <string name="widget_click_action_common_open_spmp">SpMpを開く</string>
+    <string name="widget_click_action_common_open_widget_config">ウィジェット設定を開く</string>
+    <string name="widget_click_action_common_toggle_visibility">表示をトグル</string>
+    <string name="widget_click_action_common_play_pause">再生・停止</string>
+    <string name="widget_click_action_common_seek_next">次にすすむ</string>
+    <string name="widget_click_action_common_seek_previous">前にもどる</string>
+    <string name="widget_click_action_common_toggle_like">いいねをトグル</string>
+
+    <string name="widget_click_action_lyrics_toggle_furigana">ふりがなをトグル</string>
+    <string name="widget_click_action_lyrics_hide_until_next_song">次の曲まで非表示にする</string>
+
+    <string name="widget_application_theme_label">アプリテーマ</string>
+
+    <string name="widget_config_common_key_theme">テーマ</string>
+    <string name="widget_config_common_key_accent_colour_source">アクセント色のソース</string>
+    <string name="widget_config_common_option_accent_colour_source_app">アプリの設定</string>
+    <string name="widget_config_common_key_font">フォント</string>
+    <string name="widget_config_common_key_font_size">フォントサイズ</string>
+    <string name="widget_config_common_option_font_app">アプリの設定</string>
+    <string name="widget_config_common_key_content_colour">コンテンツの色</string>
+    <string name="widget_config_common_option_content_colour_theme">テーマから</string>
+    <string name="widget_config_common_option_content_colour_light">ライト</string>
+    <string name="widget_config_common_option_content_colour_dark">ダーク</string>
+    <string name="widget_config_common_key_background_opacity">バックグラウンドの不透明度</string>
+    <string name="widget_config_common_key_styled_border_mode">セクションのボーダータイプ</string>
+    <string name="widget_config_common_option_styled_border_mode_wave">波</string>
+    <string name="widget_config_common_option_styled_border_mode_none">なし</string>
+    <string name="widget_config_common_key_border_radius">ボーダーの半径（dp）</string>
+    <string name="widget_config_common_key_hide_when_no_content">コンテンツがないときは非表示</string>
+    <string name="widget_config_common_key_show_app_icon">アプリのアイコンを表示</string>
+    <string name="widget_config_common_key_show_debug_information">デバッグ情報を表示</string>
+    <string name="widget_config_common_key_click_action">タップアクション</string>
+    <string name="widget_config_common_key_section_theme_opacity">不透明度</string>
+    <string name="widget_config_common_option_section_theme_mode_background">バックグラウンド</string>
+    <string name="widget_config_common_option_section_theme_mode_accent">アクセント</string>
+    <string name="widget_config_common_option_section_theme_mode_transparent">透明</string>
+
+    <string name="widget_config_lyrics_key_furigana_mode">ふりがな</string>
+    <string name="widget_config_lyrics_option_furigana_mode_app">アプリの設定</string>
+    <string name="widget_config_lyrics_option_furigana_mode_show">表示</string>
+    <string name="widget_config_lyrics_option_furigana_mode_hide">非表示</string>
+
+    <string name="widget_config_song_queue_show_current_song">再生中の曲を表示</string>
+    <string name="widget_config_song_queue_next_songs_to_show">表示するこれからの曲</string>
+
+    <string name="widget_config_split_image_controls_swap_title_content_rows">タイトルとコンテンツの位置を入れ替える</string>
+    <string name="widget_config_split_image_controls_title_row_theme">タイトル行のテーマ</string>
+    <string name="widget_config_split_image_controls_content_row_theme">コンテンツ行のテーマ</string>
+    <string name="widget_config_split_image_controls_top_start_button_action">左上のボタン</string>
+    <string name="widget_config_split_image_controls_top_end_button_action">右上のボタン</string>
+    <string name="widget_config_split_image_controls_bottom_start_button_action">左下のボタン</string>
+    <string name="widget_config_split_image_controls_bottom_end_button_action">右下のボタン</string>
+
+    <string name="widget_empty_status_nothing_playing">何も再生していません</string>
+
+    <string name="widget_lyrics_status_no_lyrics">歌詞はありません</string>
+
+    <string name="widget_queue_heading_now_playing">再生中</string>
+    <string name="widget_queue_heading_up_next">次に再生</string>
 </resources>

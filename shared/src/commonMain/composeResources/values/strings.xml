@@ -778,7 +778,7 @@
     <string name="s_cat_desc_misc">Cache and other miscellaneous options</string>
 
     <string name="s_cat_widget">Widget</string>
-    <string name="s_cat_desc_widget">TODO</string>
+    <string name="s_cat_desc_widget">Configure widget defaults</string>
 
     <string name="s_cat_dependencies">Dependencies</string>
     <string name="s_cat_desc_dependencies">View software libraries used by SpMp</string>

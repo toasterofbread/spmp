@@ -77,6 +77,7 @@ import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClick
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.SEEK_PREVIOUS
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.TOGGLE_LIKE
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.TOGGLE_VISIBILITY
+import com.toasterofbread.spmp.widget.action.execute
 import com.toasterofbread.spmp.widget.component.GlanceText
 import com.toasterofbread.spmp.widget.component.styledcolumn.GLANCE_STYLED_COLUMN_DEFAULT_SPACING
 import com.toasterofbread.spmp.widget.component.styledcolumn.GlanceStyledColumn
@@ -115,6 +116,8 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
         if (exact_size) SizeMode.Exact
         else SizeMode.Single
 
+    var visible: Boolean by mutableStateOf(true)
+
     protected lateinit var context: AppContext
 
     protected val type_configuration: T
@@ -127,7 +130,6 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
         @Composable
         get() = LocalApplicationTheme.current.card.copy(alpha = base_configuration.background_opacity)
 
-    private var visible: Boolean by mutableStateOf(true)
     private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
     private var widget_id: Int? by mutableStateOf(null)
     private val widget_type: SpMpWidgetType = SpMpWidgetType.entries.first { it.widgetClass == this::class }
@@ -273,37 +275,10 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
 
     fun runAction(action: WidgetClickAction<A>, id: GlanceId) {
         when (action) {
-            is WidgetClickAction.CommonWidgetClickAction -> executeCommonAction(action, id)
+            is WidgetClickAction.CommonWidgetClickAction -> coroutine_scope.launch {
+                action.execute(id, context, this@SpMpWidget)
+            }
             is WidgetClickAction.Type -> executeTypeAction(action.actionEnum)
-        }
-    }
-
-    private fun executeCommonAction(action: WidgetClickAction.CommonWidgetClickAction, id: GlanceId) = coroutine_scope.launch(Dispatchers.Main) {
-        when (action) {
-            NONE -> {}
-            OPEN_SPMP -> {
-                with (context.ctx) {
-                    startActivity(packageManager.getLaunchIntentForPackage(packageName))
-                }
-            }
-            OPEN_WIDGET_CONFIG -> {
-                val intent: Intent = Intent()
-                intent.setComponent(ComponentName(context.ctx, "com.toasterofbread.spmp.widget.WidgetConfigurationActivity"))
-                intent.putExtra(AppWidgetManager.EXTRA_APPWIDGET_ID, GlanceAppWidgetManager(context.ctx).getAppWidgetId(id))
-                intent.addFlags(FLAG_ACTIVITY_NEW_TASK)
-                context.ctx.startActivity(intent)
-            }
-            TOGGLE_VISIBILITY -> {
-                visible = !visible
-            }
-            PLAY_PAUSE -> SpMp._player_state?.controller?.playPause()
-            SEEK_NEXT -> SpMp._player_state?.controller?.seekToNext()
-            SEEK_PREVIOUS -> SpMp._player_state?.controller?.seekToPrevious()
-            TOGGLE_LIKE -> {
-                val song: Song = SpMp._player_state?.status?.song ?: return@launch
-                val liked: SongLikedStatus? = song.Liked.get(context.database)
-                song.updateLiked(liked.getToggleTarget(), context.ytapi.user_auth_state?.SetSongLiked, context)
-            }
         }
     }
 

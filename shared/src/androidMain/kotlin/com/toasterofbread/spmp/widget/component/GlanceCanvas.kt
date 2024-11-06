@@ -20,7 +20,7 @@ fun GlanceCanvas(size: DpSize, modifier: GlanceModifier, draw: @Composable Canva
 
     val image: ImageBitmap =
         with (LocalDensity.current) {
-            ImageBitmap(size.width.roundToPx(), size.height.roundToPx())
+            ImageBitmap(size.width.roundToPx() + 20, size.height.roundToPx())
         }
 
     val canvas: Canvas = Canvas(image)

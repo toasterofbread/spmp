@@ -2,7 +2,7 @@
 {
   inputs = {
     nixpkgs.url = "github:nixos/nixpkgs/nixpkgs-unstable";
-    android-nixpkgs.url = "github:HPRIOR/android-nixpkgs/516bd59caa6883d1a5dad0538af03a1f521e7764";
+    android-nixpkgs.url = "github:HPRIOR/android-nixpkgs/d144e1aff31d45e92ee981e04d871b000fd791f9";
   };
 
   outputs = { self, nixpkgs, android-nixpkgs, ... }:
@@ -33,8 +33,10 @@
 
       android-sdk = (android-nixpkgs.sdk.${system} (sdkPkgs: with sdkPkgs; [
         cmdline-tools-latest
-        build-tools-34-0-0
         platform-tools
+        build-tools-35-0-0
+        platforms-android-35
+        build-tools-34-0-0
         platforms-android-34
       ]));
 

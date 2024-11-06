@@ -26,6 +26,7 @@ import com.toasterofbread.spmp.platform.playerservice.notification.PlayerService
 import com.toasterofbread.spmp.platform.visualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
+import com.toasterofbread.spmp.widget.WidgetUpdateListener
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.composekit.utils.common.launchSingle
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
@@ -57,6 +58,8 @@ open class ForegroundPlayerService(
     internal lateinit var audio_sink: AudioSink
     internal var loudness_enhancer: LoudnessEnhancer? = null
 
+    private lateinit var widget_update_listener: WidgetUpdateListener
+
     internal var current_song: Song? = null
     internal var paused_by_device_disconnect: Boolean = false
     internal var device_connection_changed_playing_status: Boolean = false
@@ -64,7 +67,7 @@ open class ForegroundPlayerService(
     private val audio_device_callback: PlayerAudioDeviceCallback = PlayerAudioDeviceCallback(this)
 
     private val prefs_listener: PlatformPreferencesListener =
-        PlatformPreferencesListener { _, key ->
+        PlatformPreferencesListener { key ->
             when (key) {
                 context.settings.streaming.ENABLE_AUDIO_NORMALISATION.key -> {
                     coroutine_scope.launch {
@@ -110,7 +113,9 @@ open class ForegroundPlayerService(
     override fun onCreate() {
         super.onCreate()
 
-        _context = runBlocking { AppContext.create(this@ForegroundPlayerService, coroutine_scope) }
+        _context = runBlocking {
+            AppContext.create(this@ForegroundPlayerService, coroutine_scope)
+        }
         _context.getPrefs().addListener(prefs_listener)
 
         media_data_spec_processor = MediaDataSpecProcessor(context)
@@ -147,6 +152,9 @@ open class ForegroundPlayerService(
 
         startColorblendrHeartbeatLoop()
 
+        widget_update_listener = WidgetUpdateListener(this, context)
+        player.addListener(widget_update_listener)
+
         notification_manager = PlayerServiceNotificationManager(context, media_session, getSystemService()!!, this, player)
     }
 
@@ -163,10 +171,26 @@ open class ForegroundPlayerService(
         media_data_spec_processor.release()
         notification_manager.release()
 
+        player.removeListener(widget_update_listener)
+        widget_update_listener.release()
+
         val audio_manager: AudioManager? = getSystemService()
         audio_manager?.unregisterAudioDeviceCallback(audio_device_callback)
 
         super.onDestroy()
+
+        println("ForegroundPlayerService stopped, notifying listeners and updating all widgets")
+
+        for (listener in listeners) {
+            listener.onPlayingChanged(false)
+            listener.onStateChanged(SpMsPlayerState.ENDED)
+            listener.onSongTransition(null, false)
+        }
+        listeners.clear()
+
+        runBlocking {
+            widget_update_listener.updateAll()
+        }
     }
 
     override fun onTaskRemoved(intent: Intent?) {

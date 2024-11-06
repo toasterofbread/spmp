@@ -1,0 +1,3 @@
+package com.toasterofbread.spmp.widget
+
+class LyricsLineHorizontalWidgetReceiver: SpMpWidgetReceiver(SpMpWidgetType.LYRICS_LINE_HORIZONTAL)

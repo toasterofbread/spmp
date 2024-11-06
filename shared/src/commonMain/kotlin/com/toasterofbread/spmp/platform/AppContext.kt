@@ -17,6 +17,8 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
+import com.toasterofbread.spmp.model.settings.category.getCurrentTheme
+import com.toasterofbread.spmp.model.settings.category.observeCurrentTheme
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.composekit.platform.Platform
@@ -26,7 +28,6 @@ import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.composekit.settings.ui.NamedTheme
 import dev.toastbits.composekit.settings.ui.ThemeManager
 import dev.toastbits.composekit.settings.ui.ThemeValues
-import dev.toastbits.composekit.settings.ui.ThemeValuesData
 import dev.toastbits.composekit.settings.ui.rememberSystemTheme
 import dev.toastbits.ytmkt.model.YtmApi
 import kotlinx.coroutines.CoroutineScope
@@ -61,20 +62,21 @@ class AppThemeManager(
 
     private var accent_colour_source: AccentColourSource? by mutableStateOf(null)
 
-    private var _manager: ThemeManager? by mutableStateOf(null)
+    var _manager: ThemeManager? = null
+        private set
     val manager: ThemeManager get() = _manager!!
 
     @Composable
     fun Update(): Boolean {
-        val current_theme: Int by context.settings.theme.CURRENT_THEME.observe()
-        val themes: List<NamedTheme> by context.settings.theme.THEMES.observe()
         val system_theme: NamedTheme = rememberSystemTheme(stringResource(Res.string.theme_title_system), context)
         val composable_coroutine_scope: CoroutineScope = rememberCoroutineScope()
         var initialised: Boolean by remember { mutableStateOf(false) }
 
         LaunchedEffect(Unit) {
+            val initial_theme: NamedTheme = getCurrentTheme(context, system_theme)
+
             _manager = object : ThemeManager(
-                ThemeValuesData.fromColourScheme(context.getDarkColorScheme()),
+                initial_theme.theme,
                 composable_coroutine_scope
             ) {
                 override fun selectAccentColour(values: ThemeValues, thumbnail_colour: Color?): Color =
@@ -87,9 +89,7 @@ class AppThemeManager(
             initialised = true
         }
 
-        val theme: NamedTheme =
-            themes.getOrNull(current_theme - 1)
-            ?: system_theme
+        val theme: NamedTheme by observeCurrentTheme(context)
 
         LaunchedEffect(theme, initialised) {
             if (!initialised) {
@@ -107,7 +107,7 @@ class AppThemeManager(
     }
 
     private val prefs_listener: PlatformPreferencesListener =
-        PlatformPreferencesListener { _, key ->
+        PlatformPreferencesListener { key ->
             when (key) {
                 context.settings.theme.ACCENT_COLOUR_SOURCE.key -> {
                     context.coroutine_scope.launch {

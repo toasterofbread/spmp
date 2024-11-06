@@ -721,6 +721,11 @@
     <string name="s_key_configured_shortcuts">Configured shortcuts</string>
     <string name="s_key_navigate_song_with_numbers">Seek through song with number keys</string>
 
+    <string name="s_key_default_widget_configurations">Default widget settings</string>
+    <string name="prompt_select_widget_type">Select widget type</string>
+    <string name="prompt_select_widget_type_option_base">Base widget</string>
+    <string name="button_widget_settings_change_default_configurations">Configure</string>
+
     <string name="s_key_android_monet_colour_enable">Set Android monet colour</string>
     <string name="s_sub_android_monet_colour_enable">Android system monet colour will be set using the current song thumbnail colour</string>
     <string name="info_android_monet">Requires a specific fork of ColorBlendr to be installed and running. Make sure to read the setup instructions on the fork page.</string>
@@ -771,6 +776,9 @@
 
     <string name="s_cat_misc">Other</string>
     <string name="s_cat_desc_misc">Cache and other miscellaneous options</string>
+
+    <string name="s_cat_widget">Widget</string>
+    <string name="s_cat_desc_widget">Configure widget defaults</string>
 
     <string name="s_cat_dependencies">Dependencies</string>
     <string name="s_cat_desc_dependencies">View software libraries used by SpMp</string>
@@ -1085,4 +1093,79 @@
     <string name="project_info_dialog_project_source_button">View source code</string>
     <string name="project_info_dialog_project_donate_button">Buy me a hot chocolate</string>
     <string name="project_info_dialog_dependencies_button">Show dependencies</string>
+
+    <string name="widget_config_title">Widget configuration</string>
+    <string name="widget_config_details_$type_$id">Configuring $type widget with ID $id</string>
+    <string name="widget_config_details_$type">Configuring $type widget</string>
+    <string name="widget_config_details_base">Configuring base widget</string>
+    <string name="widget_config_button_cancel">Cancel</string>
+    <string name="widget_config_button_done">Done</string>
+    <string name="widget_config_button_set_as_default">Set as default</string>
+    <string name="widget_config_button_use_default_value">Use default value</string>
+
+    <string name="widget_config_type_name_common">Widget</string>
+    <string name="widget_config_type_name_lyrics">Lyrics</string>
+    <string name="widget_config_type_name_song_queue">Song queue</string>
+    <string name="widget_config_type_name_song_image">Song image</string>
+
+    <string name="widget_click_action_common_none">None</string>
+    <string name="widget_click_action_common_open_spmp">Open SpMp</string>
+    <string name="widget_click_action_common_open_widget_config">Open widget config</string>
+    <string name="widget_click_action_common_toggle_visibility">Toggle visibility</string>
+    <string name="widget_click_action_common_play_pause">Play/pause</string>
+    <string name="widget_click_action_common_seek_next">Seek to next</string>
+    <string name="widget_click_action_common_seek_previous">Seek to previous</string>
+    <string name="widget_click_action_common_toggle_like">Toggle like</string>
+
+    <string name="widget_click_action_lyrics_toggle_furigana">Toggle furigana</string>
+    <string name="widget_click_action_lyrics_hide_until_next_song">Hide until next song</string>
+
+    <string name="widget_application_theme_label">Application theme</string>
+
+    <string name="widget_config_common_key_theme">Theme</string>
+    <string name="widget_config_common_key_accent_colour_source">Accent colour source</string>
+    <string name="widget_config_common_option_accent_colour_source_app">App setting</string>
+    <string name="widget_config_common_key_font">Font</string>
+    <string name="widget_config_common_key_font_size">Font size</string>
+    <string name="widget_config_common_option_font_app">App setting</string>
+    <string name="widget_config_common_key_content_colour">Content colour</string>
+    <string name="widget_config_common_option_content_colour_theme">From theme</string>
+    <string name="widget_config_common_option_content_colour_light">Light</string>
+    <string name="widget_config_common_option_content_colour_dark">Dark</string>
+    <string name="widget_config_common_key_background_opacity">Background opacity</string>
+    <string name="widget_config_common_key_styled_border_mode">Section border type</string>
+    <string name="widget_config_common_option_styled_border_mode_wave">Wave</string>
+    <string name="widget_config_common_option_styled_border_mode_none">None</string>
+    <string name="widget_config_common_key_border_radius">Border radius (dp)</string>
+    <string name="widget_config_common_key_hide_when_no_content">Hide when no content</string>
+    <string name="widget_config_common_key_show_app_icon">Show app icon</string>
+    <string name="widget_config_common_key_show_debug_information">Show debug information</string>
+    <string name="widget_config_common_key_click_action">Tap action</string>
+    <string name="widget_config_common_key_section_theme_opacity">Opacity</string>
+    <string name="widget_config_common_option_section_theme_mode_background">Background</string>
+    <string name="widget_config_common_option_section_theme_mode_accent">Accent</string>
+    <string name="widget_config_common_option_section_theme_mode_transparent">Transparent</string>
+
+    <string name="widget_config_lyrics_key_furigana_mode">Furigana</string>
+    <string name="widget_config_lyrics_option_furigana_mode_app">App setting</string>
+    <string name="widget_config_lyrics_option_furigana_mode_show">Show</string>
+    <string name="widget_config_lyrics_option_furigana_mode_hide">Hide</string>
+
+    <string name="widget_config_song_queue_show_current_song">Show current song</string>
+    <string name="widget_config_song_queue_next_songs_to_show">Upcoming songs to display</string>
+
+    <string name="widget_config_split_image_controls_swap_title_content_rows">Swap title and content positions</string>
+    <string name="widget_config_split_image_controls_title_row_theme">Title row theme</string>
+    <string name="widget_config_split_image_controls_content_row_theme">Content row theme</string>
+    <string name="widget_config_split_image_controls_top_start_button_action">Top-left button</string>
+    <string name="widget_config_split_image_controls_top_end_button_action">Top-right button</string>
+    <string name="widget_config_split_image_controls_bottom_start_button_action">Bottom-left button</string>
+    <string name="widget_config_split_image_controls_bottom_end_button_action">Bottom-right button</string>
+
+    <string name="widget_empty_status_nothing_playing">Nothing playing</string>
+
+    <string name="widget_lyrics_status_no_lyrics">No lyrics</string>
+
+    <string name="widget_queue_heading_now_playing">Now playing</string>
+    <string name="widget_queue_heading_up_next">Up next</string>
 </resources>

@@ -1,13 +1,11 @@
 package com.toasterofbread.spmp.model.lyrics
 
 import androidx.compose.runtime.Composable
-import dev.toastbits.composekit.platform.lazyAssert
-import dev.toastbits.composekit.utils.common.toHiragana
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.lyrics_sync_none
 import spmp.shared.generated.resources.lyrics_sync_line
+import spmp.shared.generated.resources.lyrics_sync_none
 import spmp.shared.generated.resources.lyrics_sync_word
 
 data class SongLyrics(

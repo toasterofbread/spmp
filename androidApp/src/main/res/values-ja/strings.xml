@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="widget_name_lyrics_line_horizontal">"横書き歌詞行"</string>
+    <string name="widget_description_lyrics_line_horizontal"></string>
+    <string name="widget_name_song_queue">曲キュー</string>
+    <string name="widget_description_song_queue" />
+    <string name="widget_name_split_image_controls">画像とコントロール</string>
+    <string name="widget_description_split_image_controls" />
+</resources>

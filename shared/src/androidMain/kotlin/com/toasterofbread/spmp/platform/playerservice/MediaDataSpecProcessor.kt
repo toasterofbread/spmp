@@ -18,7 +18,7 @@ internal class MediaDataSpecProcessor(private val context: AppContext) {
     private var current_endpoint: VideoFormatsEndpointType? = null
 
     private val prefs_listener: PlatformPreferencesListener =
-        PlatformPreferencesListener { _, key ->
+        PlatformPreferencesListener { key ->
             when (key) {
                 context.settings.streaming.ENABLE_VIDEO_FORMAT_FALLBACK.key,
                 context.settings.streaming.VIDEO_FORMATS_METHOD.key -> current_endpoint = null

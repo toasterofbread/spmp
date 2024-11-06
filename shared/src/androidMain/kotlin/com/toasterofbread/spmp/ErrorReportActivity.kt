@@ -92,7 +92,9 @@ class ErrorReportActivity : ComponentActivity() {
         val stack_trace: String = intent.getStringExtra("stack_trace") ?: "No stack trace"
 
         try {
-            context = runBlocking { AppContext.create(this@ErrorReportActivity, coroutine_scope, ApplicationContext(this@ErrorReportActivity)) }
+            context = runBlocking {
+                AppContext.create(this@ErrorReportActivity, coroutine_scope, ApplicationContext(this@ErrorReportActivity))
+            }
         }
         catch (_: Throwable) {}
 

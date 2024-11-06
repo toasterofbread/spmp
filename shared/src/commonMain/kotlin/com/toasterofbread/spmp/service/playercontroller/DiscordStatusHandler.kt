@@ -1,10 +1,8 @@
 package com.toasterofbread.spmp.service.playercontroller
 
-import dev.toastbits.composekit.utils.common.launchSingle
-import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.ProjectBuildConfig
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.DiscordSettings
 import com.toasterofbread.spmp.platform.AppContext
@@ -12,6 +10,8 @@ import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.composekit.utils.common.associateNotNull
+import dev.toastbits.composekit.utils.common.launchSingle
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -56,7 +56,7 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
     private var current_status: StatusInfo? = null
 
     private val prefs_listener: PlatformPreferencesListener =
-        PlatformPreferencesListener { _, key ->
+        PlatformPreferencesListener { key ->
             when (key) {
                 context.settings.discord_auth.DISCORD_ACCOUNT_TOKEN.key -> {
                     load_coroutine_scope.launch {

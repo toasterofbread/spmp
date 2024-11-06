@@ -7,17 +7,17 @@
         "nixpkgs": "nixpkgs"
       },
       "locked": {
-        "lastModified": 1718551229,
-        "narHash": "sha256-aaH46s39IJ1PE8d56gYV9SE4djWtE05uCoviJaN+YrI=",
+        "lastModified": 1729109936,
+        "narHash": "sha256-s768WrhHJXDFWXBHVVdZXKyhE/J7SIe9V4Cq6ykRUEE=",
         "owner": "HPRIOR",
         "repo": "android-nixpkgs",
-        "rev": "516bd59caa6883d1a5dad0538af03a1f521e7764",
+        "rev": "d144e1aff31d45e92ee981e04d871b000fd791f9",
         "type": "github"
       },
       "original": {
         "owner": "HPRIOR",
         "repo": "android-nixpkgs",
-        "rev": "516bd59caa6883d1a5dad0538af03a1f521e7764",
+        "rev": "d144e1aff31d45e92ee981e04d871b000fd791f9",
         "type": "github"
       }
     },

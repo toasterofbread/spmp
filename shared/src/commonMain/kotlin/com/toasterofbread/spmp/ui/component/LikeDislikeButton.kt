@@ -31,6 +31,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.theme.appHover
+import com.toasterofbread.spmp.util.getToggleTarget
 import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
 import dev.toastbits.ytmkt.endpoint.SongLikedEndpoint
 import dev.toastbits.ytmkt.model.external.SongLikedStatus
@@ -72,10 +73,7 @@ fun LikeDislikeButton(
 
             coroutine_scope.launchSingle {
                 song.updateLiked(
-                    when (liked_status) {
-                        SongLikedStatus.LIKED, SongLikedStatus.DISLIKED -> SongLikedStatus.NEUTRAL
-                        SongLikedStatus.NEUTRAL, null -> SongLikedStatus.LIKED
-                    },
+                    liked_status.getToggleTarget(),
                     set_liked_endpoint,
                     player.context
                 )

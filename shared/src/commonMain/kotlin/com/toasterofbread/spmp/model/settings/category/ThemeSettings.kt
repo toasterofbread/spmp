@@ -1,8 +1,13 @@
 package com.toasterofbread.spmp.model.settings.category
 
+import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getThemeCategoryItems
@@ -12,6 +17,8 @@ import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.settings.ui.NamedTheme
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.getDefaultCatppuccinThemes
+import dev.toastbits.composekit.settings.ui.getSystemTheme
+import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_cat_desc_theme
@@ -33,9 +40,12 @@ import spmp.shared.generated.resources.s_key_np_default_wave_speed
 import spmp.shared.generated.resources.s_key_np_theme_mode
 import spmp.shared.generated.resources.s_key_show_expanded_player_wave
 import spmp.shared.generated.resources.s_key_window_background_opacity
+import spmp.shared.generated.resources.s_option_accent_theme
+import spmp.shared.generated.resources.s_option_accent_thumbnail
 import spmp.shared.generated.resources.s_sub_enable_window_transparency
 import spmp.shared.generated.resources.s_sub_window_background_opacity
 import spmp.shared.generated.resources.s_theme_editor_title
+import spmp.shared.generated.resources.theme_title_system
 
 class ThemeSettings(val context: AppContext): SettingsGroup("THEME", context.getPrefs()) {
     val CURRENT_THEME: PreferencesProperty<Int> by property(
@@ -51,7 +61,7 @@ class ThemeSettings(val context: AppContext): SettingsGroup("THEME", context.get
     val ACCENT_COLOUR_SOURCE: PreferencesProperty<AccentColourSource> by enumProperty(
         getName = { stringResource(Res.string.s_key_accent_source) },
         getDescription = { null },
-        getDefaultValue = { AccentColourSource.THUMBNAIL }
+        getDefaultValue = { AccentColourSource.DEFAULT }
     )
     val NOWPLAYING_THEME_MODE: PreferencesProperty<ThemeMode> by enumProperty(
         getName = { stringResource(Res.string.s_key_np_theme_mode) },
@@ -145,6 +155,36 @@ class ThemeSettings(val context: AppContext): SettingsGroup("THEME", context.get
 }
 
 enum class AccentColourSource {
-    THEME, THUMBNAIL
+    THEME, THUMBNAIL;
+
+    fun getNameResource(): StringResource =
+        when (this) {
+            THEME -> Res.string.s_option_accent_theme
+            THUMBNAIL -> Res.string.s_option_accent_thumbnail
+        }
+
+    companion object {
+        val DEFAULT: AccentColourSource = THUMBNAIL
+    }
 }
 
+@Composable
+fun observeCurrentTheme(context: AppContext, index_override: Int? = null): State<NamedTheme> {
+    val dark_mode: Boolean = isSystemInDarkTheme()
+    val system_theme_name: String = stringResource(Res.string.theme_title_system)
+
+    val theme_index: Int by context.settings.theme.CURRENT_THEME.observe()
+    val themes: List<NamedTheme> by context.settings.theme.THEMES.observe()
+
+    return remember(dark_mode, index_override) { derivedStateOf {
+        val system_theme: NamedTheme = getSystemTheme(system_theme_name, dark_mode, context)
+        themes.getOrNull((index_override ?: theme_index) - 1) ?: system_theme
+    } }
+}
+
+suspend fun getCurrentTheme(context: AppContext, system_theme: NamedTheme, index_override: Int? = null): NamedTheme {
+    val theme_index: Int = context.settings.theme.CURRENT_THEME.get()
+    val themes: List<NamedTheme> = context.settings.theme.THEMES.get()
+
+    return themes.getOrNull((index_override ?: theme_index) - 1) ?: system_theme
+}

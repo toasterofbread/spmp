@@ -63,7 +63,7 @@ internal class SpMpYoutubeiApi(
     override var user_auth_state: YoutubeiAuthenticationState? by mutableStateOf(null)
 
     private val prefs_listener: PlatformPreferencesListener =
-        PlatformPreferencesListener { _, key ->
+        PlatformPreferencesListener { key ->
             when (key) {
                 context.settings.youtube_auth.YTM_AUTH.key -> context.coroutine_scope.launch { user_auth_state = getCurrentUserAuthState() }
                 context.settings.system.LANG_DATA.key -> context.coroutine_scope.launch { _data_language = context.getDataLanguage() }

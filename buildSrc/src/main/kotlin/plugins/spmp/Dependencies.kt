@@ -142,13 +142,14 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/MohamedRejeb/Ksoup/blob/5f07e799c95e518d80caf70fc586ddcc649e1315/LICENSE"
             ),
             "com.github.toasterofbread.ComposeReorderable" to DependencyInfo(
-                version = "434c321a8f",
+                version = "349bdb3a2a",
                 name = "ComposeReorderable",
                 author = "aclassen",
                 url = "https://github.com/aclassen/ComposeReorderable",
                 license = "Apache-2.0",
                 license_url = "https://github.com/aclassen/ComposeReorderable/blob/b0729bddaeb11c88eca97b6bb01b011246df8f9e/LICENSE",
-                fork_url = "https://github.com/toasterofbread/ComposeReorderable/"
+                fork_url = "https://github.com/toasterofbread/ComposeReorderable/",
+//                redirect = "org.burnoutcrew.composereorderable:reorderable"
             ),
             "com.github.SvenWoltmann:color-thief-java" to DependencyInfo(
                 version = "v1.1.2",

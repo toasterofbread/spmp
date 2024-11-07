@@ -21,10 +21,12 @@ internal fun UpdateBarColours(page_height: Dp) {
     val background_colour: Color = player.getNPBackground()
     val status_bar_height: Dp = WindowInsets.statusBars.getTop()
 
-    val status_bar_height_percent = (
-        status_bar_height.value * (if (player.context.isDisplayingAboveNavigationBar()) 1f else 0.75f)
-    ) / page_height.value
-    val under_status_bar by remember { derivedStateOf { 1f - expansion.get() < status_bar_height_percent } }
+    val status_bar_height_percent: Float =
+        (status_bar_height.value * (if (player.context.isDisplayingAboveNavigationBar()) 1f else 0.75f)) / page_height.value
+
+    val under_status_bar: Boolean by remember(status_bar_height) { derivedStateOf {
+        1f - expansion.get() < status_bar_height_percent
+    } }
 
     DisposableEffect(under_status_bar, background_colour) {
         player.bar_colour_state.status_bar.setLevelColour(

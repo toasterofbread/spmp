@@ -199,44 +199,34 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
                             .clickable(WidgetActionCallback(configuration.type_configuration.click_action)),
                         contentAlignment = Alignment.Center
                     ) {
-                        if (base_configuration.show_debug_information) {
-                            shouldHide()
-                            hasContent()
-                        }
-                        else {
+                        WithCurrentSongImage { song, song_image ->
                             if (shouldHide() || !visible) {
-                                return@Box
+                                return@WithCurrentSongImage
                             }
 
-                            if (!hasContent() && base_configuration.hide_when_no_content) {
-                                return@Box
+                            if (!hasContent(song) && base_configuration.hide_when_no_content) {
+                                return@WithCurrentSongImage
                             }
-                        }
 
-                        GlanceBorderBox(
-                            base_configuration.border_radius_dp.dp,
-                            theme.theme.accent,
-                            GlanceModifier
-                                .fillMaxSize()
-                                .systemCornerRadius()
-                        ) {
-                            Column(
+                            GlanceBorderBox(
+                                base_configuration.border_radius_dp.dp,
+                                theme.theme.accent,
                                 GlanceModifier
                                     .fillMaxSize()
-                                    .thenIf(!custom_background) {
-                                        background(widget_background_colour)
-                                    }
                                     .systemCornerRadius()
                             ) {
-                                if (base_configuration.show_debug_information) {
-                                    DebugInfoItems(GlanceModifier)
-                                }
-
-                                Box(
-                                    GlanceModifier.fillMaxSize().defaultWeight(),
-                                    contentAlignment = Alignment.Center
+                                Column(
+                                    GlanceModifier
+                                        .fillMaxSize()
+                                        .thenIf(!custom_background) {
+                                            background(widget_background_colour)
+                                        }
+                                        .systemCornerRadius()
                                 ) {
-                                    WithCurrentSongImage { song, song_image ->
+                                    Box(
+                                        GlanceModifier.fillMaxSize().defaultWeight(),
+                                        contentAlignment = Alignment.Center
+                                    ) {
                                         Content(
                                             song, song_image, GlanceModifier.wrapContentSize(),
                                             PaddingValues(15.dp)
@@ -321,16 +311,10 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
     )
 
     @Composable
-    protected open fun hasContent(): Boolean = true
+    protected open fun hasContent(song: Song?): Boolean = song != null
 
     @Composable
     protected open fun shouldHide(): Boolean = false
-
-    @Composable
-    protected open fun DebugInfoItems(item_modifier: GlanceModifier) {
-        WidgetText("ID: $widget_id", item_modifier)
-        WidgetText("Update: ${widget_type.getUpdateValue()}", item_modifier)
-    }
 
     @Composable
     fun WidgetText(

@@ -59,10 +59,6 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
         }
 
     @Composable
-    override fun hasContent(): Boolean =
-        LocalPlayerState.current.status.m_song != null
-
-    @Composable
     override fun Content(
         song: Song?,
         song_image: Bitmap?,

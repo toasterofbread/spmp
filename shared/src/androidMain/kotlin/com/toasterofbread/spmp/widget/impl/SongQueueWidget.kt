@@ -33,10 +33,6 @@ internal class SongQueueWidget: SpMpWidget<SongQueueWidgetClickAction, SongQueue
         }
 
     @Composable
-    override fun hasContent(): Boolean =
-        LocalPlayerState.current.status.m_song != null
-
-    @Composable
     private fun Heading(text: String, modifier: GlanceModifier = GlanceModifier) {
         WidgetText(
             text,

@@ -53,16 +53,9 @@ internal abstract class LyricsWidget: SpMpWidget<LyricsWidgetClickAction, Lyrics
     }
 
     @Composable
-    override fun hasContent(): Boolean {
-        val song: Song? = LocalPlayerState.current.status.m_song
+    override fun hasContent(song: Song?): Boolean {
         lyrics_state = song?.let { SongLyricsLoader.rememberItemState(it, context) }
         return lyrics_state?.lyrics?.sync_type?.let { it != SongLyrics.SyncType.NONE } == true
-    }
-
-    @Composable
-    override fun DebugInfoItems(item_modifier: GlanceModifier) {
-        super.DebugInfoItems(item_modifier)
-        WidgetText("Song: ${lyrics_state?.song} (${lyrics_state?.song?.observeActiveTitle()?.value})", item_modifier)
     }
 
     @Composable

@@ -7,7 +7,6 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.platform.AppContext
@@ -33,7 +32,6 @@ import spmp.shared.generated.resources.widget_config_common_key_font
 import spmp.shared.generated.resources.widget_config_common_key_font_size
 import spmp.shared.generated.resources.widget_config_common_key_hide_when_no_content
 import spmp.shared.generated.resources.widget_config_common_key_show_app_icon
-import spmp.shared.generated.resources.widget_config_common_key_show_debug_information
 import spmp.shared.generated.resources.widget_config_common_key_styled_border_mode
 import spmp.shared.generated.resources.widget_config_common_key_theme
 import spmp.shared.generated.resources.widget_config_common_option_accent_colour_source_app
@@ -56,8 +54,7 @@ data class BaseWidgetConfig(
     val styled_border_mode: WidgetStyledBorderMode = WidgetStyledBorderMode.WAVE,
     val border_radius_dp: Float = 0f,
     val hide_when_no_content: Boolean = false,
-    val show_app_icon: Boolean = true,
-    val show_debug_information: Boolean = ProjectBuildConfig.IS_DEBUG
+    val show_app_icon: Boolean = true
 ): WidgetConfig() {
     fun LazyListScope.ConfigItems(
         context: AppContext,
@@ -230,20 +227,6 @@ data class BaseWidgetConfig(
                 modifier
             ) {
                 onChanged(copy(show_app_icon = it))
-                onItemChanged()
-            }
-        }
-        configItem(
-            defaults_mask?.show_debug_information,
-            item_modifier,
-            { onDefaultsMaskChanged(defaults_mask!!.copy(show_debug_information = it)) }
-        ) { modifier, onItemChanged ->
-            ToggleItem(
-                show_debug_information,
-                Res.string.widget_config_common_key_show_debug_information,
-                modifier
-            ) {
-                onChanged(copy(show_debug_information = it))
                 onItemChanged()
             }
         }

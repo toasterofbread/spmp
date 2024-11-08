@@ -1084,7 +1084,6 @@
     <string name="widget_config_common_key_border_radius">ボーダーの半径（dp）</string>
     <string name="widget_config_common_key_hide_when_no_content">コンテンツがないときは非表示</string>
     <string name="widget_config_common_key_show_app_icon">アプリのアイコンを表示</string>
-    <string name="widget_config_common_key_show_debug_information">デバッグ情報を表示</string>
     <string name="widget_config_common_key_click_action">タップアクション</string>
     <string name="widget_config_common_key_section_theme_opacity">不透明度</string>
     <string name="widget_config_common_option_section_theme_mode_background">バックグラウンド</string>

@@ -24,6 +24,7 @@ import androidx.glance.layout.Column
 import androidx.glance.layout.ContentScale
 import androidx.glance.layout.Row
 import androidx.glance.layout.Spacer
+import androidx.glance.layout.fillMaxHeight
 import androidx.glance.layout.fillMaxWidth
 import androidx.glance.layout.height
 import androidx.glance.layout.padding
@@ -68,11 +69,6 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
         modifier: GlanceModifier,
         content_padding: PaddingValues
     ) {
-        if (song == null) {
-            WidgetText(stringResource(Res.string.widget_empty_status_nothing_playing), modifier)
-            return
-        }
-
         val top_bar_height: Dp = 100.dp
 
         StyledColumn(
@@ -83,7 +79,7 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
             {
                 ContentSection(top_bar_height, content_padding, song_image)
             },
-            modifier = GlanceModifier
+            modifier = modifier
                 .fillMaxWidth()
                 .systemCornerRadius(),
             content_padding = content_padding,
@@ -98,7 +94,7 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
     private fun TitleSection(
         top_bar_height: Dp,
         content_padding: PaddingValues,
-        song: Song
+        song: Song?
     ) {
         val player: PlayerState = LocalPlayerState.current
 
@@ -121,20 +117,30 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
 
             AppIcon(theme_colour, GlanceModifier.fillMaxWidth(), show = !type_configuration.swap_title_content_rows)
 
-            val title: String? by song.observeActiveTitle()
-            title?.also {
-                WidgetText(it, font_size = 18.sp)
-            }
+            Column(
+                GlanceModifier.fillMaxHeight().defaultWeight(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                if (song != null) {
+                    val title: String? by song.observeActiveTitle()
+                    title?.also {
+                        WidgetText(it, font_size = 18.sp)
+                    }
 
-            val artist_title: String? by song.Artists.observe(player.database).value?.firstOrNull()
-                ?.observeActiveTitle()
-            artist_title?.also {
-                WidgetText(
-                    it,
-                    GlanceModifier.padding(top = 3.dp),
-                    font_size = 14.sp,
-                    colour = theme_colour
-                )
+                    val artist_title: String? by song.Artists.observe(player.database).value?.firstOrNull()?.observeActiveTitle()
+
+                    artist_title?.also {
+                        WidgetText(
+                            it,
+                            GlanceModifier.padding(top = 3.dp),
+                            font_size = 14.sp,
+                            colour = theme_colour
+                        )
+                    }
+                }
+                else {
+                    WidgetText(stringResource(Res.string.widget_empty_status_nothing_playing))
+                }
             }
 
             AppIcon(theme_colour, GlanceModifier.fillMaxWidth(), show = type_configuration.swap_title_content_rows)

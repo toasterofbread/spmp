@@ -4,8 +4,6 @@ import android.app.Notification
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
-import android.content.ComponentName
-import android.content.Intent
 import android.graphics.Bitmap
 import android.media.MediaMetadata
 import android.media.session.MediaSession
@@ -20,6 +18,7 @@ import androidx.media3.ui.PlayerNotificationManager
 import app.cash.sqldelight.Query
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
+import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
@@ -90,6 +89,16 @@ class PlayerServiceNotificationManager(
                     current_liked_status = song?.Liked?.get(context.database),
                     position_ms = player.currentPosition
                 )
+
+                updateMetadata {
+                    putString(MediaMetadata.METADATA_KEY_TITLE, song?.getActiveTitle(context.database))
+                    putString(MediaMetadata.METADATA_KEY_ARTIST, song?.Artists?.get(context.database)?.firstOrNull()?.getActiveTitle(context.database))
+                    putString(MediaMetadata.METADATA_KEY_ART_URI, song?.thumbnail_provider?.getThumbnailUrl(ThumbnailProvider.Quality.HIGH))
+
+                    val album: RemotePlaylist? = song?.Album?.get(context.database)
+                    putString(MediaMetadata.METADATA_KEY_ALBUM, album?.getActiveTitle(context.database))
+                    putString(MediaMetadata.METADATA_KEY_ALBUM_ART_URI, album?.thumbnail_provider?.getThumbnailUrl(ThumbnailProvider.Quality.HIGH))
+                }
 
                 if (song != null) {
                     context.database.songQueries.likedById(song.id).addListener(song_liked_listener)

@@ -57,8 +57,11 @@ fun ArtistSubscribeButton(
             ShapedIconButton(
                 {
                     coroutine_scope.launch {
-                        val result: Result<Unit> = artist.updateSubscribed(!subscribed, auth_state.SetSubscribedToArtist, player.context)
-                        if (result.isFailure) {
+                        val target: Boolean = !subscribed
+                        val result: Result<Unit> = artist.updateSubscribed(target, auth_state.SetSubscribedToArtist, player.context)
+                        result.onFailure { exception ->
+                            RuntimeException("Ignoring failure to set artist ${artist.id} subscribed status to $target", exception).printStackTrace()
+
                             val artist_title: String? = artist.getActiveTitle(player.database)
                             player.context.sendToast(
                                 getStringTODO(

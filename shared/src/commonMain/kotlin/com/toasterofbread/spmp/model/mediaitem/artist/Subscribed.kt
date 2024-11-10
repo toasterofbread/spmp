@@ -8,6 +8,6 @@ suspend fun Artist.updateSubscribed(
     endpoint: SetSubscribedToArtistEndpoint,
     context: AppContext
 ): Result<Unit> = runCatching {
-    endpoint.setSubscribedToArtist(id, subscribed).getOrThrow()
+    endpoint.setSubscribedToArtist(id, subscribed, SubscribeChannelId.get(context.database)).getOrThrow()
     Subscribed.set(subscribed, context.database)
 }

@@ -19,7 +19,7 @@ internal fun createDesktopMediaSession(service: PlayerService): MediaSession? {
             )
         }
         catch (e: Throwable) {
-            RuntimeException("Ignoring exception during MediaSession creation", e).printStackTrace()
+            RuntimeException("Ignoring exception while creating MediaSession", e).printStackTrace()
             return null
         }
 
@@ -27,29 +27,44 @@ internal fun createDesktopMediaSession(service: PlayerService): MediaSession? {
         return null
     }
 
-    session.setIdentity("spmp")
+    fun withSession(block: MediaSession.() -> Unit) {
+        try {
+            block(session)
+        }
+        catch (e: Throwable) {
+            RuntimeException("Ignoring exception while accessing MediaSession", e).printStackTrace()
+        }
+    }
+
+    try {
+        session.setIdentity("spmp")
+    }
+    catch (e: Throwable) {
+        RuntimeException("Ignoring exception setting MediaSession identity", e).printStackTrace()
+        return null
+    }
 
     val listener: PlayerListener =
         object : PlayerListener() {
-            override fun onSongTransition(song: Song?, manual: Boolean) {
-                session.onPositionChanged()
-                session.onSongChanged(song, service)
+            override fun onSongTransition(song: Song?, manual: Boolean) = withSession {
+                onPositionChanged()
+                onSongChanged(song, service)
             }
-            override fun onPlayingChanged(is_playing: Boolean) {
-                session.setPlaybackStatus(
+            override fun onPlayingChanged(is_playing: Boolean) = withSession {
+                setPlaybackStatus(
                     if (is_playing) MediaSessionPlaybackStatus.PLAYING
                     else MediaSessionPlaybackStatus.PAUSED
                 )
             }
-            override fun onDurationChanged(duration_ms: Long) {
-                session.setMetadata(
+            override fun onDurationChanged(duration_ms: Long) = withSession {
+                setMetadata(
                     session.metadata.copy(
                         length_ms = duration_ms
                     )
                 )
             }
-            override fun onSeeked(position_ms: Long) {
-                session.onPositionChanged()
+            override fun onSeeked(position_ms: Long) = withSession {
+                onPositionChanged()
             }
         }
     service.addListener(listener)
@@ -58,33 +73,38 @@ internal fun createDesktopMediaSession(service: PlayerService): MediaSession? {
     listener.onPlayingChanged(service.is_playing)
     listener.onDurationChanged(service.duration_ms)
 
-    session.onPlayPause = {
-        service.playPause()
+    try {
+        session.onPlayPause = {
+            service.playPause()
+        }
+        session.onPlay = {
+            service.play()
+        }
+        session.onPause = {
+            service.pause()
+        }
+        session.onNext = {
+            service.seekToNext()
+        }
+        session.onPrevious = {
+            service.seekToPrevious()
+        }
+        session.onSeek = { by_ms ->
+            service.seekTo(service.current_position_ms + by_ms)
+        }
+        session.onSetPosition = { to_ms ->
+            service.seekTo(to_ms)
+        }
     }
-    session.onPlay = {
-        service.play()
-    }
-    session.onPause = {
-        service.pause()
-    }
-    session.onNext = {
-        service.seekToNext()
-    }
-    session.onPrevious = {
-        service.seekToPrevious()
-    }
-    session.onSeek = { by_ms ->
-        service.seekTo(service.current_position_ms + by_ms)
-    }
-    session.onSetPosition = { to_ms ->
-        service.seekTo(to_ms)
+    catch (e: Throwable) {
+        RuntimeException("Ignoring exception while setting MediaSession callbacks", e).printStackTrace()
     }
 
     try {
         session.setEnabled(true)
     }
     catch (e: Throwable) {
-        RuntimeException("Ignoring exception when enabling media session", e).printStackTrace()
+        RuntimeException("Ignoring exception while enabling MediaSession", e).printStackTrace()
         return null
     }
 

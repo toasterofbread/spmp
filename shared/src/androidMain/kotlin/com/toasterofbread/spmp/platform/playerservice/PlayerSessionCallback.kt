@@ -39,11 +39,11 @@ class PlayerSessionCallback(
     }
 
     override fun onSkipToNext() {
-        player.seekToNext()
+        player.seekToNextMediaItem()
     }
 
     override fun onSkipToPrevious() {
-        player.seekToPrevious()
+        player.seekToPreviousMediaItem()
     }
 
     override fun onPlay() {

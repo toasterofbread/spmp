@@ -7,6 +7,7 @@ import dev.toastbits.composekit.utils.common.synchronizedBlock
 import dev.toastbits.composekit.platform.assert
 import dev.toastbits.composekit.platform.synchronized
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.util.removeLastBuiltIn
 
 interface UndoRedoAction {
     fun undo(service: PlayerService) {}
@@ -137,7 +138,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: PlayerS
 
     private fun commitActionList(actions: List<UndoRedoAction>) {
         for (i in 0 until redo_count) {
-            action_list.removeLast()
+            action_list.removeLastBuiltIn()
         }
         action_list.add(actions)
         action_head++

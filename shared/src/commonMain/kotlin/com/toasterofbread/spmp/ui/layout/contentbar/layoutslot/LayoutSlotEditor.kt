@@ -30,6 +30,7 @@ import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBarTemplate
 import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElementContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElement
 import com.toasterofbread.spmp.ui.layout.contentbar.CircularReferenceWarning
+import com.toasterofbread.spmp.util.removeLastBuiltIn
 import dev.toastbits.composekit.platform.PreferencesProperty
 import dev.toastbits.composekit.settings.ui.vibrant_accent
 import kotlinx.serialization.*
@@ -369,7 +370,7 @@ private fun doesCustomBarRecurseInfinitely(bar_index: Int, custom_bars: List<Cus
     val bars: MutableList<Int> = mutableListOf(bar_index)
 
     while (bars.isNotEmpty()) {
-        val custom_bar: CustomContentBar = custom_bars[bars.removeLast()]
+        val custom_bar: CustomContentBar = custom_bars[bars.removeLastBuiltIn()]
         for (element in custom_bar.elements) {
             for (bar_reference in element.getContainedBars()) {
                 if (bar_reference.type != ContentBarReference.Type.CUSTOM) {

@@ -286,7 +286,7 @@ internal fun QueueTab(
                 CompositionLocalProvider(LocalPlayerClickOverrides provides LocalPlayerClickOverrides.current.copy(
                     onClickOverride = { song, index: Int? ->
                         if (index != player.status.m_index) {
-                            player.controller?.seekToSong(index!!)
+                            player.controller?.seekToItem(index!!)
                         }
                     }
                 )) {

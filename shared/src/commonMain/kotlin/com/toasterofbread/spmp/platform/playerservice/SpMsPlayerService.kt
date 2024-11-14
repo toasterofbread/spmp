@@ -102,7 +102,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
 
     internal var _state: SpMsPlayerState = SpMsPlayerState.IDLE
     internal var _is_playing: Boolean = false
-    internal var _current_song_index: Int = -1
+    internal var _current_item_index: Int = -1
     internal var _duration_ms: Long = -1
     internal var _radio_state: RadioState = RadioState() // TODO
     internal var _repeat_mode: SpMsPlayerRepeatMode = SpMsPlayerRepeatMode.NONE
@@ -142,9 +142,12 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
         }
     }
 
+    protected open fun onServiceCreate() {}
+
     override fun onCreate() {
         context.getPrefs().addListener(prefs_listener)
         connectToServer()
+        onServiceCreate()
     }
 
     override fun onDestroy() {

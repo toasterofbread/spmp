@@ -41,15 +41,15 @@ private fun SpMsPlayerService.applyEvent(event: SpMsPlayerEvent) {
     when (event.type) {
         SpMsPlayerEvent.Type.ITEM_TRANSITION -> {
             val target_index: Int = event.properties["index"]!!.int
-            if (target_index == _current_song_index) {
+            if (target_index == _current_item_index) {
                 return
             }
 
-            _current_song_index = target_index
+            _current_item_index = target_index
             _duration_ms = -1
             updateCurrentSongPosition(0)
 
-            val song: Song? = if (_current_song_index < 0) null else getSong(_current_song_index)
+            val song: Song? = if (_current_item_index < 0) null else getSong(_current_item_index)
             listeners.forEach {
                 it.onSongTransition(song, false)
                 it.onEvents()
@@ -67,8 +67,8 @@ private fun SpMsPlayerService.applyEvent(event: SpMsPlayerEvent) {
             val song: SongData = SongData(event.properties["item_id"]!!.content)
             val index: Int = event.properties["index"]!!.int
 
-            if (index <= _current_song_index) {
-                _current_song_index++
+            if (index <= _current_item_index) {
+                _current_item_index++
             }
 
             playlist.add(minOf(playlist.size, index), song)
@@ -85,16 +85,16 @@ private fun SpMsPlayerService.applyEvent(event: SpMsPlayerEvent) {
             }
 
             val song: Song = playlist.removeAt(index)
-            val transitioning: Boolean = index == _current_song_index
+            val transitioning: Boolean = index == _current_item_index
 
-            if (index <= _current_song_index) {
-                _current_song_index--
+            if (index <= _current_item_index) {
+                _current_item_index--
             }
 
             listeners.forEach {
                 it.onSongRemoved(index, song)
                 if (transitioning) {
-                    it.onSongTransition(playlist.getOrNull(_current_song_index), false)
+                    it.onSongTransition(playlist.getOrNull(_current_item_index), false)
                 }
                 it.onEvents()
             }
@@ -106,8 +106,8 @@ private fun SpMsPlayerService.applyEvent(event: SpMsPlayerEvent) {
             val song: Song = playlist.removeAt(from)
             playlist.add(to, song)
 
-            if (from == _current_song_index) {
-                _current_song_index = to
+            if (from == _current_item_index) {
+                _current_item_index = to
             }
 
             listeners.forEach {

@@ -7,8 +7,11 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
-import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
-import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
+import dev.toastbits.spms.player.Player
+import kotlinx.coroutines.launch
+import kotlin.math.roundToLong
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 data class PlayerServiceLoadState(
     val loading: Boolean,
@@ -16,45 +19,25 @@ data class PlayerServiceLoadState(
     val error: Throwable? = null
 )
 
-interface PlayerService {
+interface PlayerService: Player {
     val context: AppContext
     val service_player: PlayerServicePlayer
 
     fun onCreate()
     fun onDestroy()
 
-    val load_state: PlayerServiceLoadState
-    val state: SpMsPlayerState
-    val is_playing: Boolean
-    val song_count: Int
-    val current_song_index: Int
-    val current_position_ms: Long
-    val duration_ms: Long
-    val has_focus: Boolean
-
     val radio_instance: RadioInstance
-
-    var repeat_mode: SpMsPlayerRepeatMode
-    var volume: Float
+    val volume: Float
 
     fun isPlayingOverLatentDevice(): Boolean
-
-    fun play()
-    fun pause()
-    fun playPause()
-
-    fun seekTo(position_ms: Long)
-    fun seekToSong(index: Int)
-    fun seekToNext()
-    fun seekToPrevious()
     fun undoSeek()
+
+    val load_state: PlayerServiceLoadState
 
     fun getSong(): Song?
     fun getSong(index: Int): Song?
 
-    fun addSong(song: Song, index: Int)
-    fun moveSong(from: Int, to: Int)
-    fun removeSong(index: Int)
+    fun addSong(song: Song, index: Int): Int
 
     fun addListener(listener: PlayerListener)
     fun removeListener(listener: PlayerListener)
@@ -66,4 +49,15 @@ interface PlayerService {
     fun PersistentContent(requestServiceChange: (PlayerServiceCompanion) -> Unit) {}
     @Composable
     fun LoadScreenExtraContent(item_modifier: Modifier, requestServiceChange: (PlayerServiceCompanion) -> Unit) {}
+}
+
+fun PlayerService.seekToPreviousOrRepeat() {
+    context.coroutine_scope.launch {
+        val threshold_s: Float = context.settings.behaviour.REPEAT_SONG_ON_PREVIOUS_THRESHOLD_S.get()
+        val threshold: Duration? =
+            if (threshold_s < 0f) null
+            else (threshold_s * 1000).roundToLong().milliseconds
+
+        seekToPrevious(threshold)
+    }
 }

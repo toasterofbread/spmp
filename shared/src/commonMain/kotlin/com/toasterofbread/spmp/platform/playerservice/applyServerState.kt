@@ -84,10 +84,10 @@ internal suspend fun SpMsPlayerService.applyServerState(
             it.onPlayingChanged(_is_playing)
         }
     }
-    if (state.current_item_index != _current_song_index) {
-        _current_song_index = state.current_item_index
+    if (state.current_item_index != _current_item_index) {
+        _current_item_index = state.current_item_index
 
-        val song: Song? = playlist.getOrNull(_current_song_index)
+        val song: Song? = playlist.getOrNull(_current_item_index)
         listeners.forEach {
             it.onSongTransition(song, false)
         }

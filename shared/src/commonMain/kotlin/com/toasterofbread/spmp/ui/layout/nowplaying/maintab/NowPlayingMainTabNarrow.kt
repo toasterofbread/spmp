@@ -31,6 +31,7 @@ import dev.toastbits.composekit.utils.common.isJa
 import dev.toastbits.composekit.utils.common.thenIf
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.platform.playerservice.seekToPreviousOrRepeat
 import dev.toastbits.composekit.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -154,6 +155,6 @@ private fun PlayerState.PreviousButton() {
         enabled = status.m_has_previous,
         size = 60.dp
     ) {
-        controller?.seekToPrevious()
+        controller?.seekToPreviousOrRepeat()
     }
 }

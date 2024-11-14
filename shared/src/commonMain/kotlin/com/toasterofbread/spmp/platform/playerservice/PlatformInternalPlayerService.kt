@@ -7,10 +7,9 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.model.radio.RadioInstance
-import com.toasterofbread.spmp.model.radio.RadioState
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
-import ProgramArguments
+import kotlin.time.Duration
 
 internal const val AUTO_DOWNLOAD_SOFT_TIMEOUT = 1500 // ms
 
@@ -26,16 +25,15 @@ expect class PlatformInternalPlayerService: PlayerService {
 
     override val state: SpMsPlayerState
     override val is_playing: Boolean
-    override val song_count: Int
-    override val current_song_index: Int
+    override val item_count: Int
+    override val current_item_index: Int
     override val current_position_ms: Long
     override val duration_ms: Long
-    override val has_focus: Boolean
 
     override val radio_instance: RadioInstance
 
-    override var repeat_mode: SpMsPlayerRepeatMode
-    override var volume: Float
+    override val repeat_mode: SpMsPlayerRepeatMode
+    override val volume: Float
 
     override fun isPlayingOverLatentDevice(): Boolean
 
@@ -43,18 +41,18 @@ expect class PlatformInternalPlayerService: PlayerService {
     override fun pause()
     override fun playPause()
 
-    override fun seekTo(position_ms: Long)
-    override fun seekToSong(index: Int)
-    override fun seekToNext()
-    override fun seekToPrevious()
+    override fun seekToTime(position_ms: Long)
+    override fun seekToItem(index: Int, position_ms: Long)
+    override fun seekToNext(): Boolean
+    override fun seekToPrevious(repeat_threshold: Duration?): Boolean
     override fun undoSeek()
 
     override fun getSong(): Song?
     override fun getSong(index: Int): Song?
 
-    override fun addSong(song: Song, index: Int)
-    override fun moveSong(from: Int, to: Int)
-    override fun removeSong(index: Int)
+    override fun addSong(song: Song, index: Int): Int
+    override fun moveItem(from: Int, to: Int)
+    override fun removeItem(index: Int)
 
     override fun addListener(listener: PlayerListener)
     override fun removeListener(listener: PlayerListener)

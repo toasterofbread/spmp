@@ -464,6 +464,9 @@
 
     <string name="s_key_include_playback_position_in_share_url">Include playback position in shared song URLs</string>
 
+    <string name="s_key_repeat_song_on_previous_threshold_s">Repeat song on backward seek threshold (s)</string>
+    <string name="s_sub_repeat_song_on_previous_threshold_s">When seeking back, if the playback position is greater than the threshold, the current song will be repeated. Set to less than 0 to disable.</string>
+
     <string name="s_key_player_expand_swipe_sensitivity">Player expand swipe gesture sensitivity</string>
 
     <string name="s_key_mini_player_show_prev_button">Show previous button in mini-player</string>

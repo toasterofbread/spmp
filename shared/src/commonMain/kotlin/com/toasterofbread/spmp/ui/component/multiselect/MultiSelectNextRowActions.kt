@@ -40,7 +40,7 @@ internal fun ColumnScope.MultiSelectNextRowActions(multiselect_context: MediaIte
         Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
             val active_queue_item: Song? =
                 player.controller?.service_player?.run {
-                    if (active_queue_index < song_count)
+                    if (active_queue_index < item_count)
                         getSong(active_queue_index)
                     else null
                 }
@@ -72,7 +72,7 @@ internal fun ColumnScope.MultiSelectNextRowActions(multiselect_context: MediaIte
                         onLongClick = {
                             player.context.vibrateShort()
                             player.withPlayer {
-                                active_queue_index = current_song_index
+                                active_queue_index = current_item_index
                             }
                         }
                     )
@@ -93,7 +93,7 @@ internal fun ColumnScope.MultiSelectNextRowActions(multiselect_context: MediaIte
                         onLongClick = {
                             player.context.vibrateShort()
                             player.withPlayer {
-                                active_queue_index = song_count - 1
+                                active_queue_index = item_count - 1
                             }
                         }
                     )

@@ -766,10 +766,6 @@ class PlayerState(
 
     val status: PlayerStatus = PlayerStatus()
 
-    fun isRunningAndFocused(): Boolean {
-        return controller?.has_focus == true
-    }
-
     fun onSongDownloadRequested(song: Song, always_show_options: Boolean = false, onCompleted: DownloadRequestCallback? = null) {
         onSongDownloadRequested(listOf(song), always_show_options, onCompleted)
     }

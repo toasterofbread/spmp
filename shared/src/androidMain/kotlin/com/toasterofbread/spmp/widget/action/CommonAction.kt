@@ -9,6 +9,7 @@ import androidx.glance.appwidget.GlanceAppWidgetManager
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.platform.playerservice.seekToPreviousOrRepeat
 import com.toasterofbread.spmp.util.getToggleTarget
 import com.toasterofbread.spmp.widget.SpMpWidget
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.NONE
@@ -47,7 +48,7 @@ internal suspend fun WidgetClickAction.CommonWidgetClickAction.execute(
         }
         PLAY_PAUSE -> SpMp._player_state?.controller?.playPause()
         SEEK_NEXT -> SpMp._player_state?.controller?.seekToNext()
-        SEEK_PREVIOUS -> SpMp._player_state?.controller?.seekToPrevious()
+        SEEK_PREVIOUS -> SpMp._player_state?.controller?.seekToPreviousOrRepeat()
         TOGGLE_LIKE -> {
 
             val song: Song = SpMp._player_state?.status?.song ?: return@withContext

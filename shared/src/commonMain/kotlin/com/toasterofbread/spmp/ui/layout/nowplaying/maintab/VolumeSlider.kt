@@ -27,7 +27,7 @@ internal fun VolumeSlider(colour: Color, modifier: Modifier = Modifier, reverse:
     CompositionLocalProvider(LocalLayoutDirection provides layout_direction) {
         SliderValueHorizontal(
             value = player.status.m_volume,
-            onValueChange = { player.controller?.volume = it },
+            onValueChange = { player.controller?.setVolume(it.toDouble()) },
             thumbSizeInDp = DpSize(12.dp, 12.dp),
             track = { a, b, c, d, e ->
                 DefaultTrack(

@@ -15,6 +15,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.ColorFilter
+import com.toasterofbread.spmp.platform.playerservice.seekToPreviousOrRepeat
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import org.jetbrains.compose.resources.stringResource
@@ -32,7 +33,7 @@ fun ThumbnailRowControlButtons(
     val player: PlayerState = LocalPlayerState.current
 
     if (show_prev_button) {
-        IconButton({ player.controller?.seekToPrevious() }, button_modifier) {
+        IconButton({ player.controller?.seekToPreviousOrRepeat() }, button_modifier) {
             Image(
                 if (rounded_icons) Icons.Rounded.SkipPrevious else Icons.Default.SkipPrevious,
                 null,

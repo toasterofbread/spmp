@@ -91,15 +91,15 @@ fun QueueButtonsRow(
                             shuffleQueueIndices(multiselect_context.getSelectedItems().map { it.second!! })
                         }
                         else {
-                            shuffleQueue(start = current_song_index + 1)
+                            shuffleQueue(start = current_item_index + 1)
                         }
                     }
                 },
                 onAltClick = if (multiselect_context.is_active) null else ({
                     if (!multiselect_context.is_active) {
                         player.controller?.service_player?.undoableAction {
-                            if (current_song_index > 0) {
-                                moveSong(current_song_index, 0)
+                            if (current_item_index > 0) {
+                                moveSong(current_item_index, 0)
                                 scrollToItem(0)
                             }
                             shuffleQueue(start = 1)

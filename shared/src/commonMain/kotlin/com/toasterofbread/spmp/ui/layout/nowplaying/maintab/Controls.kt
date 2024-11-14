@@ -19,6 +19,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.*
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitles
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.platform.playerservice.seekToPreviousOrRepeat
 import com.toasterofbread.spmp.service.playercontroller.*
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -263,7 +264,7 @@ internal fun Controls(
                 getOnBackgroundColour = getOnBackgroundColour,
                 getAccentColour = getAccentColour
             ) {
-                player.controller?.seekToPrevious()
+                player.controller?.seekToPreviousOrRepeat()
             }
 
             // Play / pause

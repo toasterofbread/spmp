@@ -34,7 +34,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: PlayerS
             service.service_player.onUndoStateChanged()
         }
         override fun undo(service: PlayerService) {
-            service.removeSong(index)
+            service.removeItem(index)
             service.service_player.onUndoStateChanged()
         }
     }
@@ -46,11 +46,11 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: PlayerS
 
         override fun redo(service: PlayerService) {
             super.redo(service)
-            service.moveSong(from, to)
+            service.moveItem(from, to)
             service.service_player.onUndoStateChanged()
         }
         override fun undo(service: PlayerService) {
-            service.moveSong(to, from)
+            service.moveItem(to, from)
             service.service_player.onUndoStateChanged()
         }
     }
@@ -63,7 +63,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: PlayerS
         override fun redo(service: PlayerService) {
             super.redo(service)
             song = service.getSong(index)!!
-            service.removeSong(index)
+            service.removeItem(index)
             service.service_player.onUndoStateChanged()
         }
 

@@ -14,11 +14,11 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.core.content.getSystemService
-import androidx.media3.common.Player
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
 import androidx.media3.exoplayer.audio.AudioSink
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.song.SongRef
 import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlayerListener
@@ -29,6 +29,7 @@ import com.toasterofbread.spmp.service.playercontroller.RadioHandler
 import com.toasterofbread.spmp.widget.WidgetUpdateListener
 import dev.toastbits.composekit.platform.PlatformPreferencesListener
 import dev.toastbits.composekit.utils.common.launchSingle
+import dev.toastbits.spms.player.shouldRepeatOnSeekToPrevious
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import kotlinx.coroutines.CoroutineScope
@@ -37,6 +38,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
+import kotlin.math.roundToLong
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.milliseconds
 
 @SuppressLint("RestrictedApi")
 @androidx.annotation.OptIn(UnstableApi::class)
@@ -58,12 +62,13 @@ open class ForegroundPlayerService(
     internal lateinit var audio_sink: AudioSink
     internal var loudness_enhancer: LoudnessEnhancer? = null
 
-    private lateinit var widget_update_listener: WidgetUpdateListener
-
     internal var current_song: Song? = null
     internal var paused_by_device_disconnect: Boolean = false
     internal var device_connection_changed_playing_status: Boolean = false
 
+    private var repeat_song_on_previous_threshold: Duration? = null
+
+    private lateinit var widget_update_listener: WidgetUpdateListener
     private val audio_device_callback: PlayerAudioDeviceCallback = PlayerAudioDeviceCallback(this)
 
     private val prefs_listener: PlatformPreferencesListener =
@@ -79,11 +84,26 @@ open class ForegroundPlayerService(
                         audio_sink.skipSilenceEnabled = context.settings.streaming.ENABLE_SILENCE_SKIPPING.get()
                     }
                 }
+                context.settings.behaviour.REPEAT_SONG_ON_PREVIOUS_THRESHOLD_S.key -> {
+                    coroutine_scope.launch {
+                        updateRepeatSongOnPreviousThreshold()
+                    }
+                }
                 context.settings.experimental.ANDROID_MONET_COLOUR_ENABLE.key -> {
                     startColorblendrHeartbeatLoop()
                 }
             }
         }
+
+    private suspend fun updateRepeatSongOnPreviousThreshold() {
+        val threshold_s: Float = context.settings.behaviour.REPEAT_SONG_ON_PREVIOUS_THRESHOLD_S.get()
+        if (threshold_s < 0f) {
+            repeat_song_on_previous_threshold = null
+        }
+        else {
+            repeat_song_on_previous_threshold = (threshold_s * 1000).roundToLong().milliseconds
+        }
+    }
 
     private val listeners: MutableList<PlayerListener> = mutableListOf()
 
@@ -98,7 +118,7 @@ open class ForegroundPlayerService(
 
     protected open fun onRadioCancelled() {}
 
-    protected open fun getNotificationPlayer(player: Player): Player = player
+    protected open fun getNotificationPlayer(): PlayerService = this
 
     override fun onStartCommand(intent: Intent?, flags: Int, startId: Int): Int {
         super.onStartCommand(intent, flags, startId)
@@ -125,7 +145,7 @@ open class ForegroundPlayerService(
             playlist_auto_progress,
             coroutine_scope,
             media_data_spec_processor,
-            getNotificationPlayer = { getNotificationPlayer(player) },
+            getNotificationPlayer = { getNotificationPlayer() },
             onSongReadyToPlay = {
                 listeners.forEach { it.onDurationChanged(player.duration) }
             }
@@ -156,9 +176,13 @@ open class ForegroundPlayerService(
         player.addListener(widget_update_listener)
 
         notification_manager = PlayerServiceNotificationManager(context, media_session, getSystemService()!!, this, player)
+
+        coroutine_scope.launch {
+            updateRepeatSongOnPreviousThreshold()
+        }
     }
 
-    override fun onDestroy() {
+    override fun release() {
         stopped = true
         stopForeground(STOP_FOREGROUND_REMOVE)
 
@@ -177,8 +201,6 @@ open class ForegroundPlayerService(
         val audio_manager: AudioManager? = getSystemService()
         audio_manager?.unregisterAudioDeviceCallback(audio_device_callback)
 
-        super.onDestroy()
-
         println("ForegroundPlayerService stopped, notifying listeners and updating all widgets")
 
         for (listener in listeners) {
@@ -192,6 +214,13 @@ open class ForegroundPlayerService(
             widget_update_listener.updateAll()
         }
     }
+
+    override fun onDestroy() {
+        super.onDestroy()
+        release()
+    }
+
+    override fun onShutdown() {}
 
     override fun onTaskRemoved(intent: Intent?) {
         super.onTaskRemoved(intent)
@@ -230,24 +259,19 @@ open class ForegroundPlayerService(
     private lateinit var _service_player: PlayerServicePlayer
     override val service_player: PlayerServicePlayer get() = _service_player
     override val state: SpMsPlayerState get() = convertState(player.playbackState)
+
+    override fun canPlay(): Boolean = true
+
     override val is_playing: Boolean get() = player.isPlaying
-    override val song_count: Int get() = player.mediaItemCount
-    override val current_song_index: Int get() = player.currentMediaItemIndex
+    override val item_count: Int get() = player.mediaItemCount
+    override val current_item_index: Int get() = player.currentMediaItemIndex
     override val current_position_ms: Long get() = player.currentPosition
     override val duration_ms: Long get() = player.duration
     override val radio_instance: RadioInstance get() = service_player.radio_instance
-    override var repeat_mode: SpMsPlayerRepeatMode
+    override val repeat_mode: SpMsPlayerRepeatMode
         get() = SpMsPlayerRepeatMode.entries[player.repeatMode]
-        set(value) {
-            player.repeatMode = value.ordinal
-        }
-    override var volume: Float
+    override val volume: Float
         get() = player.volume
-        set(value) {
-            player.volume = value
-        }
-    override val has_focus: Boolean
-        get() = TODO()
 
     override fun isPlayingOverLatentDevice(): Boolean {
         val media_router: MediaRouter = (getSystemService(MEDIA_ROUTER_SERVICE) as MediaRouter?) ?: return false
@@ -282,9 +306,9 @@ open class ForegroundPlayerService(
     }
 
     private val song_seek_undo_stack: MutableList<Pair<Int, Long>> = mutableListOf()
-    private fun getSeekPosition(): Pair<Int, Long> = Pair(current_song_index, current_position_ms)
+    private fun getSeekPosition(): Pair<Int, Long> = Pair(current_item_index, current_position_ms)
 
-    override fun seekTo(position_ms: Long) {
+    override fun seekToTime(position_ms: Long) {
         checkAlive()
 
         val current: Pair<Int, Long> = getSeekPosition()
@@ -296,18 +320,26 @@ open class ForegroundPlayerService(
         }
     }
 
-    override fun seekToSong(index: Int) {
+    override fun setRepeatMode(repeat_mode: SpMsPlayerRepeatMode) {
+        player.repeatMode = repeat_mode.ordinal
+    }
+
+    override fun setVolume(value: Double) {
+        player.volume = value.toFloat()
+    }
+
+    override fun seekToItem(index: Int, position_ms: Long) {
         checkAlive()
 
         val current: Pair<Int, Long> = getSeekPosition()
-        player.seekTo(index, 0)
+        player.seekTo(index, position_ms)
 
         if (current != getSeekPosition()) {
             song_seek_undo_stack.add(current)
         }
     }
 
-    override fun seekToNext() {
+    override fun seekToNext(): Boolean {
         checkAlive()
 
         val current: Pair<Int, Long> = getSeekPosition()
@@ -315,18 +347,30 @@ open class ForegroundPlayerService(
 
         if (current != getSeekPosition()) {
             song_seek_undo_stack.add(current)
+            return true
         }
+
+        return false
     }
 
-    override fun seekToPrevious() {
+    override fun seekToPrevious(repeat_threshold: Duration?): Boolean {
         checkAlive()
 
         val current: Pair<Int, Long> = getSeekPosition()
-        player.seekToPreviousMediaItem()
+
+        if (shouldRepeatOnSeekToPrevious(repeat_threshold)) {
+            seekToTime(0)
+        }
+        else {
+            player.seekToPreviousMediaItem()
+        }
 
         if (current != getSeekPosition()) {
             song_seek_undo_stack.add(current)
+            return true
         }
+
+        return false
     }
 
     override fun undoSeek() {
@@ -334,7 +378,7 @@ open class ForegroundPlayerService(
 
         val (index: Int, position_ms: Long) = song_seek_undo_stack.removeLastOrNull() ?: return
 
-        if (index != current_song_index) {
+        if (index != current_item_index) {
             player.seekTo(index, position_ms)
         }
         else {
@@ -347,35 +391,58 @@ open class ForegroundPlayerService(
     }
 
     override fun getSong(index: Int): Song? {
-        if (index !in 0 until song_count) {
+        if (index !in 0 until item_count) {
             return null
         }
 
         return player.getMediaItemAt(index).toSong()
     }
 
-    override fun addSong(song: Song, index: Int) {
+    override fun getItem(): String? =
+        getSong()?.id
+
+    override fun getItem(index: Int): String? =
+        getSong(index)?.id
+
+    override fun addSong(song: Song, index: Int): Int {
         checkAlive()
 
-        player.addMediaItem(index, song.buildExoMediaItem(context))
-        listeners.forEach { it.onSongAdded(index, song) }
+        val add_to_index: Int =
+            if (index < 0) 0
+            else index.coerceAtMost(item_count)
+
+        player.addMediaItem(add_to_index, song.buildExoMediaItem(context))
+        listeners.forEach { it.onSongAdded(add_to_index, song) }
 
         service_player.session_started = true
+
+        return add_to_index
     }
 
-    override fun moveSong(from: Int, to: Int) {
+    override fun addItem(item_id: String, index: Int): Int {
+        return addSong(SongRef(item_id), index)
+    }
+
+    override fun moveItem(from: Int, to: Int) {
         checkAlive()
 
         player.moveMediaItem(from, to)
         listeners.forEach { it.onSongMoved(from, to) }
     }
 
-    override fun removeSong(index: Int) {
+    override fun removeItem(index: Int) {
         checkAlive()
 
         val song: Song = player.getMediaItemAt(index).toSong()
         player.removeMediaItem(index)
         listeners.forEach { it.onSongRemoved(index, song) }
+    }
+
+    override fun clearQueue() {
+        checkAlive()
+        for (index in 0 until item_count) {
+            removeItem(index)
+        }
     }
 
     @Composable

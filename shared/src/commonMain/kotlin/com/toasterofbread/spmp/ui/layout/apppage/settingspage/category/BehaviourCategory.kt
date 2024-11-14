@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import dev.toastbits.composekit.settings.ui.component.item.GroupSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
@@ -47,6 +48,11 @@ internal fun getBehaviourCategoryItems(context: AppContext): List<SettingsItem> 
 
         ToggleSettingsItem(
             context.settings.behaviour.INCLUDE_PLAYBACK_POSITION_IN_SHARE_URL
+        ),
+
+        AppSliderItem(
+            context.settings.behaviour.REPEAT_SONG_ON_PREVIOUS_THRESHOLD_S,
+            range = -1f .. 10f
         ),
 
         GroupSettingsItem(Res.string.s_group_long_press_menu),

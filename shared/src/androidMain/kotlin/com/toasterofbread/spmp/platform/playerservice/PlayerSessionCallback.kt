@@ -5,13 +5,12 @@ import android.content.Intent.EXTRA_KEY_EVENT
 import android.media.session.MediaSession
 import android.os.Bundle
 import android.view.KeyEvent
-import androidx.media3.common.Player
 import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 
 class PlayerSessionCallback(
-    private val player: Player,
+    private val player: PlayerService,
     private val context: AppContext,
     private val coroutine_scope: CoroutineScope
 ): MediaSession.Callback() {
@@ -25,10 +24,10 @@ class PlayerSessionCallback(
             KeyEvent.KEYCODE_MEDIA_PLAY -> player.play()
             KeyEvent.KEYCODE_MEDIA_PAUSE -> player.pause()
             KeyEvent.KEYCODE_MEDIA_PLAY_PAUSE ->
-                if (player.isPlaying) player.pause()
+                if (player.is_playing) player.pause()
                 else player.play()
-            KeyEvent.KEYCODE_MEDIA_NEXT -> player.seekToNextMediaItem()
-            KeyEvent.KEYCODE_MEDIA_PREVIOUS -> player.seekToPreviousMediaItem()
+            KeyEvent.KEYCODE_MEDIA_NEXT -> player.seekToNext()
+            KeyEvent.KEYCODE_MEDIA_PREVIOUS -> player.seekToPreviousOrRepeat()
             else -> {
                 println("PlayerSessionCallback: Received unhandled media button event: $key_event")
                 return false
@@ -39,11 +38,11 @@ class PlayerSessionCallback(
     }
 
     override fun onSkipToNext() {
-        player.seekToNextMediaItem()
+        player.seekToNext()
     }
 
     override fun onSkipToPrevious() {
-        player.seekToPreviousMediaItem()
+        player.seekToPreviousOrRepeat()
     }
 
     override fun onPlay() {
@@ -55,11 +54,7 @@ class PlayerSessionCallback(
     }
 
     override fun onSeekTo(pos: Long) {
-        player.seekTo(pos)
-    }
-
-    override fun onStop() {
-        player.stop()
+        player.seekToTime(pos)
     }
 
     override fun onCustomAction(action: String, extras: Bundle?) {

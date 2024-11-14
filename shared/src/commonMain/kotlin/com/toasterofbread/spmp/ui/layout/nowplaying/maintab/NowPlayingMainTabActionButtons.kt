@@ -52,7 +52,7 @@ internal object NowPlayingMainTabActionButtons {
                 if (song != null) {
                     player.withPlayer {
                         undoableAction {
-                            startRadioAtIndex(current_song_index + 1, song, current_song_index, skip_first = true)
+                            startRadioAtIndex(current_item_index + 1, song, current_item_index, skip_first = true)
                         }
                     }
                     player.expansion.scrollTo(2.coerceIn(player.expansion.getPageRange()))
@@ -72,7 +72,7 @@ internal object NowPlayingMainTabActionButtons {
             {
                 player.withPlayer {
                     undoableAction {
-                        shuffleQueue(start = current_song_index + 1)
+                        shuffleQueue(start = current_item_index + 1)
                     }
                 }
             },

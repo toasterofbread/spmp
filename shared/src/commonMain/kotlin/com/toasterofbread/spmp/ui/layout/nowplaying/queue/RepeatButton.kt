@@ -37,12 +37,13 @@ fun RepeatButton(getBackgroundColour: () -> Color, modifier: Modifier = Modifier
                 interactionSource = remember { MutableInteractionSource() },
                 indication = null,
                 onClick = {
-                    player.controller?.repeat_mode =
+                    player.controller?.setRepeatMode(
                         when (player.controller?.repeat_mode) {
                             SpMsPlayerRepeatMode.ALL -> SpMsPlayerRepeatMode.ONE
                             SpMsPlayerRepeatMode.ONE -> SpMsPlayerRepeatMode.NONE
                             else -> SpMsPlayerRepeatMode.ALL
                         }
+                    )
                 }
             )
             .crossOut(

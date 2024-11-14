@@ -1,63 +1,54 @@
 package com.toasterofbread.spmp.platform.playerservice
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.setValue
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.Dp
-import androidx.compose.material3.Button
-import androidx.compose.material3.Text
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ButtonColors
-import androidx.compose.material3.OutlinedButton
-import androidx.compose.material3.Icon
-import androidx.compose.material3.AlertDialog
-import androidx.compose.animation.Crossfade
-import androidx.compose.material.icons.filled.Info
-import androidx.compose.material.icons.Icons
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.BorderStroke
-import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.radio.RadioInstance
-import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.service.playercontroller.RadioHandler
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.async
-import kotlinx.coroutines.CancellationException
-import kotlinx.coroutines.cancelChildren
-import kotlinx.coroutines.withTimeout
-import kotlinx.coroutines.Job
-import kotlinx.serialization.json.JsonPrimitive
-import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
-import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
-import dev.toastbits.composekit.platform.PlatformPreferencesListener
-import dev.toastbits.composekit.platform.PlatformPreferences
-import io.ktor.client.request.get
 import LocalPlayerState
 import LocalProgramArguments
 import ProgramArguments
+import androidx.compose.animation.Crossfade
+import androidx.compose.foundation.BorderStroke
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Info
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.radio.RadioInstance
+import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.service.playercontroller.RadioHandler
 import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
+import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.launch
+import kotlinx.serialization.json.JsonPrimitive
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.loading_splash_local_server_command_not_set
 import spmp.shared.generated.resources.action_close
-import spmp.shared.generated.resources.warning_server_unavailable_title
+import spmp.shared.generated.resources.loading_splash_button_local_server_unavailable
 import spmp.shared.generated.resources.loading_splash_button_start_local_server
 import spmp.shared.generated.resources.loading_splash_button_stop_local_server
-import spmp.shared.generated.resources.loading_splash_button_local_server_unavailable
+import spmp.shared.generated.resources.loading_splash_local_server_command_not_set
+import spmp.shared.generated.resources.warning_server_unavailable_title
+import kotlin.time.Duration
 
 open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_audio = plays_audio), PlayerService {
     override val load_state: PlayerServiceLoadState get() =
@@ -81,11 +72,20 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
         _context = context
     }
 
+    override fun release() {}
+
+    override fun onDestroy() {
+        super.onDestroy()
+        release()
+    }
+
+    override fun onShutdown() {}
+
     internal fun notifyReadyToPlay(song_duration_ms: Long) {
         require(song_duration_ms > 0) { song_duration_ms }
 
         val song: Song = getSong() ?: return
-        sendRequest("readyToPlay", JsonPrimitive(current_song_index), JsonPrimitive(song.id), JsonPrimitive(song_duration_ms))
+        sendRequest("readyToPlay", JsonPrimitive(current_item_index), JsonPrimitive(song.id), JsonPrimitive(song_duration_ms))
     }
 
     private var cancelling_radio: Boolean = false
@@ -126,12 +126,13 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
 
     override val state: SpMsPlayerState
         get() = _state
+
     override val is_playing: Boolean
         get() = _is_playing
-    override val song_count: Int
+    override val item_count: Int
         get() = playlist.size
-    override val current_song_index: Int
-        get() = _current_song_index
+    override val current_item_index: Int
+        get() = _current_item_index
     override val current_position_ms: Long
         get() {
             if (current_song_time < 0) {
@@ -144,26 +145,12 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
         }
     override val duration_ms: Long
         get() = _duration_ms
-    override val has_focus: Boolean
-        get() = true // TODO
     override val radio_instance: RadioInstance
         get() = service_player.radio_instance
-    override var repeat_mode: SpMsPlayerRepeatMode
+    override val repeat_mode: SpMsPlayerRepeatMode
         get() = _repeat_mode
-        set(value) {
-            if (value == _repeat_mode) {
-                return
-            }
-            sendRequest("setRepeatMode", JsonPrimitive(value.ordinal))
-        }
-    override var volume: Float
+    override val volume: Float
         get() = _volume
-        set(value) {
-            if (value == _volume) {
-                return
-            }
-            sendRequest("setVolume", JsonPrimitive(value))
-        }
 
     override fun isPlayingOverLatentDevice(): Boolean = false // TODO
 
@@ -180,36 +167,52 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
     }
 
     private val song_seek_undo_stack: MutableList<Pair<Int, Long>> = mutableListOf()
-    private fun getSeekPosition(): Pair<Int, Long> = Pair(current_song_index, current_position_ms)
+    private fun getSeekPosition(): Pair<Int, Long> = Pair(current_item_index, current_position_ms)
 
-    override fun seekTo(position_ms: Long) {
+    override fun seekToTime(position_ms: Long) {
         val current: Pair<Int, Long> = getSeekPosition()
         sendRequest("seekToTime", JsonPrimitive(position_ms))
         song_seek_undo_stack.add(current)
     }
 
-    override fun seekToSong(index: Int) {
+    override fun setRepeatMode(repeat_mode: SpMsPlayerRepeatMode) {
+        if (repeat_mode == _repeat_mode) {
+            return
+        }
+        sendRequest("setRepeatMode", JsonPrimitive(repeat_mode.ordinal))
+    }
+
+    override fun setVolume(value: Double) {
+        if (value.toFloat() == _volume) {
+            return
+        }
+        sendRequest("setVolume", JsonPrimitive(value))
+    }
+
+    override fun seekToItem(index: Int, position_ms: Long) {
         val current: Pair<Int, Long> = getSeekPosition()
-        sendRequest("seekToItem", JsonPrimitive(index))
+        sendRequest("seekToItem", JsonPrimitive(index), JsonPrimitive(position_ms))
         song_seek_undo_stack.add(current)
     }
 
-    override fun seekToNext() {
+    override fun seekToNext(): Boolean {
         val current: Pair<Int, Long> = getSeekPosition()
         sendRequest("seekToNext")
         song_seek_undo_stack.add(current)
+        return current_item_index + 1 < item_count
     }
 
-    override fun seekToPrevious() {
+    override fun seekToPrevious(repeat_threshold: Duration?): Boolean {
         val current: Pair<Int, Long> = getSeekPosition()
-        sendRequest("seekToPrevious")
+        sendRequest("seekToPrevious", JsonPrimitive(repeat_threshold?.inWholeMilliseconds ?: -1))
         song_seek_undo_stack.add(current)
+        return current_item_index > 0
     }
 
     override fun undoSeek() {
         val (index: Int, position_ms: Long) = song_seek_undo_stack.removeLastOrNull() ?: return
 
-        if (index != current_song_index) {
+        if (index != current_item_index) {
             sendRequest("seekToItem", JsonPrimitive(index), JsonPrimitive(position_ms))
         }
         else {
@@ -217,20 +220,42 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
         }
     }
 
-    override fun getSong(): Song? = playlist.getOrNull(_current_song_index)
+    override fun getSong(): Song? = playlist.getOrNull(_current_item_index)
 
     override fun getSong(index: Int): Song? = playlist.getOrNull(index)
 
-    override fun addSong(song: Song, index: Int) {
-        sendRequest("addItem", JsonPrimitive(song.id), JsonPrimitive(index))
+    override fun getItem(): String? =
+        getSong()?.id
+
+    override fun getItem(index: Int): String? =
+        getSong(index)?.id
+
+    override fun addSong(song: Song, index: Int): Int {
+        return addItem(song.id, index)
     }
 
-    override fun moveSong(from: Int, to: Int) {
+    override fun addItem(item_id: String, index: Int): Int {
+        val add_to_index: Int =
+            if (index < 0) 0
+            else index.coerceAtMost(item_count)
+
+        sendRequest("addItem", JsonPrimitive(item_id), JsonPrimitive(add_to_index))
+
+        return add_to_index
+    }
+
+    override fun canPlay(): Boolean = true
+
+    override fun moveItem(from: Int, to: Int) {
         sendRequest("moveItem", JsonPrimitive(from), JsonPrimitive(to))
     }
 
-    override fun removeSong(index: Int) {
+    override fun removeItem(index: Int) {
         sendRequest("removeItem", JsonPrimitive(index))
+    }
+
+    override fun clearQueue() {
+        sendRequest("clearQueue")
     }
 
     @Composable

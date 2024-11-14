@@ -214,7 +214,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                     }
                     else {
                         itemsIndexed(artists, { _, item -> item }) { index, artist_data ->
-                            val (artist, song_count) = artist_data
+                            val (artist, item_count) = artist_data
 
                             MediaItemPreviewLong(
                                 artist,
@@ -226,7 +226,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                                 title_lines = 3,
                                 getExtraInfo = {
                                     listOf(
-                                        stringResource(Res.string.`artist_$x_songs`).replace("\$x", song_count.toString())
+                                        stringResource(Res.string.`artist_$x_songs`).replace("\$x", item_count.toString())
                                     )
                                 }
                             )

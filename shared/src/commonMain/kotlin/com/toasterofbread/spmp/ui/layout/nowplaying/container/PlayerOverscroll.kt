@@ -67,7 +67,7 @@ internal fun Modifier.playerOverscroll(
         while (swipe_interactions.isNotEmpty()) {
             delay(delta)
 
-            if (controller.song_count == 0 && overscroll_clear_mode == OverscrollClearMode.NONE_IF_QUEUE_EMPTY) {
+            if (controller.item_count == 0 && overscroll_clear_mode == OverscrollClearMode.NONE_IF_QUEUE_EMPTY) {
                 continue
             }
 
@@ -83,12 +83,12 @@ internal fun Modifier.playerOverscroll(
                 if (!triggered && time_below_threshold >= time_threshold) {
                     if (
                         overscroll_clear_mode == OverscrollClearMode.ALWAYS_HIDE
-                        || (overscroll_clear_mode == OverscrollClearMode.HIDE_IF_QUEUE_EMPTY && controller.song_count == 0)
+                        || (overscroll_clear_mode == OverscrollClearMode.HIDE_IF_QUEUE_EMPTY && controller.item_count == 0)
                     ) {
                         controller.service_player.cancelSession()
                     }
 
-                    if (controller.song_count > 0) {
+                    if (controller.item_count > 0) {
                         controller.service_player.clearQueue()
                     }
 

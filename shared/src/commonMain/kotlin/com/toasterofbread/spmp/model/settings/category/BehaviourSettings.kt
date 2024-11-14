@@ -20,6 +20,7 @@ import spmp.shared.generated.resources.s_key_lpm_increment_play_after
 import spmp.shared.generated.resources.s_key_multiselect_cancel_on_action
 import spmp.shared.generated.resources.s_key_multiselect_cancel_on_none_selected
 import spmp.shared.generated.resources.s_key_open_np_on_song_played
+import spmp.shared.generated.resources.s_key_repeat_song_on_previous_threshold_s
 import spmp.shared.generated.resources.s_key_search_show_suggestions
 import spmp.shared.generated.resources.s_key_show_likes_playlist
 import spmp.shared.generated.resources.s_key_start_radio_on_song_press
@@ -29,6 +30,7 @@ import spmp.shared.generated.resources.s_key_treat_singles_as_song
 import spmp.shared.generated.resources.s_sub_desktop_lpm_keep_on_background_scroll
 import spmp.shared.generated.resources.s_sub_multiselect_cancel_on_action
 import spmp.shared.generated.resources.s_sub_open_np_on_song_played
+import spmp.shared.generated.resources.s_sub_repeat_song_on_previous_threshold_s
 import spmp.shared.generated.resources.s_sub_start_radio_on_song_press
 import spmp.shared.generated.resources.s_sub_stop_player_on_app_close
 import spmp.shared.generated.resources.s_sub_treat_singles_as_song
@@ -83,6 +85,11 @@ class BehaviourSettings(val context: AppContext): SettingsGroup("BEHAVIOUR", con
         getName = { stringResource(Res.string.s_key_include_playback_position_in_share_url) },
         getDescription = { null },
         getDefaultValue = { true }
+    )
+    val REPEAT_SONG_ON_PREVIOUS_THRESHOLD_S: PreferencesProperty<Float> by property(
+        getName = { stringResource(Res.string.s_key_repeat_song_on_previous_threshold_s) },
+        getDescription = { stringResource(Res.string.s_sub_repeat_song_on_previous_threshold_s) },
+        getDefaultValue = { -1f }
     )
     val LPM_CLOSE_ON_ACTION: PreferencesProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_lpm_close_on_action) },

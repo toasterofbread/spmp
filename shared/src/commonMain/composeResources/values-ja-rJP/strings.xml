@@ -416,6 +416,9 @@
 
     <string name="s_key_include_playback_position_in_share_url">共有される曲のURLに再生位置を含む</string>
 
+    <string name="s_key_repeat_song_on_previous_threshold_s">巻き戻しシーク時に曲をリピートするしきい値 (秒)</string>
+    <string name="s_sub_repeat_song_on_previous_threshold_s">巻き戻し時、再生位置がこれより大きい場合、再生中の曲をリピートします。無効にするには0未満に設定。</string>
+
     <string name="s_key_player_expand_swipe_sensitivity">プレイヤー拡大ジェスチャーのしやすさ</string>
 
     <string name="s_key_mini_player_show_prev_button">ミニプレイヤーで「前へ」のボタンを表示</string>

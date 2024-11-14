@@ -10,7 +10,6 @@ import kotlinx.coroutines.launch
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import androidx.media3.common.Player
-import androidx.media3.common.ForwardingPlayer
 import androidx.media3.common.MediaItem as ExoMediaItem
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
@@ -27,6 +26,7 @@ import androidx.media3.common.util.UnstableApi
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.loading_splash_button_launch_without_server
+import kotlin.time.Duration
 
 actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_ready = false), PlayerService {
     private var target_playing: Boolean = false
@@ -44,7 +44,7 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
             override fun onSeeked(position_ms: Long) = this@PlatformExternalPlayerService.onSeeked(position_ms)
             override fun onSongMoved(from: Int, to: Int) = this@PlatformExternalPlayerService.onSongMoved(from, to)
             override fun onSongRemoved(index: Int, song: Song) = this@PlatformExternalPlayerService.onSongRemoved(index)
-            override fun onSongTransition(song: Song?, manual: Boolean) = this@PlatformExternalPlayerService.onSongTransition(current_song_index)
+            override fun onSongTransition(song: Song?, manual: Boolean) = this@PlatformExternalPlayerService.onSongTransition(current_item_index)
         }
 
     @Composable
@@ -82,8 +82,8 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
     }
 
     @OptIn(UnstableApi::class)
-    override fun getNotificationPlayer(player: Player): Player =
-        object : ForwardingPlayer(player) {
+    override fun getNotificationPlayer(): PlayerService =
+        object : ForwardingPlayerService(this) {
             override fun play() {
                 server.play()
             }
@@ -92,25 +92,20 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
                 server.pause()
             }
 
-            override fun seekToNext() {
-                server.seekToNext()
+            override fun seekToNext(): Boolean {
+                return server.seekToNext()
             }
 
-            override fun seekToNextMediaItem() {
-                server.seekToNext()
+            override fun seekToPrevious(repeat_threshold: Duration?): Boolean {
+                return server.seekToPrevious(repeat_threshold)
             }
 
-            override fun seekToPrevious() {
-                server.seekToPrevious()
+            override fun seekToTime(position_ms: Long) {
+                server.seekToTime(position_ms)
             }
 
-            override fun seekToPreviousMediaItem() {
-                server.seekToPrevious()
-            }
-
-            override fun seekTo(index: Int, position_ms: Long) {
-                server.seekToSong(index)
-                server.seekTo(position_ms)
+            override fun seekToItem(index: Int, position_ms: Long) {
+                server.seekToItem(index, position_ms)
             }
         }
 
@@ -119,8 +114,8 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
             private var last_seek_position: Long? = null
 
             override fun onMediaItemTransition(mediaItem: ExoMediaItem?, reason: Int) {
-                if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK && player.currentMediaItemIndex != current_song_index) {
-                    server.seekToSong(player.currentMediaItemIndex)
+                if (reason == Player.MEDIA_ITEM_TRANSITION_REASON_SEEK && player.currentMediaItemIndex != current_item_index) {
+                    server.seekToItem(player.currentMediaItemIndex)
                 }
             }
 
@@ -145,7 +140,7 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
                 if (reason == Player.DISCONTINUITY_REASON_SEEK && newPosition.positionMs != last_seek_position) {
                     last_seek_position = newPosition.positionMs
                     pause()
-                    server.seekTo(newPosition.positionMs)
+                    server.seekToTime(newPosition.positionMs)
 
                     if (player.playbackState == Player.STATE_READY) {
                         onPlaybackReady()
@@ -185,20 +180,20 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
     }}
     private fun onSeeked(position_ms: Long) { coroutine_scope.launch(Dispatchers.Main) {
         target_seek = position_ms
-        super.seekTo(position_ms)
+        super.seekToTime(position_ms)
     }}
     private fun onSongMoved(from: Int, to: Int) { coroutine_scope.launch(Dispatchers.Main) {
-        super.moveSong(from, to)
+        super.moveItem(from, to)
     }}
     private fun onSongRemoved(index: Int) { coroutine_scope.launch(Dispatchers.Main) {
-        super.removeSong(index)
+        super.removeItem(index)
     }}
     private fun onSongTransition(index: Int) { coroutine_scope.launch(Dispatchers.Main) {
         if (index < 0 || index == player.currentMediaItemIndex) {
             return@launch
         }
         try {
-            super.seekToSong(index)
+            super.seekToItem(index, 0)
         }
         catch (e: Throwable) {
             throw RuntimeException("seekToSong($index) failed", e)
@@ -212,31 +207,28 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
     override val load_state: PlayerServiceLoadState get() = server.load_state
     override val state: SpMsPlayerState get() = server.state
     override val is_playing: Boolean get() = server.is_playing
-    override val song_count: Int get() = server.song_count
-    override val current_song_index: Int get() = server.current_song_index
+    override val item_count: Int get() = server.item_count
+    override val current_item_index: Int get() = server.current_item_index
     override val current_position_ms: Long get() = server.current_position_ms
     override val duration_ms: Long get() = server.duration_ms
-    override val has_focus: Boolean get() = server.has_focus
     override val radio_instance: RadioInstance get() = server.radio_instance
-    override var repeat_mode: SpMsPlayerRepeatMode
+    override val repeat_mode: SpMsPlayerRepeatMode
         get() = server.repeat_mode
-        set(value) { server.repeat_mode = value }
-    override var volume: Float
+    override val volume: Float
         get() = server.volume
-        set(value) { server.volume = value }
 
     override fun play() = server.play()
     override fun pause() = server.pause()
     override fun playPause() = server.playPause()
-    override fun seekTo(position_ms: Long) = server.seekTo(position_ms)
-    override fun seekToSong(index: Int) = server.seekToSong(index)
+    override fun seekToTime(position_ms: Long) = server.seekToTime(position_ms)
+    override fun seekToItem(index: Int, position_ms: Long) = server.seekToItem(index, position_ms)
     override fun seekToNext() = server.seekToNext()
-    override fun seekToPrevious() = server.seekToPrevious()
+    override fun seekToPrevious(repeat_threshold: Duration?) = server.seekToPrevious(repeat_threshold)
     override fun getSong(): Song? = server.getSong()
     override fun getSong(index: Int): Song? = server.getSong(index)
     override fun addSong(song: Song, index: Int) = server.addSong(song, index)
-    override fun moveSong(from: Int, to: Int) = server.moveSong(from, to)
-    override fun removeSong(index: Int) = server.removeSong(index)
+    override fun moveItem(from: Int, to: Int) = server.moveItem(from, to)
+    override fun removeItem(index: Int) = server.removeItem(index)
     override fun addListener(listener: PlayerListener) = server.addListener(listener)
     override fun removeListener(listener: PlayerListener) = server.removeListener(listener)
 

@@ -11,7 +11,7 @@ class ShuffleQueuePlaybackAppAction: PlaybackAction {
     override suspend fun execute(player: PlayerState) {
         player.withPlayer{
             undoableAction {
-                shuffleQueue(start = current_song_index + 1)
+                shuffleQueue(start = current_item_index + 1)
             }
         }
     }

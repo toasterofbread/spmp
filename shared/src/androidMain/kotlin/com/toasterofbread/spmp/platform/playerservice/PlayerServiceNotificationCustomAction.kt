@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.platform.playerservice
 
-import androidx.media3.common.Player
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.platform.AppContext
@@ -11,11 +10,11 @@ enum class PlayerServiceNotificationCustomAction {
     LIKE,
     UNLIKE;
 
-    suspend fun execute(player: Player, context: AppContext) {
+    suspend fun execute(player: PlayerService, context: AppContext) {
         when (this) {
             LIKE,
             UNLIKE -> {
-                val song: Song = player.currentMediaItem?.toSong() ?: return
+                val song: Song = player.getSong() ?: return
 
                 val target_liked: SongLikedStatus =
                     when (this) {

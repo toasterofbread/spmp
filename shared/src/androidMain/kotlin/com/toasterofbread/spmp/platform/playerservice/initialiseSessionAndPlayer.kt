@@ -28,7 +28,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
     playlist_auto_progress: Boolean,
     coroutine_scope: CoroutineScope,
     data_spec_processor: MediaDataSpecProcessor,
-    getNotificationPlayer: () -> Player,
+    getNotificationPlayer: () -> PlayerService,
     onSongReadyToPlay: () -> Unit = {}
 ) = runBlocking {
     val service: ForegroundPlayerService = this@initialiseSessionAndPlayer

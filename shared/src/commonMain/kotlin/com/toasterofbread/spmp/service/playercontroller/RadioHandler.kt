@@ -62,7 +62,7 @@ open class RadioHandler(val player: PlayerServicePlayer, val context: AppContext
                         furtherAction {
                             player.addMultipleToQueue(
                                 result.songs,
-                                if (insertion_index >= 0) insertion_index else player.song_count,
+                                if (insertion_index >= 0) insertion_index else player.item_count,
                                 skip_existing = skip_existing,
                                 clear_after = clear_after
                             )
@@ -87,7 +87,7 @@ open class RadioHandler(val player: PlayerServicePlayer, val context: AppContext
         instance.setFilter(filter_index)
 
         val item_queue_index: Int? = instance.state.item_queue_index
-        val insertion_index: Int = maxOf(item_queue_index ?: -1, player.current_song_index) + 1
+        val insertion_index: Int = maxOf(item_queue_index ?: -1, player.current_item_index) + 1
 
         player.customUndoableAction { furtherAction ->
             furtherAction {
@@ -125,7 +125,7 @@ open class RadioHandler(val player: PlayerServicePlayer, val context: AppContext
             return
         }
 
-        val remaining: Int = player.song_count - player.current_song_index
+        val remaining: Int = player.item_count - player.current_item_index
         if (remaining < RADIO_MIN_LENGTH) {
             instance.loadContinuation()
         }
@@ -138,7 +138,7 @@ open class RadioHandler(val player: PlayerServicePlayer, val context: AppContext
 
         player.addMultipleToQueue(
             result.songs,
-            player.song_count,
+            player.item_count,
             skip_existing = true
         )
     }

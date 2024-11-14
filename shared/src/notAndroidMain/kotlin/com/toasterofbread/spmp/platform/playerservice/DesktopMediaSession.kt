@@ -87,13 +87,13 @@ internal fun createDesktopMediaSession(service: PlayerService): MediaSession? {
             service.seekToNext()
         }
         session.onPrevious = {
-            service.seekToPrevious()
+            service.seekToPreviousOrRepeat()
         }
         session.onSeek = { by_ms ->
-            service.seekTo(service.current_position_ms + by_ms)
+            service.seekToTime(service.current_position_ms + by_ms)
         }
         session.onSetPosition = { to_ms ->
-            service.seekTo(to_ms)
+            service.seekToTime(to_ms)
         }
     }
     catch (e: Throwable) {

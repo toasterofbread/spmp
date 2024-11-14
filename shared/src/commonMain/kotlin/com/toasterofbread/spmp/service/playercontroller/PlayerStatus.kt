@@ -26,7 +26,7 @@ class PlayerStatus internal constructor() {
         m_has_next = has_next
         m_has_previous = has_previous
         m_volume = volume
-        m_song_count = song_count
+        m_song_count = item_count
         m_undo_count = undo_count
         m_redo_count = redo_count
     }
@@ -50,12 +50,12 @@ class PlayerStatus internal constructor() {
     val playing: Boolean get() = player?.is_playing ?: false
     val duration_ms: Long get() = player?.duration_ms ?: -1
     val song: Song? get() = player?.getSong()
-    val index: Int get() = player?.current_song_index ?: -1
+    val index: Int get() = player?.current_item_index ?: -1
     val repeat_mode: SpMsPlayerRepeatMode get() = player?.repeat_mode ?: SpMsPlayerRepeatMode.NONE
     val has_next: Boolean get() = true
     val has_previous: Boolean get() = true
     val volume: Float get() = player?.volume ?: -1f
-    val song_count: Int get() = player?.song_count ?: -1
+    val item_count: Int get() = player?.item_count ?: -1
     val undo_count: Int get() = player?.service_player?.undo_count ?: -1
     val redo_count: Int get() = player?.service_player?.redo_count ?: -1
 
@@ -76,7 +76,7 @@ class PlayerStatus internal constructor() {
         private set
     var m_volume: Float by mutableStateOf(volume)
         private set
-    var m_song_count: Int by mutableStateOf(song_count)
+    var m_song_count: Int by mutableStateOf(item_count)
         private set
     var m_undo_count: Int by mutableStateOf(undo_count)
         private set
@@ -93,7 +93,7 @@ class PlayerStatus internal constructor() {
             "has_next" to m_has_next,
             "has_previous" to m_has_previous,
             "volume" to m_volume,
-            "song_count" to m_song_count,
+            "item_count" to m_song_count,
             "undo_count" to m_undo_count,
             "redo_count" to m_redo_count
         ).toString()
@@ -132,7 +132,7 @@ class PlayerStatus internal constructor() {
                 m_duration_ms = duration_ms
                 m_index = index
                 m_volume = volume
-                m_song_count = song_count
+                m_song_count = item_count
 
                 player?.also { p ->
                     if (m_index > p.service_player.active_queue_index) {

@@ -25,7 +25,7 @@ class QueueSeekAction: ActionCallback {
         val controller: PlayerService = SpMp._player_state?.controller ?: return
 
         GlobalScope.launch(Dispatchers.Main) {
-            controller.seekToSong(index)
+            controller.seekToItem(index)
         }
     }
 

@@ -13,7 +13,6 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -49,7 +48,7 @@ fun LyricsSyncMenu(
     val service: PlayerService? = player.controller
 
     LaunchedEffect(line_index) {
-        service?.seekTo(
+        service?.seekToTime(
             lyrics.lines[line_index].getLineRange().first - SONG_SEEK_MS
         )
     }

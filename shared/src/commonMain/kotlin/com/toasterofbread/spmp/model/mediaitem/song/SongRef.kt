@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.model.mediaitem.song
 
-import dev.toastbits.composekit.platform.lazyAssert
 import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.PropertyRememberer
 

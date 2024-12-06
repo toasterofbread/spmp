@@ -37,7 +37,7 @@ class SpMpDeps(extra: Map<String, Any>) {
     val dependencies: Map<String, DependencyInfo> =
         mapOf(
             "dev.toastbits:spms" to DependencyInfo(
-                version = "0.4.4",
+                version = "0.4.5",
                 name = "spmp-server",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/spmp-server",
@@ -53,7 +53,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/toasterofbread/ComposeKit/blob/136f216e65395660255d3270af9b79c90ae2254c/LICENSE"
             ),
             "dev.toastbits.ytmkt" to DependencyInfo(
-                version = "0.3.4",
+                version = "0.4.0",
                 name = "ytm-kt",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/ytm-kt",
@@ -183,14 +183,6 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license = "LGPL-2.1 or later",
                 license_url = "https://bitbucket.org/ijabz/jaudiotagger/src/master/license.txt",
                 fork_url = "https://github.com/marcoc1712/jaudiotagger"
-            ),
-            "com.github.teamnewpipe:NewPipeExtractor" to DependencyInfo(
-                version = "v0.24.2",
-                name = "NewPipe Extractor",
-                author = "Team NewPipe",
-                url = "https://github.com/TeamNewPipe/NewPipeExtractor",
-                license = "GPL-3.0",
-                license_url = "https://github.com/TeamNewPipe/NewPipeExtractor/blob/ec3e8378c627c682964f104fc2fb06ea5513b6b7/LICENSE"
             ),
             "org.zeromq:jeromq" to DependencyInfo(
                 version = "0.6.0",

@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.model.settings.category
 
-import com.toasterofbread.spmp.youtubeapi.NewPipeVideoFormatsEndpoint
+import dev.toastbits.ytmkt.formats.NewPipeVideoFormatsEndpoint
 import dev.toastbits.ytmkt.formats.PipedVideoFormatsEndpoint
 import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
 import dev.toastbits.ytmkt.formats.YoutubeiVideoFormatsEndpoint

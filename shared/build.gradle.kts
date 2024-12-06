@@ -109,7 +109,6 @@ kotlin {
                 implementation(deps.get("com.github.paramsen:noise"))
                 implementation(deps.get("io.github.pdvrieze.xmlutil:core", "io.github.pdvrieze.xmlutil"))
                 implementation(deps.get("io.github.pdvrieze.xmlutil:serialization", "io.github.pdvrieze.xmlutil"))
-                implementation(deps.get("com.github.teamnewpipe:NewPipeExtractor"))
                 implementation(deps.get("org.zeromq:jeromq"))
                 implementation(deps.get("io.coil-kt.coil3:coil-compose"))
                 implementation(deps.get("io.coil-kt.coil3:coil-network-ktor3"))

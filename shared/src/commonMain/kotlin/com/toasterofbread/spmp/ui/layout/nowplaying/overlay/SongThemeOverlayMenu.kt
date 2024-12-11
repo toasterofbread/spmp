@@ -26,9 +26,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
-import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyColumn
+import dev.toastbits.composekit.util.composable.OnChangedEffect
+import dev.toastbits.composekit.components.utils.composable.LargeDropdownMenu
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.FormFactor
@@ -264,7 +264,7 @@ private fun ValueSlider(value_state: MutableState<Float?>, default_value: Float,
             Text((current_value * 100).roundToInt().toString().padStart(3, ' '), fontSize = 15.sp)
         }
 
-        val slider_colour: Color = player.theme.on_background
+        val slider_colour: Color = player.theme.onBackground
 
         Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             Slider(

@@ -31,9 +31,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.appaction.shortcut.LocalShortcutState
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
-import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.ProjectJson
 import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -46,17 +44,19 @@ import com.toasterofbread.spmp.ui.layout.loadingsplash.LoadingSplash
 import com.toasterofbread.spmp.ui.layout.loadingsplash.SplashMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
-import dev.toastbits.composekit.navigation.Screen
+import dev.toastbits.composekit.application.ApplicationTheme
+import dev.toastbits.composekit.commonsettings.impl.group.rememberThemeConfiguration
+import dev.toastbits.composekit.navigation.screen.Screen
 import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
 import dev.toastbits.composekit.navigation.navigator.Navigator
-import dev.toastbits.composekit.platform.LocalContext
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.platform.PlatformPreferences
-import dev.toastbits.composekit.platform.PreferencesGroup
-import dev.toastbits.composekit.platform.composable.theme.ApplicationTheme
+import dev.toastbits.composekit.components.LocalContext
+import dev.toastbits.composekit.navigation.screen.ScreenButton
+import dev.toastbits.composekit.util.platform.Platform
+import dev.toastbits.composekit.settings.PlatformSettings
 import dev.toastbits.composekit.settings.ui.SettingsScreen
-import dev.toastbits.composekit.settings.ui.ThemeValues
-import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.theme.ThemeValues
+import dev.toastbits.composekit.theme.model.ThemeConfiguration
+import dev.toastbits.composekit.util.thenIf
 import dev.toastbits.spms.socketapi.shared.SPMS_API_VERSION
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
@@ -94,7 +94,7 @@ object SpMp {
         private set
     val player_state: PlayerState get() = _player_state!!
 
-    val prefs: PlatformPreferences get() = context.getPrefs()
+    val prefs: PlatformSettings get() = context.getPrefs()
 
     private val low_memory_listeners: MutableList<() -> Unit> = mutableListOf()
     private var window_fullscreen_toggler: (() -> Unit)? = null
@@ -131,6 +131,15 @@ object SpMp {
     }
 
     private val navigator = object : Navigator {
+        override val currentExtraButtons: List<ScreenButton>
+            @Composable
+            get() = emptyList()
+        override val currentInfo: String?
+            @Composable
+            get() = null
+        override val currentTitle: String?
+            @Composable
+            get() = null
         override val currentScreen: Screen = Screen.EMPTY
 
         @Composable
@@ -142,10 +151,14 @@ object SpMp {
             throw IllegalStateException()
         }
 
-        override fun canNavigateBackward(): Boolean = false
-        override fun canNavigateForward(): Boolean = false
+        override fun addChild(navigator: Navigator) {
+            TODO("Not yet implemented")
+        }
+
+        override fun getNavigateBackwardCount(): Int = 0
+        override fun getNavigateForwardCount(): Int = 0
+
         override fun getMostRecentOfOrNull(predicate: (Screen) -> Boolean): Screen? = null
-        override fun handleKeyEvent(keyEvent: KeyEvent): Boolean = false
         override fun navigateBackward(by: Int) {
             _player_state?.navigateBack()
         }
@@ -157,9 +170,25 @@ object SpMp {
             player.openAppPage(screen.toAppPage(player.app_page_state, this), replace_current = false)
         }
 
+        override fun <T : Screen> pushScreenAndListenForClose(
+            screen: T,
+            skipIfSameClass: Boolean,
+            listener: Navigator.ScreenCloseListener<T>,
+        ) {
+            TODO("Not yet implemented")
+        }
+
+        override fun removeChild(navigator: Navigator) {
+            TODO("Not yet implemented")
+        }
+
         override fun replaceScreen(screen: Screen) {
             val player: PlayerState = _player_state ?: return
             player.openAppPage(screen.toAppPage(player.app_page_state, this), replace_current = true)
+        }
+
+        override fun replaceScreenUpTo(screen: Screen, isLastScreenToReplace: (Screen) -> Boolean) {
+            TODO("Not yet implemented")
         }
     }
 
@@ -195,9 +224,9 @@ object SpMp {
         window_fullscreen_toggler: (() -> Unit)? = null
     ) {
         shortcut_state.ObserveState()
-        if (!context.theme.Update()) {
-            return
-        }
+
+        val themeConfiguration: ThemeConfiguration = context.settings.theme.rememberThemeConfiguration()
+        context.theme.Update(themeConfiguration)
 
         val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
@@ -344,17 +373,9 @@ fun SpMp.Theme(
 ) {
     theme.ApplicationTheme(
         context,
-        getFontFamily(context, ui_language) ?: FontFamily.Default,
+        context.settings,
         content
     )
-}
-
-@Composable
-private fun getFontFamily(context: AppContext, ui_language: String): FontFamily? {
-    val font_mode: FontMode by context.settings.system.FONT.observe()
-    val font_resource: FontResource? = remember(ui_language, font_mode) { font_mode.getFontResource(ui_language) }
-
-    return font_resource?.let { FontFamily(Font(it)) }
 }
 
 private class LocalisedComposeEnvironment(

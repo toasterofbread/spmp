@@ -92,12 +92,12 @@ import com.toasterofbread.spmp.widget.configuration.enum.colour
 import com.toasterofbread.spmp.widget.configuration.type.TypeConfigurationDefaultsMask
 import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
 import com.toasterofbread.spmp.widget.modifier.systemCornerRadius
-import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
-import dev.toastbits.composekit.settings.ui.NamedTheme
-import dev.toastbits.composekit.settings.ui.ThemeValues
+import dev.toastbits.composekit.components.platform.composable.theme.LocalApplicationTheme
+import dev.toastbits.composekit.theme.model.NamedTheme
+import dev.toastbits.composekit.theme.ThemeValues
 import dev.toastbits.composekit.settings.ui.ThemeValuesData
-import dev.toastbits.composekit.utils.common.getThemeColour
-import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.util.getThemeColour
+import dev.toastbits.composekit.util.thenIf
 import dev.toastbits.ytmkt.model.external.SongLikedStatus
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import kotlinx.coroutines.CoroutineScope
@@ -170,7 +170,7 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
             CompositionLocalProvider(
                 // App
                 LocalPlayerState provides state,
-                dev.toastbits.composekit.platform.LocalContext provides this.context,
+                dev.toastbits.composekit.context.LocalContext provides this.context,
 
                 // System
                 LocalContext provides context,
@@ -182,14 +182,14 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
 
                 val on_background_colour: Color =
                     when (base_configuration.content_colour) {
-                        THEME -> theme.theme.on_background
+                        THEME -> theme.theme.onBackground
                         LIGHT -> Color.White
                         DARK -> Color.Black
                     }
 
                 CompositionLocalProvider(
                     *listOfNotNull(
-                        LocalApplicationTheme provides theme.theme.copy(on_background = on_background_colour),
+                        LocalApplicationTheme provides theme.theme.copy(onBackground = on_background_colour),
                         if (!custom_background) LocalContentColor provides on_background_colour else null
                     ).toTypedArray()
                 ) {

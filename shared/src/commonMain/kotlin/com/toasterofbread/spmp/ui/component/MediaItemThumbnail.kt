@@ -22,9 +22,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.layout.ContentScale
-import dev.toastbits.composekit.utils.common.launchSingle
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
-import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.util.launchSingle
+import dev.toastbits.composekit.util.composable.OnChangedEffect
+import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider.Quality

@@ -280,8 +280,8 @@
 	<string name="s_key_stream_audio_quality">Calidad de audio de la transmisión</string>
 	<string name="s_key_treat_singles_as_song">Trata los sencillos de los artistas como una canción.</string>
 	<string name="s_key_unlocalised_strings">Cadenas no localizadas</string>
-	<string name="s_option_accent_theme">Del tema</string>
-	<string name="s_option_accent_thumbnail">De la miniatura</string>
+	<string name="s_optionAccent_theme">Del tema</string>
+	<string name="s_optionAccent_thumbnail">De la miniatura</string>
 	<string name="s_option_audio_quality_high">Alto</string>
 	<string name="s_option_audio_quality_low">Bajo</string>
 	<string name="s_option_audio_quality_medium">Medio</string>

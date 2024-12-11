@@ -8,7 +8,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
-import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import com.toasterofbread.spmp.model.deserialise
 import com.toasterofbread.spmp.model.getString
 import com.toasterofbread.spmp.model.serialise
@@ -16,7 +16,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppStringSetItem
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.utils.common.toCustomResource
+import dev.toastbits.composekit.util.toCustomResource
 import dev.toastbits.ytmkt.uistrings.RawUiString
 import dev.toastbits.ytmkt.uistrings.UiString
 import org.jetbrains.compose.resources.stringResource

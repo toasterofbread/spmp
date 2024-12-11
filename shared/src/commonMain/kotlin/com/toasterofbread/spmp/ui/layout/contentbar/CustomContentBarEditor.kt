@@ -14,15 +14,15 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import dev.toastbits.composekit.utils.common.*
-import dev.toastbits.composekit.utils.composable.*
+import dev.toastbits.composekit.util.*
+import dev.toastbits.composekit.util.composable.*
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.vertical
-import dev.toastbits.composekit.settings.ui.ThemeValues
-import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.theme.ThemeValues
+import dev.toastbits.composekit.theme.vibrantAccent
 import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -126,11 +126,11 @@ internal abstract class CustomContentBarEditor() {
                 vertical_bar,
                 Modifier
                     .fillMaxWidth()
-                    .background(player.theme.vibrant_accent.copy(alpha = 0.25f), RoundedCornerShape(16.dp))
+                    .background(player.theme.vibrantAccent.copy(alpha = 0.25f), RoundedCornerShape(16.dp))
                     .padding(15.dp),
                 alignment = -1
             ) {
-                CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
+                CompositionLocalProvider(LocalContentColor provides player.theme.onBackground) {
                     if (vertical_bar) {
                         var column_height: Dp by remember { mutableStateOf(0.dp) }
                         BarPreview(
@@ -190,7 +190,7 @@ internal abstract class CustomContentBarEditor() {
                     .background(player.theme.background, RoundedCornerShape(16.dp))
                     .padding(10.dp)
             ) {
-                CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
+                CompositionLocalProvider(LocalContentColor provides player.theme.onBackground) {
                     ElementEditor(
                         element,
                         element_index,
@@ -219,7 +219,7 @@ internal abstract class CustomContentBarEditor() {
         val player: PlayerState = LocalPlayerState.current
         val button_colours: ButtonColors = ButtonDefaults.buttonColors(
             containerColor = player.theme.background,
-            contentColor = player.theme.on_background
+            contentColor = player.theme.onBackground
         )
 
         FlowRow(
@@ -295,9 +295,9 @@ internal abstract class CustomContentBarEditor() {
                 getSpacerElementModifier = { index, spacer -> with(spacer) {
                     Modifier
                         .clickable { onElementClicked(index) }
-                        .border(2.dp, player.theme.vibrant_accent)
+                        .border(2.dp, player.theme.vibrantAccent)
                         .thenIf(index == selected_element) {
-                            background(player.theme.vibrant_accent)
+                            background(player.theme.vibrantAccent)
                         }
                 }},
                 shouldShowButton = { true },
@@ -339,7 +339,7 @@ internal abstract class CustomContentBarEditor() {
                         .thenIf(vertical_bar) {
                             rotate(-90f).vertical().padding(horizontal = 10.dp)
                         },
-                    color = player.theme.on_background
+                    color = player.theme.onBackground
                 )
             }
         }

@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.spmp.model.settings.SettingsGroupImpl
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getLayoutCategoryItems
@@ -43,11 +44,11 @@ import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlotEditorPreviewOptions
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
+import dev.toastbits.composekit.components.platform.composable.platformClickable
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
-import dev.toastbits.composekit.settings.ui.vibrant_accent
-import dev.toastbits.composekit.utils.common.thenWith
+import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.util.thenWith
 import kotlinx.serialization.json.JsonElement
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -55,7 +56,7 @@ import spmp.shared.generated.resources.layout_editor_preview_options
 import spmp.shared.generated.resources.s_cat_desc_layout
 import spmp.shared.generated.resources.s_cat_layout
 
-class LayoutSettings(val context: AppContext): SettingsGroup("LAYOUT", context.getPrefs()) {
+class LayoutSettings(val context: AppContext): SettingsGroupImpl("LAYOUT", context.getPrefs()) {
         // // Map of LayoutSlot to ContentBarReference?
         // PORTRAIT_SLOTS,
         // LANDSCAPE_SLOTS,
@@ -71,27 +72,27 @@ class LayoutSettings(val context: AppContext): SettingsGroup("LAYOUT", context.g
         // // List of serialised CustomBars
         // CUSTOM_BARS;
 
-    val PORTRAIT_SLOTS: PreferencesProperty<Map<String, ContentBarReference?>> by serialisableProperty(
+    val PORTRAIT_SLOTS: PlatformSettingsProperty<Map<String, ContentBarReference?>> by serialisableProperty(
         getName = { "" },
         getDescription = { null },
         getDefaultValue = { emptyMap() }
     )
-    val LANDSCAPE_SLOTS: PreferencesProperty<Map<String, ContentBarReference?>> by serialisableProperty(
+    val LANDSCAPE_SLOTS: PlatformSettingsProperty<Map<String, ContentBarReference?>> by serialisableProperty(
         getName = { "" },
         getDescription = { null },
         getDefaultValue = { emptyMap() }
     )
-    val SLOT_COLOURS: PreferencesProperty<Map<String, ColourSource>> by serialisableProperty(
+    val SLOT_COLOURS: PlatformSettingsProperty<Map<String, ColourSource>> by serialisableProperty(
         getName = { "" },
         getDescription = { null },
         getDefaultValue = { emptyMap() }
     )
-    val SLOT_CONFIGS: PreferencesProperty<Map<String, JsonElement>> by serialisableProperty(
+    val SLOT_CONFIGS: PlatformSettingsProperty<Map<String, JsonElement>> by serialisableProperty(
         getName = { "" },
         getDescription = { null },
         getDefaultValue = { emptyMap() }
     )
-    val CUSTOM_BARS: PreferencesProperty<List<CustomContentBar>> by serialisableProperty(
+    val CUSTOM_BARS: PlatformSettingsProperty<List<CustomContentBar>> by serialisableProperty(
         getName = { "" },
         getDescription = { null },
         getDefaultValue = { emptyList() }
@@ -161,7 +162,7 @@ class LayoutSettings(val context: AppContext): SettingsGroup("LAYOUT", context.g
                         }
                         .platformClickable(onClick = {})
                         .background(player.theme.background, shape)
-                        .border(1.dp, player.theme.vibrant_accent, shape)
+                        .border(1.dp, player.theme.vibrantAccent, shape)
                         .padding(20.dp)
                 )
             }

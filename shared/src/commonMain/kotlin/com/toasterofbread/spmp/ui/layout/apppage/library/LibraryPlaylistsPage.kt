@@ -20,10 +20,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
-import dev.toastbits.composekit.platform.composable.ScrollBarLazyVerticalGrid
-import dev.toastbits.composekit.utils.composable.LoadActionIconButton
-import dev.toastbits.composekit.utils.composable.spanItem
-import dev.toastbits.composekit.utils.composable.RowOrColumnScope
+import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyVerticalGrid
+import dev.toastbits.composekit.util.composable.LoadActionIconButton
+import dev.toastbits.composekit.util.composable.spanItem
+import dev.toastbits.composekit.util.composable.RowOrColumnScope
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight

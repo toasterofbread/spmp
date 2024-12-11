@@ -11,11 +11,11 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.platform.PlatformPreferencesListener
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.NamedTheme
-import dev.toastbits.composekit.settings.ui.ThemeValues
+import dev.toastbits.composekit.util.platform.Platform
+import dev.toastbits.composekit.settings.PlatformSettingsListener
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
+import dev.toastbits.composekit.theme.model.NamedTheme
+import dev.toastbits.composekit.theme.ThemeValues
 import dev.toastbits.composekit.settings.ui.ThemeValuesData
 import dev.toastbits.composekit.settings.ui.component.item.GroupSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.MultipleChoiceSettingsItem
@@ -32,8 +32,8 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_group_theming_desktop
-import spmp.shared.generated.resources.s_option_accent_theme
-import spmp.shared.generated.resources.s_option_accent_thumbnail
+import spmp.shared.generated.resources.s_optionAccent_theme
+import spmp.shared.generated.resources.s_optionAccent_thumbnail
 import spmp.shared.generated.resources.s_option_np_accent_background
 import spmp.shared.generated.resources.s_option_np_accent_elements
 import spmp.shared.generated.resources.s_option_np_accent_none
@@ -51,7 +51,7 @@ internal fun getThemeCategoryItems(context: AppContext): List<SettingsItem> =
     listOfNotNull(
         createThemeSelectorSettingsItem(
             context,
-            context.settings.theme.CURRENT_THEME,
+            context.settings.theme.THEME_INDEX,
             getFooterModifier = {
                 LocalPlayerState.current.nowPlayingTopOffset(Modifier, NowPlayingTopOffsetSection.PAGE_BAR)
             }
@@ -138,7 +138,7 @@ private fun getWindowTransparencyItems(context: AppContext): List<SettingsItem> 
 
 fun createThemeSelectorSettingsItem(
     context: AppContext,
-    state: PreferencesProperty<Int>,
+    state: PlatformSettingsProperty<Int>,
     getExtraStartThemes: @Composable () -> List<NamedTheme> = { emptyList() },
     getFooterModifier: @Composable () -> Modifier = { Modifier }
 ) =
@@ -169,7 +169,7 @@ fun createThemeSelectorSettingsItem(
                 }
 
                 private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
-                private val prefs_listener: PlatformPreferencesListener = PlatformPreferencesListener { key ->
+                private val prefs_listener: PlatformSettingsListener = PlatformSettingsListener { key ->
                     if (key == context.settings.theme.THEMES.key) {
                         coroutine_scope.launch {
                             themes = context.settings.theme.THEMES.get()

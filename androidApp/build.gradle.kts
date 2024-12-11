@@ -5,6 +5,7 @@ import org.xmlpull.v1.XmlPullParserFactory
 import java.io.FileInputStream
 import java.util.Properties
 import com.android.build.api.dsl.ApplicationVariantDimension
+import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 import plugin.spmp.SpMpDeps
 import plugin.spmp.getDeps
 
@@ -57,7 +58,9 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 implementation(project(":shared"))
-                implementation(deps.get("dev.toastbits.composekit:library"))
+                for (dependency in deps.getAllComposeKit()) {
+                    implementation(dependency)
+                }
             }
         }
     }

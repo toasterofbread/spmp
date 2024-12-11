@@ -6,7 +6,7 @@ import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.youtubeapi.lyrics.petit.parseTimedLyrics
 import com.toasterofbread.spmp.youtubeapi.lyrics.petit.searchPetitLyrics
-import dev.toastbits.composekit.utils.common.substringBetween
+import dev.toastbits.composekit.util.substringBetween
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.expectSuccess
 import io.ktor.client.request.post

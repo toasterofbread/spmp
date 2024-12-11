@@ -24,10 +24,10 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.toastbits.composekit.utils.common.times
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
-import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
-import dev.toastbits.composekit.utils.composable.crossOut
+import dev.toastbits.composekit.util.times
+import dev.toastbits.composekit.util.composable.OnChangedEffect
+import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.util.composable.crossOut
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.ui.component.PillMenu
 import com.toasterofbread.spmp.ui.component.Thumbnail
@@ -91,7 +91,7 @@ internal fun RadioArtistSelector(
     Crossfade(radio_artists) { artists ->
         if (artists == null) {
             Box(modifier, contentAlignment = Alignment.Center) {
-                SubtleLoadingIndicator(getColour = { player.theme.on_background })
+                SubtleLoadingIndicator(getColour = { player.theme.onBackground })
             }
         }
         else {
@@ -150,7 +150,7 @@ internal fun RadioArtistSelector(
                                     Box(
                                         Modifier
                                             .size(thumb_size + selected_border_size * border_expansion.value)
-                                            .border(1.dp, player.theme.on_background, getArtistThumbShape())
+                                            .border(1.dp, player.theme.onBackground, getArtistThumbShape())
                                     )
                                 }
 
@@ -167,7 +167,7 @@ internal fun RadioArtistSelector(
                             Text(
                                 artist.name ?: "",
                                 fontSize = 12.sp,
-                                color = player.theme.on_background,
+                                color = player.theme.onBackground,
                                 maxLines = 1,
                                 lineHeight = 14.sp,
                                 overflow = TextOverflow.Ellipsis

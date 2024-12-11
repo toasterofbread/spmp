@@ -21,11 +21,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.platform.composable.platformClickable
-import dev.toastbits.composekit.platform.vibrateShort
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.utils.composable.TextOrIconButton
-import dev.toastbits.composekit.utils.modifier.bounceOnClick
+import dev.toastbits.composekit.components.platform.composable.platformClickable
+import dev.toastbits.composekit.context.vibrateShort
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.util.composable.TextOrIconButton
+import dev.toastbits.composekit.components.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.theme.appHover

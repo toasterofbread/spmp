@@ -9,7 +9,7 @@ import com.toasterofbread.spmp.model.settings.category.VideoFormatsEndpointType
 import com.toasterofbread.spmp.model.settings.category.instantiate
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getMediaDataSpecPlaybackUri
-import dev.toastbits.composekit.platform.PlatformPreferencesListener
+import dev.toastbits.composekit.settings.PlatformSettingsListener
 import kotlinx.coroutines.runBlocking
 import java.io.IOException
 
@@ -17,8 +17,8 @@ import java.io.IOException
 internal class MediaDataSpecProcessor(private val context: AppContext) {
     private var current_endpoint: VideoFormatsEndpointType? = null
 
-    private val prefs_listener: PlatformPreferencesListener =
-        PlatformPreferencesListener { key ->
+    private val prefs_listener: PlatformSettingsListener =
+        PlatformSettingsListener { key ->
             when (key) {
                 context.settings.streaming.ENABLE_VIDEO_FORMAT_FALLBACK.key,
                 context.settings.streaming.VIDEO_FORMATS_METHOD.key -> current_endpoint = null

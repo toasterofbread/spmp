@@ -14,10 +14,10 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.platform.composable.*
-import dev.toastbits.composekit.utils.common.*
-import dev.toastbits.composekit.utils.composable.*
-import dev.toastbits.composekit.utils.modifier.*
+import dev.toastbits.composekit.components.platform.composable.*
+import dev.toastbits.composekit.util.*
+import dev.toastbits.composekit.util.composable.*
+import dev.toastbits.composekit.components.utils.modifier.*
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.db.getPinnedItems
@@ -239,7 +239,7 @@ internal fun SongFeedAppPage.LFFSongFeedAppPage(
                                             }
                                             else if (requestContinuation != null) {
                                                 IconButton({ requestContinuation() }) {
-                                                    Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = player.theme.on_background)
+                                                    Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = player.theme.onBackground)
                                                 }
                                             }
                                         }

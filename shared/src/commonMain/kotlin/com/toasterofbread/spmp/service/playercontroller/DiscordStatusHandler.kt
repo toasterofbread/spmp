@@ -8,9 +8,9 @@ import com.toasterofbread.spmp.model.settings.category.DiscordSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
-import dev.toastbits.composekit.platform.PlatformPreferencesListener
-import dev.toastbits.composekit.utils.common.associateNotNull
-import dev.toastbits.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.settings.PlatformSettingsListener
+import dev.toastbits.composekit.util.associateNotNull
+import dev.toastbits.composekit.util.launchSingle
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -55,8 +55,8 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
 
     private var current_status: StatusInfo? = null
 
-    private val prefs_listener: PlatformPreferencesListener =
-        PlatformPreferencesListener { key ->
+    private val prefs_listener: PlatformSettingsListener =
+        PlatformSettingsListener { key ->
             when (key) {
                 context.settings.discord_auth.DISCORD_ACCOUNT_TOKEN.key -> {
                     load_coroutine_scope.launch {

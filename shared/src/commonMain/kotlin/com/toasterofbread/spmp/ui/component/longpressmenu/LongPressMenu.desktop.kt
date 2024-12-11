@@ -49,17 +49,17 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import dev.toastbits.composekit.platform.composable.BackHandler
-import dev.toastbits.composekit.utils.common.blendWith
-import dev.toastbits.composekit.utils.common.contrastAgainst
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.utils.common.launchSingle
-import dev.toastbits.composekit.utils.common.snapOrAnimateTo
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
-import dev.toastbits.composekit.utils.composable.getBottom
-import dev.toastbits.composekit.utils.composable.getEnd
-import dev.toastbits.composekit.utils.composable.getStart
+import dev.toastbits.composekit.components.platform.composable.BackHandler
+import dev.toastbits.composekit.util.blendWith
+import dev.toastbits.composekit.util.contrastAgainst
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.util.launchSingle
+import dev.toastbits.composekit.util.snapOrAnimateTo
+import dev.toastbits.composekit.util.composable.OnChangedEffect
+import dev.toastbits.composekit.util.composable.ShapedIconButton
+import dev.toastbits.composekit.util.composable.getBottom
+import dev.toastbits.composekit.util.composable.getEnd
+import dev.toastbits.composekit.util.composable.getStart
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
@@ -287,7 +287,7 @@ internal fun DesktopLongPressMenu(
                                 bottom = MENU_CONTENT_PADDING_DP.dp + WindowInsets.systemBars.getBottom()
                             ),
                             { accent_colour },
-                            modifier = Modifier.border(2.dp, player.theme.on_background.copy(alpha = 0.1f), shape),
+                            modifier = Modifier.border(2.dp, player.theme.onBackground.copy(alpha = 0.1f), shape),
                             onAction = {
                                 if (show_background && close_on_action) {
                                     close()

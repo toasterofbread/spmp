@@ -2,13 +2,11 @@ package com.toasterofbread.spmp.platform
 
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.State
 import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.intl.Locale
@@ -17,100 +15,47 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
-import com.toasterofbread.spmp.model.settings.category.getCurrentTheme
-import com.toasterofbread.spmp.model.settings.category.observeCurrentTheme
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.platform.PlatformContextImpl
-import dev.toastbits.composekit.platform.PlatformPreferences
-import dev.toastbits.composekit.platform.PlatformPreferencesListener
-import dev.toastbits.composekit.settings.ui.NamedTheme
-import dev.toastbits.composekit.settings.ui.ThemeManager
-import dev.toastbits.composekit.settings.ui.ThemeValues
-import dev.toastbits.composekit.settings.ui.rememberSystemTheme
+import dev.toastbits.composekit.commonsettings.impl.group.theme.ContextThemeManager
+import dev.toastbits.composekit.context.PlatformContext
+import dev.toastbits.composekit.settings.PlatformSettings
+import dev.toastbits.composekit.settings.PlatformSettingsListener
+import dev.toastbits.composekit.theme.ThemeValues
+import dev.toastbits.composekit.util.platform.Platform
 import dev.toastbits.ytmkt.model.YtmApi
-import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.stringResource
-import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.theme_title_system
 
-expect class AppContext: PlatformContextImpl {
+expect class AppContext: PlatformContext {
     val database: Database
     val download_manager: PlayerDownloadManager
     val ytapi: YtmApi
     val theme: AppThemeManager
     val settings: Settings
 
-    fun getPrefs(): PlatformPreferences
+    fun getPrefs(): PlatformSettings
 }
 
 class AppThemeManager(
     private val context: AppContext
-): ThemeValues {
-    override val accent: Color
-        get() = _manager?.accent ?: Color.Unspecified
-    override val background: Color
-        get() = _manager?.background ?: Color.Unspecified
-    override val card: Color
-        get() = _manager?.card ?: Color.Unspecified
-    override val on_background: Color
-        get() = _manager?.on_background ?: Color.Unspecified
-    override val error: Color
-        get() = _manager?.error ?: Color.Unspecified
-
+): ContextThemeManager(context.settings, context) {
     private var accent_colour_source: AccentColourSource? by mutableStateOf(null)
 
-    var _manager: ThemeManager? = null
-        private set
-    val manager: ThemeManager get() = _manager!!
-
-    @Composable
-    fun Update(): Boolean {
-        val system_theme: NamedTheme = rememberSystemTheme(stringResource(Res.string.theme_title_system), context)
-        val composable_coroutine_scope: CoroutineScope = rememberCoroutineScope()
-        var initialised: Boolean by remember { mutableStateOf(false) }
-
-        LaunchedEffect(Unit) {
-            val initial_theme: NamedTheme = getCurrentTheme(context, system_theme)
-
-            _manager = object : ThemeManager(
-                initial_theme.theme,
-                composable_coroutine_scope
-            ) {
-                override fun selectAccentColour(values: ThemeValues, thumbnail_colour: Color?): Color =
-                    when(accent_colour_source ?: AccentColourSource.THEME) {
-                        AccentColourSource.THEME -> values.accent
-                        AccentColourSource.THUMBNAIL -> thumbnail_colour ?: values.accent
-                    }
-            }
-
-            initialised = true
+    override fun selectAccentColour(values: ThemeValues, contextualColour: Color?): Color =
+        when(accent_colour_source ?: AccentColourSource.THEME) {
+            AccentColourSource.THEME -> values.accent
+            AccentColourSource.THUMBNAIL -> contextualColour ?: values.accent
         }
-
-        val theme: NamedTheme by observeCurrentTheme(context)
-
-        LaunchedEffect(theme, initialised) {
-            if (!initialised) {
-                return@LaunchedEffect
-            }
-
-            manager.setTheme(theme.theme)
-        }
-
-        return initialised
-    }
 
     fun onCurrentThumbnailColourChanged(thumbnail_colour: Color?) {
-        manager.onThumbnailColourChanged(thumbnail_colour)
+        onContextualColourChanged(thumbnail_colour)
     }
 
-    private val prefs_listener: PlatformPreferencesListener =
-        PlatformPreferencesListener { key ->
+    private val prefs_listener: PlatformSettingsListener =
+        PlatformSettingsListener { key ->
             when (key) {
                 context.settings.theme.ACCENT_COLOUR_SOURCE.key -> {
-                    context.coroutine_scope.launch {
+                    context.coroutineScope.launch {
                         accent_colour_source = context.settings.theme.ACCENT_COLOUR_SOURCE.get()
                     }
                 }
@@ -118,10 +63,10 @@ class AppThemeManager(
         }
 
     init {
-        val prefs: PlatformPreferences = context.getPrefs()
+        val prefs: PlatformSettings = context.getPrefs()
         prefs.addListener(prefs_listener)
 
-        context.coroutine_scope.launch {
+        context.coroutineScope.launch {
             accent_colour_source = context.settings.theme.ACCENT_COLOUR_SOURCE.get()
         }
     }

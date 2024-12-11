@@ -12,35 +12,33 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.calculateEndPadding
 import androidx.compose.foundation.layout.calculateStartPadding
 import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
-import dev.toastbits.composekit.settings.ui.SettingsInterface
-import dev.toastbits.composekit.platform.PreferencesProperty
-import com.toasterofbread.spmp.model.settings.Settings
+import com.toasterofbread.spmp.model.settings.SettingsGroup
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.PillMenu
-import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
-import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import androidx.compose.runtime.MutableState
-import dev.toastbits.composekit.utils.common.copy
+import dev.toastbits.composekit.navigation.navigator.BaseNavigator
+import dev.toastbits.composekit.navigation.navigator.CurrentScreen
+import dev.toastbits.composekit.navigation.navigator.Navigator
+import dev.toastbits.composekit.navigation.screen.Screen
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
+import dev.toastbits.composekit.settings.ui.copy
+import dev.toastbits.composekit.settings.ui.screen.PlatformSettingsGroupScreen
 
 internal const val PREFS_PAGE_EXTRA_PADDING_DP: Float = 10f
 
@@ -51,22 +49,47 @@ internal enum class PrefsPageScreen {
     UI_DEBUG_INFO
 }
 
+// TEMP
+interface NewSettingsPage: Screen {
+    var id: Int?
+    suspend fun resetKeys()
+}
+
 class SettingsAppPage(override val state: AppPageState): AppPage() {
     private val pill_menu: PillMenu = PillMenu(follow_player = true)
-    val ytm_auth: PreferencesProperty<Set<String>> = state.context.settings.youtube_auth.YTM_AUTH
-    val settings_interface: SettingsInterface =
-        getPrefsPageSettingsInterface(
-            state,
-            pill_menu,
-            ytm_auth
-        )
+    val ytm_auth: PlatformSettingsProperty<Set<String>> = state.context.settings.youtube_auth.YTM_AUTH
+
+    private class Temp: NewSettingsPage {
+        override var id: Int? = null
+        override suspend fun resetKeys() {}
+
+        @Composable
+        override fun Content(
+            navigator: Navigator,
+            modifier: Modifier,
+            contentPadding: PaddingValues
+        ) {}
+    }
+
+    // TODO | Display pill menu(?)
+    private val navigator: Navigator = BaseNavigator(Temp(), false)
+    private val currentScreen: NewSettingsPage
+        get() = navigator.currentScreen as NewSettingsPage
 
     override fun onBackNavigation(): Boolean {
-        return settings_interface.goBack()
+        if (navigator.getNavigateBackwardCount() >= 1) {
+            navigator.navigateBackward(1)
+            return true
+        }
+        return false
     }
 
     override fun onReopened() {
-        settings_interface.openPage(null)
+        // TODO
+    }
+
+    fun openGroup(group: SettingsGroup) {
+        navigator.pushScreen(PlatformSettingsGroupScreen(group))
     }
 
     @Composable
@@ -82,7 +105,7 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
         ResetConfirmationDialog(
             show_reset_confirmation,
             {
-                settings_interface.current_page.resetKeys()
+                currentScreen.resetKeys()
             }
         )
 
@@ -96,8 +119,8 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
             }
         }}
 
-        DisposableEffect(settings_interface.current_page) {
-            if (settings_interface.current_page.id == PrefsPageScreen.ROOT.ordinal) {
+        DisposableEffect(currentScreen) {
+            if (currentScreen.id == PrefsPageScreen.ROOT.ordinal) {
                 pill_menu.addExtraAction(action = extra_action)
             }
             else {
@@ -115,7 +138,7 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
             Column(Modifier.fillMaxSize()) {
                 val layout_direction: LayoutDirection = LocalLayoutDirection.current
 
-                Crossfade(settings_interface.current_page.id != PrefsPageScreen.ROOT.ordinal) { open ->
+                Crossfade(currentScreen.id != PrefsPageScreen.ROOT.ordinal) { open ->
                     if (!open) {
                         SettingsTopPage(
                             content_padding = content_padding.copy(
@@ -129,18 +152,27 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
                         BoxWithConstraints(
                             Modifier.pointerInput(Unit) {}
                         ) {
-                            CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
-                                settings_interface.Interface(
+                            CompositionLocalProvider(LocalContentColor provides player.theme.onBackground) {
+                                navigator.CurrentScreen(
                                     Modifier.fillMaxSize(),
-                                    content_padding = content_padding.copy(
-                                        start = content_padding.calculateStartPadding(layout_direction) + PREFS_PAGE_EXTRA_PADDING_DP.dp,
-                                        end = content_padding.calculateEndPadding(layout_direction) + PREFS_PAGE_EXTRA_PADDING_DP.dp
-                                    ),
-                                    titleFooter = {
-                                        WaveBorder()
-                                    },
-                                    page_top_padding = WAVE_BORDER_HEIGHT_DP.dp
+                                    contentPadding =
+                                        content_padding.copy(
+                                            start = content_padding.calculateStartPadding(layout_direction) + PREFS_PAGE_EXTRA_PADDING_DP.dp,
+                                            end = content_padding.calculateEndPadding(layout_direction) + PREFS_PAGE_EXTRA_PADDING_DP.dp
+                                        )
                                 )
+
+//                                settings_interface.Interface(
+//                                    Modifier.fillMaxSize(),
+//                                    content_padding = content_padding.copy(
+//                                        start = content_padding.calculateStartPadding(layout_direction) + PREFS_PAGE_EXTRA_PADDING_DP.dp,
+//                                        end = content_padding.calculateEndPadding(layout_direction) + PREFS_PAGE_EXTRA_PADDING_DP.dp
+//                                    ),
+//                                    titleFooter = {
+//                                        WaveBorder()
+//                                    },
+//                                    page_top_padding = WAVE_BORDER_HEIGHT_DP.dp
+//                                )
                             }
                         }
                     }

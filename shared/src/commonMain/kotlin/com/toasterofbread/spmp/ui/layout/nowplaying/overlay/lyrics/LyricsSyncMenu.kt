@@ -24,7 +24,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.ui.component.HorizontalFuriganaText
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.util.thenIf
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.lyrics_sync_press_button_when_line_begins

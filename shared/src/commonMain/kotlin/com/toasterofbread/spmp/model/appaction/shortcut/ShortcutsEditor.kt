@@ -20,15 +20,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.composable.StickyHeightColumn
-import dev.toastbits.composekit.platform.composable.ScrollBarLazyRow
+import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyRow
 import com.toasterofbread.spmp.model.appaction.AppAction
-import com.toasterofbread.spmp.model.appaction.shortcut.getDefaultShortcuts
 import com.toasterofbread.spmp.ui.component.shortcut.ShortcutPreview
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import LocalPlayerState
+import dev.toastbits.composekit.components.utils.composable.StickyHeightColumn
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_key_navigate_song_with_numbers

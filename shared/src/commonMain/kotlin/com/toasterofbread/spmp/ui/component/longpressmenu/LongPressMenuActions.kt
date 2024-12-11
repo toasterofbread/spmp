@@ -23,8 +23,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.appaction.SongAppAction
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.utils.composable.WidthShrinkText
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.util.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song

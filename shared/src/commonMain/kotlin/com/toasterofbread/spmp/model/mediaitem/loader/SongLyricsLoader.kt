@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.model.mediaitem.loader
 
 import androidx.compose.runtime.*
 import app.cash.sqldelight.Query
-import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.context.PlatformFile
 import com.toasterofbread.spmp.model.lyrics.*
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song

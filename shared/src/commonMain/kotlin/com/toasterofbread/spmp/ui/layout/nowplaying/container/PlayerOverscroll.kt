@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
-import dev.toastbits.composekit.platform.vibrateShort
+import dev.toastbits.composekit.context.vibrateShort
 import com.toasterofbread.spmp.model.settings.category.*
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.service.playercontroller.PlayerState

@@ -22,7 +22,7 @@ import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
 import com.toasterofbread.spmp.widget.configuration.ui.screen.WidgetConfigurationScreen
 import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
 import dev.toastbits.composekit.navigation.navigator.Navigator
-import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
+import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyColumn
 import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import org.jetbrains.compose.resources.stringResource

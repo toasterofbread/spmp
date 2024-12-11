@@ -10,9 +10,10 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
-import dev.toastbits.composekit.platform.PlatformFile
-import dev.toastbits.composekit.platform.ReentrantLock
-import dev.toastbits.composekit.utils.common.addUnique
+import dev.toastbits.composekit.context.PlatformFile
+import dev.toastbits.composekit.util.addUnique
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 @Suppress("DeferredResultUnused")
 object MediaItemLibrary {

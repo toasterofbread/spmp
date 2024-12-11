@@ -21,12 +21,12 @@ import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.DiscordAccountPreview
 import com.toasterofbread.spmp.ui.layout.DiscordLoginConfirmation
-import dev.toastbits.composekit.platform.PlatformPreferences
-import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.PlatformSettings
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import dev.toastbits.composekit.settings.ui.component.item.LargeToggleSettingsItem
-import dev.toastbits.composekit.settings.ui.on_accent
-import dev.toastbits.composekit.settings.ui.vibrant_accent
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.theme.onAccent
+import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.util.composable.ShapedIconButton
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
@@ -45,16 +45,16 @@ fun getDiscordAuthItem(
     ignore_prerequisite: Boolean = false,
     StartIcon: (@Composable () -> Unit)? = null
 ): LargeToggleSettingsItem {
-    val discord_auth: PreferencesProperty<String> = context.settings.discord_auth.DISCORD_ACCOUNT_TOKEN
+    val discord_auth: PlatformSettingsProperty<String> = context.settings.discord_auth.DISCORD_ACCOUNT_TOKEN
 
     val login_required: Boolean = DiscordStatus.isAccountTokenRequired()
-    val prerequisite: PreferencesProperty<Boolean>? =
+    val prerequisite: PlatformSettingsProperty<Boolean>? =
         if (login_required)
             context.settings.discord_auth.DISCORD_WARNING_ACCEPTED
         else null
 
     return LargeToggleSettingsItem(
-        object : PreferencesProperty<Boolean> {
+        object : PlatformSettingsProperty<Boolean> {
             override val key: String get() = throw IllegalStateException()
             @Composable
             override fun getName(): String = ""
@@ -63,13 +63,13 @@ fun getDiscordAuthItem(
 
             override suspend fun get(): Boolean = discord_auth.get().isNotEmpty()
 
-            override fun set(value: Boolean, editor: PlatformPreferences.Editor?) {
+            override fun set(value: Boolean, editor: PlatformSettings.Editor?) {
                 if (!value) {
                     discord_auth.set("", editor)
                 }
             }
 
-            override fun set(data: JsonElement, editor: PlatformPreferences.Editor?) {
+            override fun set(data: JsonElement, editor: PlatformSettings.Editor?) {
                 set(data.jsonPrimitive.boolean, editor)
             }
 
@@ -153,8 +153,8 @@ fun getDiscordAuthItem(
                 { show_info_dialog = !show_info_dialog },
                 shape = CircleShape,
                 colours = IconButtonDefaults.iconButtonColors(
-                    containerColor = if (enabled) player.theme.background else player.theme.vibrant_accent,
-                    contentColor = if (enabled) player.theme.on_background else player.theme.on_accent
+                    containerColor = if (enabled) player.theme.background else player.theme.vibrantAccent,
+                    contentColor = if (enabled) player.theme.onBackground else player.theme.onAccent
                 )
             ) {
                 Icon(

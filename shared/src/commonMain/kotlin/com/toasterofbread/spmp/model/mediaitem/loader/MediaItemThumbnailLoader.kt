@@ -8,8 +8,8 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateMapOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.ImageBitmap
-import dev.toastbits.composekit.utils.common.addUnique
-import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.util.addUnique
+import dev.toastbits.composekit.context.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.platform.AppContext
@@ -19,10 +19,10 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import PlatformIO
-import dev.toastbits.composekit.platform.synchronized
 import okio.buffer
 import okio.use
 import io.ktor.client.HttpClient
+import kotlin.concurrent.withLock
 
 internal data class MediaItemThumbnailLoaderKey(
     val provider: ThumbnailProvider,

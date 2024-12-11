@@ -63,8 +63,8 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLon
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.ColourpickCallback
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.songtheme.SongThemePlayerOverlayMenu
-import dev.toastbits.composekit.settings.ui.on_accent
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.theme.onAccent
+import dev.toastbits.composekit.util.composable.OnChangedEffect
 import dev.toastbits.ytmkt.model.implementedOrNull
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.stringResource
@@ -145,7 +145,7 @@ class MainPlayerOverlayMenu(
             verticalArrangement = Arrangement.spacedBy(10.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            val button_colour: Color = player.theme.on_accent
+            val button_colour: Color = player.theme.onAccent
             val button_size: Dp = 42.dp
             val button_modifier: Modifier = Modifier
                 .background(
@@ -231,7 +231,7 @@ class MainPlayerOverlayMenu(
     ) {
         val player: PlayerState = LocalPlayerState.current
 
-        val button_content_colour: Color = player.theme.on_accent
+        val button_content_colour: Color = player.theme.onAccent
 
         Row(
             modifier.fillMaxWidth(),

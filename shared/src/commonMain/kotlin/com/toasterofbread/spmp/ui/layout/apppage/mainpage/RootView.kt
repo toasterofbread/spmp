@@ -16,8 +16,8 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
-import dev.toastbits.composekit.utils.common.addUnique
-import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.util.addUnique
+import dev.toastbits.composekit.util.thenIf
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerHeight
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerVPadding

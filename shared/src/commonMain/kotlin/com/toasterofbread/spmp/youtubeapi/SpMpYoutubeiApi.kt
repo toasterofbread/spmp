@@ -19,7 +19,7 @@ import com.toasterofbread.spmp.model.settings.unpackSetData
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getDataLanguage
 import com.toasterofbread.spmp.resources.Language
-import dev.toastbits.composekit.platform.PlatformPreferencesListener
+import dev.toastbits.composekit.settings.PlatformSettingsListener
 import dev.toastbits.ytmkt.endpoint.ArtistWithParamsRow
 import dev.toastbits.ytmkt.endpoint.SearchResults
 import dev.toastbits.ytmkt.endpoint.SongFeedLoadResult
@@ -62,12 +62,12 @@ internal class SpMpYoutubeiApi(
 
     override var user_auth_state: YoutubeiAuthenticationState? by mutableStateOf(null)
 
-    private val prefs_listener: PlatformPreferencesListener =
-        PlatformPreferencesListener { key ->
+    private val prefs_listener: PlatformSettingsListener =
+        PlatformSettingsListener { key ->
             when (key) {
-                context.settings.youtube_auth.YTM_AUTH.key -> context.coroutine_scope.launch { user_auth_state = getCurrentUserAuthState() }
-                context.settings.system.LANG_DATA.key -> context.coroutine_scope.launch { _data_language = context.getDataLanguage() }
-                context.settings.streaming.VIDEO_FORMATS_METHOD.key -> context.coroutine_scope.launch {
+                context.settings.youtube_auth.YTM_AUTH.key -> context.coroutineScope.launch { user_auth_state = getCurrentUserAuthState() }
+                context.settings.system.LANG_DATA.key -> context.coroutineScope.launch { _data_language = context.getDataLanguage() }
+                context.settings.streaming.VIDEO_FORMATS_METHOD.key -> context.coroutineScope.launch {
                     _VideoFormats = context.settings.streaming.VIDEO_FORMATS_METHOD.get().instantiate(this@SpMpYoutubeiApi)
                 }
             }
@@ -76,13 +76,13 @@ internal class SpMpYoutubeiApi(
     init {
         context.getPrefs().addListener(prefs_listener)
 
-        context.coroutine_scope.launch {
+        context.coroutineScope.launch {
             user_auth_state = getCurrentUserAuthState()
         }
-        context.coroutine_scope.launch {
+        context.coroutineScope.launch {
             _data_language = context.getDataLanguage()
         }
-        context.coroutine_scope.launch {
+        context.coroutineScope.launch {
             _VideoFormats = context.settings.streaming.VIDEO_FORMATS_METHOD.get().instantiate(this@SpMpYoutubeiApi)
         }
     }

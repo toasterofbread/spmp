@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.youtubeapi.lyrics
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.context.PlatformFile
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.db.mediaitem.LyricsById
 import com.toasterofbread.spmp.model.lyrics.SongLyrics

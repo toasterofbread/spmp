@@ -14,9 +14,9 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.utils.common.*
-import dev.toastbits.composekit.utils.composable.getBottom
+import dev.toastbits.composekit.util.platform.Platform
+import dev.toastbits.composekit.util.*
+import dev.toastbits.composekit.util.composable.getBottom
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -203,9 +203,9 @@ internal fun PlayerState.getNPOnBackground(): Color {
 //    }
 //
 //    return when (np_theme_mode) {
-//        ThemeMode.BACKGROUND -> theme.on_accent
+//        ThemeMode.BACKGROUND -> theme.onAccent
 //        ThemeMode.ELEMENTS -> theme.accent
-//        ThemeMode.NONE -> theme.on_background
+//        ThemeMode.NONE -> theme.onBackground
 //    }
 }
 

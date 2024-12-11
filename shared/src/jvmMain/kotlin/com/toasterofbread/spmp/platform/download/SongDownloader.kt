@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.platform.download
 
-import dev.toastbits.composekit.platform.PlatformFile
-import dev.toastbits.composekit.platform.getPlatformForbiddenFilenameCharacters
+import dev.toastbits.composekit.context.PlatformFile
+import dev.toastbits.composekit.context.getPlatformForbiddenFilenameCharacters
 import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader

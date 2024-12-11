@@ -14,9 +14,9 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.*
 import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.utils.*
-import dev.toastbits.composekit.utils.common.copy
-import dev.toastbits.composekit.utils.composable.*
-import dev.toastbits.composekit.utils.modifier.horizontal
+import dev.toastbits.composekit.util.copy
+import dev.toastbits.composekit.util.composable.*
+import dev.toastbits.composekit.components.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -36,7 +36,7 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.platform.assert
+import dev.toastbits.composekit.context.assert
 import dev.toastbits.ytmkt.endpoint.ArtistWithParamsRow
 import dev.toastbits.ytmkt.model.external.ItemLayoutType
 import dev.toastbits.ytmkt.uistrings.RawUiString

@@ -11,7 +11,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.History
-import dev.toastbits.composekit.utils.composable.AlignableCrossfade
+import dev.toastbits.composekit.util.composable.AlignableCrossfade
 import dev.toastbits.ytmkt.endpoint.SearchSuggestion
 
 @Composable
@@ -70,7 +70,7 @@ private fun SearchAppPage.SearchSuggestion(
             Modifier.weight(1f, false),
             softWrap = false,
             overflow = TextOverflow.Ellipsis,
-            color = context.theme.on_background
+            color = context.theme.onBackground
         )
 
         if (suggestion.is_from_history) {
@@ -78,7 +78,7 @@ private fun SearchAppPage.SearchSuggestion(
                 Icons.Default.History,
                 null,
                 Modifier.alpha(0.75f),
-                tint = context.theme.on_background
+                tint = context.theme.onBackground
             )
         }
     }

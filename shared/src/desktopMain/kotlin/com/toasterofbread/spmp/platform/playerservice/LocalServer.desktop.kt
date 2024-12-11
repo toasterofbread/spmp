@@ -92,7 +92,7 @@ actual object LocalServer {
 
         server.bind(port)
 
-        return@runCatching context.coroutine_scope.launch(Dispatchers.IO) {
+        return@runCatching context.coroutineScope.launch(Dispatchers.IO) {
             try {
                 while (true) {
                     server.poll(CLIENT_REPLY_ATTEMPTS)

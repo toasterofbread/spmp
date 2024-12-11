@@ -32,7 +32,7 @@ import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
-import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.theme.onAccent
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import kotlinx.coroutines.CoroutineScope
@@ -344,7 +344,7 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
                 colors =
                     ButtonDefaults.buttonColors(
                         containerColor = player.theme.accent,
-                        contentColor = player.theme.on_accent
+                        contentColor = player.theme.onAccent
                     ),
                 modifier = item_modifier
             ) {

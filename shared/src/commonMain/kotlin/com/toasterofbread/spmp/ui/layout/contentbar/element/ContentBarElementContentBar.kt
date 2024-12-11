@@ -105,7 +105,7 @@ data class ContentBarElementContentBar(
                         { show_bar_selector = false },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = player.theme.background,
-                            contentColor = player.theme.on_background
+                            contentColor = player.theme.onBackground
                         ),
                         modifier = Modifier.appHover(true)
                     ) {

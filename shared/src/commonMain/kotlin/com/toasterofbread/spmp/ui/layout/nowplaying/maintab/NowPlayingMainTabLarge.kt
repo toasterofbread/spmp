@@ -27,10 +27,10 @@ import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.zIndex
-import dev.toastbits.composekit.platform.composable.composeScope
-import dev.toastbits.composekit.utils.common.*
-import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.composable.getTop
+import dev.toastbits.composekit.components.platform.composable.composeScope
+import dev.toastbits.composekit.util.*
+import dev.toastbits.composekit.util.thenIf
+import dev.toastbits.composekit.util.composable.getTop
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.observeThumbnailRounding
@@ -53,7 +53,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
 import androidx.compose.runtime.State
-import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.theme.vibrantAccent
 
 val NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT: Dp
     @Composable get() = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
@@ -449,9 +449,9 @@ private fun PlayerQueueTab(
             },
             getOnBackgroundColour = {
                 when (np_theme_mode) {
-                    ThemeMode.BACKGROUND -> theme.vibrant_accent
+                    ThemeMode.BACKGROUND -> theme.vibrantAccent
                     ThemeMode.ELEMENTS -> theme.accent
-                    ThemeMode.NONE -> theme.on_background
+                    ThemeMode.NONE -> theme.onBackground
                 }
             }
         )

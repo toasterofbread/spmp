@@ -29,9 +29,9 @@ import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.util.LyricsLineState
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.utils.composable.AlignableCrossfade
-import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
+import dev.toastbits.composekit.util.platform.Platform
+import dev.toastbits.composekit.util.composable.AlignableCrossfade
+import dev.toastbits.composekit.util.composable.NullableValueAnimatedVisibility
 import kotlinx.coroutines.delay
 
 @Composable

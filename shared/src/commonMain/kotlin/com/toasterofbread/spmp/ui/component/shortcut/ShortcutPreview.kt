@@ -12,12 +12,12 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
+import dev.toastbits.composekit.util.composable.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.appaction.shortcut.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.*
-import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.theme.vibrantAccent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.shortcut_editor_trigger_label
@@ -36,13 +36,13 @@ fun ShortcutPreview(
 
     Column(
         modifier
-            .background(player.theme.vibrant_accent.copy(alpha = 0.25f), shape)
+            .background(player.theme.vibrantAccent.copy(alpha = 0.25f), shape)
             .padding(horizontal = 20.dp)
     ) {
         FlowRow {
             val item_modifier: Modifier = Modifier.align(Alignment.CenterVertically)
 
-            CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
+            CompositionLocalProvider(LocalContentColor provides player.theme.onBackground) {
                 val action_type: AppAction.Type = shortcut.action.getType()
                 Icon(action_type.getIcon(), null, item_modifier)
                 Spacer(Modifier.width(10.dp))

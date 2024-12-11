@@ -8,8 +8,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import dev.toastbits.composekit.platform.PlatformFile
-import dev.toastbits.composekit.utils.modifier.background
+import dev.toastbits.composekit.context.PlatformFile
+import dev.toastbits.composekit.components.utils.modifier.background
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
@@ -19,7 +19,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import PlatformIO
-import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.theme.onAccent
 
 sealed interface LocalPlaylist: Playlist {
     suspend fun getLocalPlaylistFile(context: AppContext): PlatformFile? =
@@ -79,6 +79,6 @@ suspend fun Playlist.downloadAsLocalPlaylist(context: AppContext, replace: Boole
 fun LocalPlaylist.LocalPlaylistDefaultThumbnail(modifier: Modifier = Modifier) {
     val player = LocalPlayerState.current
     Box(modifier.background { player.theme.accent }, contentAlignment = Alignment.Center) {
-        Icon(Icons.Default.PlaylistPlay, null, tint = player.theme.on_accent)
+        Icon(Icons.Default.PlaylistPlay, null, tint = player.theme.onAccent)
     }
 }

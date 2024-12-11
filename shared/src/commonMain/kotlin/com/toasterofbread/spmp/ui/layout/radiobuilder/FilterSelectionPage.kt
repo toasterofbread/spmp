@@ -32,10 +32,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.platform.composable.platformClickable
-import dev.toastbits.composekit.platform.vibrateShort
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
-import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.components.platform.composable.platformClickable
+import dev.toastbits.composekit.context.vibrateShort
+import dev.toastbits.composekit.util.composable.ShapedIconButton
+import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.toRemotePlaylistData
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -49,7 +49,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 import PlatformIO
-import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.theme.onAccent
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -192,7 +192,7 @@ fun FilterSelectionPage(
                     }
                     else if (loading) {
                         Box(Modifier.fillMaxSize().padding(content_padding), contentAlignment = Alignment.Center) {
-                            SubtleLoadingIndicator { player.theme.on_background }
+                            SubtleLoadingIndicator { player.theme.onBackground }
                         }
                     }
                     else {
@@ -234,12 +234,12 @@ fun FilterSelectionPage(
                 Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
                     val icon_button_colours = IconButtonDefaults.iconButtonColors(
                         containerColor = player.theme.accent,
-                        contentColor = player.theme.on_accent
+                        contentColor = player.theme.onAccent
                     )
                     ShapedIconButton({ loadRadio(false) }, colours = icon_button_colours) {
                         Crossfade(is_loading) { loading ->
                             if (loading) {
-                                SubtleLoadingIndicator(getColour = { player.theme.on_accent })
+                                SubtleLoadingIndicator(getColour = { player.theme.onAccent })
                             }
                             else {
                                 Icon(Icons.Filled.PlayArrow, null)

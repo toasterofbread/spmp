@@ -21,28 +21,28 @@ import androidx.compose.animation.Crossfade
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.material3.Button
-import dev.toastbits.composekit.platform.composable.platformClickable
-import dev.toastbits.composekit.utils.composable.ColourPicker
+import dev.toastbits.composekit.components.platform.composable.platformClickable
+import dev.toastbits.composekit.util.composable.ColourPicker
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.IconButtonDefaults
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.util.composable.ShapedIconButton
 import com.toasterofbread.spmp.ui.theme.appHover
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ThemeColourSource
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.PlayerBackgroundColourSource
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
-import dev.toastbits.composekit.utils.modifier.bounceOnClick
+import dev.toastbits.composekit.components.utils.modifier.bounceOnClick
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.lazy.items
-import dev.toastbits.composekit.settings.ui.ThemeValues
+import dev.toastbits.composekit.theme.ThemeValues
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.colour_selector_dialog_title
@@ -56,7 +56,7 @@ import spmp.shared.generated.resources.theme_colour_accent
 import spmp.shared.generated.resources.theme_colour_vibrant_accent
 import spmp.shared.generated.resources.theme_colour_card
 import spmp.shared.generated.resources.theme_colour_on_background
-import spmp.shared.generated.resources.theme_colour_on_accent
+import spmp.shared.generated.resources.theme_colour_onAccent
 import spmp.shared.generated.resources.theme_colour_error
 
 @Composable
@@ -86,7 +86,7 @@ fun ColourSelectionDialog(
         confirmButton = {
             val button_colours: ButtonColors = ButtonDefaults.buttonColors(
                 containerColor = player.theme.background,
-                contentColor = player.theme.on_background
+                contentColor = player.theme.onBackground
             )
 
             Row(horizontalArrangement = Arrangement.spacedBy(10.dp)) {
@@ -213,6 +213,6 @@ fun ThemeValues.Colour.getReadable(): String =
         ThemeValues.Colour.VIBRANT_ACCENT -> stringResource(Res.string.theme_colour_vibrant_accent)
         ThemeValues.Colour.CARD -> stringResource(Res.string.theme_colour_card)
         ThemeValues.Colour.ON_BACKGROUND -> stringResource(Res.string.theme_colour_on_background)
-        ThemeValues.Colour.ON_ACCENT -> stringResource(Res.string.theme_colour_on_accent)
+        ThemeValues.Colour.onAccent -> stringResource(Res.string.theme_colour_onAccent)
         ThemeValues.Colour.ERROR -> stringResource(Res.string.theme_colour_error)
     }

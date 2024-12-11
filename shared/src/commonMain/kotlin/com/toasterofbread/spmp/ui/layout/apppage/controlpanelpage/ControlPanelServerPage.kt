@@ -57,11 +57,11 @@ import com.toasterofbread.spmp.platform.playerservice.getSpMsMachineId
 import com.toasterofbread.spmp.resources.stringResourceTODO
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
-import dev.toastbits.composekit.settings.ui.vibrant_accent
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.utils.common.launchSingle
-import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyColumn
+import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.util.launchSingle
+import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
 import dev.toastbits.spms.socketapi.shared.SpMsClientInfo
 import dev.toastbits.spms.socketapi.shared.SpMsClientType
 import kotlinx.coroutines.CoroutineScope
@@ -275,8 +275,8 @@ private fun ClientInfoDisplay(client: SpMsClientInfo, modifier: Modifier = Modif
     Card(
         modifier,
         colors = CardDefaults.cardColors(
-            containerColor = player.theme.vibrant_accent,
-            contentColor = player.theme.vibrant_accent.getContrasted()
+            containerColor = player.theme.vibrantAccent,
+            contentColor = player.theme.vibrantAccent.getContrasted()
         )
     ) {
         Row(Modifier.padding(10.dp), verticalAlignment = Alignment.CenterVertically) {
@@ -332,8 +332,8 @@ private fun ClientInfoDisplay(client: SpMsClientInfo, modifier: Modifier = Modif
                                                 }
                                             },
                                             colors = ButtonDefaults.buttonColors(
-                                                containerColor = player.theme.vibrant_accent,
-                                                contentColor = player.theme.vibrant_accent.getContrasted()
+                                                containerColor = player.theme.vibrantAccent,
+                                                contentColor = player.theme.vibrantAccent.getContrasted()
                                             )
                                         ) {
                                             Text(stringResource(Res.string.control_panel_server_client_more_info))

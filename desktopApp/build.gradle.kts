@@ -58,7 +58,9 @@ kotlin {
                 implementation(compose.components.resources)
                 implementation(project(":shared"))
 
-                implementation(deps.get("dev.toastbits.composekit:library"))
+                for (dependency in deps.getAllComposeKit()) {
+                    implementation(dependency)
+                }
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-swing:1.6.4")
 

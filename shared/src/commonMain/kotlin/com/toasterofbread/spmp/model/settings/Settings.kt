@@ -3,8 +3,12 @@ package com.toasterofbread.spmp.model.settings
 import com.toasterofbread.spmp.model.settings.category.*
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.Language
+import dev.toastbits.composekit.commonsettings.impl.ComposeKitSettings
+import dev.toastbits.composekit.commonsettings.impl.group.ComposeKitSettingsGroupInterface
+import dev.toastbits.composekit.commonsettings.impl.group.impl.ComposeKitSettingsGroupInterfaceImpl
+import dev.toastbits.composekit.settings.ui.screen.PlatformSettingsGroupScreen
 
-class Settings(context: AppContext, available_languages: List<Language>) {
+class Settings(context: AppContext, available_languages: List<Language>): ComposeKitSettings {
     val youtube_auth: YoutubeAuthSettings = YoutubeAuthSettings(context)
     val system: SystemSettings = SystemSettings(context, available_languages)
     val behaviour: BehaviourSettings = BehaviourSettings(context)
@@ -25,6 +29,7 @@ class Settings(context: AppContext, available_languages: List<Language>) {
     val search: SearchSettings = SearchSettings(context)
     val experimental: ExperimentalSettings = ExperimentalSettings(context)
     val ytapi: YTApiSettings = YTApiSettings(context.getPrefs())
+    override val Interface: ComposeKitSettingsGroupInterface = ComposeKitSettingsGroupInterfaceImpl("INTERFACE", context.getPrefs())
 
     val all_groups: Map<String, SettingsGroup> =
         listOf(
@@ -49,13 +54,13 @@ class Settings(context: AppContext, available_languages: List<Language>) {
             experimental,
 
             ytapi
-        ).associateBy { it.group_key }
+        ).associateBy { it.groupKey }
 
     val groups_with_page: List<SettingsGroup> get() =
-        all_groups.values.filter { it.getPage() != null && it !is DependencySettings }
+        all_groups.values.filter { !it.hidden && it !is DependencySettings }
 
-    val group_pages: List<SettingsGroup.CategoryPage> get() =
-        all_groups.values.mapNotNull { if (it is DependencySettings) null else it.getPage() }
+    val group_pages: List<PlatformSettingsGroupScreen> get() =
+        all_groups.values.mapNotNull { if (it is DependencySettings) null else it.takeIf { !it.hidden }?.let { PlatformSettingsGroupScreen(it) } }
 
     fun groupFromKey(key: String): SettingsGroup? =
         all_groups[key]

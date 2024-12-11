@@ -6,7 +6,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
-import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.util.platform.Platform
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.joinAll
@@ -17,7 +17,7 @@ import kotlinx.coroutines.sync.withPermit
 import kotlinx.coroutines.withContext
 import PlatformIO
 import com.toasterofbread.spmp.db.persistentqueue.PersistentQueueMetadata
-import dev.toastbits.composekit.platform.lazyAssert
+import dev.toastbits.composekit.context.lazyAssert
 
 internal class PersistentQueueHandler(val player: PlayerServicePlayer, val context: AppContext) {
     private var persistent_queue_loaded: Boolean = false

@@ -9,10 +9,10 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import dev.toastbits.composekit.platform.vibrateShort
+import dev.toastbits.composekit.context.vibrateShort
 import dev.toastbits.composekit.settings.ui.SettingsInterface
 import dev.toastbits.composekit.settings.ui.SettingsPageWithItems
-import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.PillMenu
@@ -21,7 +21,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 internal fun getPrefsPageSettingsInterface(
     page_state: AppPageState,
     pill_menu: PillMenu,
-    ytm_auth: PreferencesProperty<Set<String>>
+    ytm_auth: PlatformSettingsProperty<Set<String>>
 ): SettingsInterface {
     lateinit var settings_interface: SettingsInterface
     val context: AppContext = page_state.context
@@ -47,7 +47,7 @@ internal fun getPrefsPageSettingsInterface(
         }
     }
 
-    val discord_auth: PreferencesProperty<String> = context.settings.discord_auth.DISCORD_ACCOUNT_TOKEN
+    val discord_auth: PlatformSettingsProperty<String> = context.settings.discord_auth.DISCORD_ACCOUNT_TOKEN
 
     settings_interface = SettingsInterface(
         context,

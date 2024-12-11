@@ -16,7 +16,7 @@ import kotlinx.coroutines.isActive
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.CancellationException
-import dev.toastbits.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.util.launchSingle
 
 @Composable
 fun VideoPlayerFFmpeg(

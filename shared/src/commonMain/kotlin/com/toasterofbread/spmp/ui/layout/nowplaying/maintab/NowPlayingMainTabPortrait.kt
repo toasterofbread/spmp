@@ -46,9 +46,9 @@ import androidx.compose.ui.unit.lerp
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.platform.LocalDensity
-import dev.toastbits.composekit.platform.composable.composeScope
-import dev.toastbits.composekit.utils.modifier.bounceOnClick
-import dev.toastbits.composekit.utils.common.copy
+import dev.toastbits.composekit.components.platform.composable.composeScope
+import dev.toastbits.composekit.components.utils.modifier.bounceOnClick
+import dev.toastbits.composekit.util.copy
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides

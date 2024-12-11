@@ -41,14 +41,14 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.platform.composable.ScrollabilityIndicatorRow
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
-import dev.toastbits.composekit.utils.modifier.vertical
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.components.platform.composable.ScrollabilityIndicatorRow
+import dev.toastbits.composekit.util.composable.ShapedIconButton
+import dev.toastbits.composekit.components.utils.modifier.vertical
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.observeUrl
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.theme.vibrantAccent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.artist_chip_shuffle
@@ -97,12 +97,12 @@ fun ArtistActionBar(
                     { Text(text, style = MaterialTheme.typography.labelLarge) },
                     Modifier.height(height),
                     leadingIcon = {
-                        Icon(icon, null, tint = accent_colour ?: player.theme.vibrant_accent)
+                        Icon(icon, null, tint = accent_colour ?: player.theme.vibrantAccent)
                     },
                     colors = AssistChipDefaults.assistChipColors(
                         containerColor = player.theme.background,
-                        labelColor = player.theme.on_background,
-                        leadingIconContentColor = accent_colour ?: player.theme.vibrant_accent
+                        labelColor = player.theme.onBackground,
+                        leadingIconContentColor = accent_colour ?: player.theme.vibrantAccent
                     )
                 )
             }

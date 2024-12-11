@@ -15,14 +15,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
-import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.util.composable.ShapedIconButton
+import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.updateSubscribed
 import com.toasterofbread.spmp.model.mediaitem.loader.ArtistSubscribedLoader
 import com.toasterofbread.spmp.resources.getStringTODO
-import dev.toastbits.composekit.platform.assert
+import dev.toastbits.composekit.context.assert
 import kotlinx.coroutines.launch
 
 @Composable

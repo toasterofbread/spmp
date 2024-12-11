@@ -7,8 +7,8 @@ import androidx.compose.ui.Modifier
 import dev.toastbits.composekit.settings.ui.component.item.GroupSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.InfoTextSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
+import dev.toastbits.composekit.util.platform.Platform
 import dev.toastbits.composekit.settings.ui.component.item.TextFieldSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField

@@ -46,15 +46,15 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.toastbits.composekit.platform.vibrateShort
-import dev.toastbits.composekit.utils.composable.WidthShrinkText
+import dev.toastbits.composekit.context.vibrateShort
+import dev.toastbits.composekit.util.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.toReadableSubscriberCount
 import com.toasterofbread.spmp.model.mediaitem.db.observePinnedToHome
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
-import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.theme.onAccent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.`edit_$x_title_dialog_title`
@@ -89,7 +89,7 @@ fun ArtistPageTitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                                     .clickable(onClick = action),
                                 contentAlignment = Alignment.Center
                             ) {
-                                Icon(icon, null, tint = player.theme.on_accent)
+                                Icon(icon, null, tint = player.theme.onAccent)
                             }
                         }
 
@@ -103,7 +103,7 @@ fun ArtistPageTitleBar(item: MediaItem, modifier: Modifier = Modifier) {
                         }
                     }
 
-                    val field_colour: Color = player.theme.on_accent
+                    val field_colour: Color = player.theme.onAccent
                     OutlinedTextField(
                         edited_title,
                         onValueChange = { text ->

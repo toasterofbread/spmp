@@ -8,9 +8,9 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.composable.ScrollableRowOrColumn
+import dev.toastbits.composekit.util.composable.ScrollableRowOrColumn
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.theme.onAccent
 import dev.toastbits.ytmkt.endpoint.*
 
 @Composable
@@ -50,13 +50,13 @@ internal fun SearchAppPage.SearchFiltersRow(
                 colors = with(player.theme) {
                     FilterChipDefaults.elevatedFilterChipColors(
                         containerColor = background,
-                        labelColor = on_background,
+                        labelColor = onBackground,
                         selectedContainerColor = accent,
-                        selectedLabelColor = on_accent
+                        selectedLabelColor = onAccent
                     )
                 },
                 border = FilterChipDefaults.filterChipBorder(
-                    borderColor = player.theme.on_background,
+                    borderColor = player.theme.onBackground,
                     enabled = true,
                     selected = selected
                 )

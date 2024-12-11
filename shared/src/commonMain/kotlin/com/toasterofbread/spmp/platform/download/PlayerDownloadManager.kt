@@ -11,9 +11,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.platform.PlatformFile
-import dev.toastbits.composekit.platform.synchronized
+import dev.toastbits.composekit.util.platform.Platform
+import dev.toastbits.composekit.context.PlatformFile
+import dev.toastbits.composekit.context.synchronized
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -90,7 +90,7 @@ enum class DownloadMethod {
                             directory.mkdirs()
                         }
 
-                        context.coroutine_scope.launch {
+                        context.coroutineScope.launch {
                             for (song in songs) {
                                 var file: PlatformFile
                                 val name: String = song.getActiveTitle(context.database) ?: getString(MediaItemType.SONG.getReadable(false))

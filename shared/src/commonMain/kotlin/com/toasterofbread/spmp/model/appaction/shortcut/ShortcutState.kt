@@ -14,7 +14,7 @@ import androidx.compose.ui.input.key.nativeKeyCode
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.KeyboardShortcutTrigger
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.MouseButtonShortcutTrigger
-import dev.toastbits.composekit.utils.common.addUnique
+import dev.toastbits.composekit.util.addUnique
 import kotlinx.coroutines.launch
 import kotlin.math.roundToLong
 

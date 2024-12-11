@@ -4,7 +4,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
-import dev.toastbits.composekit.platform.assert
+import dev.toastbits.composekit.context.assert
 
 class PlaylistHolder(initial_playlist: Playlist): MediaItemHolder {
     override val item: Playlist? get() = current_playlist

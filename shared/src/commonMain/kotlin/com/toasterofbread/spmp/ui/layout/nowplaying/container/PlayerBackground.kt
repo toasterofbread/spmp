@@ -14,9 +14,9 @@ import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT
-import dev.toastbits.composekit.utils.common.*
-import dev.toastbits.composekit.utils.composable.wave.*
-import dev.toastbits.composekit.utils.modifier.brushBackground
+import dev.toastbits.composekit.util.*
+import dev.toastbits.composekit.util.composable.wave.*
+import dev.toastbits.composekit.components.utils.modifier.brushBackground
 import kotlin.math.absoluteValue
 
 private const val GRADIENT_BOTTOM_PADDING_DP: Float = 100f

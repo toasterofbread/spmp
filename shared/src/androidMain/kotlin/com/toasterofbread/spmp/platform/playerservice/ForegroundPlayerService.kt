@@ -27,8 +27,8 @@ import com.toasterofbread.spmp.platform.visualiser.FFTAudioProcessor
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
 import com.toasterofbread.spmp.widget.WidgetUpdateListener
-import dev.toastbits.composekit.platform.PlatformPreferencesListener
-import dev.toastbits.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.settings.PlatformSettingsListener
+import dev.toastbits.composekit.util.launchSingle
 import dev.toastbits.spms.player.shouldRepeatOnSeekToPrevious
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
@@ -71,8 +71,8 @@ open class ForegroundPlayerService(
     private lateinit var widget_update_listener: WidgetUpdateListener
     private val audio_device_callback: PlayerAudioDeviceCallback = PlayerAudioDeviceCallback(this)
 
-    private val prefs_listener: PlatformPreferencesListener =
-        PlatformPreferencesListener { key ->
+    private val prefs_listener: PlatformSettingsListener =
+        PlatformSettingsListener { key ->
             when (key) {
                 context.settings.streaming.ENABLE_AUDIO_NORMALISATION.key -> {
                     coroutine_scope.launch {

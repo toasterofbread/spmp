@@ -15,12 +15,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.common.getContrasted
+import dev.toastbits.composekit.util.getContrasted
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
-import dev.toastbits.composekit.settings.ui.ThemeValues
+import dev.toastbits.composekit.theme.ThemeValues
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.Serializable

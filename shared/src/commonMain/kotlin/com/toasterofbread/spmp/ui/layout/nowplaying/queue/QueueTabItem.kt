@@ -28,10 +28,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.modifier.background
+import dev.toastbits.composekit.util.platform.Platform
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.util.thenIf
+import dev.toastbits.composekit.components.utils.modifier.background
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides

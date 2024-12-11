@@ -4,14 +4,14 @@ import dev.toastbits.composekit.settings.ui.component.item.GroupSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.MultipleChoiceSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
-import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueRadioInfoPosition
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueWaveBorderMode
 import com.toasterofbread.spmp.model.settings.category.OverscrollClearMode
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenuAction
 import com.toasterofbread.spmp.platform.AppContext
-import dev.toastbits.composekit.utils.common.toCustomResource
+import dev.toastbits.composekit.util.toCustomResource
 import kotlin.enums.enumEntries
 import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.stringResource

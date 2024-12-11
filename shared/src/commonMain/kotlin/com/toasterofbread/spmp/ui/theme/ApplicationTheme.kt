@@ -14,7 +14,7 @@ import androidx.compose.ui.composed
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.input.pointer.PointerIcon
 import androidx.compose.ui.input.pointer.pointerHoverIcon
-import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.util.thenIf
 
 fun Modifier.appHover(
     button: Boolean = false,

@@ -36,11 +36,11 @@ import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfigDefault
 import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
 import com.toasterofbread.spmp.widget.configuration.type.TypeConfigurationDefaultsMask
 import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
-import dev.toastbits.composekit.navigation.Screen
+import dev.toastbits.composekit.navigation.screen.Screen
 import dev.toastbits.composekit.navigation.navigator.Navigator
-import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
-import dev.toastbits.composekit.utils.common.copy
-import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.components.platform.composable.theme.LocalApplicationTheme
+import dev.toastbits.composekit.util.copy
+import dev.toastbits.composekit.util.thenIf
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.widget_config_button_cancel

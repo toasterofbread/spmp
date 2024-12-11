@@ -11,10 +11,10 @@ import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.getUiLanguage
-import dev.toastbits.composekit.platform.PlatformPreferencesListener
-import dev.toastbits.composekit.platform.getPlatformHostName
-import dev.toastbits.composekit.platform.getPlatformOSName
-import dev.toastbits.composekit.platform.synchronized
+import dev.toastbits.composekit.settings.PlatformSettingsListener
+import dev.toastbits.composekit.context.getPlatformHostName
+import dev.toastbits.composekit.context.getPlatformOSName
+import dev.toastbits.composekit.context.synchronized
 import dev.toastbits.spms.server.CLIENT_HEARTBEAT_MAX_PERIOD
 import dev.toastbits.spms.server.CLIENT_HEARTBEAT_TARGET_PERIOD
 import dev.toastbits.spms.socketapi.shared.SPMS_EXPECT_REPLY_CHAR
@@ -79,8 +79,8 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
         return getString(Res.string.app_name) + " [$os, $host]"
     }
 
-    private val prefs_listener: PlatformPreferencesListener =
-        PlatformPreferencesListener { key ->
+    private val prefs_listener: PlatformSettingsListener =
+        PlatformSettingsListener { key ->
             when (key) {
                 context.settings.youtube_auth.YTM_AUTH.key -> {
                     sendYtmAuthToPlayers()

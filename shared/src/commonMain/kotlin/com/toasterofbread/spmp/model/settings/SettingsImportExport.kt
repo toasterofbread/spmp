@@ -1,13 +1,11 @@
 package com.toasterofbread.spmp.model.settings
 
-import dev.toastbits.composekit.platform.PlatformFile
-import dev.toastbits.composekit.platform.PlatformPreferences
-import com.toasterofbread.spmp.model.settings.category.SettingsGroup
+import dev.toastbits.composekit.context.PlatformFile
+import dev.toastbits.composekit.settings.PlatformSettings
 import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.*
 import kotlinx.serialization.json.encodeToJsonElement
 import PlatformIO
@@ -25,7 +23,7 @@ object SettingsImportExport {
     }
 
     suspend fun exportSettingsData(
-        prefs: PlatformPreferences,
+        prefs: PlatformSettings,
         groups: List<SettingsGroup>
     ): SettingsExportData {
         val values: MutableMap<String, JsonElement> = mutableMapOf()

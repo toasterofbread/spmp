@@ -23,16 +23,16 @@ import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.resources.Language
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.platform.PlatformFile
-import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.context.PlatformFile
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.FileSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem.Companion.ItemTitleText
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
-import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.util.composable.ShapedIconButton
+import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -44,7 +44,7 @@ import spmp.shared.generated.resources.system_language
 
 // TODO Allow setting to any language
 fun getLanguageDropdownItem(
-    property: PreferencesProperty<String>,
+    property: PlatformSettingsProperty<String>,
     available_languages: List<Language>
 ): SettingsItem {
     return DropdownSettingsItem(
@@ -192,7 +192,7 @@ internal fun getSystemCategoryItems(context: AppContext, available_languages: Li
             },
             onSelectRequested = { setValue, showDialog ->
                 context.promptUserForDirectory(true) { path ->
-                    context.coroutine_scope.launch {
+                    context.coroutineScope.launch {
                         val old_location: PlatformFile = MediaItemLibrary.getLibraryDir(context, context.settings.system.LIBRARY_PATH.get())!!
                         val new_location: PlatformFile = MediaItemLibrary.getLibraryDir(context, path ?: "")!!
 

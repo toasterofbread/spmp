@@ -6,7 +6,7 @@ import android.os.SystemClock
 import androidx.media3.common.Player
 import com.toasterofbread.spmp.platform.playerservice.PlayerServiceNotificationCustomAction
 import com.toasterofbread.spmp.ui.getAndroidIcon
-import dev.toastbits.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.util.launchSingle
 import dev.toastbits.ytmkt.model.external.SongLikedStatus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers

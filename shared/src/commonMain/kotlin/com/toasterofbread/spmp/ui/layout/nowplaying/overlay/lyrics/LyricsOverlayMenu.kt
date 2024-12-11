@@ -20,9 +20,9 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
-import dev.toastbits.composekit.platform.composable.BackHandler
-import dev.toastbits.composekit.utils.common.launchSingle
-import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.components.platform.composable.BackHandler
+import dev.toastbits.composekit.util.launchSingle
+import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song

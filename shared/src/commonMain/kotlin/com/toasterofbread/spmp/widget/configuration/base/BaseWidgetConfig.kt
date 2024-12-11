@@ -15,11 +15,11 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.createThe
 import com.toasterofbread.spmp.widget.SpMpWidgetType
 import com.toasterofbread.spmp.widget.configuration.WidgetConfig
 import com.toasterofbread.spmp.widget.configuration.enum.WidgetStyledBorderMode
-import dev.toastbits.composekit.platform.MutableStatePreferencesProperty
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.NamedTheme
+import dev.toastbits.composekit.context.MutableStatePreferencesProperty
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
+import dev.toastbits.composekit.theme.model.NamedTheme
 import dev.toastbits.composekit.settings.ui.ThemeValuesData
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.util.composable.OnChangedEffect
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -34,7 +34,7 @@ import spmp.shared.generated.resources.widget_config_common_key_hide_when_no_con
 import spmp.shared.generated.resources.widget_config_common_key_show_app_icon
 import spmp.shared.generated.resources.widget_config_common_key_styled_border_mode
 import spmp.shared.generated.resources.widget_config_common_key_theme
-import spmp.shared.generated.resources.widget_config_common_option_accent_colour_source_app
+import spmp.shared.generated.resources.widget_config_common_optionAccent_colour_source_app
 import spmp.shared.generated.resources.widget_config_common_option_content_colour_dark
 import spmp.shared.generated.resources.widget_config_common_option_content_colour_light
 import spmp.shared.generated.resources.widget_config_common_option_content_colour_theme
@@ -84,7 +84,7 @@ data class BaseWidgetConfig(
                 Res.string.widget_config_common_key_accent_colour_source,
                 modifier,
                 getItemName = {
-                    stringResource(it?.getNameResource() ?: Res.string.widget_config_common_option_accent_colour_source_app)
+                    stringResource(it?.getNameResource() ?: Res.string.widget_config_common_optionAccent_colour_source_app)
                 }
             ) {
                 onChanged(copy(accent_colour_source = it))
@@ -236,7 +236,7 @@ data class BaseWidgetConfig(
     private fun ThemeIndexItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
         val theme_index_state: MutableState<Int> =
             remember { mutableIntStateOf(theme_index?.plus(1) ?: 0) }
-        val theme_index_property: PreferencesProperty<Int> = remember {
+        val theme_index_property: PlatformSettingsProperty<Int> = remember {
             MutableStatePreferencesProperty(
                 theme_index_state,
                 { stringResource(Res.string.widget_config_common_key_theme) },

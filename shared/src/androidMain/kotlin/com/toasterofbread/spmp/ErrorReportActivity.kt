@@ -51,10 +51,10 @@ import com.toasterofbread.spmp.platform.AppThemeManager
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.resources.stringResourceTODO
 import com.toasterofbread.spmp.ui.component.uploadErrorToPasteEe
-import dev.toastbits.composekit.platform.ApplicationContext
-import dev.toastbits.composekit.platform.composable.theme.ApplicationTheme
-import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.context.ApplicationContext
+import dev.toastbits.composekit.components.platform.composable.theme.ApplicationTheme
+import dev.toastbits.composekit.util.thenIf
+import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
 import io.ktor.client.HttpClient
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody

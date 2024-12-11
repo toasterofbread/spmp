@@ -13,8 +13,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Text
 import androidx.compose.material3.Switch
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.ThemeValues
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
+import dev.toastbits.composekit.theme.ThemeValues
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -46,7 +46,7 @@ enum class PortraitLayoutSlot: LayoutSlot {
             PLAYER_TOP -> true
         }
 
-    override fun getSlotsProperty(context: AppContext): PreferencesProperty<Map<String, ContentBarReference?>> =
+    override fun getSlotsProperty(context: AppContext): PlatformSettingsProperty<Map<String, ContentBarReference?>> =
         context.settings.layout.PORTRAIT_SLOTS
 
     override fun getKey(): String = name

@@ -301,8 +301,8 @@
     <string name="s_theme_editor_title">Edytuj motyw</string>
 
     <string name="s_key_accent_source">Kolor akcentu</string>
-    <string name="s_option_accent_theme">Z motywu</string>
-    <string name="s_option_accent_thumbnail">Z miniatury obrazu</string>
+    <string name="s_optionAccent_theme">Z motywu</string>
+    <string name="s_optionAccent_thumbnail">Z miniatury obrazu</string>
 
     <string name="s_key_np_theme_mode">Obecnie odtwarzany tryb tematyczny</string>
     <string name="s_option_np_accent_background">Kolor tła z akcentem</string>

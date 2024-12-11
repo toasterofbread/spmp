@@ -16,15 +16,15 @@ import androidx.compose.ui.focus.*
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
-import dev.toastbits.composekit.utils.modifier.bounceOnClick
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.util.thenIf
+import dev.toastbits.composekit.util.composable.ShapedIconButton
+import dev.toastbits.composekit.components.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.theme.appHover
-import dev.toastbits.composekit.settings.ui.on_accent
-import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.theme.onAccent
+import dev.toastbits.composekit.theme.vibrantAccent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.search_entry_field_hint
@@ -69,7 +69,7 @@ internal fun SearchAppPage.SearchBar(
             singleLine = true,
             textStyle = LocalTextStyle.current.copy(
                 fontSize = SEARCH_FIELD_FONT_SIZE,
-                color = context.theme.vibrant_accent.getContrasted()
+                color = context.theme.vibrantAccent.getContrasted()
             ),
             modifier = Modifier
                 .height(SEARCH_BAR_HEIGHT_DP.dp)
@@ -82,7 +82,7 @@ internal fun SearchAppPage.SearchBar(
                 Row(
                     Modifier
                         .background(
-                            context.theme.vibrant_accent,
+                            context.theme.vibrantAccent,
                             shape
                         )
                         .padding(horizontal = 10.dp)
@@ -95,7 +95,7 @@ internal fun SearchAppPage.SearchBar(
 
                         // Query hint
                         if (current_query.isEmpty()) {
-                            Text(stringResource(Res.string.search_entry_field_hint), fontSize = SEARCH_FIELD_FONT_SIZE, color = context.theme.on_accent)
+                            Text(stringResource(Res.string.search_entry_field_hint), fontSize = SEARCH_FIELD_FONT_SIZE, color = context.theme.onAccent)
                         }
 
                         // Text input
@@ -104,7 +104,7 @@ internal fun SearchAppPage.SearchBar(
 
                     // Clear field button
                     IconButton({ current_query = "" }, Modifier.bounceOnClick().appHover(true)) {
-                        Icon(Icons.Filled.Clear, null, Modifier, context.theme.on_accent)
+                        Icon(Icons.Filled.Clear, null, Modifier, context.theme.onAccent)
                     }
                 }
             },
@@ -121,8 +121,8 @@ internal fun SearchAppPage.SearchBar(
         ShapedIconButton(
             { performSearch() },
             IconButtonDefaults.iconButtonColors(
-                containerColor = context.theme.vibrant_accent,
-                contentColor = context.theme.vibrant_accent.getContrasted()
+                containerColor = context.theme.vibrantAccent,
+                contentColor = context.theme.vibrantAccent.getContrasted()
             ),
             Modifier
                 .aspectRatio(1f)
@@ -136,8 +136,8 @@ internal fun SearchAppPage.SearchBar(
         ShapedIconButton(
             { show_settings = true },
             IconButtonDefaults.iconButtonColors(
-                containerColor = context.theme.vibrant_accent,
-                contentColor = context.theme.vibrant_accent.getContrasted()
+                containerColor = context.theme.vibrantAccent,
+                contentColor = context.theme.vibrantAccent.getContrasted()
             ),
             Modifier
                 .aspectRatio(1f)

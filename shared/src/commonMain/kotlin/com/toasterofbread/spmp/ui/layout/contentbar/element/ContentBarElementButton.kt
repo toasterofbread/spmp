@@ -24,9 +24,9 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.utils.common.getValue
-import dev.toastbits.composekit.utils.composable.*
+import dev.toastbits.composekit.util.platform.Platform
+import dev.toastbits.composekit.util.getValue
+import dev.toastbits.composekit.util.composable.*
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.appaction.AppAction

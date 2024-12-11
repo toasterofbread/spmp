@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElement
-import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.components.utils.composable.LargeDropdownMenu
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.content_bar_editor_add_element

@@ -23,11 +23,11 @@ import androidx.compose.ui.platform.*
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import dev.toastbits.composekit.platform.composable.*
-import dev.toastbits.composekit.utils.common.*
-import dev.toastbits.composekit.utils.common.launchSingle
-import dev.toastbits.composekit.utils.composable.*
-import dev.toastbits.composekit.utils.modifier.bounceOnClick
+import dev.toastbits.composekit.components.platform.composable.*
+import dev.toastbits.composekit.util.*
+import dev.toastbits.composekit.util.launchSingle
+import dev.toastbits.composekit.util.composable.*
+import dev.toastbits.composekit.components.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.enums.*
 import com.toasterofbread.spmp.model.mediaitem.layout.*
@@ -45,8 +45,8 @@ import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.theme.appHover
 import com.toasterofbread.spmp.ui.component.NotImplementedMessage
-import dev.toastbits.composekit.platform.ReentrantLock
-import dev.toastbits.composekit.platform.synchronized
+import dev.toastbits.composekit.context.ReentrantLock
+import dev.toastbits.composekit.context.synchronized
 import dev.toastbits.ytmkt.endpoint.*
 import dev.toastbits.ytmkt.endpoint.SearchFilter
 import dev.toastbits.ytmkt.endpoint.SearchResults
@@ -260,7 +260,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                             Modifier.fillMaxSize().padding(padding),
                             contentAlignment = Alignment.Center
                         ) {
-                            SubtleLoadingIndicator(getColour = { context.theme.on_background }, message = stringResource(Res.string.search_results_loading))
+                            SubtleLoadingIndicator(getColour = { context.theme.onBackground }, message = stringResource(Res.string.search_results_loading))
                         }
                     }
                 }

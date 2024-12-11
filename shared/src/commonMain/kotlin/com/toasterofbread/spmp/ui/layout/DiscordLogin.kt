@@ -42,10 +42,10 @@ import com.toasterofbread.spmp.platform.getDiscordAccountInfo
 import com.toasterofbread.spmp.platform.getOrNotify
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.composable.LinkifyText
-import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.util.platform.Platform
+import dev.toastbits.composekit.util.thenIf
+import dev.toastbits.composekit.util.composable.LinkifyText
+import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.stringResource

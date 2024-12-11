@@ -24,9 +24,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.settings.ui.on_accent
-import dev.toastbits.composekit.settings.ui.vibrant_accent
-import dev.toastbits.composekit.utils.composable.NoRipple
+import dev.toastbits.composekit.theme.onAccent
+import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.util.composable.NoRipple
 import dev.toastbits.ytmkt.endpoint.RadioBuilderModifier
 import kotlinx.coroutines.launch
 import kotlin.math.ceil
@@ -80,7 +80,7 @@ internal fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.Selection
                     }
                 }
 
-                RecordArc(size.value.dp, arc_angle.value, offset.value, player.theme.vibrant_accent)
+                RecordArc(size.value.dp, arc_angle.value, offset.value, player.theme.vibrantAccent)
             }
         }
 
@@ -118,7 +118,7 @@ internal fun SelectionTypeRow(state: MutableState<RadioBuilderModifier.Selection
 //                    horizontalAlignment = Alignment.CenterHorizontally,
 //                    verticalArrangement = Arrangement.spacedBy(15.dp)
 //                ) {
-//                    RadioSelectionTypeAnimation(type, animate, colour = if (state.value == type) player.theme.vibrant_accent else player.theme.on_background)
+//                    RadioSelectionTypeAnimation(type, animate, colour = if (state.value == type) player.theme.vibrantAccent else player.theme.onBackground)
 //                    Text(text)
 //                }
 //            }
@@ -210,7 +210,7 @@ internal fun MultiSelectRow(
                                         Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.buttonColors(
                                             containerColor = player.theme.accent,
-                                            contentColor = player.theme.on_accent
+                                            contentColor = player.theme.onAccent
                                         ),
                                         contentPadding = button_padding,
                                         shape = shape
@@ -223,7 +223,7 @@ internal fun MultiSelectRow(
                                         { onSelected(i) },
                                         Modifier.fillMaxWidth(),
                                         colors = ButtonDefaults.outlinedButtonColors(
-                                            contentColor = player.theme.on_background
+                                            contentColor = player.theme.onBackground
                                         ),
                                         contentPadding = button_padding,
                                         shape = shape

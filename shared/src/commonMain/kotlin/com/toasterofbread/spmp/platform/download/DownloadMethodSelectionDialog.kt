@@ -26,7 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.composable.WidthShrinkText
+import dev.toastbits.composekit.util.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong

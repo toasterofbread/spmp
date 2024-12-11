@@ -15,13 +15,13 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.platform.composable.BackHandler
-import dev.toastbits.composekit.platform.composable.SwipeRefresh
-import dev.toastbits.composekit.platform.composable.platformClickable
-import dev.toastbits.composekit.utils.common.launchSingle
-import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
-import dev.toastbits.composekit.utils.modifier.horizontal
-import dev.toastbits.composekit.utils.modifier.vertical
+import dev.toastbits.composekit.components.platform.composable.BackHandler
+import dev.toastbits.composekit.components.platform.composable.SwipeRefresh
+import dev.toastbits.composekit.components.platform.composable.platformClickable
+import dev.toastbits.composekit.util.launchSingle
+import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.components.utils.modifier.horizontal
+import dev.toastbits.composekit.components.utils.modifier.vertical
 import com.toasterofbread.spmp.model.deserialise
 import com.toasterofbread.spmp.model.getString
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
@@ -288,7 +288,7 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
                                     }
                                     else if (requestContinuation != null) {
                                         IconButton({ requestContinuation() }) {
-                                            Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = player.theme.on_background)
+                                            Icon(Icons.Filled.KeyboardDoubleArrowDown, null, tint = player.theme.onBackground)
                                         }
                                     }
                                 }

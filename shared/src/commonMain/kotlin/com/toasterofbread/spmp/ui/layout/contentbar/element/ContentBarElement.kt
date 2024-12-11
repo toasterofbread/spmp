@@ -9,8 +9,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
-import dev.toastbits.composekit.utils.common.thenWith
-import dev.toastbits.composekit.utils.composable.*
+import dev.toastbits.composekit.util.thenWith
+import dev.toastbits.composekit.util.composable.*
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference

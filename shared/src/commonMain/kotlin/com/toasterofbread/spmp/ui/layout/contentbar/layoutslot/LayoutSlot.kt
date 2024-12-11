@@ -11,20 +11,20 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.Alignment
 import androidx.compose.material3.Text
 import androidx.compose.material3.Switch
-import dev.toastbits.composekit.utils.composable.RowOrColumn
+import dev.toastbits.composekit.util.composable.RowOrColumn
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBar
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.ThemeValues
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
+import dev.toastbits.composekit.theme.ThemeValues
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.Serializable
-import dev.toastbits.composekit.utils.composable.RowOrColumnScope
+import dev.toastbits.composekit.util.composable.RowOrColumnScope
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.layout_slot_config_below_player_show_in_player
@@ -50,7 +50,7 @@ sealed interface LayoutSlot {
 
     val is_vertical: Boolean
     val is_start: Boolean
-    fun getSlotsProperty(context: AppContext): PreferencesProperty<Map<String, ContentBarReference?>>
+    fun getSlotsProperty(context: AppContext): PlatformSettingsProperty<Map<String, ContentBarReference?>>
 
     fun getContentBarSelectionState(): ContentBar.BarSelectionState? =
         ContentBar.bar_selection_state

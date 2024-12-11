@@ -3,9 +3,9 @@ package com.toasterofbread.spmp.platform.playerservice
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
-import dev.toastbits.composekit.utils.common.synchronizedBlock
-import dev.toastbits.composekit.platform.assert
-import dev.toastbits.composekit.platform.synchronized
+import dev.toastbits.composekit.util.synchronizedBlock
+import dev.toastbits.composekit.context.assert
+import dev.toastbits.composekit.context.synchronized
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.util.removeLastBuiltIn
 

@@ -37,8 +37,8 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.toastbits.composekit.utils.common.getValue
-import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.util.getValue
+import dev.toastbits.composekit.util.thenIf
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist

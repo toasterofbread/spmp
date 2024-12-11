@@ -41,10 +41,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.platform.composable.BackHandler
-import dev.toastbits.composekit.platform.vibrateShort
-import dev.toastbits.composekit.utils.common.getValue
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.components.platform.composable.BackHandler
+import dev.toastbits.composekit.context.vibrateShort
+import dev.toastbits.composekit.util.getValue
+import dev.toastbits.composekit.util.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -60,7 +60,7 @@ import com.toasterofbread.spmp.platform.download.rememberDownloadStatus
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuActionProvider
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
-import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.theme.onAccent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
@@ -129,7 +129,7 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
 
                 val button_colours = IconButtonDefaults.iconButtonColors(
                     containerColor = player.theme.accent,
-                    contentColor = player.theme.on_accent
+                    contentColor = player.theme.onAccent
                 )
 
                 Row(
@@ -152,7 +152,7 @@ fun LongPressMenuActionProvider.SongLongPressMenuActions(
                         },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = player.theme.accent,
-                            contentColor = player.theme.on_accent
+                            contentColor = player.theme.onAccent
                         )
                     ) {
                         Text(stringResource(Res.string.playlist_create))

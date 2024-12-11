@@ -12,17 +12,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.*
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.utils.common.*
-import dev.toastbits.composekit.utils.composable.*
-import dev.toastbits.composekit.utils.modifier.horizontal
+import dev.toastbits.composekit.util.platform.Platform
+import dev.toastbits.composekit.util.*
+import dev.toastbits.composekit.util.composable.*
+import dev.toastbits.composekit.components.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.LargeFilterList
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewSquare
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
-import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.theme.vibrantAccent
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -67,8 +67,8 @@ internal fun SongFeedAppPage.LFFSongFeedPagePrimaryBar(
             ) {
                 val selected_colours: IconButtonColors =
                     IconButtonDefaults.iconButtonColors(
-                        containerColor = player.theme.vibrant_accent.copy(alpha = 0.85f),
-                        contentColor = player.theme.vibrant_accent.getContrasted()
+                        containerColor = player.theme.vibrantAccent.copy(alpha = 0.85f),
+                        contentColor = player.theme.vibrantAccent.getContrasted()
                     )
 
                 ShapedIconButton(

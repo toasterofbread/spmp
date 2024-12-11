@@ -10,14 +10,14 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
-import dev.toastbits.composekit.utils.common.*
-import dev.toastbits.composekit.utils.composable.*
+import dev.toastbits.composekit.util.*
+import dev.toastbits.composekit.util.composable.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
-import dev.toastbits.composekit.settings.ui.ThemeValues
-import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.theme.ThemeValues
+import dev.toastbits.composekit.theme.vibrantAccent
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
 
@@ -135,8 +135,8 @@ internal fun CustomBarContent(
     val content_colour: Color = LocalContentColor.current
     val indicator_colour: Color =
         when (background_colour) {
-            ThemeValues.Colour.BACKGROUND -> player.theme.vibrant_accent
-            ThemeValues.Colour.CARD -> player.theme.vibrant_accent
+            ThemeValues.Colour.BACKGROUND -> player.theme.vibrantAccent
+            ThemeValues.Colour.CARD -> player.theme.vibrantAccent
             ThemeValues.Colour.ACCENT -> player.theme.background
             ThemeValues.Colour.VIBRANT_ACCENT -> player.theme.background
             else -> content_colour

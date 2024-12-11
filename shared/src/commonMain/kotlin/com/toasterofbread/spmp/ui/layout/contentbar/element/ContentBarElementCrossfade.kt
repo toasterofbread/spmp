@@ -42,9 +42,9 @@ import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarElementSelector
 import com.toasterofbread.spmp.ui.theme.appHover
-import dev.toastbits.composekit.platform.composable.platformClickable
-import dev.toastbits.composekit.platform.PlatformContext
-import dev.toastbits.composekit.utils.composable.AlignableCrossfade
+import dev.toastbits.composekit.components.platform.composable.platformClickable
+import dev.toastbits.composekit.context.PlatformContext
+import dev.toastbits.composekit.util.composable.AlignableCrossfade
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.content_bar_element_content_bar_config_bar
@@ -148,7 +148,7 @@ data class ContentBarElementCrossfade(
                     ContentBarElementSelector(
                         button_colours =
                             ButtonDefaults.buttonColors(
-                                containerColor = player.theme.on_background,
+                                containerColor = player.theme.onBackground,
                                 contentColor = player.theme.background
                             )
                     ) { type ->

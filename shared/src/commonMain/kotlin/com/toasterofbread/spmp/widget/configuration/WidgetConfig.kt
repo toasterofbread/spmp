@@ -29,22 +29,22 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.widget.configuration.enum.WidgetSectionTheme
-import dev.toastbits.composekit.platform.MutableStatePreferencesProperty
-import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.context.MutableStatePreferencesProperty
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.SliderSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
-import dev.toastbits.composekit.utils.common.roundTo
-import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
-import dev.toastbits.composekit.utils.composable.WithStickySize
+import dev.toastbits.composekit.util.roundTo
+import dev.toastbits.composekit.util.thenIf
+import dev.toastbits.composekit.util.composable.OnChangedEffect
+import dev.toastbits.composekit.util.composable.WithStickySize
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.widget_config_button_use_default_value
 import spmp.shared.generated.resources.widget_config_common_key_accent_colour_source
 import spmp.shared.generated.resources.widget_config_common_key_section_theme_opacity
-import spmp.shared.generated.resources.widget_config_common_option_accent_colour_source_app
+import spmp.shared.generated.resources.widget_config_common_optionAccent_colour_source_app
 import spmp.shared.generated.resources.widget_config_common_option_section_theme_mode_accent
 import spmp.shared.generated.resources.widget_config_common_option_section_theme_mode_background
 import spmp.shared.generated.resources.widget_config_common_option_section_theme_mode_transparent
@@ -107,7 +107,7 @@ abstract class WidgetConfig {
         var show_opacity_slider: Boolean by remember { mutableStateOf(false) }
 
         val mode_state: MutableState<WidgetSectionTheme.Mode> = remember { mutableStateOf(theme.mode) }
-        val mode_property: PreferencesProperty<WidgetSectionTheme.Mode> = remember {
+        val mode_property: PlatformSettingsProperty<WidgetSectionTheme.Mode> = remember {
             MutableStatePreferencesProperty(
                 mode_state,
                 { stringResource(title) },
@@ -127,7 +127,7 @@ abstract class WidgetConfig {
         }
 
         val opacity_state: MutableState<Float> = remember { mutableStateOf(theme.opacity) }
-        val opacity_property: PreferencesProperty<Float> = remember {
+        val opacity_property: PlatformSettingsProperty<Float> = remember {
             MutableStatePreferencesProperty(
                 opacity_state,
                 { stringResource(Res.string.widget_config_common_key_section_theme_opacity) },
@@ -189,7 +189,7 @@ abstract class WidgetConfig {
         val current_state: MutableState<Boolean> =
             remember { mutableStateOf(state) }
 
-        val state_property: PreferencesProperty<Boolean> = remember {
+        val state_property: PlatformSettingsProperty<Boolean> = remember {
             MutableStatePreferencesProperty(
                 current_state,
                 { stringResource(title) },
@@ -221,7 +221,7 @@ abstract class WidgetConfig {
     ) {
         val value_state: MutableState<T> =
             remember { mutableStateOf(value) }
-        val value_property: PreferencesProperty<T> = remember {
+        val value_property: PlatformSettingsProperty<T> = remember {
             MutableStatePreferencesProperty(
                 value_state,
                 { stringResource(title) },
@@ -256,7 +256,7 @@ abstract class WidgetConfig {
         val value_state: MutableState<T> =
             remember { mutableStateOf(value) }
 
-        val value_property: PreferencesProperty<T> = remember {
+        val value_property: PlatformSettingsProperty<T> = remember {
             MutableStatePreferencesProperty(
                 value_state,
                 { stringResource(title) },
@@ -286,7 +286,7 @@ abstract class WidgetConfig {
     ) {
         val value_state: MutableState<Int> =
             remember { mutableIntStateOf(value?.ordinal?.plus(1) ?: 0) }
-        val value_property: PreferencesProperty<Int> = remember {
+        val value_property: PlatformSettingsProperty<Int> = remember {
             MutableStatePreferencesProperty(
                 value_state,
                 { stringResource(title) },

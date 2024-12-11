@@ -59,18 +59,18 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.toastbits.composekit.platform.PlatformFile
-import dev.toastbits.composekit.platform.composable.BackHandler
-import dev.toastbits.composekit.platform.composable.platformClickable
-import dev.toastbits.composekit.platform.vibrateShort
+import dev.toastbits.composekit.context.PlatformFile
+import dev.toastbits.composekit.components.platform.composable.BackHandler
+import dev.toastbits.composekit.components.platform.composable.platformClickable
+import dev.toastbits.composekit.context.vibrateShort
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
-import dev.toastbits.composekit.utils.common.addUnique
-import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.common.toggleItemPresence
-import dev.toastbits.composekit.utils.composable.WidthShrinkText
-import dev.toastbits.composekit.utils.modifier.horizontal
+import dev.toastbits.composekit.util.addUnique
+import dev.toastbits.composekit.util.thenIf
+import dev.toastbits.composekit.util.toggleItemPresence
+import dev.toastbits.composekit.util.composable.WidthShrinkText
+import dev.toastbits.composekit.components.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.settings.SettingsImportExport
-import com.toasterofbread.spmp.model.settings.category.SettingsGroup
+import com.toasterofbread.spmp.model.settings.SettingsGroup
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
@@ -86,7 +86,7 @@ import org.jetbrains.compose.resources.painterResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.*
 import PlatformIO
-import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.theme.onAccent
 import kotlinx.datetime.Clock
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
@@ -463,7 +463,7 @@ private fun StyledCheckbox(checked: Boolean, onCheckedChange: (Boolean) -> Unit)
         colors = CheckboxDefaults.colors(
             checkedColor = player.theme.accent,
             uncheckedColor = player.theme.accent,
-            checkmarkColor = player.theme.on_accent
+            checkmarkColor = player.theme.onAccent
         )
     )
 }

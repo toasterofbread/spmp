@@ -14,9 +14,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.platform.composable.BackHandler
+import dev.toastbits.composekit.components.platform.composable.BackHandler
 import dev.toastbits.composekit.settings.ui.component.item.*
-import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
+import dev.toastbits.composekit.util.composable.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
@@ -31,8 +31,8 @@ import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElementCon
 import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElement
 import com.toasterofbread.spmp.ui.layout.contentbar.CircularReferenceWarning
 import com.toasterofbread.spmp.util.removeLastBuiltIn
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
+import dev.toastbits.composekit.theme.vibrantAccent
 import kotlinx.serialization.*
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
@@ -75,7 +75,7 @@ fun LayoutSlotEditor(
     var slot_colours: Map<String, ColourSource> by player.settings.layout.SLOT_COLOURS.observe()
     var slot_config: Map<String, JsonElement> by player.settings.layout.SLOT_CONFIGS.observe()
 
-    val slots_property: PreferencesProperty<Map<String, ContentBarReference?>> =
+    val slots_property: PlatformSettingsProperty<Map<String, ContentBarReference?>> =
         when (form_factor) {
             FormFactor.PORTRAIT -> player.settings.layout.PORTRAIT_SLOTS
             FormFactor.LANDSCAPE -> player.settings.layout.LANDSCAPE_SLOTS
@@ -358,7 +358,7 @@ fun LayoutSlotEditor(
                     state,
                     onSelected = null,
                     onDismissed = {},
-                    bar_background_colour = player.theme.vibrant_accent.copy(alpha = 0.15f)
+                    bar_background_colour = player.theme.vibrantAccent.copy(alpha = 0.15f)
                 )
             }
         }

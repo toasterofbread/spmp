@@ -17,12 +17,12 @@ import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.resources.Language
 import com.toasterofbread.spmp.resources.getAvailableLanguages
 import com.toasterofbread.spmp.youtubeapi.YtmApiType
-import dev.toastbits.composekit.platform.ApplicationContext
-import dev.toastbits.composekit.platform.PlatformContextImpl
-import dev.toastbits.composekit.platform.PlatformPreferences
-import dev.toastbits.composekit.platform.PlatformPreferencesImpl
-import dev.toastbits.composekit.utils.common.getThemeColour
-import dev.toastbits.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.context.ApplicationContext
+import dev.toastbits.composekit.context.PlatformContext
+import dev.toastbits.composekit.settings.PlatformSettings
+import dev.toastbits.composekit.context.PlatformPreferencesImpl
+import dev.toastbits.composekit.util.getThemeColour
+import dev.toastbits.composekit.util.launchSingle
 import dev.toastbits.ytmkt.model.YtmApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -37,16 +37,16 @@ actual class AppContext private constructor(
     api_url: String,
     data_language: Language,
     available_languages: List<Language>,
-    private val prefs: PlatformPreferences,
+    private val prefs: PlatformSettings,
     application_context: ApplicationContext? = null
-): PlatformContextImpl(context, coroutine_scope, application_context) {
+): PlatformContext(context, coroutine_scope, application_context) {
     companion object {
         suspend fun create(
             context: Context,
             coroutine_scope: CoroutineScope,
             application_context: ApplicationContext? = null
         ): AppContext {
-            val prefs: PlatformPreferences = PlatformPreferencesImpl.getInstance(context, ProjectJson.instance)
+            val prefs: PlatformSettings = PlatformPreferencesImpl.getInstance(context, ProjectJson.instance)
             val settings: YTApiSettings = YTApiSettings(prefs)
 
             return AppContext(
@@ -65,7 +65,7 @@ actual class AppContext private constructor(
             Intent().setComponent(ComponentName(context, "com.toasterofbread.spmp.MainActivity"))
     }
 
-    actual fun getPrefs(): PlatformPreferences = prefs
+    actual fun getPrefs(): PlatformSettings = prefs
 
     private val colorblendr_coroutine_scope = CoroutineScope(Dispatchers.Default)
     private var current_colorblendr_song: Song? = null

@@ -24,8 +24,8 @@ import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.settings.ui.SettingsPage
 import dev.toastbits.composekit.settings.ui.SettingsPageWithItems
 import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
-import dev.toastbits.composekit.utils.common.roundTo
-import dev.toastbits.composekit.utils.composable.RecomposeOnInterval
+import dev.toastbits.composekit.util.roundTo
+import dev.toastbits.composekit.util.composable.RecomposeOnInterval
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import org.jetbrains.compose.resources.stringResource

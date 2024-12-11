@@ -33,9 +33,9 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.github.krottv.compose.sliders.DefaultThumb
 import com.github.krottv.compose.sliders.SliderValueHorizontal
-import dev.toastbits.composekit.utils.common.formatElapsedTime
-import dev.toastbits.composekit.utils.composable.RecomposeOnInterval
-import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.util.formatElapsedTime
+import dev.toastbits.composekit.util.composable.RecomposeOnInterval
+import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.POSITION_UPDATE_INTERVAL_MS
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground

@@ -4,9 +4,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Science
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.toasterofbread.spmp.model.settings.SettingsGroupImpl
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getExperimentalCategoryItems
-import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -17,8 +18,8 @@ import spmp.shared.generated.resources.s_sub_android_monet_colour_enable
 
 class ExperimentalSettings(
     val context: AppContext
-): SettingsGroup("EXPERIMENTAL", context.getPrefs()) {
-    val ANDROID_MONET_COLOUR_ENABLE: PreferencesProperty<Boolean> by property(
+): SettingsGroupImpl("EXPERIMENTAL", context.getPrefs()) {
+    val ANDROID_MONET_COLOUR_ENABLE: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_android_monet_colour_enable) },
         getDescription = { stringResource(Res.string.s_sub_android_monet_colour_enable) },
         getDefaultValue = { false }

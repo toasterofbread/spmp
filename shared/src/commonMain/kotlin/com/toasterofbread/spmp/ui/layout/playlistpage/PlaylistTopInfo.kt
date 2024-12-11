@@ -54,10 +54,10 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.coerceAtLeast
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.times
-import dev.toastbits.composekit.platform.composable.platformClickable
-import dev.toastbits.composekit.platform.vibrateShort
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.utils.composable.getStart
+import dev.toastbits.composekit.components.platform.composable.platformClickable
+import dev.toastbits.composekit.context.vibrateShort
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.util.composable.getStart
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.ui.component.Thumbnail

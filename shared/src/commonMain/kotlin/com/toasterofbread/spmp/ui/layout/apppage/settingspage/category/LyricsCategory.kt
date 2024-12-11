@@ -6,7 +6,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
-import dev.toastbits.composekit.utils.common.toCustomResource
+import dev.toastbits.composekit.util.toCustomResource
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_option_lyrics_follow_offset_top

@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
-import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppStringSetItem
 import com.toasterofbread.spmp.platform.AppContext
 import org.jetbrains.compose.resources.stringResource

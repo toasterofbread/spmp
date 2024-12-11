@@ -13,13 +13,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.model.settings.category.DiscordSettings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.DiscordLogin
-import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import dev.toastbits.composekit.settings.ui.SettingsPage
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.discord_manual_login_title
 
-internal fun getDiscordLoginPage(discord_auth: PreferencesProperty<String>, manual: Boolean = false): SettingsPage {
+internal fun getDiscordLoginPage(discord_auth: PlatformSettingsProperty<String>, manual: Boolean = false): SettingsPage {
     return object : SettingsPage() {
         override val scrolling: Boolean
             @Composable

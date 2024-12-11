@@ -30,7 +30,7 @@ import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.InfoTextSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.TextFieldSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
-import dev.toastbits.composekit.utils.composable.LinkifyText
+import dev.toastbits.composekit.util.composable.LinkifyText
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
@@ -40,11 +40,11 @@ import LocalProgramArguments
 import ProgramArguments
 import LocalPlayerState
 import com.toasterofbread.spmp.model.settings.category.DiscordSettings
-import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
-import dev.toastbits.composekit.settings.ui.ThemeValues
+import dev.toastbits.composekit.components.platform.composable.theme.LocalApplicationTheme
+import dev.toastbits.composekit.theme.ThemeValues
 import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
-import dev.toastbits.composekit.settings.ui.on_accent
-import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.theme.onAccent
+import dev.toastbits.composekit.theme.vibrantAccent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_warning_accept
@@ -82,21 +82,21 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
                     modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(
                         containerColor = theme.background,
-                        contentColor = theme.on_background
+                        contentColor = theme.onBackground
                     ),
                     border = BorderStroke(2.dp, Color.Red),
                 ) {
                     Column(Modifier.fillMaxSize().padding(15.dp), verticalArrangement = Arrangement.spacedBy(5.dp)) {
                         Icon(Icons.Default.Warning, null, tint = Color.Red)
 
-                        LinkifyText(warning_text ?: "", theme.accent, style = MaterialTheme.typography.bodyMedium.copy(color = theme.on_background))
+                        LinkifyText(warning_text ?: "", theme.accent, style = MaterialTheme.typography.bodyMedium.copy(color = theme.onBackground))
 
                         Button(
                             { accepted = true },
                             Modifier.align(Alignment.End),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = theme.accent,
-                                contentColor = theme.on_accent
+                                contentColor = theme.onAccent
                             )
                         ) {
                             Text(
@@ -119,7 +119,7 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
             if (program_arguments.is_flatpak) {
                 LinkifyText(
                     stringResource(Res.string.`info_flatpak_discord_$url`).replace("\$url", stringResource(Res.string.flatpak_documentation_url) + " "),
-                    player.theme.vibrant_accent,
+                    player.theme.vibrantAccent,
                     modifier = modifier
                 )
             }

@@ -21,10 +21,10 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
-import dev.toastbits.composekit.utils.composable.EmptyListAndDataCrossfade
-import dev.toastbits.composekit.utils.composable.LoadActionIconButton
-import dev.toastbits.composekit.utils.composable.RowOrColumnScope
+import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyColumn
+import dev.toastbits.composekit.util.composable.EmptyListAndDataCrossfade
+import dev.toastbits.composekit.util.composable.LoadActionIconButton
+import dev.toastbits.composekit.util.composable.RowOrColumnScope
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef

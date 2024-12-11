@@ -9,26 +9,24 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.settings.ui.SettingsInterface
 import com.toasterofbread.spmp.ProjectBuildConfig
+import com.toasterofbread.spmp.model.settings.SettingsGroupImpl
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getDiscordAuthItem
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.PrefsPageScreen
-import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import org.jetbrains.compose.resources.stringResource
-import org.jetbrains.compose.resources.vectorResource
 import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.ic_discord
 import spmp.shared.generated.resources.s_cat_discord_auth
 
-class DiscordAuthSettings(val context: AppContext): SettingsGroup("DISCORDAUTH", context.getPrefs()) {
-    val DISCORD_ACCOUNT_TOKEN: PreferencesProperty<String> by property(
+class DiscordAuthSettings(val context: AppContext): SettingsGroupImpl("DISCORDAUTH", context.getPrefs()) {
+    val DISCORD_ACCOUNT_TOKEN: PlatformSettingsProperty<String> by property(
         getName = { "" },
         getDescription = { null },
         getDefaultValue = { ProjectBuildConfig.DISCORD_ACCOUNT_TOKEN ?: "" }
     )
-    val DISCORD_WARNING_ACCEPTED: PreferencesProperty<Boolean> by property(
+    val DISCORD_WARNING_ACCEPTED: PlatformSettingsProperty<Boolean> by property(
         getName = { "" },
         getDescription = { null },
         getDefaultValue = { false }

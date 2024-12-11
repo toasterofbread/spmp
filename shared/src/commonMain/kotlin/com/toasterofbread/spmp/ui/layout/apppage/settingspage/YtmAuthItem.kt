@@ -18,12 +18,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.settings.PlatformSettings
 import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.LargeToggleSettingsItem
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
+import dev.toastbits.composekit.util.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.settings.Settings
@@ -35,8 +35,8 @@ import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.ui.component.NotImplementedMessage
 import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.LoginPage
-import dev.toastbits.composekit.settings.ui.on_accent
-import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.theme.onAccent
+import dev.toastbits.composekit.theme.vibrantAccent
 import io.ktor.http.Headers
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonPrimitive
@@ -48,7 +48,7 @@ import spmp.shared.generated.resources.auth_not_signed_in
 import spmp.shared.generated.resources.auth_sign_in
 import spmp.shared.generated.resources.auth_sign_out
 
-fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String>>): SettingsItem {
+fun getYtmAuthItem(context: AppContext, ytm_auth: PlatformSettingsProperty<Set<String>>): SettingsItem {
     var own_channel: Artist? by mutableStateOf(null)
     val login_page: LoginPage = context.ytapi.LoginPage
 
@@ -59,7 +59,7 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String
     }
 
     return LargeToggleSettingsItem(
-        object : PreferencesProperty<Boolean> {
+        object : PlatformSettingsProperty<Boolean> {
             override val key: String = ytm_auth.key
             @Composable
             override fun getName(): String = ytm_auth.getName()
@@ -69,13 +69,13 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String
             override suspend fun get(): Boolean =
                 ytm_auth.get().isNotEmpty()
 
-            override fun set(value: Boolean, editor: PlatformPreferences.Editor?) {
+            override fun set(value: Boolean, editor: PlatformSettings.Editor?) {
                 if (!value) {
                     ytm_auth.set(emptySet(), editor)
                 }
             }
 
-            override fun set(data: JsonElement, editor: PlatformPreferences.Editor?) {
+            override fun set(data: JsonElement, editor: PlatformSettings.Editor?) {
                 set(data.jsonPrimitive.boolean, editor)
             }
 
@@ -160,8 +160,8 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String
                 },
                 shape = CircleShape,
                 colours = IconButtonDefaults.iconButtonColors(
-                    containerColor = if (enabled) context.theme.background else context.theme.vibrant_accent,
-                    contentColor = if (enabled) context.theme.on_background else context.theme.on_accent
+                    containerColor = if (enabled) context.theme.background else context.theme.vibrantAccent,
+                    contentColor = if (enabled) context.theme.onBackground else context.theme.onAccent
                 ),
                 indication = null
             ) {

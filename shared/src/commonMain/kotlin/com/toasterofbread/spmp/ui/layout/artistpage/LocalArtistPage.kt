@@ -14,8 +14,8 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.modifier.horizontal
+import dev.toastbits.composekit.util.thenIf
+import dev.toastbits.composekit.components.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef

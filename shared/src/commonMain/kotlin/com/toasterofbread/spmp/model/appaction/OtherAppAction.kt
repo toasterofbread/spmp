@@ -1,33 +1,40 @@
 package com.toasterofbread.spmp.model.appaction
 
 import SpMp
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Fullscreen
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.UnfoldLess
+import androidx.compose.material.icons.filled.UnfoldMore
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.Button
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import com.toasterofbread.spmp.model.appaction.AppAction
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.platform.composable.onWindowBackPressed
+import dev.toastbits.composekit.components.platform.composable.onWindowBackPressed
+import dev.toastbits.composekit.components.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.util.platform.Platform
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.appaction_config_other_action
-import spmp.shared.generated.resources.appaction_other_action_navigate_back
-import spmp.shared.generated.resources.appaction_other_action_toggle_fullscreen
-import spmp.shared.generated.resources.appaction_other_action_reload_page
-import spmp.shared.generated.resources.appaction_other_action_increase_ui_scale
 import spmp.shared.generated.resources.appaction_other_action_decrease_ui_scale
+import spmp.shared.generated.resources.appaction_other_action_increase_ui_scale
+import spmp.shared.generated.resources.appaction_other_action_navigate_back
+import spmp.shared.generated.resources.appaction_other_action_reload_page
+import spmp.shared.generated.resources.appaction_other_action_toggle_fullscreen
 
 @Serializable
 data class OtherAppAction(

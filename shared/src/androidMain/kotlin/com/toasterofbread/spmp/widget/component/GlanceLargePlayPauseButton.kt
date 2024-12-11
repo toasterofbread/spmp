@@ -12,9 +12,9 @@ import androidx.glance.layout.Alignment
 import androidx.glance.layout.Box
 import com.toasterofbread.spmp.shared.R
 import com.toasterofbread.spmp.widget.action.PlayPauseAction
-import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
-import dev.toastbits.composekit.settings.ui.ThemeValues
-import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.components.platform.composable.theme.LocalApplicationTheme
+import dev.toastbits.composekit.theme.ThemeValues
+import dev.toastbits.composekit.theme.vibrantAccent
 
 @Composable
 internal fun GlanceLargePlayPauseButton(
@@ -24,7 +24,7 @@ internal fun GlanceLargePlayPauseButton(
     val theme: ThemeValues = LocalApplicationTheme.current
     Box(
         modifier
-            .background(theme.vibrant_accent)
+            .background(theme.vibrantAccent)
             .cornerRadius(10.dp)
             .clickable(
                 PlayPauseAction(play)

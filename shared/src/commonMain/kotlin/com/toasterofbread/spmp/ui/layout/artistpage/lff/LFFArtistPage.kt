@@ -17,9 +17,9 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.common.getThemeColour
-import dev.toastbits.composekit.utils.common.launchSingle
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.util.getThemeColour
+import dev.toastbits.composekit.util.launchSingle
+import dev.toastbits.composekit.util.composable.OnChangedEffect
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
@@ -29,9 +29,9 @@ import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
-import dev.toastbits.composekit.platform.assert
+import dev.toastbits.composekit.context.assert
 import dev.toastbits.composekit.settings.ui.makeVibrant
-import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.theme.vibrantAccent
 import dev.toastbits.ytmkt.endpoint.ArtistWithParamsEndpoint
 import dev.toastbits.ytmkt.endpoint.ArtistWithParamsRow
 import kotlinx.coroutines.CoroutineScope
@@ -52,7 +52,7 @@ internal fun ArtistAppPage.LFFArtistPage(
     var browse_params_rows: List<ArtistWithParamsRow>? by remember { mutableStateOf(null) }
 
     var accent_colour: Color? by remember { mutableStateOf(null) }
-    val current_accent_colour: Color = accent_colour ?: player.theme.vibrant_accent
+    val current_accent_colour: Color = accent_colour ?: player.theme.vibrantAccent
 
     val thumbnail_load_state: MediaItemThumbnailLoader.ItemState = MediaItemThumbnailLoader.rememberItemState(artist)
     val thumbnail: ImageBitmap? = thumbnail_load_state.getHighestQuality()

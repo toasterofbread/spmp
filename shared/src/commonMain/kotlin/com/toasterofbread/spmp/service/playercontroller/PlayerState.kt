@@ -63,14 +63,14 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.container.npAnchorToDp
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.ui.layout.playlistpage.PlaylistAppPage
-import dev.toastbits.composekit.platform.PlatformPreferencesListener
-import dev.toastbits.composekit.platform.composable.BackHandler
-import dev.toastbits.composekit.platform.synchronized
-import dev.toastbits.composekit.settings.ui.ThemeValues
-import dev.toastbits.composekit.settings.ui.on_accent
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
-import dev.toastbits.composekit.utils.composable.getEnd
-import dev.toastbits.composekit.utils.composable.getStart
+import dev.toastbits.composekit.settings.PlatformSettingsListener
+import dev.toastbits.composekit.components.platform.composable.BackHandler
+import dev.toastbits.composekit.context.synchronized
+import dev.toastbits.composekit.theme.ThemeValues
+import dev.toastbits.composekit.theme.onAccent
+import dev.toastbits.composekit.util.composable.OnChangedEffect
+import dev.toastbits.composekit.util.composable.getEnd
+import dev.toastbits.composekit.util.composable.getStart
 import dev.toastbits.ytmkt.model.external.YoutubePage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -105,8 +105,8 @@ class PlayerState(
         private set
 
     private val low_memory_listener: () -> Unit
-    private val prefs_listner: PlatformPreferencesListener =
-        PlatformPreferencesListener { key ->
+    private val prefs_listner: PlatformSettingsListener =
+        PlatformSettingsListener { key ->
             when (key) {
                 settings.theme.NOWPLAYING_THEME_MODE.key -> coroutine_scope.launch {
                     np_theme_mode = settings.theme.NOWPLAYING_THEME_MODE.get()
@@ -615,7 +615,7 @@ class PlayerState(
                 Box(Modifier.fillMaxSize().padding(15.dp)) {
                     val background_colour: Color = theme.accent
 
-                    CompositionLocalProvider(LocalContentColor provides theme.on_accent) {
+                    CompositionLocalProvider(LocalContentColor provides theme.onAccent) {
                         main_multiselect_context.MultiSelectInfoDisplayContent(
                             Modifier
                                 .width(IntrinsicSize.Max)
@@ -647,7 +647,7 @@ class PlayerState(
 
         val form_factor: FormFactor by FormFactor.observe()
 
-        CompositionLocalProvider(LocalContentColor provides context.theme.on_background) {
+        CompositionLocalProvider(LocalContentColor provides context.theme.onBackground) {
             val bottom_padding: Dp by animateDpAsState(
                 if (form_factor.is_large && main_multiselect_context.is_active) multiselect_info_display_height
                 else 0.dp

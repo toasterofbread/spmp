@@ -11,8 +11,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.utils.common.blendWith
-import dev.toastbits.composekit.utils.composable.LinkifyText
+import dev.toastbits.composekit.util.blendWith
+import dev.toastbits.composekit.util.composable.LinkifyText
 
 @Composable
 fun DescriptionCard(description_text: String) {
@@ -29,9 +29,9 @@ fun DescriptionCard(description_text: String) {
         LinkifyText(
             description_text,
             modifier = Modifier.padding(10.dp),
-            highlight_colour = player.theme.on_background,
+            highlight_colour = player.theme.onBackground,
             style = MaterialTheme.typography.bodyMedium.copy(
-                color = player.theme.on_background.copy(alpha = 0.8f)
+                color = player.theme.onBackground.copy(alpha = 0.8f)
             )
         )
     }

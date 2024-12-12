@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.platform.download
 
 import dev.toastbits.composekit.context.PlatformFile
-import dev.toastbits.composekit.context.getPlatformForbiddenFilenameCharacters
 import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
@@ -9,6 +8,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.model.mediaitem.song.getSongAudioFormatByQuality
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.composekit.util.platform.getPlatformForbiddenFilenameCharacters
 import dev.toastbits.ytmkt.model.external.YoutubeVideoFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay

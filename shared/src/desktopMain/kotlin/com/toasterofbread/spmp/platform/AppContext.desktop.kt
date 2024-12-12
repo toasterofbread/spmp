@@ -8,9 +8,9 @@ import com.toasterofbread.spmp.resources.Language
 import com.toasterofbread.spmp.resources.getAvailableLanguages
 import com.toasterofbread.spmp.youtubeapi.YtmApiType
 import dev.toastbits.composekit.context.PlatformContext
-import dev.toastbits.composekit.settings.PlatformSettings
-import dev.toastbits.composekit.context.PlatformPreferencesImpl
 import dev.toastbits.composekit.context.getDesktopFilesDir
+import dev.toastbits.composekit.settings.PlatformSettings
+import dev.toastbits.composekit.settings.PlatformSettingsImpl
 import dev.toastbits.ytmkt.model.YtmApi
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.compose.resources.getString
@@ -29,7 +29,7 @@ actual class AppContext private constructor(
     companion object {
         suspend fun create(coroutine_scope: CoroutineScope): AppContext {
             val app_name: String = getString(Res.string.app_name)
-            val prefs: PlatformSettings = PlatformPreferencesImpl.getInstance(getDesktopFilesDir(app_name).resolve("preferences.json"), ProjectJson.instance)
+            val prefs: PlatformSettings = PlatformSettingsImpl.getInstance(getDesktopFilesDir(app_name).resolve("preferences.json"), ProjectJson.instance)
             val settings: YTApiSettings = YTApiSettings(prefs)
 
             return AppContext(

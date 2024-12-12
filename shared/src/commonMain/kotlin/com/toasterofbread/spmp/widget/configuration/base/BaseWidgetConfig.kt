@@ -22,6 +22,7 @@ import dev.toastbits.composekit.theme.model.ComposeKitFont
 import dev.toastbits.composekit.theme.model.NamedTheme
 import dev.toastbits.composekit.theme.model.ThemeConfiguration
 import dev.toastbits.composekit.theme.model.ThemeValuesData
+import dev.toastbits.composekit.theme.util.rememberAvailableFonts
 import dev.toastbits.composekit.util.composable.OnChangedEffect
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringResource
@@ -100,15 +101,25 @@ data class BaseWidgetConfig(
             { onDefaultsMaskChanged(defaults_mask!!.copy(font = it)) }
         ) { modifier, onItemChanged ->
             val ui_language: String by context.observeUiLanguage()
-            NullableDropdownItem(
-                font,
+            val available_fonts: List<ComposeKitFont> = ComposeKitFont.rememberAvailableFonts()
+
+            DropdownItem(
+                if (font == null) 0 else (available_fonts.indexOf(font) + 1),
+                available_fonts.size + 1,
                 Res.string.widget_config_common_key_font,
                 modifier,
                 getItemName = {
-                    it?.getReadable(ui_language) ?: stringResource(Res.string.widget_config_common_option_font_app)
+                    if (it == 0) stringResource(Res.string.widget_config_common_option_font_app)
+                    else available_fonts[it - 1].getDisplayName()
                 }
             ) {
-                onChanged(copy(font = it))
+                onChanged(
+                    copy(
+                        font =
+                            if (it == 0) null
+                            else available_fonts[it - 1]
+                    )
+                )
                 onItemChanged()
             }
         }

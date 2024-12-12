@@ -83,7 +83,7 @@ abstract class PlayerExpansionState(
             val anchor_position: Float = anchors.positionOf(anchor)
             if (offset < anchor_position) {
                 low_index = (anchor - 1).coerceAtLeast(getPageRange().first)
-                if (!anchors.hasAnchorFor(low_index)) {
+                if (!anchors.hasPositionFor(low_index)) {
                     return low_index.toFloat()
                 }
                 low = anchors.positionOf(low_index)
@@ -94,7 +94,7 @@ abstract class PlayerExpansionState(
 
         if (low_index == null) {
             low_index = getPageRange().last
-            if (!anchors.hasAnchorFor(low_index)) {
+            if (!anchors.hasPositionFor(low_index)) {
                 return low_index.toFloat()
             }
             low = anchors.positionOf(low_index)

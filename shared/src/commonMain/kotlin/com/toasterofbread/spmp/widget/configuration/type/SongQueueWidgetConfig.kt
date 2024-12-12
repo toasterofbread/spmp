@@ -11,7 +11,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.widget.action.SongQueueWidgetClickAction
 import com.toasterofbread.spmp.widget.action.WidgetClickAction
-import dev.toastbits.composekit.context.MutableStatePreferencesProperty
+import dev.toastbits.composekit.settings.MutableStateSettingsProperty
 import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
 import dev.toastbits.composekit.util.composable.OnChangedEffect

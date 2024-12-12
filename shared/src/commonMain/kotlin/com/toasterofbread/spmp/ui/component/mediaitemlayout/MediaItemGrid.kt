@@ -172,7 +172,7 @@ fun MediaItemGrid(
 
                 items(filtered_items.size, { filtered_items[it].item.getUid() }) { i ->
                     val item: MediaItem = filtered_items[i].item
-                    val preview_modifier: Modifier = Modifier.animateItemPlacement().size(item_size)
+                    val preview_modifier: Modifier = Modifier.animateItem().size(item_size)
 
                     if (grid_params.alt_style) {
                         MediaItemPreviewLong(

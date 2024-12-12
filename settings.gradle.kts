@@ -45,6 +45,6 @@ dependencyResolutionManagement {
         maven("https://jitpack.io")
 
         // https://github.com/KevinnZou/compose-webview-multiplatform
-        maven("https://jogamp.org/deployment/aven")
+        maven("https://jogamp.org/deployment/maven")
     }
 }

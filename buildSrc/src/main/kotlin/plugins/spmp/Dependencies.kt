@@ -99,7 +99,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/Kotlin/kotlinx.serialization/blob/51cb8e8e556983fc83a565d5f04bb089363453e0/LICENSE.txt"
             ),
             "org.jetbrains.compose" to DependencyInfo(
-                version = "1.6.2",
+                version = "1.8.0-alpha01",
                 name = "Compose Multiplatform",
                 author = "JetBrains",
                 url = "https://github.com/JetBrains/compose-multiplatform",
@@ -155,7 +155,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/MohamedRejeb/Ksoup/blob/5f07e799c95e518d80caf70fc586ddcc649e1315/LICENSE"
             ),
             "com.github.toasterofbread.ComposeReorderable" to DependencyInfo(
-                version = "349bdb3a2a",
+                version = "77c7652169",
                 name = "ComposeReorderable",
                 author = "aclassen",
                 url = "https://github.com/aclassen/ComposeReorderable",
@@ -164,6 +164,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 fork_url = "https://github.com/toasterofbread/ComposeReorderable/",
 //                redirect = "org.burnoutcrew.composereorderable:reorderable"
             ),
+
             "com.github.SvenWoltmann:color-thief-java" to DependencyInfo(
                 version = "v1.1.2",
                 name = "Color Thief Java",

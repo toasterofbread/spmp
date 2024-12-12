@@ -9,7 +9,7 @@ import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.widget.action.LyricsWidgetClickAction
 import com.toasterofbread.spmp.widget.action.WidgetClickAction
-import dev.toastbits.composekit.context.MutableStatePreferencesProperty
+import dev.toastbits.composekit.settings.MutableStateSettingsProperty
 import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
 import dev.toastbits.composekit.util.composable.OnChangedEffect
@@ -70,7 +70,7 @@ internal data class LyricsWidgetConfig(
         val furigana_mode_state: MutableState<FuriganaMode> =
             remember { mutableStateOf(furigana_mode) }
         val furigana_mode_property: PlatformSettingsProperty<FuriganaMode> = remember {
-            MutableStatePreferencesProperty(
+            MutableStateSettingsProperty(
                 furigana_mode_state,
                 { stringResource(Res.string.widget_config_lyrics_key_furigana_mode) },
                 { null }
@@ -82,7 +82,7 @@ internal data class LyricsWidgetConfig(
         }
 
         remember {
-            DropdownSettingsItem(furigana_mode_property) { mode ->
+            DropdownSettingsItem.ofEnumState(furigana_mode_property) { mode ->
                 when (mode) {
                     FuriganaMode.APP_DEFAULT -> stringResource(Res.string.widget_config_lyrics_option_furigana_mode_app)
                     FuriganaMode.SHOW -> stringResource(Res.string.widget_config_lyrics_option_furigana_mode_show)

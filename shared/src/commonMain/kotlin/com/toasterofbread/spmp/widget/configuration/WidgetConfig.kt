@@ -241,48 +241,18 @@ abstract class WidgetConfig {
         }.Item(modifier)
     }
 
-
     @Composable
-    protected inline fun <reified T: Enum<T>> DropdownItem(
-        value: T,
+    protected fun DropdownItem(
+        value: Int,
+        value_count: Int,
         title: StringResource,
         modifier: Modifier,
-        noinline getItemName: @Composable (T) -> String,
-        crossinline onChanged: (T) -> Unit
-    ) {
-        val value_state: MutableState<T> =
-            remember { mutableStateOf(value) }
-
-        val value_property: PlatformSettingsProperty<T> = remember {
-            MutableStateSettingsProperty(
-                value_state,
-                { stringResource(title) },
-                { null }
-            )
-        }
-
-        remember {
-            DropdownSettingsItem.ofEnumState(
-                value_property,
-                getItem = getItemName
-            )
-        }.Item(modifier)
-
-        OnChangedEffect(value_state.value) {
-            onChanged(value_state.value)
-        }
-    }
-
-    @Composable
-    protected inline fun <reified T: Enum<T>> NullableDropdownItem(
-        value: T?,
-        title: StringResource,
-        modifier: Modifier,
-        crossinline getItemName: @Composable (T?) -> String,
-        crossinline onChanged: (T?) -> Unit
+        getItemName: @Composable (Int) -> String,
+        onChanged: (Int) -> Unit
     ) {
         val value_state: MutableState<Int> =
-            remember { mutableIntStateOf(value?.ordinal?.plus(1) ?: 0) }
+            remember { mutableStateOf(value) }
+
         val value_property: PlatformSettingsProperty<Int> = remember {
             MutableStateSettingsProperty(
                 value_state,
@@ -294,23 +264,59 @@ abstract class WidgetConfig {
         remember {
             DropdownSettingsItem(
                 value_property,
-                enumEntries<T>().size + 1
-            ) {
-                if (it == 0) {
-                    getItemName(null)
-                }
-                else {
-                    getItemName(enumEntries<T>()[it - 1])
-                }
-            }
+                value_count,
+                getItem = getItemName
+            )
         }.Item(modifier)
 
         OnChangedEffect(value_state.value) {
-            onChanged(
-                value_state.value.let {
-                    if (it == 0) null else enumEntries<T>()[it - 1]
-                }
-            )
+            onChanged(value_state.value)
         }
+    }
+
+    @Composable
+    protected inline fun <reified T: Enum<T>> DropdownItem(
+        value: T,
+        title: StringResource,
+        modifier: Modifier,
+        noinline getItemName: @Composable (T) -> String,
+        crossinline onChanged: (T) -> Unit
+    ) {
+        DropdownItem(
+            value.ordinal,
+            enumValues<T>().size,
+            title,
+            modifier,
+            getItemName = { getItemName(enumValues<T>()[it]) },
+            onChanged = { onChanged(enumValues<T>()[it]) }
+        )
+    }
+
+    @Composable
+    protected inline fun <reified T: Enum<T>> NullableDropdownItem(
+        value: T?,
+        title: StringResource,
+        modifier: Modifier,
+        crossinline getItemName: @Composable (T?) -> String,
+        crossinline onChanged: (T?) -> Unit
+    ) {
+        DropdownItem(
+            value?.ordinal?.plus(1) ?: 0,
+            enumValues<T>().size + 1,
+            title,
+            modifier,
+            getItemName = {
+                getItemName(
+                    if (it == 0) null
+                    else enumValues<T>()[it - 1]
+                )
+            },
+            onChanged = {
+                onChanged(
+                    if (it == 0) null
+                    else enumEntries<T>()[it - 1]
+                )
+            }
+        )
     }
 }

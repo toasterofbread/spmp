@@ -95,7 +95,7 @@ fun PinnedItemsList(
                 show_scrollbar = false
             ) {
                 items(pinned_items) { item ->
-                    Item(item, vertical, multiselect_context, onClick, Modifier.animateItemPlacement())
+                    Item(item, vertical, multiselect_context, onClick, Modifier.animateItem())
                 }
             }
         }

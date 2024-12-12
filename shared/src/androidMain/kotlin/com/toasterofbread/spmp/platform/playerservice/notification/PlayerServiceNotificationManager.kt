@@ -27,7 +27,7 @@ import com.toasterofbread.spmp.platform.playerservice.formatMediaNotificationIma
 import com.toasterofbread.spmp.platform.playerservice.toSong
 import com.toasterofbread.spmp.shared.R
 import dev.toastbits.composekit.context.isAppInForeground
-import dev.toastbits.composekit.util.launchSingle
+import dev.toastbits.composekit.util.platform.launchSingle
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import kotlinx.coroutines.CoroutineScope

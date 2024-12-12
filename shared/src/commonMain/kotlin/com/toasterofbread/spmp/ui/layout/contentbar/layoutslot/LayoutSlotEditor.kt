@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.components.platform.composable.BackHandler
 import dev.toastbits.composekit.settings.ui.component.item.*
-import dev.toastbits.composekit.util.composable.NullableValueAnimatedVisibility
+import dev.toastbits.composekit.components.utils.composable.animatedvisibility.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
@@ -34,7 +34,6 @@ import com.toasterofbread.spmp.util.removeLastBuiltIn
 import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import dev.toastbits.composekit.theme.vibrantAccent
 import kotlinx.serialization.*
-import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
@@ -51,13 +50,13 @@ fun getLayoutSlotEditorSettingsItems(context: AppContext): List<SettingsItem> {
     return listOf(
         ComposableSettingsItem(
             listOf(
-                context.settings.layout.PORTRAIT_SLOTS,
-                context.settings.layout.LANDSCAPE_SLOTS,
-                context.settings.layout.CUSTOM_BARS
+                context.settings.Layout.PORTRAIT_SLOTS,
+                context.settings.Layout.LANDSCAPE_SLOTS,
+                context.settings.Layout.CUSTOM_BARS
             )
         ) { modifier ->
             LayoutSlotEditor(modifier) {
-                SpMp.player_state.app_page_state.Settings.settings_interface.goBack()
+                SpMp.player_state.app_page_state.Settings.goBack()
             }
         }
     )
@@ -71,14 +70,14 @@ fun LayoutSlotEditor(
     val player: PlayerState = LocalPlayerState.current
     val form_factor: FormFactor by FormFactor.observe()
 
-    var custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
-    var slot_colours: Map<String, ColourSource> by player.settings.layout.SLOT_COLOURS.observe()
-    var slot_config: Map<String, JsonElement> by player.settings.layout.SLOT_CONFIGS.observe()
+    var custom_bars: List<CustomContentBar> by player.settings.Layout.CUSTOM_BARS.observe()
+    var slot_colours: Map<String, ColourSource> by player.settings.Layout.SLOT_COLOURS.observe()
+    var slot_config: Map<String, JsonElement> by player.settings.Layout.SLOT_CONFIGS.observe()
 
     val slots_property: PlatformSettingsProperty<Map<String, ContentBarReference?>> =
         when (form_factor) {
-            FormFactor.PORTRAIT -> player.settings.layout.PORTRAIT_SLOTS
-            FormFactor.LANDSCAPE -> player.settings.layout.LANDSCAPE_SLOTS
+            FormFactor.PORTRAIT -> player.settings.Layout.PORTRAIT_SLOTS
+            FormFactor.LANDSCAPE -> player.settings.Layout.LANDSCAPE_SLOTS
         }
     val available_slots: List<LayoutSlot> =
         when (form_factor) {

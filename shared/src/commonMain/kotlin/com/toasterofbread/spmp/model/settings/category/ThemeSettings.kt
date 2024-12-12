@@ -120,7 +120,7 @@ class ThemeSettings(val context: AppContext): ComposeKitSettingsGroupThemeImpl("
     @Composable
     override fun getIcon(): ImageVector = Icons.Outlined.Palette
 
-    override fun getConfigurationItems(): List<SettingsItem> = getThemeCategoryItems(context)
+    override fun getConfigurationItems(): List<SettingsItem> = super.getConfigurationItems() + getThemeCategoryItems(context)
 
     enum class VideoPosition {
         NONE, BACKGROUND, THUMBNAIL;

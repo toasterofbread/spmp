@@ -8,17 +8,20 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
-import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.observeUiLanguage
-import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.createThemeSelectorSettingsItem
 import com.toasterofbread.spmp.widget.SpMpWidgetType
 import com.toasterofbread.spmp.widget.configuration.WidgetConfig
 import com.toasterofbread.spmp.widget.configuration.enum.WidgetStyledBorderMode
-import dev.toastbits.composekit.context.MutableStatePreferencesProperty
+import dev.toastbits.composekit.commonsettings.impl.LocalComposeKitSettings
+import dev.toastbits.composekit.commonsettings.impl.group.rememberThemeConfiguration
+import dev.toastbits.composekit.settings.MutableStateSettingsProperty
 import dev.toastbits.composekit.settings.PlatformSettingsProperty
+import dev.toastbits.composekit.settings.ui.component.item.ThemeSelectorSettingsItem
+import dev.toastbits.composekit.theme.model.ComposeKitFont
 import dev.toastbits.composekit.theme.model.NamedTheme
-import dev.toastbits.composekit.settings.ui.ThemeValuesData
+import dev.toastbits.composekit.theme.model.ThemeConfiguration
+import dev.toastbits.composekit.theme.model.ThemeValuesData
 import dev.toastbits.composekit.util.composable.OnChangedEffect
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringResource
@@ -47,7 +50,7 @@ import kotlin.math.roundToInt
 data class BaseWidgetConfig(
     val theme_index: Int? = null,
     val accent_colour_source: AccentColourSource? = null,
-    val font: FontMode? = null,
+    val font: ComposeKitFont? = null,
     val font_size: Float = 1f,
     val content_colour: ContentColour = ContentColour.THEME,
     val background_opacity: Float = 1f,
@@ -237,25 +240,29 @@ data class BaseWidgetConfig(
         val theme_index_state: MutableState<Int> =
             remember { mutableIntStateOf(theme_index?.plus(1) ?: 0) }
         val theme_index_property: PlatformSettingsProperty<Int> = remember {
-            MutableStatePreferencesProperty(
+            MutableStateSettingsProperty(
                 theme_index_state,
                 { stringResource(Res.string.widget_config_common_key_theme) },
                 { null }
             )
         }
 
-        remember {
-            createThemeSelectorSettingsItem(
-                context,
-                theme_index_property,
-                getExtraStartThemes = {
+        val widgetApplicationThemeLabel: String = stringResource(Res.string.widget_application_theme_label)
+
+        remember(widgetApplicationThemeLabel) {
+            ThemeSelectorSettingsItem(
+                getThemeConfiguration = {
+                    LocalComposeKitSettings.current?.Theme?.rememberThemeConfiguration() ?: ThemeConfiguration()
+                },
+                themeIndexProperty = theme_index_property,
+                themesProperty = context.settings.Theme.THEMES,
+                extraStartThemes =
                     listOf(
                         NamedTheme(
-                            stringResource(Res.string.widget_application_theme_label),
+                            widgetApplicationThemeLabel,
                             ThemeValuesData.of(context.theme)
                         )
                     )
-                }
             )
         }.Item(modifier)
 

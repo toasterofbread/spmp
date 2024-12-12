@@ -12,9 +12,8 @@ import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.getUiLanguage
 import dev.toastbits.composekit.settings.PlatformSettingsListener
-import dev.toastbits.composekit.context.getPlatformHostName
-import dev.toastbits.composekit.context.getPlatformOSName
-import dev.toastbits.composekit.context.synchronized
+import dev.toastbits.composekit.util.platform.getPlatformHostName
+import dev.toastbits.composekit.util.platform.getPlatformOSName
 import dev.toastbits.spms.server.CLIENT_HEARTBEAT_MAX_PERIOD
 import dev.toastbits.spms.server.CLIENT_HEARTBEAT_TARGET_PERIOD
 import dev.toastbits.spms.socketapi.shared.SPMS_EXPECT_REPLY_CHAR
@@ -82,7 +81,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
     private val prefs_listener: PlatformSettingsListener =
         PlatformSettingsListener { key ->
             when (key) {
-                context.settings.youtube_auth.YTM_AUTH.key -> {
+                context.settings.YoutubeAuth.YTM_AUTH.key -> {
                     sendYtmAuthToPlayers()
                 }
             }
@@ -528,7 +527,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
         player_status_coroutine_scope.launch {
             val ytm_auth: Pair<String?, Headers>? =
                 ApiAuthenticationState.unpackSetData(
-                    context.settings.youtube_auth.YTM_AUTH.get(),
+                    context.settings.YoutubeAuth.YTM_AUTH.get(),
                     context
                 ).takeIf { it?.first != null }
             sendAuthInfoToPlayers(ytm_auth)

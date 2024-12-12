@@ -42,7 +42,7 @@ fun main(args: Array<String>) {
 
     SpMp.init(context)
 
-    val force_software_renderer: Boolean = runBlocking { context.settings.platform.FORCE_SOFTWARE_RENDERER.get() }
+    val force_software_renderer: Boolean = runBlocking { context.settings.Platform.FORCE_SOFTWARE_RENDERER.get() }
     if (force_software_renderer) {
         System.setProperty("skiko.renderApi", "SOFTWARE")
     }
@@ -73,7 +73,7 @@ fun main(args: Array<String>) {
     }
 
     lateinit var window: ComposeWindow
-    val enable_window_transparency: Boolean = runBlocking { context.settings.theme.ENABLE_WINDOW_TRANSPARENCY.get() }
+    val enable_window_transparency: Boolean = runBlocking { context.settings.Theme.ENABLE_WINDOW_TRANSPARENCY.get() }
 
     val shortcut_state: ShortcutState = ShortcutState()
     var player: PlayerState? = null
@@ -125,7 +125,7 @@ fun main(args: Array<String>) {
                     window.background = java.awt.Color(0, 0, 0, 0)
                 }
 
-                val startup_command: String = context.settings.platform.STARTUP_COMMAND.get()
+                val startup_command: String = context.settings.Platform.STARTUP_COMMAND.get()
                 if (startup_command.isBlank()) {
                     return@LaunchedEffect
                 }

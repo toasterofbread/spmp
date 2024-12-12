@@ -57,7 +57,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import dev.toastbits.composekit.util.thenIf
-import dev.toastbits.composekit.util.composable.ShapedIconButton
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.util.composable.WidthShrinkText
 import dev.toastbits.composekit.components.utils.modifier.background
 import dev.toastbits.composekit.components.utils.modifier.disableParentScroll

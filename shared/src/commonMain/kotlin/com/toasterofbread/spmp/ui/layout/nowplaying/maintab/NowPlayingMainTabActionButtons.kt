@@ -15,7 +15,7 @@ import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import com.toasterofbread.spmp.model.mediaitem.observeUrl
 import dev.toastbits.composekit.context.vibrateShort
-import dev.toastbits.composekit.util.composable.PlatformClickableIconButton
+import dev.toastbits.composekit.components.utils.composable.PlatformClickableIconButton
 import dev.toastbits.composekit.components.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton

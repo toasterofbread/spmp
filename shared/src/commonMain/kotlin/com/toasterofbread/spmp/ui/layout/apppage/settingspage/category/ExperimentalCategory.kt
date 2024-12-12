@@ -20,7 +20,7 @@ import spmp.shared.generated.resources.url_android_monet_open_dependency
 
 internal fun getExperimentalCategoryItems(context: AppContext): List<SettingsItem> =
     listOf(
-        ToggleSettingsItem(context.settings.experimental.ANDROID_MONET_COLOUR_ENABLE),
+        ToggleSettingsItem(context.settings.Experimental.ANDROID_MONET_COLOUR_ENABLE),
 
         ComposableSettingsItem { modifier ->
             Column(

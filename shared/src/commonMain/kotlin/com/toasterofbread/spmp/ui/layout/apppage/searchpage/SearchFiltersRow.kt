@@ -8,7 +8,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.util.composable.ScrollableRowOrColumn
+import dev.toastbits.composekit.components.utils.composable.ScrollableRowOrColumn
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.composekit.theme.onAccent
 import dev.toastbits.ytmkt.endpoint.*

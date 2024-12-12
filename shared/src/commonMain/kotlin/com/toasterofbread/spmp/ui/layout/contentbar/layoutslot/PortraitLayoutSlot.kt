@@ -47,7 +47,7 @@ enum class PortraitLayoutSlot: LayoutSlot {
         }
 
     override fun getSlotsProperty(context: AppContext): PlatformSettingsProperty<Map<String, ContentBarReference?>> =
-        context.settings.layout.PORTRAIT_SLOTS
+        context.settings.Layout.PORTRAIT_SLOTS
 
     override fun getKey(): String = name
 
@@ -72,10 +72,10 @@ enum class PortraitLayoutSlot: LayoutSlot {
 
     override fun getDefaultBackgroundColour(theme: ThemeValues): ColourSource =
         when (this) {
-            UPPER_TOP_BAR -> ThemeColourSource(ThemeValues.Colour.BACKGROUND)
-            LOWER_TOP_BAR -> ThemeColourSource(ThemeValues.Colour.BACKGROUND)
+            UPPER_TOP_BAR -> ThemeColourSource(ThemeValues.Slot.BuiltIn.BACKGROUND)
+            LOWER_TOP_BAR -> ThemeColourSource(ThemeValues.Slot.BuiltIn.BACKGROUND)
             ABOVE_PLAYER -> CustomColourSource(Color.Transparent)
-            BELOW_PLAYER -> ThemeColourSource(ThemeValues.Colour.ACCENT)
+            BELOW_PLAYER -> ThemeColourSource(ThemeValues.Slot.BuiltIn.ACCENT)
             PLAYER_TOP -> CustomColourSource(Color.Transparent)
         }
 

@@ -38,7 +38,7 @@ object SettingsImportExport {
         }
 
         return SettingsExportData(
-            included_categories = groups.map { it.group_key },
+            included_categories = groups.map { it.groupKey },
             values = JsonObject(values)
         )
     }

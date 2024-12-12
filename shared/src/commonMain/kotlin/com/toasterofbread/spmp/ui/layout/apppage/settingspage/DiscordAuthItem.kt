@@ -26,7 +26,7 @@ import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import dev.toastbits.composekit.settings.ui.component.item.LargeToggleSettingsItem
 import dev.toastbits.composekit.theme.onAccent
 import dev.toastbits.composekit.theme.vibrantAccent
-import dev.toastbits.composekit.util.composable.ShapedIconButton
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
@@ -45,12 +45,12 @@ fun getDiscordAuthItem(
     ignore_prerequisite: Boolean = false,
     StartIcon: (@Composable () -> Unit)? = null
 ): LargeToggleSettingsItem {
-    val discord_auth: PlatformSettingsProperty<String> = context.settings.discord_auth.DISCORD_ACCOUNT_TOKEN
+    val discord_auth: PlatformSettingsProperty<String> = context.settings.DiscordAuth.DISCORD_ACCOUNT_TOKEN
 
     val login_required: Boolean = DiscordStatus.isAccountTokenRequired()
     val prerequisite: PlatformSettingsProperty<Boolean>? =
         if (login_required)
-            context.settings.discord_auth.DISCORD_WARNING_ACCEPTED
+            context.settings.DiscordAuth.DISCORD_WARNING_ACCEPTED
         else null
 
     return LargeToggleSettingsItem(
@@ -61,7 +61,7 @@ fun getDiscordAuthItem(
             @Composable
             override fun getDescription(): String = ""
 
-            override suspend fun get(): Boolean = discord_auth.get().isNotEmpty()
+            override fun get(): Boolean = discord_auth.get().isNotEmpty()
 
             override fun set(value: Boolean, editor: PlatformSettings.Editor?) {
                 if (!value) {
@@ -78,7 +78,7 @@ fun getDiscordAuthItem(
 
             override fun reset() = discord_auth.reset()
 
-            override suspend fun getDefaultValue(): Boolean =
+            override fun getDefaultValue(): Boolean =
                 discord_auth.getDefaultValue().isNotEmpty()
 
             @Composable
@@ -130,7 +130,12 @@ fun getDiscordAuthItem(
                 DiscordLoginConfirmation { manual ->
                     dismiss()
                     if (manual != null) {
-                        SpMp.player_state.app_page_state.Settings.settings_interface.openPageById(PrefsPageScreen.DISCORD_LOGIN.ordinal, manual)
+                        SpMp.player_state.app_page_state.Settings.openScreen(
+                            DiscordLoginScreen(
+                                context.settings.DiscordAuth.DISCORD_ACCOUNT_TOKEN,
+                                manual
+                            )
+                        )
                     }
                 }
             }}
@@ -168,7 +173,12 @@ fun getDiscordAuthItem(
     ) { target, setEnabled, _ ->
         if (target) {
             if (login_required) {
-                SpMp.player_state.app_page_state.Settings.settings_interface.openPageById(PrefsPageScreen.DISCORD_LOGIN.ordinal, null)
+                SpMp.player_state.app_page_state.Settings.openScreen(
+                    DiscordLoginScreen(
+                        context.settings.DiscordAuth.DISCORD_ACCOUNT_TOKEN,
+                        false
+                    )
+                )
             }
             else {
                 discord_auth.set("0")

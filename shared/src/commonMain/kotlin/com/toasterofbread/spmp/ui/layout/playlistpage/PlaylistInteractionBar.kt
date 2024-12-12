@@ -15,8 +15,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.util.composable.ResizableOutlinedTextField
-import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.components.utils.composable.ResizableOutlinedTextField
+import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.ui.component.WaveBorder

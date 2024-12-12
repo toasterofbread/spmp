@@ -11,7 +11,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.Alignment
 import androidx.compose.material3.Text
 import androidx.compose.material3.Switch
-import dev.toastbits.composekit.util.composable.RowOrColumn
+import dev.toastbits.composekit.components.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.platform.AppContext
@@ -24,7 +24,7 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
 import kotlinx.serialization.json.encodeToJsonElement
 import kotlinx.serialization.Serializable
-import dev.toastbits.composekit.util.composable.RowOrColumnScope
+import dev.toastbits.composekit.components.utils.composable.RowOrColumnScope
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.layout_slot_config_below_player_show_in_player
@@ -69,7 +69,7 @@ sealed interface LayoutSlot {
 fun LayoutSlot.observeContentBar(): State<ContentBar?> {
     val player: PlayerState = LocalPlayerState.current
     val slots: Map<String, ContentBarReference?> by getSlotsProperty(player.context).observe()
-    val custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
+    val custom_bars: List<CustomContentBar> by player.settings.Layout.CUSTOM_BARS.observe()
 
     return remember(this) { derivedStateOf {
         if (!slots.contains(getKey())) {
@@ -82,14 +82,14 @@ fun LayoutSlot.observeContentBar(): State<ContentBar?> {
 @Composable
 fun LayoutSlot.observeConfigData(): JsonElement? {
     val player: PlayerState = LocalPlayerState.current
-    val slot_configs: Map<String, JsonElement> by player.settings.layout.SLOT_CONFIGS.observe()
+    val slot_configs: Map<String, JsonElement> by player.settings.Layout.SLOT_CONFIGS.observe()
     return remember(slot_configs, this) { slot_configs[getKey()] }
 }
 
 @Composable
 inline fun <reified T> LayoutSlot.observeConfig(noinline getDefault: @DisallowComposableCalls () -> T): T {
     val player: PlayerState = LocalPlayerState.current
-    val slot_configs: Map<String, JsonElement> by player.settings.layout.SLOT_CONFIGS.observe()
+    val slot_configs: Map<String, JsonElement> by player.settings.Layout.SLOT_CONFIGS.observe()
     return remember(slot_configs, this) {
         val config_data: JsonElement = slot_configs[getKey()] ?: return@remember getDefault()
         return@remember Json.decodeFromJsonElement(config_data)

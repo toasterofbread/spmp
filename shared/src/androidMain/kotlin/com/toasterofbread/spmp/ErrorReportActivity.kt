@@ -54,7 +54,7 @@ import com.toasterofbread.spmp.ui.component.uploadErrorToPasteEe
 import dev.toastbits.composekit.context.ApplicationContext
 import dev.toastbits.composekit.components.platform.composable.theme.ApplicationTheme
 import dev.toastbits.composekit.util.thenIf
-import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
 import io.ktor.client.HttpClient
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody

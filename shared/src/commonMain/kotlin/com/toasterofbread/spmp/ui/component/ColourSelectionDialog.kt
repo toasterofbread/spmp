@@ -22,13 +22,13 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.material3.Button
 import dev.toastbits.composekit.components.platform.composable.platformClickable
-import dev.toastbits.composekit.util.composable.ColourPicker
+import dev.toastbits.composekit.components.utils.composable.ColourPicker
 import androidx.compose.material.icons.filled.Done
 import androidx.compose.material3.Icon
 import androidx.compose.material.icons.Icons
 import androidx.compose.material3.IconButtonDefaults
 import dev.toastbits.composekit.util.getContrasted
-import dev.toastbits.composekit.util.composable.ShapedIconButton
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.ui.theme.appHover
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
@@ -43,6 +43,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.lazy.items
 import dev.toastbits.composekit.theme.ThemeValues
+import dev.toastbits.composekit.theme.get
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.colour_selector_dialog_title
@@ -121,12 +122,12 @@ private fun ThemeColourSelectionList(
     val player: PlayerState = LocalPlayerState.current
 
     LazyColumn(modifier, verticalArrangement = Arrangement.spacedBy(10.dp)) {
-        items(ThemeValues.Colour.entries) { colour ->
+        items(ThemeValues.Slot.entries) { slot ->
             ColourCard(
-                colour = colour.get(player.theme),
-                name = colour.getReadable(),
+                colour = player.theme[slot],
+                name = slot.getReadable(),
                 onSelected = {
-                    onSelected(ThemeColourSource(colour))
+                    onSelected(ThemeColourSource(slot))
                 }
             )
         }
@@ -206,13 +207,13 @@ private fun CustomColourSelector(
 }
 
 @Composable
-fun ThemeValues.Colour.getReadable(): String =
+fun ThemeValues.Slot.getReadable(): String =
     when (this) {
-        ThemeValues.Colour.BACKGROUND -> stringResource(Res.string.theme_colour_background)
-        ThemeValues.Colour.ACCENT -> stringResource(Res.string.theme_colour_accent)
-        ThemeValues.Colour.VIBRANT_ACCENT -> stringResource(Res.string.theme_colour_vibrant_accent)
-        ThemeValues.Colour.CARD -> stringResource(Res.string.theme_colour_card)
-        ThemeValues.Colour.ON_BACKGROUND -> stringResource(Res.string.theme_colour_on_background)
-        ThemeValues.Colour.onAccent -> stringResource(Res.string.theme_colour_onAccent)
-        ThemeValues.Colour.ERROR -> stringResource(Res.string.theme_colour_error)
+        ThemeValues.Slot.BuiltIn.BACKGROUND -> stringResource(Res.string.theme_colour_background)
+        ThemeValues.Slot.BuiltIn.ACCENT -> stringResource(Res.string.theme_colour_accent)
+        ThemeValues.Slot.BuiltIn.CARD -> stringResource(Res.string.theme_colour_card)
+        ThemeValues.Slot.BuiltIn.ON_BACKGROUND -> stringResource(Res.string.theme_colour_on_background)
+        ThemeValues.Slot.BuiltIn.ERROR -> stringResource(Res.string.theme_colour_error)
+        ThemeValues.Slot.Extension.VIBRANT_ACCENT -> stringResource(Res.string.theme_colour_vibrant_accent)
+        ThemeValues.Slot.Extension.ON_ACCENT -> stringResource(Res.string.theme_colour_onAccent)
     }

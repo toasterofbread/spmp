@@ -10,7 +10,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Dp
 import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.layout.fillMaxWidth
-import dev.toastbits.composekit.util.composable.RecomposeOnInterval
+import dev.toastbits.composekit.components.utils.composable.RecomposeOnInterval
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.*
 

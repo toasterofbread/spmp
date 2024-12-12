@@ -20,8 +20,8 @@ internal class MediaDataSpecProcessor(private val context: AppContext) {
     private val prefs_listener: PlatformSettingsListener =
         PlatformSettingsListener { key ->
             when (key) {
-                context.settings.streaming.ENABLE_VIDEO_FORMAT_FALLBACK.key,
-                context.settings.streaming.VIDEO_FORMATS_METHOD.key -> current_endpoint = null
+                context.settings.Streaming.ENABLE_VIDEO_FORMAT_FALLBACK.key,
+                context.settings.Streaming.VIDEO_FORMATS_METHOD.key -> current_endpoint = null
             }
         }
 
@@ -36,7 +36,7 @@ internal class MediaDataSpecProcessor(private val context: AppContext) {
     suspend fun processMediaDataSpec(data_spec: DataSpec): DataSpec {
         val endpoint: VideoFormatsEndpointType =
             current_endpoint
-            ?: context.settings.streaming.VIDEO_FORMATS_METHOD.get().also { current_endpoint = it }
+            ?: context.settings.Streaming.VIDEO_FORMATS_METHOD.get().also { current_endpoint = it }
 
         val uri: Uri =
             getMediaDataSpecPlaybackUri(
@@ -56,7 +56,7 @@ internal class MediaDataSpecProcessor(private val context: AppContext) {
 
         current_endpoint?.also {
             runBlocking {
-                if (context.settings.streaming.ENABLE_VIDEO_FORMAT_FALLBACK.get()) {
+                if (context.settings.Streaming.ENABLE_VIDEO_FORMAT_FALLBACK.get()) {
                     current_endpoint = it.getNext()
                 }
             }

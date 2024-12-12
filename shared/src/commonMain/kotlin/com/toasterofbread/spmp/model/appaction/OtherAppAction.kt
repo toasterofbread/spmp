@@ -155,8 +155,8 @@ data class OtherAppAction(
 
                 INCREASE_UI_SCALE, DECREASE_UI_SCALE -> {
                     val delta: Float = if (this == INCREASE_UI_SCALE) 0.1f else -0.1f
-                    val current: Float = player.context.settings.system.UI_SCALE.get()
-                    player.context.settings.system.UI_SCALE.set((current + delta).coerceAtLeast(0.1f))
+                    val current: Float = player.context.settings.System.UI_SCALE.get()
+                    player.context.settings.System.UI_SCALE.set((current + delta).coerceAtLeast(0.1f))
                 }
             }
         }

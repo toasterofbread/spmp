@@ -21,10 +21,10 @@ import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.context.vibrateShort
-import dev.toastbits.composekit.util.launchSingle
+import dev.toastbits.composekit.util.platform.launchSingle
 import dev.toastbits.composekit.util.thenIf
-import dev.toastbits.composekit.util.composable.PlatformClickableIconButton
-import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.components.utils.composable.PlatformClickableIconButton
+import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.composekit.components.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLikedLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song

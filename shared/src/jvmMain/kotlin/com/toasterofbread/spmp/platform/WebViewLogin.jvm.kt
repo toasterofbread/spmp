@@ -38,8 +38,8 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import dev.toastbits.composekit.util.platform.Platform
-import dev.toastbits.composekit.util.composable.NullableValueAnimatedVisibility
-import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.components.utils.composable.animatedvisibility.NullableValueAnimatedVisibility
+import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource

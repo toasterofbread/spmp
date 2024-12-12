@@ -46,8 +46,7 @@ class WidgetSettings(
     @Composable
     override fun getIcon(): ImageVector = Icons.Outlined.Widgets
 
-    override fun showPage(exporting: Boolean): Boolean =
-        Platform.ANDROID.isCurrent()
+    override val hidden: Boolean = !Platform.ANDROID.isCurrent()
 
     override fun getConfigurationItems(): List<SettingsItem> = getWidgetCategoryItems(context)
 }

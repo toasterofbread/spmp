@@ -15,14 +15,16 @@ import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.util.*
-import dev.toastbits.composekit.util.composable.*
+import dev.toastbits.composekit.components.utils.composable.*
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.vertical
+import dev.toastbits.composekit.components.utils.composable.animatedvisibility.NullableValueAnimatedVisibility
 import dev.toastbits.composekit.theme.ThemeValues
 import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.util.composable.WidthShrinkText
 import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -281,7 +283,7 @@ internal abstract class CustomContentBarEditor() {
             bar.CustomBarContent(
                 scrolling = !vertical_bar,
                 vertical = vertical_bar,
-                background_colour = ThemeValues.Colour.BACKGROUND,
+                background_colour = ThemeValues.Slot.BuiltIn.BACKGROUND,
                 content_padding = PaddingValues(),
                 apply_size = false,
                 always_display = true,

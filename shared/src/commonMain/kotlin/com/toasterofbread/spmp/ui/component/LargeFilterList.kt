@@ -12,11 +12,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.util.*
-import dev.toastbits.composekit.util.composable.*
+import dev.toastbits.composekit.components.utils.composable.*
 import dev.toastbits.composekit.components.utils.modifier.horizontal
 import dev.toastbits.composekit.components.utils.modifier.vertical
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.util.composable.WidthShrinkText
 
 @Composable
 fun LargeFilterList(

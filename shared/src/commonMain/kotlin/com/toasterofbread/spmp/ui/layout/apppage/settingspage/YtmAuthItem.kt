@@ -12,7 +12,6 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -23,15 +22,13 @@ import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsIte
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.LargeToggleSettingsItem
 import dev.toastbits.composekit.settings.PlatformSettingsProperty
-import dev.toastbits.composekit.util.composable.ShapedIconButton
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
-import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.unpackSetData
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getYoutubeAccountCategory
-import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.ui.component.NotImplementedMessage
 import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.LoginPage
@@ -42,13 +39,12 @@ import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.JsonPrimitive
-import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.auth_not_signed_in
 import spmp.shared.generated.resources.auth_sign_in
 import spmp.shared.generated.resources.auth_sign_out
 
-fun getYtmAuthItem(context: AppContext, ytm_auth: PlatformSettingsProperty<Set<String>>): SettingsItem {
+fun getYtmAuthItem(context: AppContext, ytmAuth: PlatformSettingsProperty<Set<String>>): SettingsItem {
     var own_channel: Artist? by mutableStateOf(null)
     val login_page: LoginPage = context.ytapi.LoginPage
 
@@ -60,18 +56,18 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PlatformSettingsProperty<Set<S
 
     return LargeToggleSettingsItem(
         object : PlatformSettingsProperty<Boolean> {
-            override val key: String = ytm_auth.key
+            override val key: String = ytmAuth.key
             @Composable
-            override fun getName(): String = ytm_auth.getName()
+            override fun getName(): String = ytmAuth.getName()
             @Composable
-            override fun getDescription(): String? = ytm_auth.getDescription()
+            override fun getDescription(): String? = ytmAuth.getDescription()
 
-            override suspend fun get(): Boolean =
-                ytm_auth.get().isNotEmpty()
+            override fun get(): Boolean =
+                ytmAuth.get().isNotEmpty()
 
             override fun set(value: Boolean, editor: PlatformSettings.Editor?) {
                 if (!value) {
-                    ytm_auth.set(emptySet(), editor)
+                    ytmAuth.set(emptySet(), editor)
                 }
             }
 
@@ -82,16 +78,16 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PlatformSettingsProperty<Set<S
             override fun serialise(value: Any?): JsonElement =
                 JsonPrimitive(value as Boolean?)
 
-            override suspend fun getDefaultValue(): Boolean =
-                ytm_auth.getDefaultValue().isNotEmpty()
+            override fun getDefaultValue(): Boolean =
+                ytmAuth.getDefaultValue().isNotEmpty()
 
             @Composable
             override fun getDefaultValueComposable(): Boolean =
-                ytm_auth.getDefaultValueComposable().isNotEmpty()
+                ytmAuth.getDefaultValueComposable().isNotEmpty()
 
             @Composable
             override fun observe(): MutableState<Boolean> {
-                val auth: Set<String> by ytm_auth.observe()
+                val auth: Set<String> by ytmAuth.observe()
 
                 val state: MutableState<Boolean> = remember { mutableStateOf(auth.isNotEmpty()) }
                 LaunchedEffect(auth.isNotEmpty()) {
@@ -102,7 +98,7 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PlatformSettingsProperty<Set<S
             }
 
             override fun reset() =
-                ytm_auth.reset()
+                ytmAuth.reset()
         },
         enabledContent = { modifier ->
 //            val auth_value: Set<String> = ytm_auth.get()
@@ -114,7 +110,7 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PlatformSettingsProperty<Set<S
 //                own_channel = data.first
 //            }
 
-            val auth: Set<String> by ytm_auth.observe()
+            val auth: Set<String> by ytmAuth.observe()
             val data: Pair<String?, Headers>? = ApiAuthenticationState.unpackSetData(auth, context)
             if (data?.first != null) {
                 own_channel = ArtistRef(data.first!!)
@@ -135,7 +131,12 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PlatformSettingsProperty<Set<S
             ) { param ->
                 dismiss()
                 if (param != null) {
-                    SpMp.player_state.app_page_state.Settings.settings_interface.openPageById(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, param)
+                    SpMp.player_state.app_page_state.Settings.openScreen(
+                        YoutubeMusicLoginScreen(
+                            context.settings.YoutubeAuth.YTM_AUTH,
+                            param
+                        )
+                    )
                 }
             }
         },
@@ -175,7 +176,12 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PlatformSettingsProperty<Set<S
         }
     ) { target, setEnabled, _ ->
         if (target) {
-            SpMp.player_state.app_page_state.Settings.settings_interface.openPageById(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, null)
+            SpMp.player_state.app_page_state.Settings.openScreen(
+                YoutubeMusicLoginScreen(
+                    context.settings.YoutubeAuth.YTM_AUTH,
+                    null
+                )
+            )
         }
         else {
             setEnabled(false)

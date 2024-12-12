@@ -11,30 +11,21 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.util.getThemeColour
-import dev.toastbits.composekit.util.launchSingle
-import dev.toastbits.composekit.util.composable.OnChangedEffect
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
-import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
-import com.toasterofbread.spmp.model.mediaitem.loader.loadDataOnChange
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
-import dev.toastbits.composekit.context.assert
-import dev.toastbits.composekit.settings.ui.makeVibrant
+import dev.toastbits.composekit.theme.makeVibrant
 import dev.toastbits.composekit.theme.vibrantAccent
-import dev.toastbits.ytmkt.endpoint.ArtistWithParamsEndpoint
 import dev.toastbits.ytmkt.endpoint.ArtistWithParamsRow
-import kotlinx.coroutines.CoroutineScope
 
 @Composable
 internal fun ArtistAppPage.LFFArtistPage(
@@ -46,7 +37,7 @@ internal fun ArtistAppPage.LFFArtistPage(
     val player: PlayerState = LocalPlayerState.current
 
     val own_multiselect_context: MediaItemMultiSelectContext? = remember(multiselect_context) { if (multiselect_context != null) null else MediaItemMultiSelectContext(player.context) {} }
-    val apply_filter: Boolean by player.settings.filter.APPLY_TO_ARTIST_ITEMS.observe()
+    val apply_filter: Boolean by player.settings.Filter.APPLY_TO_ARTIST_ITEMS.observe()
 
     val item_layouts: List<ArtistLayout>? by artist.Layouts.observe(player.database)
     var browse_params_rows: List<ArtistWithParamsRow>? by remember { mutableStateOf(null) }

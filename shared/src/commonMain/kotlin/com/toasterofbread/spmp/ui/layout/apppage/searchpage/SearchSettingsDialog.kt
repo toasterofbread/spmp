@@ -26,7 +26,7 @@ import spmp.shared.generated.resources.s_cat_search
 @Composable
 fun SearchSettingsDialog(modifier: Modifier = Modifier, close: () -> Unit) {
     val player: PlayerState = LocalPlayerState.current
-    val settings_items: List<SettingsItem> = remember { player.settings.search.getConfigurationItems() }
+    val settings_items: List<SettingsItem> = remember { player.settings.Search.getConfigurationItems() }
 
     AlertDialog(
         onDismissRequest = close,

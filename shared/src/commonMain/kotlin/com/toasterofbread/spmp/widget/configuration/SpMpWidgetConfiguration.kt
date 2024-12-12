@@ -68,8 +68,8 @@ data class SpMpWidgetConfiguration<A: TypeWidgetClickAction>(
                 ?: type.getDefaultConfiguration(context)
 
         private suspend fun SpMpWidgetType.getDefaultConfiguration(context: AppContext): SpMpWidgetConfiguration<out TypeWidgetClickAction> {
-            val base: BaseWidgetConfig = context.settings.widget.DEFAULT_BASE_WIDGET_CONFIGURATION.get()
-            val type: TypeWidgetConfig<out TypeWidgetClickAction> = context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.get()[this] ?: this.default_config
+            val base: BaseWidgetConfig = context.settings.Widget.DEFAULT_BASE_WIDGET_CONFIGURATION.get()
+            val type: TypeWidgetConfig<out TypeWidgetClickAction> = context.settings.Widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.get()[this] ?: this.default_config
             return createDefaultConfig(base, type)
         }
 

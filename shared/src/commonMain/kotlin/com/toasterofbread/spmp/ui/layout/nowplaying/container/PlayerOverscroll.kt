@@ -5,7 +5,6 @@ import androidx.compose.foundation.interaction.*
 import androidx.compose.foundation.gestures.AnchoredDraggableState
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Density
@@ -15,7 +14,6 @@ import dev.toastbits.composekit.context.vibrateShort
 import com.toasterofbread.spmp.model.settings.category.*
 import com.toasterofbread.spmp.platform.playerservice.PlayerService
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.layout.nowplaying.container.npAnchorToDp
 import kotlinx.coroutines.delay
 
 private const val OVERSCROLL_CLEAR_DISTANCE_THRESHOLD_DP: Float = 5f
@@ -46,9 +44,9 @@ internal fun Modifier.playerOverscroll(
     val density: Density = LocalDensity.current
     var player_alpha: Float by remember { mutableStateOf(1f) }
 
-    val overscroll_clear_enabled: Boolean by player.settings.player.MINI_OVERSCROLL_CLEAR_ENABLED.observe()
-    val overscroll_clear_time: Float by player.settings.player.MINI_OVERSCROLL_CLEAR_TIME.observe()
-    val overscroll_clear_mode: OverscrollClearMode by player.settings.player.MINI_OVERSCROLL_CLEAR_MODE.observe()
+    val overscroll_clear_enabled: Boolean by player.settings.Player.MINI_OVERSCROLL_CLEAR_ENABLED.observe()
+    val overscroll_clear_time: Float by player.settings.Player.MINI_OVERSCROLL_CLEAR_TIME.observe()
+    val overscroll_clear_mode: OverscrollClearMode by player.settings.Player.MINI_OVERSCROLL_CLEAR_MODE.observe()
 
     LaunchedEffect(controller, swipe_interactions.isNotEmpty(), overscroll_clear_enabled) {
         if (!overscroll_clear_enabled || controller == null) {

@@ -2,8 +2,6 @@ package com.toasterofbread.spmp.ui.layout.contentbar.element
 
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.layout.Box
 import androidx.compose.material3.*
 import androidx.compose.material3.Icon
@@ -15,11 +13,9 @@ import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.Alignment
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.TableRows
-import com.toasterofbread.spmp.ui.component.PinnedItemsList
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.ui.layout.contentbar.InternalContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
-import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBarTemplate
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarList
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.theme.appHover
@@ -51,7 +47,7 @@ data class ContentBarElementContentBar(
     @Composable
     override fun isDisplaying(): Boolean {
         val player: PlayerState = LocalPlayerState.current
-        val custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
+        val custom_bars: List<CustomContentBar> by player.settings.Layout.CUSTOM_BARS.observe()
         val content_bar: ContentBar? = remember(bar) { bar.getBar(custom_bars) }
         return content_bar?.isDisplaying() == true
     }
@@ -72,7 +68,7 @@ data class ContentBarElementContentBar(
         }
 
         val player: PlayerState = LocalPlayerState.current
-        val custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
+        val custom_bars: List<CustomContentBar> by player.settings.Layout.CUSTOM_BARS.observe()
         val content_bar: ContentBar? = remember(bar) { bar.getBar(custom_bars) }
         content_bar?.BarContent(
             slot = slot,
@@ -87,7 +83,7 @@ data class ContentBarElementContentBar(
     @Composable
     override fun SubConfigurationItems(item_modifier: Modifier, onModification: (ContentBarElement) -> Unit) {
         val player: PlayerState = LocalPlayerState.current
-        val custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
+        val custom_bars: List<CustomContentBar> by player.settings.Layout.CUSTOM_BARS.observe()
         val content_bar: ContentBar = remember(bar) { bar.getBar(custom_bars)!! }
         var show_bar_selector: Boolean by remember { mutableStateOf(false) }
 

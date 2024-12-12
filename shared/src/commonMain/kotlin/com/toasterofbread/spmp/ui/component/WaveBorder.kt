@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.util.thenIf
-import dev.toastbits.composekit.util.composable.wave.WaveShape
+import dev.toastbits.composekit.components.utils.composable.wave.WaveShape
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.composekit.theme.ThemeValues
 

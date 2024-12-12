@@ -8,7 +8,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.util.composable.*
+import dev.toastbits.composekit.components.utils.composable.*
 import dev.toastbits.composekit.util.thenIf
 import dev.toastbits.composekit.util.thenWith
 import com.toasterofbread.spmp.model.mediaitem.*

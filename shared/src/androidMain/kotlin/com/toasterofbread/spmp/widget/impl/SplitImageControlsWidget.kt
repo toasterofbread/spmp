@@ -41,10 +41,10 @@ import com.toasterofbread.spmp.widget.component.styledcolumn.GLANCE_STYLED_COLUM
 import com.toasterofbread.spmp.widget.configuration.enum.WidgetSectionTheme
 import com.toasterofbread.spmp.widget.configuration.type.SplitImageControlsWidgetConfig
 import com.toasterofbread.spmp.widget.modifier.systemCornerRadius
-import dev.toastbits.composekit.components.platform.composable.theme.LocalApplicationTheme
+import dev.toastbits.composekit.theme.ui.LocalComposeKitTheme
 import dev.toastbits.composekit.theme.vibrantAccent
 import dev.toastbits.composekit.util.blendWith
-import dev.toastbits.composekit.util.getValue
+import dev.toastbits.composekit.util.composable.getValue
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.widget_empty_status_nothing_playing
@@ -104,7 +104,7 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
             val theme_colour: Color =
                 when (type_configuration.title_row_theme.mode) {
                     WidgetSectionTheme.Mode.BACKGROUND ->
-                        with(LocalApplicationTheme.current) {
+                        with(LocalComposeKitTheme.current) {
                             accent.blendWith(onBackground, 0.35f)
                         }
                     WidgetSectionTheme.Mode.ACCENT,
@@ -207,7 +207,7 @@ internal class SplitImageControlsWidget: SpMpWidget<SplitImageControlsWidgetClic
                     button_background_colour =
                     when (type_configuration.content_row_theme.mode) {
                         WidgetSectionTheme.Mode.BACKGROUND,
-                        WidgetSectionTheme.Mode.TRANSPARENT -> LocalApplicationTheme.current.vibrantAccent
+                        WidgetSectionTheme.Mode.TRANSPARENT -> LocalComposeKitTheme.current.vibrantAccent
 
                         WidgetSectionTheme.Mode.ACCENT -> widget_background_colour.copy(alpha = 1f)
                     },

@@ -22,9 +22,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyColumn
-import dev.toastbits.composekit.util.composable.EmptyListAndDataCrossfade
-import dev.toastbits.composekit.util.composable.LoadActionIconButton
-import dev.toastbits.composekit.util.composable.RowOrColumnScope
+import dev.toastbits.composekit.components.utils.composable.LoadActionIconButton
+import dev.toastbits.composekit.components.utils.composable.RowOrColumnScope
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
@@ -42,6 +41,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.LocalArtistPage
+import dev.toastbits.composekit.components.utils.composable.crossfade.EmptyListAndDataCrossfade
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res

@@ -20,10 +20,8 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.intl.Locale
 import androidx.compose.ui.text.intl.platformLocaleDelegate
 import androidx.compose.ui.unit.Density
@@ -53,7 +51,6 @@ import dev.toastbits.composekit.components.LocalContext
 import dev.toastbits.composekit.navigation.screen.ScreenButton
 import dev.toastbits.composekit.util.platform.Platform
 import dev.toastbits.composekit.settings.PlatformSettings
-import dev.toastbits.composekit.settings.ui.SettingsScreen
 import dev.toastbits.composekit.theme.ThemeValues
 import dev.toastbits.composekit.theme.model.ThemeConfiguration
 import dev.toastbits.composekit.util.thenIf
@@ -62,8 +59,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.ComposeEnvironment
 import org.jetbrains.compose.resources.DensityQualifier
-import org.jetbrains.compose.resources.Font
-import org.jetbrains.compose.resources.FontResource
 import org.jetbrains.compose.resources.InternalResourceApi
 import org.jetbrains.compose.resources.LanguageQualifier
 import org.jetbrains.compose.resources.LocalComposeEnvironment
@@ -107,8 +102,8 @@ object SpMp {
         launch_arguments: ProgramArguments,
         composable_coroutine_scope: CoroutineScope
     ): PlayerState {
-        val np_theme_mode: ThemeMode = context.settings.theme.NOWPLAYING_THEME_MODE.get()
-        val swipe_sensitivity: Float = context.settings.player.EXPAND_SWIPE_SENSITIVITY.get()
+        val np_theme_mode: ThemeMode = context.settings.Theme.NOWPLAYING_THEME_MODE.get()
+        val swipe_sensitivity: Float = context.settings.Player.EXPAND_SWIPE_SENSITIVITY.get()
         val player: PlayerState = PlayerState(context, launch_arguments, composable_coroutine_scope, np_theme_mode, swipe_sensitivity)
         _player_state = player
         return player
@@ -208,10 +203,7 @@ object SpMp {
 
             override fun onClosed(next_page: AppPage?) {
                 super.onClosed(next_page)
-
-                if (this@toAppPage is SettingsScreen) {
-                    this@toAppPage.onClosed()
-                }
+                this@toAppPage.onClosed()
             }
         }
 
@@ -225,7 +217,7 @@ object SpMp {
     ) {
         shortcut_state.ObserveState()
 
-        val themeConfiguration: ThemeConfiguration = context.settings.theme.rememberThemeConfiguration()
+        val themeConfiguration: ThemeConfiguration = context.settings.Theme.rememberThemeConfiguration()
         context.theme.Update(themeConfiguration)
 
         val coroutine_scope: CoroutineScope = rememberCoroutineScope()
@@ -249,7 +241,7 @@ object SpMp {
             }
 
             Surface(modifier = modifier.fillMaxSize()) {
-                val ui_scale: Float by context.settings.system.UI_SCALE.observe()
+                val ui_scale: Float by context.settings.System.UI_SCALE.observe()
 
                 CompositionLocalProvider(
                     LocalPlayerState provides player_state,
@@ -263,7 +255,7 @@ object SpMp {
                     var mismatched_server_api_version: Int? by remember { mutableStateOf(null) }
                     val splash_mode: SplashMode? = when (Platform.current) {
                         Platform.ANDROID -> {
-                            val external_server_mode: Boolean by player_state.settings.platform.ENABLE_EXTERNAL_SERVER_MODE.observe()
+                            val external_server_mode: Boolean by player_state.settings.Platform.ENABLE_EXTERNAL_SERVER_MODE.observe()
                             if (!player_state.service_connected && external_server_mode) SplashMode.SPLASH
                             else null
                         }

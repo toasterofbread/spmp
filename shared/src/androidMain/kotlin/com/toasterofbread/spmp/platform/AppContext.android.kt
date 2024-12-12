@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.platform
 
 import SpMp
-import android.app.Activity
 import android.content.ComponentName
 import android.content.Context
 import android.content.Intent
@@ -22,13 +21,12 @@ import dev.toastbits.composekit.context.PlatformContext
 import dev.toastbits.composekit.settings.PlatformSettings
 import dev.toastbits.composekit.context.PlatformPreferencesImpl
 import dev.toastbits.composekit.util.getThemeColour
-import dev.toastbits.composekit.util.launchSingle
+import dev.toastbits.composekit.util.platform.launchSingle
 import dev.toastbits.ytmkt.model.YtmApi
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
-import kotlinx.serialization.json.Json
 
 actual class AppContext private constructor(
     context: Context,
@@ -72,7 +70,7 @@ actual class AppContext private constructor(
 
     fun onNotificationThumbnailLoaded(image: Bitmap?) {
         colorblendr_coroutine_scope.launchSingle {
-            if (!settings.experimental.ANDROID_MONET_COLOUR_ENABLE.get()) {
+            if (!settings.Experimental.ANDROID_MONET_COLOUR_ENABLE.get()) {
                 return@launchSingle
             }
 

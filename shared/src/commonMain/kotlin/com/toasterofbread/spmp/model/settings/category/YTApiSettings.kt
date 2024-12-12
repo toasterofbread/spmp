@@ -11,8 +11,6 @@ import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 
 class YTApiSettings(prefs: PlatformSettings): SettingsGroupImpl("YTAPI", prefs) {
-    override fun getPage(): CategoryPage? = null
-
     val API_TYPE: PlatformSettingsProperty<YtmApiType> by enumProperty(
         getName = { "" },
         getDescription = { null },
@@ -34,4 +32,6 @@ class YTApiSettings(prefs: PlatformSettings): SettingsGroupImpl("YTAPI", prefs) 
     override fun getIcon(): ImageVector = Icons.Outlined.PlayCircle
 
     override fun getConfigurationItems(): List<SettingsItem> = emptyList()
+
+    override val hidden: Boolean = true
 }

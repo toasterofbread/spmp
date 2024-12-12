@@ -28,7 +28,7 @@ import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
 import com.toasterofbread.spmp.widget.WidgetUpdateListener
 import dev.toastbits.composekit.settings.PlatformSettingsListener
-import dev.toastbits.composekit.util.launchSingle
+import dev.toastbits.composekit.util.platform.launchSingle
 import dev.toastbits.spms.player.shouldRepeatOnSeekToPrevious
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
@@ -74,29 +74,29 @@ open class ForegroundPlayerService(
     private val prefs_listener: PlatformSettingsListener =
         PlatformSettingsListener { key ->
             when (key) {
-                context.settings.streaming.ENABLE_AUDIO_NORMALISATION.key -> {
+                context.settings.Streaming.ENABLE_AUDIO_NORMALISATION.key -> {
                     coroutine_scope.launch {
                         loudness_enhancer?.update(current_song, context)
                     }
                 }
-                context.settings.streaming.ENABLE_SILENCE_SKIPPING.key -> {
+                context.settings.Streaming.ENABLE_SILENCE_SKIPPING.key -> {
                     coroutine_scope.launch {
-                        audio_sink.skipSilenceEnabled = context.settings.streaming.ENABLE_SILENCE_SKIPPING.get()
+                        audio_sink.skipSilenceEnabled = context.settings.Streaming.ENABLE_SILENCE_SKIPPING.get()
                     }
                 }
-                context.settings.behaviour.REPEAT_SONG_ON_PREVIOUS_THRESHOLD_S.key -> {
+                context.settings.Behaviour.REPEAT_SONG_ON_PREVIOUS_THRESHOLD_S.key -> {
                     coroutine_scope.launch {
                         updateRepeatSongOnPreviousThreshold()
                     }
                 }
-                context.settings.experimental.ANDROID_MONET_COLOUR_ENABLE.key -> {
+                context.settings.Experimental.ANDROID_MONET_COLOUR_ENABLE.key -> {
                     startColorblendrHeartbeatLoop()
                 }
             }
         }
 
     private suspend fun updateRepeatSongOnPreviousThreshold() {
-        val threshold_s: Float = context.settings.behaviour.REPEAT_SONG_ON_PREVIOUS_THRESHOLD_S.get()
+        val threshold_s: Float = context.settings.Behaviour.REPEAT_SONG_ON_PREVIOUS_THRESHOLD_S.get()
         if (threshold_s < 0f) {
             repeat_song_on_previous_threshold = null
         }
@@ -226,7 +226,7 @@ open class ForegroundPlayerService(
         super.onTaskRemoved(intent)
 
         coroutine_scope.launch {
-            if (context.settings.behaviour.STOP_PLAYER_ON_APP_CLOSE.get()) {
+            if (context.settings.Behaviour.STOP_PLAYER_ON_APP_CLOSE.get()) {
                 stop()
             }
         }
@@ -242,7 +242,7 @@ open class ForegroundPlayerService(
     }
 
     private fun startColorblendrHeartbeatLoop() = colorblendr_coroutine_scope.launchSingle {
-        if (!context.settings.experimental.ANDROID_MONET_COLOUR_ENABLE.get()) {
+        if (!context.settings.Experimental.ANDROID_MONET_COLOUR_ENABLE.get()) {
             return@launchSingle
         }
 

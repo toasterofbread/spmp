@@ -13,9 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.*
 import androidx.compose.ui.unit.*
-import dev.toastbits.composekit.utils.*
-import dev.toastbits.composekit.util.copy
-import dev.toastbits.composekit.util.composable.*
+import dev.toastbits.composekit.components.utils.composable.*
 import dev.toastbits.composekit.components.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
@@ -23,7 +21,6 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.Layout
 import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
-import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemLoader
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -36,7 +33,7 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.mediaitemlayout.MediaItemList
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.context.assert
+import dev.toastbits.composekit.util.composable.copy
 import dev.toastbits.ytmkt.endpoint.ArtistWithParamsRow
 import dev.toastbits.ytmkt.model.external.ItemLayoutType
 import dev.toastbits.ytmkt.uistrings.RawUiString
@@ -55,7 +52,7 @@ internal fun ArtistAppPage.SFFArtistPage(
     val click_overrides: PlayerClickOverrides = LocalPlayerClickOverrides.current
 
     val own_multiselect_context = remember(multiselect_context) { if (multiselect_context != null) null else MediaItemMultiSelectContext(player.context) {} }
-    val apply_filter: Boolean by player.settings.filter.APPLY_TO_ARTIST_ITEMS.observe()
+    val apply_filter: Boolean by player.settings.Filter.APPLY_TO_ARTIST_ITEMS.observe()
 
     val item_layouts: List<ArtistLayout>? by artist.Layouts.observe(player.database)
     var browse_params_rows: List<ArtistWithParamsRow>? by remember { mutableStateOf(null) }
@@ -152,7 +149,7 @@ internal fun ArtistAppPage.SFFArtistPage(
                         val layout_id: YoutubeUILocalisation.StringID? = (layout.title as? YoutubeUiString)?.getYoutubeStringId()
 
                         val is_singles: Boolean =
-                            player.settings.behaviour.TREAT_SINGLES_AS_SONG.observe().value
+                            player.settings.Behaviour.TREAT_SINGLES_AS_SONG.observe().value
                             && layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
 
                         val is_artist_row: Boolean =

@@ -1,10 +1,8 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
-import LocalPlayerState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -48,10 +46,10 @@ fun RootView(player: PlayerState) {
     )
 
     var window_transparency_enabled: Boolean by remember { mutableStateOf(false) }
-    val background_opacity: Float by player.settings.theme.WINDOW_BACKGROUND_OPACITY.observe()
+    val background_opacity: Float by player.settings.Theme.WINDOW_BACKGROUND_OPACITY.observe()
 
     LaunchedEffect(Unit) {
-        window_transparency_enabled = player.settings.theme.ENABLE_WINDOW_TRANSPARENCY.get()
+        window_transparency_enabled = player.settings.Theme.ENABLE_WINDOW_TRANSPARENCY.get()
     }
 
     Canvas(Modifier.fillMaxSize()) {

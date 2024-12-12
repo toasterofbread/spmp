@@ -10,7 +10,7 @@ import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.platform.playerservice.PlayerServicePlayer
 import dev.toastbits.composekit.settings.PlatformSettingsListener
 import dev.toastbits.composekit.util.associateNotNull
-import dev.toastbits.composekit.util.launchSingle
+import dev.toastbits.composekit.util.platform.launchSingle
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -58,14 +58,14 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
     private val prefs_listener: PlatformSettingsListener =
         PlatformSettingsListener { key ->
             when (key) {
-                context.settings.discord_auth.DISCORD_ACCOUNT_TOKEN.key -> {
+                context.settings.DiscordAuth.DISCORD_ACCOUNT_TOKEN.key -> {
                     load_coroutine_scope.launch {
                         onDiscordAccountTokenChanged()
                     }
                 }
-                context.settings.discord.STATUS_ENABLE.key,
-                context.settings.discord.LARGE_IMAGE_SOURCE.key,
-                context.settings.discord.SMALL_IMAGE_SOURCE.key -> {
+                context.settings.Discord.STATUS_ENABLE.key,
+                context.settings.Discord.LARGE_IMAGE_SOURCE.key,
+                context.settings.Discord.SMALL_IMAGE_SOURCE.key -> {
                     updateDiscordStatus(null)
                 }
             }
@@ -84,7 +84,7 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
     private suspend fun onDiscordAccountTokenChanged() {
         discord_rpc?.close()
 
-        val account_token: String = context.settings.discord_auth.DISCORD_ACCOUNT_TOKEN.get()
+        val account_token: String = context.settings.DiscordAuth.DISCORD_ACCOUNT_TOKEN.get()
         if (!DiscordStatus.isSupported() || (account_token.isBlank() && DiscordStatus.isAccountTokenRequired())) {
             discord_rpc = null
             return
@@ -115,7 +115,7 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
             val current_song: Song? = song ?: player.getSong()
 
             val status_info: StatusInfo? =
-                if (context.settings.discord.STATUS_ENABLE.get()) withContext(Dispatchers.Main) {
+                if (context.settings.Discord.STATUS_ENABLE.get()) withContext(Dispatchers.Main) {
                     StatusInfo(
                         current_song,
                         current_song?.getActiveTitle(context.database),
@@ -125,8 +125,8 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                                 System.currentTimeMillis() + player.duration_ms - player.current_position_ms
                             )
                         else null,
-                        context.settings.discord.LARGE_IMAGE_SOURCE.get(),
-                        context.settings.discord.SMALL_IMAGE_SOURCE.get()
+                        context.settings.Discord.LARGE_IMAGE_SOURCE.get(),
+                        context.settings.Discord.SMALL_IMAGE_SOURCE.get()
                     )
                 }
                 else null
@@ -156,10 +156,10 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                     return@launchSingle
                 }
 
-                val name: String = formatText(context.settings.discord.STATUS_NAME.get(), status_info.song, status_info.title)
-                val text_a: String = formatText(context.settings.discord.STATUS_TEXT_A.get(), status_info.song, status_info.title)
-                val text_b: String = formatText(context.settings.discord.STATUS_TEXT_B.get(), status_info.song, status_info.title)
-                val text_c: String = formatText(context.settings.discord.STATUS_TEXT_C.get(), status_info.song, status_info.title)
+                val name: String = formatText(context.settings.Discord.STATUS_NAME.get(), status_info.song, status_info.title)
+                val text_a: String = formatText(context.settings.Discord.STATUS_TEXT_A.get(), status_info.song, status_info.title)
+                val text_b: String = formatText(context.settings.Discord.STATUS_TEXT_B.get(), status_info.song, status_info.title)
+                val text_c: String = formatText(context.settings.Discord.STATUS_TEXT_C.get(), status_info.song, status_info.title)
 
                 val large_image: String?
                 val small_image: String?
@@ -198,11 +198,11 @@ internal class DiscordStatusHandler(val player: PlayerServicePlayer, val context
                 }
 
                 val buttons: MutableList<Pair<String, String>> = mutableListOf<Pair<String, String>>().apply {
-                    if (context.settings.discord.SHOW_SONG_BUTTON.get()) {
-                        add(context.settings.discord.SONG_BUTTON_TEXT.get() to status_info.song.getUrl(context))
+                    if (context.settings.Discord.SHOW_SONG_BUTTON.get()) {
+                        add(context.settings.Discord.SONG_BUTTON_TEXT.get() to status_info.song.getUrl(context))
                     }
-                    if (context.settings.discord.SHOW_PROJECT_BUTTON.get()) {
-                        add(context.settings.discord.PROJECT_BUTTON_TEXT.get() to getString(Res.string.project_url))
+                    if (context.settings.Discord.SHOW_PROJECT_BUTTON.get()) {
+                        add(context.settings.Discord.PROJECT_BUTTON_TEXT.get() to getString(Res.string.project_url))
                     }
                 }
 

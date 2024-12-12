@@ -65,10 +65,10 @@ internal class SpMpYoutubeiApi(
     private val prefs_listener: PlatformSettingsListener =
         PlatformSettingsListener { key ->
             when (key) {
-                context.settings.youtube_auth.YTM_AUTH.key -> context.coroutineScope.launch { user_auth_state = getCurrentUserAuthState() }
-                context.settings.system.LANG_DATA.key -> context.coroutineScope.launch { _data_language = context.getDataLanguage() }
-                context.settings.streaming.VIDEO_FORMATS_METHOD.key -> context.coroutineScope.launch {
-                    _VideoFormats = context.settings.streaming.VIDEO_FORMATS_METHOD.get().instantiate(this@SpMpYoutubeiApi)
+                context.settings.YoutubeAuth.YTM_AUTH.key -> context.coroutineScope.launch { user_auth_state = getCurrentUserAuthState() }
+                context.settings.System.LANG_DATA.key -> context.coroutineScope.launch { _data_language = context.getDataLanguage() }
+                context.settings.Streaming.VIDEO_FORMATS_METHOD.key -> context.coroutineScope.launch {
+                    _VideoFormats = context.settings.Streaming.VIDEO_FORMATS_METHOD.get().instantiate(this@SpMpYoutubeiApi)
                 }
             }
         }
@@ -83,12 +83,12 @@ internal class SpMpYoutubeiApi(
             _data_language = context.getDataLanguage()
         }
         context.coroutineScope.launch {
-            _VideoFormats = context.settings.streaming.VIDEO_FORMATS_METHOD.get().instantiate(this@SpMpYoutubeiApi)
+            _VideoFormats = context.settings.Streaming.VIDEO_FORMATS_METHOD.get().instantiate(this@SpMpYoutubeiApi)
         }
     }
 
     private suspend fun getCurrentUserAuthState(): SpMpYoutubeiAuthenticationState? =
-        ApiAuthenticationState.unpackSetData(context.settings.youtube_auth.YTM_AUTH.get(), context)
+        ApiAuthenticationState.unpackSetData(context.settings.YoutubeAuth.YTM_AUTH.get(), context)
             ?.let { data ->
                 SpMpYoutubeiAuthenticationState(context.database, this, data.first, data.second)
             }

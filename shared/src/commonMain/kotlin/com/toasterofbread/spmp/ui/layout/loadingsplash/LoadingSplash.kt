@@ -49,13 +49,10 @@ import dev.toastbits.composekit.theme.onAccent
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.*
 import spmp.shared.generated.resources.*
-import dev.toastbits.composekit.util.toFloat
-import dev.toastbits.composekit.util.thenIf
-import dev.toastbits.composekit.util.blockGestures
-import dev.toastbits.composekit.util.composable.wave.OverlappingWaves
-import dev.toastbits.composekit.util.composable.wave.getDefaultOverlappingWavesLayers
-import dev.toastbits.composekit.util.composable.wave.WaveLayer
-import dev.toastbits.composekit.util.composable.NullableValueAnimatedVisibility
+import dev.toastbits.composekit.components.utils.composable.wave.OverlappingWaves
+import dev.toastbits.composekit.components.utils.composable.wave.getDefaultOverlappingWavesLayers
+import dev.toastbits.composekit.components.utils.composable.wave.WaveLayer
+import dev.toastbits.composekit.components.utils.composable.animatedvisibility.NullableValueAnimatedVisibility
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.error_player_service_not_connected

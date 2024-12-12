@@ -27,7 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import dev.toastbits.composekit.components.platform.composable.BackHandler
 import dev.toastbits.composekit.util.getContrasted
-import dev.toastbits.composekit.util.composable.Marquee
+import dev.toastbits.composekit.components.utils.composable.Marquee
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.resources.stringResourceTODO
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource

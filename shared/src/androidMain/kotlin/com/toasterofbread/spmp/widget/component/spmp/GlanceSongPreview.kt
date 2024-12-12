@@ -16,7 +16,7 @@ import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.widget.SpMpWidget
-import dev.toastbits.composekit.util.getValue
+import dev.toastbits.composekit.util.composable.getValue
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 
 @Composable

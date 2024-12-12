@@ -25,8 +25,8 @@ import androidx.compose.ui.unit.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.Alignment
 import dev.toastbits.composekit.util.platform.Platform
-import dev.toastbits.composekit.util.getValue
-import dev.toastbits.composekit.util.composable.*
+import dev.toastbits.composekit.util.composable.getValue
+import dev.toastbits.composekit.components.utils.composable.*
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.appaction.AppAction

@@ -20,8 +20,8 @@ import dev.toastbits.composekit.util.platform.Platform
 import dev.toastbits.composekit.util.thenIf
 import dev.toastbits.composekit.util.blendWith
 import dev.toastbits.composekit.util.getContrasted
-import dev.toastbits.composekit.util.composable.getTop
-import dev.toastbits.composekit.util.composable.getBottom
+import dev.toastbits.composekit.components.utils.composable.getTop
+import dev.toastbits.composekit.components.utils.composable.getBottom
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.service.playercontroller.PlayerState

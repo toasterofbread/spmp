@@ -31,7 +31,7 @@ import com.toasterofbread.spmp.youtubeapi.AccountSwitcherEndpoint
 import com.toasterofbread.spmp.youtubeapi.YTMLogin
 import dev.toastbits.composekit.util.platform.Platform
 import dev.toastbits.composekit.util.thenIf
-import dev.toastbits.composekit.util.composable.LinkifyText
+import dev.toastbits.composekit.components.utils.composable.LinkifyText
 import dev.toastbits.ytmkt.impl.youtubei.YoutubeiApi
 import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState
 import dev.toastbits.ytmkt.model.ApiAuthenticationState

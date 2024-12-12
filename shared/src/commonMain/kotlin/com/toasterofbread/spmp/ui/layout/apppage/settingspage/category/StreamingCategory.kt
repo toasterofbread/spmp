@@ -22,7 +22,7 @@ internal fun getStreamingCategoryItems(context: AppContext): List<SettingsItem> 
 
     return listOf(
         DropdownSettingsItem(
-            context.settings.streaming.VIDEO_FORMATS_METHOD.getConvertedProperty(
+            context.settings.Streaming.VIDEO_FORMATS_METHOD.getConvertedProperty(
                 fromProperty = { it.ordinal },
                 toProperty = { available_video_formats[it] }
             ),
@@ -31,26 +31,26 @@ internal fun getStreamingCategoryItems(context: AppContext): List<SettingsItem> 
         ),
 
         ToggleSettingsItem(
-            context.settings.streaming.ENABLE_VIDEO_FORMAT_FALLBACK
+            context.settings.Streaming.ENABLE_VIDEO_FORMAT_FALLBACK
         ),
 
         ToggleSettingsItem(
-            context.settings.streaming.AUTO_DOWNLOAD_ENABLED
+            context.settings.Streaming.AUTO_DOWNLOAD_ENABLED
         ),
 
         AppSliderItem(
-            context.settings.streaming.AUTO_DOWNLOAD_THRESHOLD,
+            context.settings.Streaming.AUTO_DOWNLOAD_THRESHOLD,
             range = 1f..10f,
             min_label = "1".toCustomResource(),
             max_label = "10".toCustomResource()
         ),
 
         ToggleSettingsItem(
-            context.settings.streaming.AUTO_DOWNLOAD_ON_METERED
+            context.settings.Streaming.AUTO_DOWNLOAD_ON_METERED
         ),
 
-        DropdownSettingsItem(
-            context.settings.streaming.STREAM_AUDIO_QUALITY
+        DropdownSettingsItem.ofEnumState(
+            context.settings.Streaming.STREAM_AUDIO_QUALITY
         ) { quality ->
             when (quality) {
                 SongAudioQuality.HIGH -> stringResource(Res.string.s_option_audio_quality_high)
@@ -59,8 +59,8 @@ internal fun getStreamingCategoryItems(context: AppContext): List<SettingsItem> 
             }
         },
 
-        DropdownSettingsItem(
-            context.settings.streaming.DOWNLOAD_AUDIO_QUALITY
+        DropdownSettingsItem.ofEnumState(
+            context.settings.Streaming.DOWNLOAD_AUDIO_QUALITY
         ) { quality ->
             when (quality) {
                 SongAudioQuality.HIGH -> stringResource(Res.string.s_option_audio_quality_high)
@@ -70,21 +70,21 @@ internal fun getStreamingCategoryItems(context: AppContext): List<SettingsItem> 
         },
 
         ToggleSettingsItem(
-            context.settings.streaming.ENABLE_AUDIO_NORMALISATION
+            context.settings.Streaming.ENABLE_AUDIO_NORMALISATION
         ),
 
         ToggleSettingsItem(
-            context.settings.streaming.ENABLE_SILENCE_SKIPPING
+            context.settings.Streaming.ENABLE_SILENCE_SKIPPING
         ),
 
         MultipleChoiceSettingsItem(
-            context.settings.streaming.DOWNLOAD_METHOD
+            context.settings.Streaming.DOWNLOAD_METHOD
         ) { method ->
             method.getTitle() + " - " + method.getDescription()
         },
 
         ToggleSettingsItem(
-            context.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION
+            context.settings.Streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION
         )
     )
 }

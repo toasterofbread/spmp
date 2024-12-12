@@ -30,7 +30,7 @@ import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.InfoTextSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.TextFieldSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
-import dev.toastbits.composekit.util.composable.LinkifyText
+import dev.toastbits.composekit.components.utils.composable.LinkifyText
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
@@ -40,7 +40,7 @@ import LocalProgramArguments
 import ProgramArguments
 import LocalPlayerState
 import com.toasterofbread.spmp.model.settings.category.DiscordSettings
-import dev.toastbits.composekit.components.platform.composable.theme.LocalApplicationTheme
+import dev.toastbits.composekit.theme.ui.LocalComposeKitTheme
 import dev.toastbits.composekit.theme.ThemeValues
 import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
 import dev.toastbits.composekit.theme.onAccent
@@ -68,13 +68,13 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
     return listOf(
         ComposableSettingsItem(
             shouldShowItem = {
-                val accepted: Boolean by context.settings.discord_auth.DISCORD_WARNING_ACCEPTED.observe()
+                val accepted: Boolean by context.settings.DiscordAuth.DISCORD_WARNING_ACCEPTED.observe()
                 val warning_text: String? = DiscordStatus.getWarningText()
                 return@ComposableSettingsItem warning_text != null && !accepted
             }
         ) { modifier ->
-            val theme: ThemeValues = LocalApplicationTheme.current
-            var accepted: Boolean by context.settings.discord_auth.DISCORD_WARNING_ACCEPTED.observe()
+            val theme: ThemeValues = LocalComposeKitTheme.current
+            var accepted: Boolean by context.settings.DiscordAuth.DISCORD_WARNING_ACCEPTED.observe()
             val warning_text: String? = DiscordStatus.getWarningText()
 
             AnimatedVisibility(warning_text != null && !accepted, enter = expandVertically(), exit = shrinkVertically()) {
@@ -128,31 +128,31 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
         getDiscordAuthItem(context),
 
         ToggleSettingsItem(
-            context.settings.discord.STATUS_ENABLE
+            context.settings.Discord.STATUS_ENABLE
         ),
 
         GroupSettingsItem(Res.string.s_group_discord_status_disable_when),
 
         ToggleSettingsItem(
-            context.settings.discord.STATUS_DISABLE_WHEN_INVISIBLE
+            context.settings.Discord.STATUS_DISABLE_WHEN_INVISIBLE
         ),
         ToggleSettingsItem(
-            context.settings.discord.STATUS_DISABLE_WHEN_DND
+            context.settings.Discord.STATUS_DISABLE_WHEN_DND
         ),
         ToggleSettingsItem(
-            context.settings.discord.STATUS_DISABLE_WHEN_IDLE
+            context.settings.Discord.STATUS_DISABLE_WHEN_IDLE
         ),
         ToggleSettingsItem(
-            context.settings.discord.STATUS_DISABLE_WHEN_OFFLINE
+            context.settings.Discord.STATUS_DISABLE_WHEN_OFFLINE
         ),
         ToggleSettingsItem(
-            context.settings.discord.STATUS_DISABLE_WHEN_ONLINE
+            context.settings.Discord.STATUS_DISABLE_WHEN_ONLINE
         ),
 
         GroupSettingsItem(Res.string.s_group_discord_status_images),
 
-        DropdownSettingsItem(
-            context.settings.discord.LARGE_IMAGE_SOURCE
+        DropdownSettingsItem.ofEnumState(
+            context.settings.Discord.LARGE_IMAGE_SOURCE
         ) {
             when (it) {
                 DiscordSettings.ImageSource.SONG -> stringResource(Res.string.s_option_discord_status_image_source_song)
@@ -162,8 +162,8 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
             }
         },
 
-        DropdownSettingsItem(
-            context.settings.discord.SMALL_IMAGE_SOURCE
+        DropdownSettingsItem.ofEnumState(
+            context.settings.Discord.SMALL_IMAGE_SOURCE
         ) {
             when (it) {
                 DiscordSettings.ImageSource.SONG -> stringResource(Res.string.s_option_discord_status_image_source_song)
@@ -178,33 +178,33 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
         InfoTextSettingsItem(Res.string.s_discord_status_text_info),
 
         TextFieldSettingsItem(
-            context.settings.discord.STATUS_NAME,
+            context.settings.Discord.STATUS_NAME,
             getFieldModifier = { Modifier.appTextField() }
         ),
         TextFieldSettingsItem(
-            context.settings.discord.STATUS_TEXT_A,
+            context.settings.Discord.STATUS_TEXT_A,
             getFieldModifier = { Modifier.appTextField() }
         ),
         TextFieldSettingsItem(
-            context.settings.discord.STATUS_TEXT_B,
+            context.settings.Discord.STATUS_TEXT_B,
             getFieldModifier = { Modifier.appTextField() }
         ),
         TextFieldSettingsItem(
-            context.settings.discord.STATUS_TEXT_C,
+            context.settings.Discord.STATUS_TEXT_C,
             getFieldModifier = { Modifier.appTextField() }
         ),
 
         ToggleSettingsItem(
-            context.settings.discord.SHOW_SONG_BUTTON
+            context.settings.Discord.SHOW_SONG_BUTTON
         ),
         TextFieldSettingsItem(
-            context.settings.discord.SONG_BUTTON_TEXT
+            context.settings.Discord.SONG_BUTTON_TEXT
         ),
         ToggleSettingsItem(
-            context.settings.discord.SHOW_PROJECT_BUTTON
+            context.settings.Discord.SHOW_PROJECT_BUTTON
         ),
         TextFieldSettingsItem(
-            context.settings.discord.PROJECT_BUTTON_TEXT,
+            context.settings.Discord.PROJECT_BUTTON_TEXT,
             getFieldModifier = { Modifier.appTextField() }
         )
     )

@@ -11,8 +11,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.util.*
-import dev.toastbits.composekit.util.launchSingle
-import dev.toastbits.composekit.util.composable.RowOrColumn
+import dev.toastbits.composekit.util.platform.launchSingle
+import dev.toastbits.composekit.components.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.*
@@ -175,7 +175,7 @@ class SongFeedAppPage(override val state: AppPageState): AppPage() {
             load_state = if (continue_feed) FeedLoadState.CONTINUING else FeedLoadState.LOADING
 
             val result: Result<SongFeedLoadResult> = loadFeedLayouts(
-                if (continue_feed && continuation != null) -1 else state.context.settings.feed.INITIAL_ROWS.get(),
+                if (continue_feed && continuation != null) -1 else state.context.settings.Feed.INITIAL_ROWS.get(),
                 filter_params,
                 if (continue_feed) continuation else null
             )

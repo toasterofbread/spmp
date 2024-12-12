@@ -36,7 +36,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.toastbits.composekit.util.composable.Marquee
+import dev.toastbits.composekit.components.utils.composable.Marquee
 import dev.toastbits.composekit.util.composable.WidthShrinkText
 import dev.toastbits.composekit.components.utils.modifier.horizontal
 import com.toasterofbread.spmp.service.playercontroller.PlayerState

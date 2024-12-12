@@ -18,18 +18,18 @@ import spmp.shared.generated.resources.s_option_lyrics_text_alignment_end
 internal fun getLyricsCategoryItems(context: AppContext): List<SettingsItem> {
     return listOf(
         DropdownSettingsItem(
-            context.settings.lyrics.DEFAULT_SOURCE,
+            context.settings.Lyrics.DEFAULT_SOURCE,
             LyricsSource.SOURCE_AMOUNT
         ) { i ->
             LyricsSource.fromIdx(i).getReadable()
         },
 
         ToggleSettingsItem(
-            context.settings.lyrics.FOLLOW_ENABLED
+            context.settings.Lyrics.FOLLOW_ENABLED
         ),
 
         AppSliderItem(
-            context.settings.lyrics.FOLLOW_OFFSET,
+            context.settings.Lyrics.FOLLOW_OFFSET,
             Res.string.s_option_lyrics_follow_offset_top.toCustomResource(),
             Res.string.s_option_lyrics_follow_offset_bottom.toCustomResource(),
             steps = 5,
@@ -37,15 +37,15 @@ internal fun getLyricsCategoryItems(context: AppContext): List<SettingsItem> {
         ),
 
         ToggleSettingsItem(
-            context.settings.lyrics.ROMANISE_FURIGANA
+            context.settings.Lyrics.ROMANISE_FURIGANA
         ),
 
         ToggleSettingsItem(
-            context.settings.lyrics.DEFAULT_FURIGANA
+            context.settings.Lyrics.DEFAULT_FURIGANA
         ),
 
         DropdownSettingsItem(
-            context.settings.lyrics.TEXT_ALIGNMENT,
+            context.settings.Lyrics.TEXT_ALIGNMENT,
             3
         ) { i ->
             when (i) {
@@ -56,29 +56,29 @@ internal fun getLyricsCategoryItems(context: AppContext): List<SettingsItem> {
         },
 
         ToggleSettingsItem(
-            context.settings.lyrics.EXTRA_PADDING
+            context.settings.Lyrics.EXTRA_PADDING
         ),
 
         ToggleSettingsItem(
-            context.settings.lyrics.ENABLE_WORD_SYNC
+            context.settings.Lyrics.ENABLE_WORD_SYNC
         ),
 
         AppSliderItem(
-            context.settings.lyrics.FONT_SIZE
+            context.settings.Lyrics.FONT_SIZE
         ),
 
         AppSliderItem(
-            context.settings.lyrics.SYNC_DELAY,
+            context.settings.Lyrics.SYNC_DELAY,
             range = -5f .. 5f
         ),
 
         AppSliderItem(
-            context.settings.lyrics.SYNC_DELAY_TOPBAR,
+            context.settings.Lyrics.SYNC_DELAY_TOPBAR,
             range = -5f .. 5f
         ),
 
         AppSliderItem(
-            context.settings.lyrics.SYNC_DELAY_BLUETOOTH,
+            context.settings.Lyrics.SYNC_DELAY_BLUETOOTH,
             range = -5f .. 5f
         )
     )

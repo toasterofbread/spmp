@@ -15,13 +15,13 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.util.composable.ShapedIconButton
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getServerGroupItems
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.platform.playerservice.LocalServer
-import dev.toastbits.composekit.util.composable.ShapedIconButton
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import LocalProgramArguments
 import ProgramArguments

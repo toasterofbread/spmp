@@ -5,7 +5,6 @@ import android.os.Handler
 import androidx.annotation.OptIn
 import androidx.media3.common.AudioAttributes
 import androidx.media3.common.C
-import androidx.media3.common.Player
 import androidx.media3.common.audio.SonicAudioProcessor
 import androidx.media3.common.util.UnstableApi
 import androidx.media3.exoplayer.ExoPlayer
@@ -43,7 +42,7 @@ internal fun ForegroundPlayerService.initialiseSessionAndPlayer(
         )
         .build()
 
-    audio_sink.skipSilenceEnabled = context.settings.streaming.ENABLE_SILENCE_SKIPPING.get()
+    audio_sink.skipSilenceEnabled = context.settings.Streaming.ENABLE_SILENCE_SKIPPING.get()
 
     val renderers_factory: RenderersFactory =
         RenderersFactory { handler: Handler?, _, audioListener: AudioRendererEventListener?, _, _ ->

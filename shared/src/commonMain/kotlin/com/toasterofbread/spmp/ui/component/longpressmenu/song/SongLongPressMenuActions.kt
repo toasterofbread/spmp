@@ -43,8 +43,8 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.components.platform.composable.BackHandler
 import dev.toastbits.composekit.context.vibrateShort
-import dev.toastbits.composekit.util.getValue
-import dev.toastbits.composekit.util.composable.ShapedIconButton
+import dev.toastbits.composekit.util.composable.getValue
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.mediaitem.MEDIA_ITEM_RELATED_CONTENT_ICON
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
@@ -218,7 +218,7 @@ private fun LongPressMenuActionProvider.LPMActions(
         }}
     )
 
-    val lpm_increment_play_after: Boolean by player.settings.behaviour.LPM_INCREMENT_PLAY_AFTER.observe()
+    val lpm_increment_play_after: Boolean by player.settings.Behaviour.LPM_INCREMENT_PLAY_AFTER.observe()
 
     ActiveQueueIndexAction(
         { distance ->

@@ -12,7 +12,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.util.composable.NullableValueAnimatedVisibility
+import dev.toastbits.composekit.components.utils.composable.animatedvisibility.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.model.appaction.shortcut.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState

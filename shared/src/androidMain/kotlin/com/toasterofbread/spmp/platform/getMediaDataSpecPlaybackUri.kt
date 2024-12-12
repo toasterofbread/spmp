@@ -41,12 +41,12 @@ internal suspend fun getMediaDataSpecPlaybackUri(
         return@runCatching Uri.parse(local_file.uri)
     }
 
-    val auto_download_enabled: Boolean = context.settings.streaming.AUTO_DOWNLOAD_ENABLED.get()
+    val auto_download_enabled: Boolean = context.settings.Streaming.AUTO_DOWNLOAD_ENABLED.get()
 
     if (
         auto_download_enabled
-        && song.getPlayCount(context.database, 7) >= context.settings.streaming.AUTO_DOWNLOAD_THRESHOLD.get()
-        && (context.settings.streaming.AUTO_DOWNLOAD_ON_METERED.get() || !context.isConnectionMetered())
+        && song.getPlayCount(context.database, 7) >= context.settings.Streaming.AUTO_DOWNLOAD_THRESHOLD.get()
+        && (context.settings.Streaming.AUTO_DOWNLOAD_ON_METERED.get() || !context.isConnectionMetered())
         && !MediaItemLibrary.song_sync_in_progress
     ) {
         var done: Boolean = false

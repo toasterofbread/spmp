@@ -38,8 +38,8 @@ import com.toasterofbread.spmp.widget.configuration.type.TypeConfigurationDefaul
 import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
 import dev.toastbits.composekit.navigation.screen.Screen
 import dev.toastbits.composekit.navigation.navigator.Navigator
-import dev.toastbits.composekit.components.platform.composable.theme.LocalApplicationTheme
-import dev.toastbits.composekit.util.copy
+import dev.toastbits.composekit.theme.ui.LocalComposeKitTheme
+import dev.toastbits.composekit.util.composable.copy
 import dev.toastbits.composekit.util.thenIf
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -210,7 +210,7 @@ class WidgetConfigurationScreen<A: TypeWidgetClickAction>(
             horizontalArrangement = Arrangement.spacedBy(10.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            CompositionLocalProvider(LocalContentColor provides LocalApplicationTheme.current.accent) {
+            CompositionLocalProvider(LocalContentColor provides LocalComposeKitTheme.current.accent) {
                 Text(
                     name,
                     style = MaterialTheme.typography.labelLarge

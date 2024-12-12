@@ -21,9 +21,9 @@ import androidx.compose.ui.unit.sp
 import androidx.compose.animation.expandHorizontally
 import androidx.compose.animation.shrinkHorizontally
 import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyVerticalGrid
-import dev.toastbits.composekit.util.composable.LoadActionIconButton
-import dev.toastbits.composekit.util.composable.spanItem
-import dev.toastbits.composekit.util.composable.RowOrColumnScope
+import dev.toastbits.composekit.components.utils.composable.LoadActionIconButton
+import dev.toastbits.composekit.components.utils.composable.spanItem
+import dev.toastbits.composekit.components.utils.composable.RowOrColumnScope
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
@@ -64,7 +64,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
         val player: PlayerState = LocalPlayerState.current
         val api: YtmApi = player.context.ytapi
 
-        val show_likes_playlist: Boolean by player.settings.behaviour.SHOW_LIKES_PLAYLIST.observe()
+        val show_likes_playlist: Boolean by player.settings.Behaviour.SHOW_LIKES_PLAYLIST.observe()
 
         val local_playlists: List<LocalPlaylistData> = MediaItemLibrary.rememberLocalPlaylists(player.context) ?: emptyList()
         val account_playlists: List<RemotePlaylistRef> = rememberOwnedPlaylists(api.user_auth_state?.own_channel_id, player.context)

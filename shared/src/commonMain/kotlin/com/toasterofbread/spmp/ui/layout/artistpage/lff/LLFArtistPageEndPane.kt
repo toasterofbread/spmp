@@ -14,14 +14,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
 import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyColumn
-import dev.toastbits.composekit.util.copy
-import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.util.composable.copy
+import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.composekit.components.utils.modifier.vertical
-import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout
 import com.toasterofbread.spmp.model.mediaitem.layout.Layout
 import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
-import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.toMediaItemRef
@@ -148,7 +146,7 @@ internal fun ArtistAppPage.LFFArtistEndPane(
                             }
 
                             val is_singles: Boolean =
-                                player.settings.behaviour.TREAT_SINGLES_AS_SONG.observe().value
+                                player.settings.Behaviour.TREAT_SINGLES_AS_SONG.observe().value
                                 && layout_id == YoutubeUILocalisation.StringID.ARTIST_ROW_SINGLES
 
                             val is_artist_row: Boolean =

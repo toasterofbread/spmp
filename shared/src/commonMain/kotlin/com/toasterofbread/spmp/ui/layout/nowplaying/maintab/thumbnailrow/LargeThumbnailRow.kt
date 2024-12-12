@@ -76,9 +76,9 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.songtheme.SongThemeP
 import dev.toastbits.composekit.components.platform.composable.BackHandler
 import dev.toastbits.composekit.components.platform.composable.platformClickable
 import dev.toastbits.composekit.util.getInnerSquareSizeOfCircle
-import dev.toastbits.composekit.util.getValue
+import dev.toastbits.composekit.util.composable.getValue
 import dev.toastbits.composekit.util.thenIf
-import dev.toastbits.composekit.util.composable.MeasureUnconstrainedView
+import dev.toastbits.composekit.components.utils.composable.MeasureUnconstrainedView
 import dev.toastbits.composekit.util.composable.OnChangedEffect
 import dev.toastbits.composekit.components.utils.modifier.background
 import dev.toastbits.composekit.components.utils.modifier.disableParentScroll
@@ -240,7 +240,7 @@ fun LargeThumbnailRow(
                                 )
                             }
                     ) {
-                        val default_video_position: ThemeSettings.VideoPosition by player.settings.theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
+                        val default_video_position: ThemeSettings.VideoPosition by player.settings.Theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
                         val song_video_position: ThemeSettings.VideoPosition? by song.VideoPosition.observe(player.database)
 
                         var video_showing: Boolean = false
@@ -407,11 +407,11 @@ private suspend fun PlayerState.performPressAction(
     setOverlayMenu: (PlayerOverlayMenu?) -> Unit
 ) {
     val custom_action: Boolean =
-        if (context.settings.player.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.get()) !long_press
+        if (context.settings.Player.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.get()) !long_press
         else long_press
 
     val action: PlayerOverlayMenuAction =
-        if (custom_action) context.settings.player.OVERLAY_CUSTOM_ACTION.get()
+        if (custom_action) context.settings.Player.OVERLAY_CUSTOM_ACTION.get()
         else PlayerOverlayMenuAction.DEFAULT
 
     when (action) {

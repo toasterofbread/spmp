@@ -18,14 +18,14 @@ actual class PlatformInternalPlayerService: ExternalPlayerService(plays_audio = 
     }
 
     private suspend fun autoLaunchLocalServer() {
-        if (!context.settings.platform.SERVER_LOCAL_START_AUTOMATICALLY.get()) {
+        if (!context.settings.Platform.SERVER_LOCAL_START_AUTOMATICALLY.get()) {
             return
         }
 
         try {
             LocalServer.startLocalServer(
                 context,
-                context.settings.platform.SERVER_PORT.get()
+                context.settings.Platform.SERVER_PORT.get()
             )
         }
         catch (e: Throwable) {

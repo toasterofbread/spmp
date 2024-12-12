@@ -154,7 +154,7 @@ enum class CustomContentBarTemplate {
 
             bar.CustomBarContent(
                 modifier = Modifier.background(player.theme.vibrantAccent, RoundedCornerShape(16.dp)),
-                background_colour = ThemeValues.Colour.VIBRANT_ACCENT,
+                background_colour = ThemeValues.Slot.Extension.VIBRANT_ACCENT,
                 vertical = false,
                 always_display = true,
                 content_padding = PaddingValues(5.dp),

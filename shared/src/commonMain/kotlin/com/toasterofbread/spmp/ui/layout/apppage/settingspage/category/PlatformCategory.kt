@@ -7,7 +7,6 @@ import androidx.compose.ui.Modifier
 import dev.toastbits.composekit.settings.ui.component.item.GroupSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.InfoTextSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import dev.toastbits.composekit.util.platform.Platform
 import dev.toastbits.composekit.settings.ui.component.item.TextFieldSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
@@ -49,12 +48,12 @@ private fun getDesktopGroupItems(context: AppContext): List<SettingsItem> =
         GroupSettingsItem(Res.string.s_group_desktop_system),
 
         TextFieldSettingsItem(
-            context.settings.platform.STARTUP_COMMAND,
+            context.settings.Platform.STARTUP_COMMAND,
             getFieldModifier = { Modifier.appTextField() }
         ),
 
         ToggleSettingsItem(
-            context.settings.platform.FORCE_SOFTWARE_RENDERER,
+            context.settings.Platform.FORCE_SOFTWARE_RENDERER,
         ),
 
         GroupSettingsItem(Res.string.s_group_server)
@@ -85,7 +84,7 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
         InfoTextSettingsItem(Res.string.s_info_server),
 
         ToggleSettingsItem(
-            context.settings.platform.ENABLE_EXTERNAL_SERVER_MODE,
+            context.settings.Platform.ENABLE_EXTERNAL_SERVER_MODE,
             getEnabled = {
                 val reason: LocalServerUnavailabilityReason? = getLocalServerUnavailabilityReason()
                 return@ToggleSettingsItem reason != null && reason.reason == null
@@ -103,10 +102,10 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
             }
         ).takeIf { !Platform.DESKTOP.isCurrent() },
 
-        ToggleSettingsItem(context.settings.platform.EXTERNAL_SERVER_MODE_UI_ONLY).takeIf { PlatformExternalPlayerService.playsAudio() },
+        ToggleSettingsItem(context.settings.Platform.EXTERNAL_SERVER_MODE_UI_ONLY).takeIf { PlatformExternalPlayerService.playsAudio() },
 
         TextFieldSettingsItem(
-            context.settings.platform.SERVER_IP_ADDRESS,
+            context.settings.Platform.SERVER_IP_ADDRESS,
             getStringErrorProvider = {
                 val settings_value_not_ipv4_or_domain: String = stringResource(Res.string.settings_value_not_ipv4_or_domain)
                 return@TextFieldSettingsItem { input ->
@@ -118,7 +117,7 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
         ),
 
         TextFieldSettingsItem(
-            context.settings.platform.SERVER_PORT.getConvertedProperty(
+            context.settings.Platform.SERVER_PORT.getConvertedProperty(
                 fromProperty = { it.toString() },
                 toProperty = { it.toIntOrNull() ?: 0 }
             ),
@@ -133,12 +132,12 @@ fun getServerGroupItems(context: AppContext): List<SettingsItem> {
         ),
 
         TextFieldSettingsItem(
-            context.settings.platform.SERVER_LOCAL_COMMAND,
+            context.settings.Platform.SERVER_LOCAL_COMMAND,
             getFieldModifier = { Modifier.appTextField() }
         ).takeIf { Platform.DESKTOP.isCurrent() },
 
         ToggleSettingsItem(
-            context.settings.platform.SERVER_LOCAL_START_AUTOMATICALLY
+            context.settings.Platform.SERVER_LOCAL_START_AUTOMATICALLY
         ).takeIf { Platform.DESKTOP.isCurrent() }
     )
 }

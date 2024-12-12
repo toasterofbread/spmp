@@ -16,7 +16,7 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.components.platform.composable.*
 import dev.toastbits.composekit.util.*
-import dev.toastbits.composekit.util.composable.*
+import dev.toastbits.composekit.components.utils.composable.*
 import dev.toastbits.composekit.components.utils.modifier.*
 import com.toasterofbread.spmp.model.*
 import com.toasterofbread.spmp.model.mediaitem.*
@@ -58,24 +58,24 @@ internal fun SongFeedAppPage.LFFSongFeedAppPage(
     val player: PlayerState = LocalPlayerState.current
     val form_factor: FormFactor by FormFactor.observe()
 
-    val hidden_rows: Set<String> by player.settings.feed.HIDDEN_ROWS.observe()
+    val hidden_rows: Set<String> by player.settings.Feed.HIDDEN_ROWS.observe()
     val hidden_row_titles: List<String> =
         hidden_rows.map { row_title ->
             UiString.deserialise(row_title).observe()
         }
 
-    val square_item_max_text_rows: Int by player.settings.feed.SQUARE_PREVIEW_TEXT_LINES.observe()
-    val show_download_indicators: Boolean by player.settings.feed.SHOW_SONG_DOWNLOAD_INDICATORS.observe()
+    val square_item_max_text_rows: Int by player.settings.Feed.SQUARE_PREVIEW_TEXT_LINES.observe()
+    val show_download_indicators: Boolean by player.settings.Feed.SHOW_SONG_DOWNLOAD_INDICATORS.observe()
 
     val grid_rows: Int by
         when (form_factor) {
-            FormFactor.PORTRAIT -> player.settings.feed.GRID_ROW_COUNT
-            FormFactor.LANDSCAPE -> player.settings.feed.LANDSCAPE_GRID_ROW_COUNT
+            FormFactor.PORTRAIT -> player.settings.Feed.GRID_ROW_COUNT
+            FormFactor.LANDSCAPE -> player.settings.Feed.LANDSCAPE_GRID_ROW_COUNT
         }.observe()
     val grid_rows_expanded: Int by
         when (form_factor) {
-            FormFactor.PORTRAIT -> player.settings.feed.GRID_ROW_COUNT_EXPANDED
-            FormFactor.LANDSCAPE -> player.settings.feed.LANDSCAPE_GRID_ROW_COUNT_EXPANDED
+            FormFactor.PORTRAIT -> player.settings.Feed.GRID_ROW_COUNT_EXPANDED
+            FormFactor.LANDSCAPE -> player.settings.Feed.LANDSCAPE_GRID_ROW_COUNT_EXPANDED
         }.observe()
 
     Column(modifier) {
@@ -129,7 +129,7 @@ internal fun SongFeedAppPage.LFFSongFeedAppPage(
                         onDismissRequest = { hiding_layout = null },
                         confirmButton = {
                             Button({
-                                player.settings.feed.HIDDEN_ROWS.set(
+                                player.settings.Feed.HIDDEN_ROWS.set(
                                     hidden_rows.plus(title.serialise())
                                 )
 

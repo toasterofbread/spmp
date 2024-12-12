@@ -4,11 +4,7 @@ import LocalPlayerState
 import ProgramArguments
 import SpMp
 import android.annotation.SuppressLint
-import android.appwidget.AppWidgetManager
-import android.content.ComponentName
 import android.content.Context
-import android.content.Intent
-import android.content.Intent.FLAG_ACTIVITY_NEW_TASK
 import android.graphics.Bitmap
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.LocalContentColor
@@ -40,7 +36,6 @@ import androidx.glance.ImageProvider
 import androidx.glance.action.clickable
 import androidx.glance.appwidget.AppWidgetId
 import androidx.glance.appwidget.GlanceAppWidget
-import androidx.glance.appwidget.GlanceAppWidgetManager
 import androidx.glance.appwidget.SizeMode
 import androidx.glance.appwidget.provideContent
 import androidx.glance.background
@@ -56,7 +51,6 @@ import androidx.glance.layout.size
 import androidx.glance.layout.wrapContentSize
 import androidx.glance.unit.ColorProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import com.toasterofbread.spmp.model.mediaitem.song.updateLiked
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.model.settings.category.observeCurrentTheme
@@ -66,17 +60,8 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.shared.R
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
-import com.toasterofbread.spmp.util.getToggleTarget
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
 import com.toasterofbread.spmp.widget.action.WidgetClickAction
-import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.NONE
-import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.OPEN_SPMP
-import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.OPEN_WIDGET_CONFIG
-import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.PLAY_PAUSE
-import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.SEEK_NEXT
-import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.SEEK_PREVIOUS
-import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.TOGGLE_LIKE
-import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.TOGGLE_VISIBILITY
 import com.toasterofbread.spmp.widget.action.execute
 import com.toasterofbread.spmp.widget.component.GlanceText
 import com.toasterofbread.spmp.widget.component.styledcolumn.GLANCE_STYLED_COLUMN_DEFAULT_SPACING
@@ -92,16 +77,14 @@ import com.toasterofbread.spmp.widget.configuration.enum.colour
 import com.toasterofbread.spmp.widget.configuration.type.TypeConfigurationDefaultsMask
 import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
 import com.toasterofbread.spmp.widget.modifier.systemCornerRadius
-import dev.toastbits.composekit.components.platform.composable.theme.LocalApplicationTheme
+import dev.toastbits.composekit.theme.ui.LocalComposeKitTheme
 import dev.toastbits.composekit.theme.model.NamedTheme
 import dev.toastbits.composekit.theme.ThemeValues
 import dev.toastbits.composekit.settings.ui.ThemeValuesData
 import dev.toastbits.composekit.util.getThemeColour
 import dev.toastbits.composekit.util.thenIf
-import dev.toastbits.ytmkt.model.external.SongLikedStatus
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
@@ -128,7 +111,7 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
 
     protected val widget_background_colour: Color
         @Composable
-        get() = LocalApplicationTheme.current.card.copy(alpha = base_configuration.background_opacity)
+        get() = LocalComposeKitTheme.current.card.copy(alpha = base_configuration.background_opacity)
 
     private val coroutine_scope: CoroutineScope = CoroutineScope(Job())
     private var widget_id: Int? by mutableStateOf(null)
@@ -146,8 +129,8 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
     final override suspend fun provideGlance(context: Context, id: GlanceId) {
         this.context = AppContext.create(context, coroutine_scope)
 
-        val np_theme_mode: ThemeMode = this.context.settings.theme.NOWPLAYING_THEME_MODE.get()
-        val swipe_sensitivity: Float = this.context.settings.player.EXPAND_SWIPE_SENSITIVITY.get()
+        val np_theme_mode: ThemeMode = this.context.settings.Theme.NOWPLAYING_THEME_MODE.get()
+        val swipe_sensitivity: Float = this.context.settings.Player.EXPAND_SWIPE_SENSITIVITY.get()
 
         provideContent {
             // Force recomposition
@@ -189,7 +172,7 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
 
                 CompositionLocalProvider(
                     *listOfNotNull(
-                        LocalApplicationTheme provides theme.theme.copy(onBackground = on_background_colour),
+                        LocalComposeKitTheme provides theme.theme.copy(onBackground = on_background_colour),
                         if (!custom_background) LocalContentColor provides on_background_colour else null
                     ).toTypedArray()
                 ) {
@@ -288,8 +271,8 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
     @Composable
     private fun ObserveConfiguration(widget_id: Int) {
         val config: SpMpWidgetConfiguration<A> by SpMpWidgetConfiguration.observeForWidget(this.context, widget_type, widget_id) as MutableState<SpMpWidgetConfiguration<A>>
-        val base_default: BaseWidgetConfig by context.settings.widget.DEFAULT_BASE_WIDGET_CONFIGURATION.observe()
-        val type_defaults: Map<SpMpWidgetType, TypeWidgetConfig<out TypeWidgetClickAction>> by context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.observe()
+        val base_default: BaseWidgetConfig by context.settings.Widget.DEFAULT_BASE_WIDGET_CONFIGURATION.observe()
+        val type_defaults: Map<SpMpWidgetType, TypeWidgetConfig<out TypeWidgetClickAction>> by context.settings.Widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.observe()
         val type_default: TypeWidgetConfig<A> = (type_defaults[widget_type] ?: widget_type.default_config) as TypeWidgetConfig<A>
 
         configuration = remember(config, base_default, type_default) {
@@ -326,7 +309,7 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
         max_width: Dp? = null
     ) {
         val ui_language: String by context.observeUiLanguage()
-        val app_font_mode: FontMode by context.settings.system.FONT.observe()
+        val app_font_mode: FontMode by context.settings.System.FONT.observe()
         val font: FontResource? = (base_configuration.font ?: app_font_mode).getFontResource(ui_language)
 
         GlanceText(
@@ -408,8 +391,8 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
         song.Thumbnail(
             ThumbnailProvider.Quality.HIGH,
             contentOverride = {
-                val theme: ThemeValues = LocalApplicationTheme.current
-                val app_accent_source: AccentColourSource by context.settings.theme.ACCENT_COLOUR_SOURCE.observe()
+                val theme: ThemeValues = LocalComposeKitTheme.current
+                val app_accent_source: AccentColourSource by context.settings.Theme.ACCENT_COLOUR_SOURCE.observe()
                 val current_accent: Color =
                     when (base_configuration.accent_colour_source ?: app_accent_source) {
                         AccentColourSource.THEME -> theme.accent
@@ -421,7 +404,7 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
                     }
 
                 CompositionLocalProvider(
-                    LocalApplicationTheme provides ThemeValuesData.of(theme).copy(accent = current_accent)
+                    LocalComposeKitTheme provides ThemeValuesData.of(theme).copy(accent = current_accent)
                 ) {
                     content(song, it?.asAndroidBitmap())
                 }

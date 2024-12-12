@@ -49,12 +49,12 @@ import androidx.compose.ui.zIndex
 import dev.toastbits.composekit.util.addUnique
 import dev.toastbits.composekit.util.getContrasted
 import dev.toastbits.composekit.util.thenIf
-import dev.toastbits.composekit.util.composable.NoRipple
+import dev.toastbits.composekit.components.utils.composable.NoRipple
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 import kotlin.math.sign
-import dev.toastbits.composekit.util.composable.RowOrColumn
+import dev.toastbits.composekit.components.utils.composable.RowOrColumn
 
 class PillMenu(
     private val action_count: Int = 0,

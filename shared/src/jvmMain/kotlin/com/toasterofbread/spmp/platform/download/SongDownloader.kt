@@ -121,7 +121,7 @@ abstract class SongDownloader(
 
     private var download_inc: Int = 0
     private suspend fun getOrCreateDownload(song: Song, silent: Boolean, custom_uri: String?, download_lyrics: Boolean, direct: Boolean): Download {
-        val audio_quality = context.settings.streaming.DOWNLOAD_AUDIO_QUALITY.get()
+        val audio_quality = context.settings.Streaming.DOWNLOAD_AUDIO_QUALITY.get()
         synchronized(downloads) {
             for (download in downloads) {
                 if (download.song.id == song.id) {

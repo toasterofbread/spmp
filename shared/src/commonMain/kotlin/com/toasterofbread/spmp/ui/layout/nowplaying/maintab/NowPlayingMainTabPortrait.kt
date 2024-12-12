@@ -24,8 +24,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.MoreHoriz
 import androidx.compose.material.icons.filled.VolumeUp
-import androidx.compose.material.icons.rounded.Radio
-import androidx.compose.material.icons.rounded.Shuffle
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.runtime.Composable
@@ -48,7 +46,7 @@ import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.platform.LocalDensity
 import dev.toastbits.composekit.components.platform.composable.composeScope
 import dev.toastbits.composekit.components.utils.modifier.bounceOnClick
-import dev.toastbits.composekit.util.copy
+import dev.toastbits.composekit.util.composable.copy
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
@@ -58,16 +56,11 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.horizontal_padding
-import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.top_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.SmallThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.RepeatButton
-import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.PortraitLayoutSlot
-import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.observeContentBar
-import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
-import com.toasterofbread.spmp.ui.layout.contentbar.DisplayBar
 import kotlin.math.absoluteValue
 
 internal const val MINIMISED_NOW_PLAYING_HORIZ_PADDING: Float = 10f
@@ -175,7 +168,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabPortrait(
             ) {
                 val button_modifier: Modifier = Modifier.alpha(0.5f)
                 val side_button_padding: Dp = 20.dp
-                val show_shuffle_repeat_buttons: Boolean by player.settings.player.SHOW_REPEAT_SHUFFLE_BUTTONS.observe()
+                val show_shuffle_repeat_buttons: Boolean by player.settings.Player.SHOW_REPEAT_SHUFFLE_BUTTONS.observe()
 
                 Controls(
                     current_song,

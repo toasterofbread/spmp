@@ -113,8 +113,8 @@ class WidgetConfigurationActivity: ComponentActivity() {
 
         setContent {
             val composable_coroutine_scope: CoroutineScope = rememberCoroutineScope()
-            val np_theme_mode: ThemeMode by context.settings.theme.NOWPLAYING_THEME_MODE.observe()
-            val swipe_sensitivity: Float by context.settings.player.EXPAND_SWIPE_SENSITIVITY.observe()
+            val np_theme_mode: ThemeMode by context.settings.Theme.NOWPLAYING_THEME_MODE.observe()
+            val swipe_sensitivity: Float by context.settings.Player.EXPAND_SWIPE_SENSITIVITY.observe()
 
             CompositionLocalProvider(
                 LocalContext provides context,
@@ -176,13 +176,13 @@ class WidgetConfigurationActivity: ComponentActivity() {
                 }
             },
             onSetDefaultBaseConfig = { new_base_configuration ->
-                context.settings.widget.DEFAULT_BASE_WIDGET_CONFIGURATION.set(new_base_configuration)
+                context.settings.Widget.DEFAULT_BASE_WIDGET_CONFIGURATION.set(new_base_configuration)
             },
             onSetDefaultTypeConfig = { new_type_configuration ->
                 coroutine_scope.launch {
                     val types: Map<SpMpWidgetType, TypeWidgetConfig<out TypeWidgetClickAction>> =
-                        context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.get()
-                    context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.set(
+                        context.settings.Widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.get()
+                    context.settings.Widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.set(
                         types.toMutableMap().apply {
                             set(widget_type, new_type_configuration)
                         }

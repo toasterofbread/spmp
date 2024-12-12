@@ -21,7 +21,7 @@ object MediaItemLibrary {
         context: AppContext,
         custom_location_uri: String? = null
     ): PlatformFile? {
-        val location_url: String = custom_location_uri ?: context.settings.system.LIBRARY_PATH.get()
+        val location_url: String = custom_location_uri ?: context.settings.System.LIBRARY_PATH.get()
         if (location_url.isNotBlank()) {
             val custom_dir: PlatformFile? = context.getUserDirectoryFile(location_url)
             if (custom_dir != null) {

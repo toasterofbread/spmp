@@ -25,7 +25,7 @@ import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import dev.toastbits.composekit.theme.onAccent
 import dev.toastbits.composekit.theme.vibrantAccent
 import dev.toastbits.composekit.util.*
-import dev.toastbits.composekit.util.composable.*
+import dev.toastbits.composekit.components.utils.composable.*
 import dev.toastbits.composekit.components.utils.modifier.*
 import kotlin.math.roundToInt
 

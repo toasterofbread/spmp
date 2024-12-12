@@ -57,7 +57,7 @@ import androidx.compose.ui.unit.times
 import dev.toastbits.composekit.components.platform.composable.platformClickable
 import dev.toastbits.composekit.context.vibrateShort
 import dev.toastbits.composekit.util.getContrasted
-import dev.toastbits.composekit.util.composable.getStart
+import dev.toastbits.composekit.components.utils.composable.getStart
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.ui.component.Thumbnail

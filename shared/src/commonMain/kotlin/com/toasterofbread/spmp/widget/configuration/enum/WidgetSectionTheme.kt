@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.widget.configuration.enum
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import dev.toastbits.composekit.components.platform.composable.theme.LocalApplicationTheme
+import dev.toastbits.composekit.theme.ui.LocalComposeKitTheme
 import dev.toastbits.composekit.theme.vibrantAccent
 import dev.toastbits.composekit.util.blendWith
 import dev.toastbits.composekit.util.thenIf
@@ -28,7 +28,7 @@ val WidgetSectionTheme.colour: Color
 
 val WidgetSectionTheme.Mode.colour: Color
     @Composable
-    get() = with (LocalApplicationTheme.current) {
+    get() = with (LocalComposeKitTheme.current) {
         when (this@colour) {
             WidgetSectionTheme.Mode.BACKGROUND -> background
             WidgetSectionTheme.Mode.ACCENT -> card.blendWith(accent, 0.2f)

@@ -241,7 +241,7 @@ data class SongAppAction(
 
         private suspend fun Song.getCurrentUrl(queue_index: Int, player: PlayerState): String {
             var url: String = getUrl(player.context)
-            if (queue_index == player.status.index && player.settings.behaviour.INCLUDE_PLAYBACK_POSITION_IN_SHARE_URL.get()) {
+            if (queue_index == player.status.index && player.settings.Behaviour.INCLUDE_PLAYBACK_POSITION_IN_SHARE_URL.get()) {
                 val position_ms: Long = player.status.getPositionMs()
                 if (position_ms >= 0) {
                     url += "&t=${position_ms / 1000}"

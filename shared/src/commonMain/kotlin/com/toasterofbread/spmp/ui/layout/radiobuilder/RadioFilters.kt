@@ -26,7 +26,7 @@ import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.theme.onAccent
 import dev.toastbits.composekit.theme.vibrantAccent
-import dev.toastbits.composekit.util.composable.NoRipple
+import dev.toastbits.composekit.components.utils.composable.NoRipple
 import dev.toastbits.ytmkt.endpoint.RadioBuilderModifier
 import kotlinx.coroutines.launch
 import kotlin.math.ceil

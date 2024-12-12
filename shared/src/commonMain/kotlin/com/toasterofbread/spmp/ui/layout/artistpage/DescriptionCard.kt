@@ -12,7 +12,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.composekit.util.blendWith
-import dev.toastbits.composekit.util.composable.LinkifyText
+import dev.toastbits.composekit.components.utils.composable.LinkifyText
 
 @Composable
 fun DescriptionCard(description_text: String) {

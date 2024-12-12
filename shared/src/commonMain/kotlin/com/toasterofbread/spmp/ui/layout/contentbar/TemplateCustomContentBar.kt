@@ -27,7 +27,7 @@ data class TemplateCustomContentBar(
     @Composable
     override fun BarContent(
         slot: LayoutSlot,
-        background_colour: ThemeValues.Colour?,
+        background_colour: ThemeValues.Slot?,
         content_padding: PaddingValues,
         distance_to_page: Dp,
         lazy: Boolean,

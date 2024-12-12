@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.model.mediaitem.song
 
-import dev.toastbits.composekit.context.lazyAssert
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
@@ -11,6 +10,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.toRemotePlaylistData
+import dev.toastbits.composekit.util.platform.lazyAssert
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
 
 class SongData(

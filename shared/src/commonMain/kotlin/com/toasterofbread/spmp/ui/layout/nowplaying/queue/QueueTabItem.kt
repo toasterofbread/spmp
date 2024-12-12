@@ -143,7 +143,7 @@ class QueueTabItem(val song: Song, val key: Int) {
 
         val max_offset: Float = with(LocalDensity.current) { player.screen_size.width.toPx() }
         val swipe_state: AnchoredDraggableState<Int> = queueElementSwipeState(requestRemove, max_offset)
-        val swipe_sensitivity: Float by player.settings.player.QUEUE_ITEM_SWIPE_SENSITIVITY.observe()
+        val swipe_sensitivity: Float by player.settings.Player.QUEUE_ITEM_SWIPE_SENSITIVITY.observe()
 
         TouchSlopScope({
             touchSlop * 2f * (2.1f - swipe_sensitivity)

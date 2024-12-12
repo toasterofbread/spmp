@@ -23,9 +23,9 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.toastbits.composekit.util.composable.LoadActionIconButton
-import dev.toastbits.composekit.util.composable.spanItem
-import dev.toastbits.composekit.util.composable.RowOrColumnScope
+import dev.toastbits.composekit.components.utils.composable.LoadActionIconButton
+import dev.toastbits.composekit.components.utils.composable.spanItem
+import dev.toastbits.composekit.components.utils.composable.RowOrColumnScope
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.enums.getReadable
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize

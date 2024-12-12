@@ -16,7 +16,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.platform.LocalDensity
 import dev.toastbits.composekit.util.platform.Platform
 import dev.toastbits.composekit.util.*
-import dev.toastbits.composekit.util.composable.getBottom
+import dev.toastbits.composekit.components.utils.composable.getBottom
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -127,7 +127,7 @@ fun NowPlaying(modifier: Modifier = Modifier) {
                         if (bounded > 1f) bounded - 1f
                         else 0f
 
-                    return@DisplayBar player.getNPBackground().blendWith(background_colour, our_ratio = min_background_alpha)
+                    return@DisplayBar player.getNPBackground().blendWith(background_colour, ourRatio = min_background_alpha)
                 }
             )
 
@@ -211,10 +211,10 @@ internal fun PlayerState.getNPOnBackground(): Color {
 
 internal fun PlayerState.getNPAltBackground(theme_mode: ThemeMode = np_theme_mode): Color {
     return when (theme_mode) {
-        ThemeMode.BACKGROUND -> getNPBackground().amplifyPercent(-0.4f, opposite_percent = -0.2f)
+        ThemeMode.BACKGROUND -> getNPBackground().amplifyPercent(-0.4f, oppositePercent = -0.2f)
         else -> theme.background
     }
 }
 
 internal fun PlayerState.getNPAltOnBackground(): Color =
-    getNPBackground().amplifyPercent(-0.4f, opposite_percent = -0.1f)
+    getNPBackground().amplifyPercent(-0.4f, oppositePercent = -0.1f)

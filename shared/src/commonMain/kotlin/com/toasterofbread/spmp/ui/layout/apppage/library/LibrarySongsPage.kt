@@ -2,8 +2,6 @@ package com.toasterofbread.spmp.ui.layout.apppage.library
 
 import LocalPlayerState
 import SpMp.isDebugBuild
-import dev.toastbits.ytmkt.model.ApiAuthenticationState
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -21,19 +19,19 @@ import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyColumn
-import dev.toastbits.composekit.util.getValue
-import dev.toastbits.composekit.util.composable.EmptyListCrossfade
-import dev.toastbits.composekit.util.composable.LoadActionIconButton
-import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
-import dev.toastbits.composekit.util.composable.RowOrColumnScope
 import com.toasterofbread.spmp.model.mediaitem.db.rememberLocalLikedSongs
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
@@ -42,16 +40,22 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
-import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
+import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.context.assert
+import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyColumn
+import dev.toastbits.composekit.components.utils.composable.LoadActionIconButton
+import dev.toastbits.composekit.components.utils.composable.RowOrColumnScope
+import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.components.utils.composable.crossfade.EmptyListCrossfade
+import dev.toastbits.composekit.util.composable.getValue
 import dev.toastbits.ytmkt.endpoint.LoadPlaylistEndpoint
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import dev.toastbits.ytmkt.model.implementedOrNull
 import dev.toastbits.ytmkt.uistrings.durationToString
 import kotlinx.coroutines.CoroutineScope
@@ -60,13 +64,13 @@ import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.`library_$x_songs`
-import spmp.shared.generated.resources.library_songs_downloaded
-import spmp.shared.generated.resources.library_songs_liked
-import spmp.shared.generated.resources.library_songs_liked_title
-import spmp.shared.generated.resources.library_songs_downloaded_title
 import spmp.shared.generated.resources.library_no_items_match_filter
 import spmp.shared.generated.resources.library_no_liked_songs
 import spmp.shared.generated.resources.library_no_local_songs
+import spmp.shared.generated.resources.library_songs_downloaded
+import spmp.shared.generated.resources.library_songs_downloaded_title
+import spmp.shared.generated.resources.library_songs_liked
+import spmp.shared.generated.resources.library_songs_liked_title
 
 class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =

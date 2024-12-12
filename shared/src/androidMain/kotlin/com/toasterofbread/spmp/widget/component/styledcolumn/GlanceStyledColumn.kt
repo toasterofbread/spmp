@@ -30,7 +30,7 @@ import com.toasterofbread.spmp.widget.configuration.enum.WidgetStyledBorderMode
 import com.toasterofbread.spmp.widget.configuration.enum.colour
 import com.toasterofbread.spmp.widget.modifier.padding
 import dev.toastbits.composekit.util.getContrasted
-import dev.toastbits.composekit.util.composable.wave.wavePath
+import dev.toastbits.composekit.components.utils.composable.wave.wavePath
 
 val GLANCE_STYLED_COLUMN_DEFAULT_SPACING: Dp = 12.dp
 

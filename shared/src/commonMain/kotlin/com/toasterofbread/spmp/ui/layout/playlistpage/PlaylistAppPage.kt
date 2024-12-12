@@ -1,7 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.playlistpage
 
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
@@ -29,17 +27,12 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.State
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
-import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyColumn
 import dev.toastbits.composekit.components.platform.composable.SwipeRefresh
-import dev.toastbits.composekit.util.copy
 import dev.toastbits.composekit.util.getThemeColour
-import dev.toastbits.composekit.util.thenIf
-import dev.toastbits.composekit.util.composable.ScrollBarLazyColumnWithHeader
+import dev.toastbits.composekit.components.utils.composable.ScrollBarLazyColumnWithHeader
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
@@ -55,10 +48,7 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.InteractivePlaylistEdito
 import com.toasterofbread.spmp.model.mediaitem.playlist.InteractivePlaylistEditor.Companion.getEditorOrNull
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
-import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.getOrNotify
-import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
-import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageWithItem
@@ -339,7 +329,7 @@ class PlaylistAppPage(
             playlist_editor = new_editor
         }
 
-        val apply_item_filter: Boolean by player.settings.filter.APPLY_TO_PLAYLIST_ITEMS.observe()
+        val apply_item_filter: Boolean by player.settings.Filter.APPLY_TO_PLAYLIST_ITEMS.observe()
 
         LaunchedEffect(playlist_items, sort_type, current_filter, apply_item_filter) {
             sorted_items = playlist_items?.let { items ->

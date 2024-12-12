@@ -9,6 +9,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getDiscordCategoryItems
 import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -92,25 +93,25 @@ class DiscordSettings(val context: AppContext): SettingsGroupImpl("DISCORD", con
     val STATUS_NAME: PlatformSettingsProperty<String> by resourceDefaultValueProperty(
         getName = { stringResource(Res.string.s_key_discord_status_name) },
         getDescription = { stringResource(Res.string.s_sub_discord_status_name) },
-        getDefaultValueSuspending = { ProjectBuildConfig.DISCORD_STATUS_TEXT_NAME_OVERRIDE ?: getString(Res.string.discord_status_default_name) },
+        getDefaultValueSuspending = { ProjectBuildConfig.DISCORD_STATUS_TEXT_NAME_OVERRIDE ?: runBlocking { getString(Res.string.discord_status_default_name) } },
         getDefaultValueComposable = { ProjectBuildConfig.DISCORD_STATUS_TEXT_NAME_OVERRIDE ?: stringResource(Res.string.discord_status_default_name) }
     )
     val STATUS_TEXT_A: PlatformSettingsProperty<String> by resourceDefaultValueProperty(
         getName = { stringResource(Res.string.s_key_discord_status_text_a) },
         getDescription = { stringResource(Res.string.s_sub_discord_status_text_a) },
-        getDefaultValueSuspending = { ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_A_OVERRIDE ?: getString(Res.string.discord_status_default_text_a) },
+        getDefaultValueSuspending = { ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_A_OVERRIDE ?: runBlocking { getString(Res.string.discord_status_default_text_a) } },
         getDefaultValueComposable = { ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_A_OVERRIDE ?: stringResource(Res.string.discord_status_default_text_a) }
     )
     val STATUS_TEXT_B: PlatformSettingsProperty<String> by resourceDefaultValueProperty(
         getName = { stringResource(Res.string.s_key_discord_status_text_b) },
         getDescription = { stringResource(Res.string.s_sub_discord_status_text_b) },
-        getDefaultValueSuspending = { ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_B_OVERRIDE ?: getString(Res.string.discord_status_default_text_b) },
+        getDefaultValueSuspending = { ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_B_OVERRIDE ?: runBlocking { getString(Res.string.discord_status_default_text_b) } },
         getDefaultValueComposable = { ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_B_OVERRIDE ?: stringResource(Res.string.discord_status_default_text_b) }
     )
     val STATUS_TEXT_C: PlatformSettingsProperty<String> by resourceDefaultValueProperty(
         getName = { stringResource(Res.string.s_key_discord_status_text_c) },
         getDescription = { stringResource(Res.string.s_sub_discord_status_text_c) },
-        getDefaultValueSuspending = { ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_C_OVERRIDE ?: getString(Res.string.discord_status_default_text_c) },
+        getDefaultValueSuspending = { ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_C_OVERRIDE ?: runBlocking { getString(Res.string.discord_status_default_text_c) } },
         getDefaultValueComposable = { ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_C_OVERRIDE ?: stringResource(Res.string.discord_status_default_text_c) }
     )
     val SHOW_SONG_BUTTON: PlatformSettingsProperty<Boolean> by property(
@@ -121,7 +122,7 @@ class DiscordSettings(val context: AppContext): SettingsGroupImpl("DISCORD", con
     val SONG_BUTTON_TEXT: PlatformSettingsProperty<String> by resourceDefaultValueProperty(
         getName = { stringResource(Res.string.s_key_discord_status_button_song_text) },
         getDescription = { null },
-        getDefaultValueSuspending = { ProjectBuildConfig.DISCORD_STATUS_TEXT_BUTTON_SONG_OVERRIDE ?: getString(Res.string.discord_status_default_button_song) },
+        getDefaultValueSuspending = { ProjectBuildConfig.DISCORD_STATUS_TEXT_BUTTON_SONG_OVERRIDE ?: runBlocking { getString(Res.string.discord_status_default_button_song) } },
         getDefaultValueComposable = { ProjectBuildConfig.DISCORD_STATUS_TEXT_BUTTON_SONG_OVERRIDE ?: stringResource(Res.string.discord_status_default_button_song) }
     )
     val SHOW_PROJECT_BUTTON: PlatformSettingsProperty<Boolean> by property(
@@ -132,7 +133,7 @@ class DiscordSettings(val context: AppContext): SettingsGroupImpl("DISCORD", con
     val PROJECT_BUTTON_TEXT: PlatformSettingsProperty<String> by resourceDefaultValueProperty(
         getName = { stringResource(Res.string.s_key_discord_status_button_project_text) },
         getDescription = { null },
-        getDefaultValueSuspending = { ProjectBuildConfig.DISCORD_STATUS_TEXT_BUTTON_PROJECT_OVERRIDE ?: getString(Res.string.discord_status_default_button_project) },
+        getDefaultValueSuspending = { ProjectBuildConfig.DISCORD_STATUS_TEXT_BUTTON_PROJECT_OVERRIDE ?: runBlocking { getString(Res.string.discord_status_default_button_project) } },
         getDefaultValueComposable = { ProjectBuildConfig.DISCORD_STATUS_TEXT_BUTTON_PROJECT_OVERRIDE ?: stringResource(Res.string.discord_status_default_button_project) }
     )
 

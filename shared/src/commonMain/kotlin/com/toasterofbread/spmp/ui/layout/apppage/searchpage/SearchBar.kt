@@ -18,7 +18,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.util.getContrasted
 import dev.toastbits.composekit.util.thenIf
-import dev.toastbits.composekit.util.composable.ShapedIconButton
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.components.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState

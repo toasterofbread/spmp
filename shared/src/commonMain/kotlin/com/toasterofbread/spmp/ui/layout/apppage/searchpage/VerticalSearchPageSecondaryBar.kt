@@ -14,7 +14,7 @@ import androidx.compose.ui.layout.*
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.unit.*
 import androidx.compose.ui.unit.Dp
-import dev.toastbits.composekit.util.copy
+import dev.toastbits.composekit.util.composable.copy
 import dev.toastbits.composekit.components.utils.modifier.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.LargeFilterList

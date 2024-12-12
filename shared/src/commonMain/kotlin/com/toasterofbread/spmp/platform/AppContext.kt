@@ -54,9 +54,9 @@ class AppThemeManager(
     private val prefs_listener: PlatformSettingsListener =
         PlatformSettingsListener { key ->
             when (key) {
-                context.settings.theme.ACCENT_COLOUR_SOURCE.key -> {
+                context.settings.Theme.ACCENT_COLOUR_SOURCE.key -> {
                     context.coroutineScope.launch {
-                        accent_colour_source = context.settings.theme.ACCENT_COLOUR_SOURCE.get()
+                        accent_colour_source = context.settings.Theme.ACCENT_COLOUR_SOURCE.get()
                     }
                 }
             }
@@ -67,7 +67,7 @@ class AppThemeManager(
         prefs.addListener(prefs_listener)
 
         context.coroutineScope.launch {
-            accent_colour_source = context.settings.theme.ACCENT_COLOUR_SOURCE.get()
+            accent_colour_source = context.settings.Theme.ACCENT_COLOUR_SOURCE.get()
         }
     }
 }
@@ -83,23 +83,23 @@ fun PlayerState.getDefaultVerticalPadding(): Dp =
 fun PlayerState.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())
 
 suspend fun AppContext.getUiLanguage(): String =
-    settings.system.LANG_UI.get().ifEmpty { getDefaultLanguage() }
+    settings.System.LANG_UI.get().ifEmpty { getDefaultLanguage() }
 
 @Composable
 fun AppContext.observeUiLanguage(): State<String> {
-    val lang_ui: String by settings.system.LANG_UI.observe()
+    val lang_ui: String by settings.System.LANG_UI.observe()
     return remember { derivedStateOf {
         lang_ui.ifEmpty { getDefaultLanguage() }
     } }
 }
 
 suspend fun AppContext.getDataLanguage(): String =
-    settings.system.LANG_DATA.get().ifEmpty { getDefaultLanguage() }
+    settings.System.LANG_DATA.get().ifEmpty { getDefaultLanguage() }
         .let { if (it == "en-GB") "en-US" else it }
 
 @Composable
 fun AppContext.observeDataLanguage(): State<String> {
-    val lang_data: String by settings.system.LANG_DATA.observe()
+    val lang_data: String by settings.System.LANG_DATA.observe()
     return remember { derivedStateOf {
         lang_data.ifEmpty { getDefaultLanguage() }
     } }

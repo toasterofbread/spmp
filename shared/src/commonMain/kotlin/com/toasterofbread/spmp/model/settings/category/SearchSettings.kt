@@ -32,5 +32,5 @@ class SearchSettings(val context: AppContext): SettingsGroupImpl("SEARCH", conte
 
     override fun getConfigurationItems(): List<SettingsItem> = getSearchCategoryItems(context)
 
-    override fun getPage(): CategoryPage? = null
+    override val hidden: Boolean = true
 }

@@ -22,7 +22,6 @@ import androidx.compose.foundation.layout.offset
 import androidx.compose.foundation.layout.systemBars
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material.IconButton
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material3.Icon
@@ -53,18 +52,18 @@ import dev.toastbits.composekit.components.platform.composable.BackHandler
 import dev.toastbits.composekit.util.blendWith
 import dev.toastbits.composekit.util.contrastAgainst
 import dev.toastbits.composekit.util.getContrasted
-import dev.toastbits.composekit.util.launchSingle
-import dev.toastbits.composekit.util.snapOrAnimateTo
+import dev.toastbits.composekit.util.platform.launchSingle
+import dev.toastbits.composekit.util.composable.snapOrAnimateTo
 import dev.toastbits.composekit.util.composable.OnChangedEffect
-import dev.toastbits.composekit.util.composable.ShapedIconButton
-import dev.toastbits.composekit.util.composable.getBottom
-import dev.toastbits.composekit.util.composable.getEnd
-import dev.toastbits.composekit.util.composable.getStart
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.components.utils.composable.getEnd
+import dev.toastbits.composekit.components.utils.composable.getStart
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
 import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.composekit.components.utils.composable.getBottom
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -181,7 +180,7 @@ internal fun DesktopLongPressMenu(
 
         if (show_dialog) {
             val fade_tween: FiniteAnimationSpec<Float> = tween(100)
-            val keep_on_background_scroll: Boolean by player.settings.behaviour.DESKTOP_LPM_KEEP_ON_BACKGROUND_SCROLL.observe()
+            val keep_on_background_scroll: Boolean by player.settings.Behaviour.DESKTOP_LPM_KEEP_ON_BACKGROUND_SCROLL.observe()
 
             AnimatedVisibility(
                 show_background,
@@ -274,7 +273,7 @@ internal fun DesktopLongPressMenu(
                         verticalArrangement = Arrangement.spacedBy(10.dp)
                     ) {
                         val background_colour: Color = player.theme.accent.blendWith(player.theme.background, 0.1f)
-                        val close_on_action: Boolean by player.settings.behaviour.LPM_CLOSE_ON_ACTION.observe()
+                        val close_on_action: Boolean by player.settings.Behaviour.LPM_CLOSE_ON_ACTION.observe()
 
                         LongPressMenuContent(
                             data,

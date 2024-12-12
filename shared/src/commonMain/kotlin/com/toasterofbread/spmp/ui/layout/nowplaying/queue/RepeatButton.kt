@@ -19,7 +19,7 @@ import androidx.compose.ui.unit.IntSize
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.util.getContrasted
 import dev.toastbits.composekit.util.getInnerSquareSizeOfCircle
-import dev.toastbits.composekit.util.composable.crossOut
+import dev.toastbits.composekit.components.utils.composable.crossOut
 import dev.toastbits.composekit.components.utils.modifier.background
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import com.toasterofbread.spmp.service.playercontroller.PlayerState

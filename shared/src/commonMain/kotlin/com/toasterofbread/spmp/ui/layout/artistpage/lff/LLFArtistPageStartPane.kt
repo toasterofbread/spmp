@@ -35,8 +35,8 @@ import dev.toastbits.composekit.components.platform.composable.PlatformTextField
 import dev.toastbits.composekit.components.platform.composable.platformClickable
 import dev.toastbits.composekit.util.blendWith
 import dev.toastbits.composekit.util.getContrasted
-import dev.toastbits.composekit.util.composable.LinkifyText
-import dev.toastbits.composekit.util.composable.ShapedIconButton
+import dev.toastbits.composekit.components.utils.composable.LinkifyText
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistLayout

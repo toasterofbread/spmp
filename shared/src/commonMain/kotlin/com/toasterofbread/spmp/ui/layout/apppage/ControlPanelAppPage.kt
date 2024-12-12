@@ -13,7 +13,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.util.platform.Platform
-import dev.toastbits.composekit.util.copy
+import dev.toastbits.composekit.util.composable.copy
 import dev.toastbits.composekit.components.utils.modifier.horizontal
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.controlpanelpage.ControlPanelDownloadsPage

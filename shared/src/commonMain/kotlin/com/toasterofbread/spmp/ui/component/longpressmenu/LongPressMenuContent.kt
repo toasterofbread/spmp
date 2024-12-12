@@ -50,13 +50,12 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.components.platform.composable.platformClickable
 import dev.toastbits.composekit.context.vibrateShort
-import dev.toastbits.composekit.util.copy
 import dev.toastbits.composekit.util.getContrasted
 import dev.toastbits.composekit.util.thenIf
 import dev.toastbits.composekit.util.composable.AlignableCrossfade
-import dev.toastbits.composekit.util.composable.Marquee
-import dev.toastbits.composekit.util.composable.NoRipple
-import dev.toastbits.composekit.util.composable.PlatformClickableIconButton
+import dev.toastbits.composekit.components.utils.composable.Marquee
+import dev.toastbits.composekit.components.utils.composable.NoRipple
+import dev.toastbits.composekit.components.utils.composable.PlatformClickableIconButton
 import dev.toastbits.composekit.components.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
@@ -70,6 +69,8 @@ import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.songtheme.DEFAULT_THUMBNAIL_ROUNDING
+import dev.toastbits.composekit.util.composable.copy
+import dev.toastbits.composekit.util.composable.thenIf
 import kotlinx.coroutines.currentCoroutineContext
 import kotlinx.coroutines.isActive
 import org.jetbrains.compose.resources.stringResource

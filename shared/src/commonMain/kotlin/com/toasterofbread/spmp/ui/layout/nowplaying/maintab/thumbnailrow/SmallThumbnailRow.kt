@@ -33,7 +33,7 @@ import androidx.compose.runtime.getValue
 import dev.toastbits.composekit.components.platform.composable.BackHandler
 import dev.toastbits.composekit.components.platform.composable.platformClickable
 import dev.toastbits.composekit.util.getInnerSquareSizeOfCircle
-import dev.toastbits.composekit.util.getValue
+import dev.toastbits.composekit.util.composable.getValue
 import dev.toastbits.composekit.util.thenIf
 import dev.toastbits.composekit.util.composable.OnChangedEffect
 import dev.toastbits.composekit.components.utils.modifier.background
@@ -130,8 +130,8 @@ fun SmallThumbnailRow(
         // Keep thumbnail centered
         Spacer(Modifier)
 
-        val overlay_swap_long_short_press_actions: Boolean by player.settings.player.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.observe()
-        val overlay_custom_action: PlayerOverlayMenuAction by player.settings.player.OVERLAY_CUSTOM_ACTION.observe()
+        val overlay_swap_long_short_press_actions: Boolean by player.settings.Player.OVERLAY_SWAP_LONG_SHORT_PRESS_ACTIONS.observe()
+        val overlay_custom_action: PlayerOverlayMenuAction by player.settings.Player.OVERLAY_CUSTOM_ACTION.observe()
 
         Box(Modifier.aspectRatio(1f)) {
             fun performPressAction(long_press: Boolean) {
@@ -205,7 +205,7 @@ fun SmallThumbnailRow(
                             }
                         )
 
-                val default_video_position: ThemeSettings.VideoPosition by player.settings.theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
+                val default_video_position: ThemeSettings.VideoPosition by player.settings.Theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
                 val song_video_position: ThemeSettings.VideoPosition? by song.VideoPosition.observe(player.database)
                 var video_showing: Boolean = false
 
@@ -330,7 +330,7 @@ fun SmallThumbnailRow(
                 )
             }
 
-            val show_prev_button: Boolean by player.settings.player.MINI_SHOW_PREV_BUTTON.observe()
+            val show_prev_button: Boolean by player.settings.Player.MINI_SHOW_PREV_BUTTON.observe()
             ThumbnailRowControlButtons(Modifier.size(40.dp), show_prev_button = show_prev_button)
         }
     }
@@ -344,7 +344,7 @@ internal fun Modifier.songThumbnailShadow(
     inGraphicsLayer: GraphicsLayerScope.() -> Unit = {}
 ): Modifier {
     val player: PlayerState = LocalPlayerState.current
-    val default_shadow_radius: Float by player.settings.theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS.observe()
+    val default_shadow_radius: Float by player.settings.Theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS.observe()
     val shadow_radius: Float? by song?.ShadowRadius?.observe(player.database)
 
     return graphicsLayer {

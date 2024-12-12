@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.model.mediaitem.song
 
-import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
 import dev.toastbits.ytmkt.model.external.YoutubeVideoFormat
@@ -10,10 +9,10 @@ enum class SongAudioQuality {
 }
 
 suspend fun AppContext.getSongTargetStreamQuality(): SongAudioQuality =
-    settings.streaming.STREAM_AUDIO_QUALITY.get()
+    settings.Streaming.STREAM_AUDIO_QUALITY.get()
 
 suspend fun AppContext.getSongTargetDownloadQuality(): SongAudioQuality =
-    settings.streaming.DOWNLOAD_AUDIO_QUALITY.get()
+    settings.Streaming.DOWNLOAD_AUDIO_QUALITY.get()
 
 suspend fun getSongAudioFormatByQuality(
     song_id: String,

@@ -10,7 +10,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
-import dev.toastbits.composekit.util.composable.getTop
+import dev.toastbits.composekit.components.utils.composable.getTop
 import LocalPlayerState
 import LocalNowPlayingExpansion
 

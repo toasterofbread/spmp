@@ -31,8 +31,8 @@ import dev.toastbits.composekit.settings.ui.component.item.FileSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem.Companion.ItemTitleText
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
-import dev.toastbits.composekit.util.composable.ShapedIconButton
-import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -95,35 +95,29 @@ fun getLanguageDropdownItem(
 internal fun getSystemCategoryItems(context: AppContext, available_languages: List<Language>): List<SettingsItem> =
     listOf(
         getLanguageDropdownItem(
-            context.settings.system.LANG_UI,
+            context.settings.System.LANG_UI,
             available_languages
         ),
 
         getLanguageDropdownItem(
-            context.settings.system.LANG_DATA,
+            context.settings.System.LANG_DATA,
             available_languages
         ),
 
-        DropdownSettingsItem(
-            context.settings.system.FONT
-        ) { mode ->
-            mode.getReadable(context.observeUiLanguage().value)
-        },
-
         ComposableSettingsItem(
-            listOf(context.settings.system.UI_SCALE),
+            listOf(context.settings.System.UI_SCALE),
             resetSettingsValues = {
-                context.settings.system.UI_SCALE.set(1f)
+                context.settings.System.UI_SCALE.set(1f)
             }
         ) {
             val player: PlayerState = LocalPlayerState.current
 
             Row(verticalAlignment = Alignment.CenterVertically) {
-                ItemTitleText(context.settings.system.UI_SCALE.getName(), player.theme, Modifier.weight(1f))
+                ItemTitleText(context.settings.System.UI_SCALE.getName(), player.theme, Modifier.weight(1f))
 
                 Spacer(Modifier.fillMaxWidth().weight(1f))
 
-                var ui_scale: Float by player.settings.system.UI_SCALE.observe()
+                var ui_scale: Float by player.settings.System.UI_SCALE.observe()
 
                 ShapedIconButton({
                     ui_scale = (ui_scale - 0.1f).coerceAtLeast(0.1f)
@@ -142,15 +136,15 @@ internal fun getSystemCategoryItems(context: AppContext, available_languages: Li
         },
 
         ToggleSettingsItem(
-            context.settings.system.PERSISTENT_QUEUE
+            context.settings.System.PERSISTENT_QUEUE
         ),
 
         ToggleSettingsItem(
-            context.settings.system.ADD_SONGS_TO_HISTORY
+            context.settings.System.ADD_SONGS_TO_HISTORY
         ),
 
         FileSettingsItem(
-            state = context.settings.system.LIBRARY_PATH,
+            state = context.settings.System.LIBRARY_PATH,
             getPathLabel = { path ->
                 if (path.isBlank()) {
                     return@FileSettingsItem MediaItemLibrary.getDefaultLibraryDir(context)!!.absolute_path
@@ -191,54 +185,53 @@ internal fun getSystemCategoryItems(context: AppContext, available_languages: Li
                 }
             },
             onSelectRequested = { setValue, showDialog ->
-                context.promptUserForDirectory(true) { path ->
-                    context.coroutineScope.launch {
-                        val old_location: PlatformFile = MediaItemLibrary.getLibraryDir(context, context.settings.system.LIBRARY_PATH.get())!!
-                        val new_location: PlatformFile = MediaItemLibrary.getLibraryDir(context, path ?: "")!!
+                val path: String? = context.promptUserForDirectory(true)?.uri
+                context.coroutineScope.launch {
+                    val old_location: PlatformFile = MediaItemLibrary.getLibraryDir(context, context.settings.System.LIBRARY_PATH.get())!!
+                    val new_location: PlatformFile = MediaItemLibrary.getLibraryDir(context, path ?: "")!!
 
-                        suspend fun processDialogSelection(accepted: Boolean, is_retry: Boolean = false) {
-                            if (accepted) {
-                                if (old_location.is_directory) {
-                                    val result: Result<PlatformFile> = old_location.moveDirContentTo(new_location)
-                                    result.onFailure { error ->
-                                        showDialog(
-                                            FileSettingsItem.Dialog(
-                                                getStringTODO("Transfer failed"),
-                                                error.toString(),
-                                                getString(Res.string.action_confirm_action),
-                                                null
-                                            ) {}
-                                        )
-                                        return@onFailure
-                                    }
+                    suspend fun processDialogSelection(accepted: Boolean, is_retry: Boolean = false) {
+                        if (accepted) {
+                            if (old_location.is_directory) {
+                                val result: Result<PlatformFile> = old_location.moveDirContentTo(new_location)
+                                result.onFailure { error ->
+                                    showDialog(
+                                        FileSettingsItem.Dialog(
+                                            getStringTODO("Transfer failed"),
+                                            error.toString(),
+                                            getString(Res.string.action_confirm_action),
+                                            null
+                                        ) {}
+                                    )
+                                    return@onFailure
                                 }
-                            } else if (is_retry) {
-                                return
                             }
-
-                            setValue(path ?: "")
+                        } else if (is_retry) {
+                            return
                         }
 
-                        if (old_location.uri == new_location.uri) {
-                            return@launch
-                        }
-
-                        if (!old_location.is_directory) {
-                            processDialogSelection(true)
-                            return@launch
-                        }
-
-                        showDialog(
-                            FileSettingsItem.Dialog(
-                                getStringTODO("Transfer existing library"),
-                                getStringTODO("Move the library at ${old_location.path} to ${new_location.path}?"),
-                                getString(Res.string.action_confirm_action),
-                                getString(Res.string.action_deny_action)
-                            ) { accepted ->
-                                processDialogSelection(accepted)
-                            }
-                        )
+                        setValue(path ?: "")
                     }
+
+                    if (old_location.uri == new_location.uri) {
+                        return@launch
+                    }
+
+                    if (!old_location.is_directory) {
+                        processDialogSelection(true)
+                        return@launch
+                    }
+
+                    showDialog(
+                        FileSettingsItem.Dialog(
+                            getStringTODO("Transfer existing library"),
+                            getStringTODO("Move the library at ${old_location.path} to ${new_location.path}?"),
+                            getString(Res.string.action_confirm_action),
+                            getString(Res.string.action_deny_action)
+                        ) { accepted ->
+                            processDialogSelection(accepted)
+                        }
+                    )
                 }
             }
         )

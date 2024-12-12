@@ -20,7 +20,7 @@ import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
 import dev.toastbits.composekit.components.platform.composable.platformClickable
 import dev.toastbits.composekit.util.thenIf
 import dev.toastbits.composekit.util.thenWith
-import dev.toastbits.composekit.util.composable.workingAnimateScrollToItem
+import dev.toastbits.composekit.components.utils.composable.workingAnimateScrollToItem
 import kotlinx.coroutines.delay
 
 @Composable
@@ -38,8 +38,8 @@ fun CoreLyricsDisplay(
     val density: Density = LocalDensity.current
     val lyrics_sync_offset: Long? by song.getLyricsSyncOffset(player.database, false)
 
-    val romanise_furigana: Boolean by player.settings.lyrics.ROMANISE_FURIGANA.observe()
-    val add_padding: Boolean by player.settings.lyrics.EXTRA_PADDING.observe()
+    val romanise_furigana: Boolean by player.settings.Lyrics.ROMANISE_FURIGANA.observe()
+    val add_padding: Boolean by player.settings.Lyrics.EXTRA_PADDING.observe()
 
     var area_size: Dp by remember { mutableStateOf(0.dp) }
     val size_px: Float = with(density) { ((area_size - (NOW_PLAYING_MAIN_PADDING_DP.dp * 2) - (15.dp * getExpansion() * 2)).value * 0.9.dp).toPx() }
@@ -55,7 +55,7 @@ fun CoreLyricsDisplay(
     var tokenised_lines: List<List<SongLyrics.Term>>? by remember { mutableStateOf(null) }
 
     suspend fun getScrollOffset(follow_offset: Float? = null): Int =
-        (padding_height - static_scroll_offset - size_px * (follow_offset ?: player.settings.lyrics.FOLLOW_OFFSET.get())).toInt()
+        (padding_height - static_scroll_offset - size_px * (follow_offset ?: player.settings.Lyrics.FOLLOW_OFFSET.get())).toInt()
 
     LaunchedEffect(lyrics, romanise_furigana) {
         val tokeniser: LyricsFuriganaTokeniser? = LyricsFuriganaTokeniser.getInstance()
@@ -86,7 +86,7 @@ fun CoreLyricsDisplay(
         }
     }
 
-    val font_size_percent: Float by player.settings.lyrics.FONT_SIZE.observe()
+    val font_size_percent: Float by player.settings.Lyrics.FONT_SIZE.observe()
     val font_size: TextUnit = (10 + (font_size_percent * 20)).sp
     val text_style: TextStyle = getLyricsTextStyle(font_size)
 
@@ -111,7 +111,7 @@ fun CoreLyricsDisplay(
             }
         }
 
-        val text_alignment: Int by player.settings.lyrics.TEXT_ALIGNMENT.observe()
+        val text_alignment: Int by player.settings.Lyrics.TEXT_ALIGNMENT.observe()
 
         LazyColumn(
             Modifier

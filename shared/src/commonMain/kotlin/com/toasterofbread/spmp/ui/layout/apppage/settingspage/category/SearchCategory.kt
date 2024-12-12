@@ -7,6 +7,6 @@ import com.toasterofbread.spmp.platform.AppContext
 internal fun getSearchCategoryItems(context: AppContext): List<SettingsItem> =
     listOf(
         ToggleSettingsItem(
-            context.settings.search.SEARCH_FOR_NON_MUSIC
+            context.settings.Search.SEARCH_FOR_NON_MUSIC
         )
     )

@@ -12,7 +12,6 @@ import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.outlined.Info
-import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -21,8 +20,8 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import dev.toastbits.composekit.components.platform.composable.BackHandler
-import dev.toastbits.composekit.util.launchSingle
-import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.util.platform.launchSingle
+import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -64,7 +63,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
         val pill_menu: PillMenu = remember { PillMenu(expand_state = mutableStateOf(false)) }
 
         val lyrics_state: SongLyricsLoader.ItemState = SongLyricsLoader.rememberItemState(song, player.context)
-        var show_furigana: Boolean by player.settings.lyrics.DEFAULT_FURIGANA.observe()
+        var show_furigana: Boolean by player.settings.Lyrics.DEFAULT_FURIGANA.observe()
 
         var submenu: Submenu? by remember { mutableStateOf(null) }
         var lyrics_sync_line_index: Int? by remember { mutableStateOf(null) }
@@ -230,7 +229,7 @@ class LyricsPlayerOverlayMenu: PlayerOverlayMenu() {
                 }
                 else if (lyrics != null) {
                     Box(Modifier.fillMaxSize()) {
-                        val lyrics_follow_enabled: Boolean by player.settings.lyrics.FOLLOW_ENABLED.observe()
+                        val lyrics_follow_enabled: Boolean by player.settings.Lyrics.FOLLOW_ENABLED.observe()
 
                         CoreLyricsDisplay(
                             lyrics,

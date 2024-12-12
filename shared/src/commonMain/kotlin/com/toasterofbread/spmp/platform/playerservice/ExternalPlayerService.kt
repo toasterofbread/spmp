@@ -61,9 +61,9 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
     private var local_server_process: Job? by mutableStateOf(null)
 
     override suspend fun getIpAddress(): String =
-        if (local_server_process != null) "127.0.0.1" else context.settings.platform.SERVER_IP_ADDRESS.get()
+        if (local_server_process != null) "127.0.0.1" else context.settings.Platform.SERVER_IP_ADDRESS.get()
     override suspend fun getPort(): Int =
-        context.settings.platform.SERVER_PORT.get()
+        context.settings.Platform.SERVER_PORT.get()
 
     internal lateinit var _context: AppContext
     override val context: AppContext get() = _context
@@ -293,7 +293,7 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
 
             LocalServer.startLocalServer(
                 player.context,
-                player.settings.platform.SERVER_PORT.get()
+                player.settings.Platform.SERVER_PORT.get()
             ).fold(
                 onSuccess = {
                     local_server_process = it

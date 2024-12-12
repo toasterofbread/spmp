@@ -1,14 +1,10 @@
 package com.toasterofbread.spmp.model.appaction.shortcut
 
-import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -24,8 +20,6 @@ import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyRow
 import com.toasterofbread.spmp.model.appaction.AppAction
 import com.toasterofbread.spmp.ui.component.shortcut.ShortcutPreview
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.json.Json
 import LocalPlayerState
 import dev.toastbits.composekit.components.utils.composable.StickyHeightColumn
 import org.jetbrains.compose.resources.stringResource
@@ -35,14 +29,14 @@ import spmp.shared.generated.resources.s_key_navigate_song_with_numbers
 @Composable
 fun ShortcutsEditor(modifier: Modifier = Modifier) {
     val player: PlayerState = LocalPlayerState.current
-    var shortcuts: List<Shortcut>? by player.settings.shortcut.CONFIGURED_SHORTCUTS.observe()
+    var shortcuts: List<Shortcut>? by player.settings.Shortcut.CONFIGURED_SHORTCUTS.observe()
     val default_shortcuts: List<Shortcut> = remember { getDefaultShortcuts() }
 
     StickyHeightColumn(
         modifier,
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
-        var navigate_song_with_numbers: Boolean by player.settings.shortcut.NAVIGATE_SONG_WITH_NUMBERS.observe()
+        var navigate_song_with_numbers: Boolean by player.settings.Shortcut.NAVIGATE_SONG_WITH_NUMBERS.observe()
         FlowRow(
             Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween

@@ -43,7 +43,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.util.getContrasted
 import dev.toastbits.composekit.components.platform.composable.ScrollabilityIndicatorRow
-import dev.toastbits.composekit.util.composable.ShapedIconButton
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.components.utils.modifier.vertical
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.observeUrl

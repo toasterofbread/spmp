@@ -53,7 +53,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.util.getValue
+import dev.toastbits.composekit.util.composable.getValue
 import dev.toastbits.composekit.components.utils.composable.LargeDropdownMenu
 import dev.toastbits.composekit.util.composable.OnChangedEffect
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -67,8 +67,6 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import PlatformIO
 import androidx.compose.ui.graphics.Color
-import dev.toastbits.composekit.context.ReentrantLock
-import dev.toastbits.composekit.context.synchronized
 import dev.toastbits.composekit.theme.onAccent
 import dev.toastbits.composekit.theme.vibrantAccent
 import kotlinx.io.IOException
@@ -85,6 +83,7 @@ import spmp.shared.generated.resources.song_name
 import spmp.shared.generated.resources.artist
 import spmp.shared.generated.resources.lyrics_source_cannot_search
 import spmp.shared.generated.resources.action_close
+import java.util.concurrent.locks.ReentrantLock
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val LYRICS_SEARCH_RETRY_COUNT = 3
@@ -130,7 +129,7 @@ fun LyricsSearchMenu(
     val artist = remember (song_artist_title) { mutableStateOf(TextFieldValue(song_artist_title ?: "")) }
     var search_state: Boolean by remember { mutableStateOf(false) }
 
-    val default_source: Int by player.settings.lyrics.DEFAULT_SOURCE.observe()
+    val default_source: Int by player.settings.Lyrics.DEFAULT_SOURCE.observe()
     var selected_source: LyricsSource by remember { mutableStateOf(LyricsSource.fromIdx(default_source)) }
 
     var search_results: Pair<List<LyricsSource.SearchResult>, Int>? by remember { mutableStateOf(null) }

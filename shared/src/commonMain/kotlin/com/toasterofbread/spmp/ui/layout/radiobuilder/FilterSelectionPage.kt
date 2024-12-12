@@ -34,8 +34,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.components.platform.composable.platformClickable
 import dev.toastbits.composekit.context.vibrateShort
-import dev.toastbits.composekit.util.composable.ShapedIconButton
-import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.toRemotePlaylistData
 import com.toasterofbread.spmp.service.playercontroller.PlayerState

@@ -16,13 +16,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
-import dev.toastbits.composekit.util.getValue
-import dev.toastbits.composekit.util.composable.*
+import dev.toastbits.composekit.util.composable.getValue
+import dev.toastbits.composekit.components.utils.composable.*
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
+import dev.toastbits.composekit.util.composable.AlignableCrossfade
 import kotlin.math.sign
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringResource

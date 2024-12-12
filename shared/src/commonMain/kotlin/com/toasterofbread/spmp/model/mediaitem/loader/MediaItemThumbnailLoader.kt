@@ -128,7 +128,7 @@ internal object MediaItemThumbnailLoader: ListenerLoader<MediaItemThumbnailLoade
 
         val result: Result<ImageBitmap> = item.downloadThumbnailData(thumbnail_url, client)
         result.onSuccess { image ->
-            if (cache_file != null && !disable_cache_write && context.settings.misc.THUMB_CACHE_ENABLED.get()) {
+            if (cache_file != null && !disable_cache_write && context.settings.Misc.THUMB_CACHE_ENABLED.get()) {
                 cache_file.parent_file.mkdirs()
                 cache_file.outputStream().buffer().use {
                     it.write(image.toByteArray())

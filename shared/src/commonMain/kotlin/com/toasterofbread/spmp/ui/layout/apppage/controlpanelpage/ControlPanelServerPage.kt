@@ -60,8 +60,8 @@ import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectCont
 import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyColumn
 import dev.toastbits.composekit.theme.vibrantAccent
 import dev.toastbits.composekit.util.getContrasted
-import dev.toastbits.composekit.util.launchSingle
-import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.util.platform.launchSingle
+import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.spms.socketapi.shared.SpMsClientInfo
 import dev.toastbits.spms.socketapi.shared.SpMsClientType
 import kotlinx.coroutines.CoroutineScope

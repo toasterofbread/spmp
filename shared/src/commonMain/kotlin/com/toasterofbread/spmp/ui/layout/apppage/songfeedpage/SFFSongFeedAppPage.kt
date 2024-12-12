@@ -18,17 +18,15 @@ import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.components.platform.composable.BackHandler
 import dev.toastbits.composekit.components.platform.composable.SwipeRefresh
 import dev.toastbits.composekit.components.platform.composable.platformClickable
-import dev.toastbits.composekit.util.launchSingle
-import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.util.platform.launchSingle
+import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.composekit.components.utils.modifier.horizontal
 import dev.toastbits.composekit.components.utils.modifier.vertical
 import com.toasterofbread.spmp.model.deserialise
 import com.toasterofbread.spmp.model.getString
-import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.layout.Layout
 import com.toasterofbread.spmp.model.mediaitem.layout.AppMediaItemLayout
 import com.toasterofbread.spmp.model.serialise
-import dev.toastbits.ytmkt.model.external.mediaitem.MediaItemLayout
 import com.toasterofbread.spmp.model.MediaItemLayoutParams
 import com.toasterofbread.spmp.model.MediaItemGridParams
 import com.toasterofbread.spmp.model.observe
@@ -39,7 +37,6 @@ import com.toasterofbread.spmp.service.playercontroller.FeedLoadState
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.NotImplementedMessage
 import dev.toastbits.ytmkt.model.external.ItemLayoutType
-import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 import dev.toastbits.ytmkt.uistrings.UiString
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -79,24 +76,24 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
         )
     }
 
-    val hidden_rows: Set<String> by player.settings.feed.HIDDEN_ROWS.observe()
+    val hidden_rows: Set<String> by player.settings.Feed.HIDDEN_ROWS.observe()
     val hidden_row_titles: List<String> =
         hidden_rows.map { row_title ->
             UiString.deserialise(row_title).observe()
         }
 
-    val square_item_max_text_rows: Int by player.settings.feed.SQUARE_PREVIEW_TEXT_LINES.observe()
-    val show_download_indicators: Boolean by player.settings.feed.SHOW_SONG_DOWNLOAD_INDICATORS.observe()
+    val square_item_max_text_rows: Int by player.settings.Feed.SQUARE_PREVIEW_TEXT_LINES.observe()
+    val show_download_indicators: Boolean by player.settings.Feed.SHOW_SONG_DOWNLOAD_INDICATORS.observe()
 
     val grid_rows: Int by
         when (form_factor) {
-            FormFactor.PORTRAIT -> player.settings.feed.GRID_ROW_COUNT
-            FormFactor.LANDSCAPE -> player.settings.feed.LANDSCAPE_GRID_ROW_COUNT
+            FormFactor.PORTRAIT -> player.settings.Feed.GRID_ROW_COUNT
+            FormFactor.LANDSCAPE -> player.settings.Feed.LANDSCAPE_GRID_ROW_COUNT
         }.observe()
     val grid_rows_expanded: Int by
         when (form_factor) {
-            FormFactor.PORTRAIT -> player.settings.feed.GRID_ROW_COUNT_EXPANDED
-            FormFactor.LANDSCAPE -> player.settings.feed.LANDSCAPE_GRID_ROW_COUNT_EXPANDED
+            FormFactor.PORTRAIT -> player.settings.Feed.GRID_ROW_COUNT_EXPANDED
+            FormFactor.LANDSCAPE -> player.settings.Feed.LANDSCAPE_GRID_ROW_COUNT_EXPANDED
         }.observe()
 
     LaunchedEffect(Unit) {
@@ -168,7 +165,7 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
                 onDismissRequest = { hiding_layout = null },
                 confirmButton = {
                     Button({
-                        player.settings.feed.HIDDEN_ROWS.set(
+                        player.settings.Feed.HIDDEN_ROWS.set(
                             hidden_rows.plus(title.serialise())
                         )
 
@@ -206,7 +203,7 @@ internal fun SongFeedAppPage.SFFSongFeedAppPage(
                     else null
                 val loading_continuation: Boolean = load_state != FeedLoadState.NONE
                 val horizontal_padding: PaddingValues = content_padding.horizontal
-                val show_artists_row: Boolean by player.settings.feed.SHOW_ARTISTS_ROW.observe()
+                val show_artists_row: Boolean by player.settings.Feed.SHOW_ARTISTS_ROW.observe()
 
                 LazyColumn(
                     Modifier.graphicsLayer { alpha = state_alpha.value },

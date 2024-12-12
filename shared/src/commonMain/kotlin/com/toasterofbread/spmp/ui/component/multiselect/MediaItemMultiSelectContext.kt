@@ -18,7 +18,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.util.getContrasted
-import dev.toastbits.composekit.context.lazyAssert
+import dev.toastbits.composekit.util.platform.lazyAssert
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.platform.AppContext
@@ -67,7 +67,7 @@ open class MediaItemMultiSelectContext {
 
     fun onActionPerformed() {
         context.coroutineScope.launch {
-            if (context.settings.behaviour.MULTISELECT_CANCEL_ON_ACTION.get()) {
+            if (context.settings.Behaviour.MULTISELECT_CANCEL_ON_ACTION.get()) {
                 setActive(false)
             }
         }
@@ -75,7 +75,7 @@ open class MediaItemMultiSelectContext {
 
     private fun onSelectedItemsChanged() {
         context.coroutineScope.launch {
-            if (selected_items.isEmpty() && context.settings.behaviour.MULTISELECT_CANCEL_ON_NONE_SELECTED.get()) {
+            if (selected_items.isEmpty() && context.settings.Behaviour.MULTISELECT_CANCEL_ON_NONE_SELECTED.get()) {
                 setActive(false)
             }
         }

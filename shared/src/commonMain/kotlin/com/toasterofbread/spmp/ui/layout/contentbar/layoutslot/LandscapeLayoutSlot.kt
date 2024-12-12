@@ -57,7 +57,7 @@ enum class LandscapeLayoutSlot: LayoutSlot {
         }
 
     override fun getSlotsProperty(context: AppContext): PlatformSettingsProperty<Map<String, ContentBarReference?>> =
-        context.settings.layout.LANDSCAPE_SLOTS
+        context.settings.Layout.LANDSCAPE_SLOTS
 
     override fun getKey(): String = name
 
@@ -95,16 +95,16 @@ enum class LandscapeLayoutSlot: LayoutSlot {
 
     override fun getDefaultBackgroundColour(theme: ThemeValues): ColourSource =
         when (this) {
-            OUTER_SIDE_LEFT -> ThemeColourSource(ThemeValues.Colour.CARD)
-            INNER_SIDE_LEFT -> ThemeColourSource(ThemeValues.Colour.CARD)
-            OUTER_SIDE_RIGHT -> ThemeColourSource(ThemeValues.Colour.CARD)
-            INNER_SIDE_RIGHT -> ThemeColourSource(ThemeValues.Colour.CARD)
+            OUTER_SIDE_LEFT -> ThemeColourSource(ThemeValues.Slot.BuiltIn.CARD)
+            INNER_SIDE_LEFT -> ThemeColourSource(ThemeValues.Slot.BuiltIn.CARD)
+            OUTER_SIDE_RIGHT -> ThemeColourSource(ThemeValues.Slot.BuiltIn.CARD)
+            INNER_SIDE_RIGHT -> ThemeColourSource(ThemeValues.Slot.BuiltIn.CARD)
 
-            UPPER_TOP_BAR -> ThemeColourSource(ThemeValues.Colour.CARD)
-            LOWER_TOP_BAR -> ThemeColourSource(ThemeValues.Colour.CARD)
+            UPPER_TOP_BAR -> ThemeColourSource(ThemeValues.Slot.BuiltIn.CARD)
+            LOWER_TOP_BAR -> ThemeColourSource(ThemeValues.Slot.BuiltIn.CARD)
 
             ABOVE_PLAYER -> CustomColourSource(Color.Transparent)
-            BELOW_PLAYER -> ThemeColourSource(ThemeValues.Colour.CARD)
+            BELOW_PLAYER -> ThemeColourSource(ThemeValues.Slot.BuiltIn.CARD)
 
             PLAYER_BOTTOM_START -> CustomColourSource(Color.Transparent)
             PLAYER_BOTTOM_END -> CustomColourSource(Color.Transparent)

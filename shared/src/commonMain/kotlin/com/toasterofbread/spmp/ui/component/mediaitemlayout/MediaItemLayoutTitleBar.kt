@@ -37,7 +37,7 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.util.composable.PlatformClickableIconButton
+import dev.toastbits.composekit.components.utils.composable.PlatformClickableIconButton
 import dev.toastbits.composekit.util.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.getString
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder

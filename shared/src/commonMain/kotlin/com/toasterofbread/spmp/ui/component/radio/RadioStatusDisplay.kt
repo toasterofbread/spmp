@@ -14,8 +14,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.util.getContrasted
 import dev.toastbits.composekit.util.composable.AlignableCrossfade
-import dev.toastbits.composekit.util.composable.ShapedIconButton
-import dev.toastbits.composekit.util.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.composekit.components.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.service.playercontroller.PlayerState

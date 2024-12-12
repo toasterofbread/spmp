@@ -112,11 +112,11 @@ actual class DiscordStatus actual constructor(
 
         val disabled_statuses: List<String> =
             listOfNotNull(
-                "invisible".takeIf { context.settings.discord.STATUS_DISABLE_WHEN_INVISIBLE.get() },
-                "dnd".takeIf { context.settings.discord.STATUS_DISABLE_WHEN_DND.get() },
-                "idle".takeIf { context.settings.discord.STATUS_DISABLE_WHEN_IDLE.get() },
-                "offline".takeIf { context.settings.discord.STATUS_DISABLE_WHEN_OFFLINE.get() },
-                "online".takeIf { context.settings.discord.STATUS_DISABLE_WHEN_ONLINE.get() }
+                "invisible".takeIf { context.settings.Discord.STATUS_DISABLE_WHEN_INVISIBLE.get() },
+                "dnd".takeIf { context.settings.Discord.STATUS_DISABLE_WHEN_DND.get() },
+                "idle".takeIf { context.settings.Discord.STATUS_DISABLE_WHEN_IDLE.get() },
+                "offline".takeIf { context.settings.Discord.STATUS_DISABLE_WHEN_OFFLINE.get() },
+                "online".takeIf { context.settings.Discord.STATUS_DISABLE_WHEN_ONLINE.get() }
             )
 
         if (disabled_statuses.isEmpty()) {

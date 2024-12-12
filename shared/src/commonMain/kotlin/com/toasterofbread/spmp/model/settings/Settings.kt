@@ -1,11 +1,29 @@
 package com.toasterofbread.spmp.model.settings
 
-import com.toasterofbread.spmp.model.settings.category.*
+import com.toasterofbread.spmp.model.settings.category.BehaviourSettings
+import com.toasterofbread.spmp.model.settings.category.DependencySettings
+import com.toasterofbread.spmp.model.settings.category.DiscordAuthSettings
+import com.toasterofbread.spmp.model.settings.category.DiscordSettings
+import com.toasterofbread.spmp.model.settings.category.ExperimentalSettings
+import com.toasterofbread.spmp.model.settings.category.FeedSettings
+import com.toasterofbread.spmp.model.settings.category.FilterSettings
+import com.toasterofbread.spmp.model.settings.category.InterfaceSettings
+import com.toasterofbread.spmp.model.settings.category.LayoutSettings
+import com.toasterofbread.spmp.model.settings.category.LyricsSettings
+import com.toasterofbread.spmp.model.settings.category.MiscSettings
+import com.toasterofbread.spmp.model.settings.category.PlatformSettings
+import com.toasterofbread.spmp.model.settings.category.PlayerSettings
+import com.toasterofbread.spmp.model.settings.category.SearchSettings
+import com.toasterofbread.spmp.model.settings.category.ShortcutSettings
+import com.toasterofbread.spmp.model.settings.category.StreamingSettings
+import com.toasterofbread.spmp.model.settings.category.SystemSettings
+import com.toasterofbread.spmp.model.settings.category.ThemeSettings
+import com.toasterofbread.spmp.model.settings.category.WidgetSettings
+import com.toasterofbread.spmp.model.settings.category.YTApiSettings
+import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.Language
 import dev.toastbits.composekit.commonsettings.impl.ComposeKitSettings
-import dev.toastbits.composekit.commonsettings.impl.group.ComposeKitSettingsGroupInterface
-import dev.toastbits.composekit.commonsettings.impl.group.impl.ComposeKitSettingsGroupInterfaceImpl
 import dev.toastbits.composekit.settings.ui.screen.PlatformSettingsGroupScreen
 
 class Settings(
@@ -32,7 +50,7 @@ class Settings(
     val Search: SearchSettings = SearchSettings(context)
     val Experimental: ExperimentalSettings = ExperimentalSettings(context)
     val YtApi: YTApiSettings = YTApiSettings(context.getPrefs())
-    override val Interface: ComposeKitSettingsGroupInterface = ComposeKitSettingsGroupInterfaceImpl("INTERFACE", context.getPrefs())
+    override val Interface: InterfaceSettings = InterfaceSettings(context)
 
     override val prefs: dev.toastbits.composekit.settings.PlatformSettings
         get() = context.getPrefs()
@@ -43,6 +61,7 @@ class Settings(
 
             System,
             Behaviour,
+            Interface,
             Layout,
             Player,
             Feed,

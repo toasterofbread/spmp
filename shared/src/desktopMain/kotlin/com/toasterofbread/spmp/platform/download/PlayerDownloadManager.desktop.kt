@@ -74,11 +74,9 @@ actual class PlayerDownloadManager actual constructor(private val context: AppCo
         direct: Boolean,
         callback: DownloadRequestCallback?,
     ) {
-        println("DLLLL 2 $custom_uri")
         context.coroutineScope.launch {
             getDownloader().startDownload(song, silent, custom_uri, download_lyrics, direct) { download, result ->
                 val status: DownloadStatus = download.getStatusObject()
-                println("DLLLL result $download $result $status")
                 context.coroutineScope.launch {
                     if (custom_uri == null) {
                         MediaItemLibrary.onSongFileAdded(status)

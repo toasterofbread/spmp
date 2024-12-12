@@ -23,30 +23,6 @@ class DiscordAuthSettings(val context: AppContext): SettingsGroupImpl("DISCORDAU
         getDefaultValue = { false }
     )
 
-    // TODO REFACTOR
-//    override fun getPage(): CategoryPage =
-//        object : CategoryPage(
-//            this,
-//            { stringResource(Res.string.s_cat_discord_auth) }
-//        ) {
-//            override fun openPage(context: AppContext) {
-//                val manual: Boolean = false
-//                SpMp.player_state.app_page_state.Settings.settings_interface.openPageById(PrefsPageScreen.DISCORD_LOGIN.ordinal, manual)
-//            }
-//
-//            override fun getTitleItem(context: AppContext): SettingsItem =
-//                getDiscordAuthItem(
-//                    context,
-//                    info_only = true,
-//                    ignore_prerequisite = true,
-//                    StartIcon = {
-//                        Box(Modifier.height(40.dp).padding(end = 20.dp), contentAlignment = Alignment.Center) {
-//                            Icon(DiscordSettings.getDiscordIcon(), null)
-//                        }
-//                    }
-//                )
-//        }
-
     @Composable
     override fun getTitle(): String = stringResource(Res.string.s_cat_discord_auth)
 
@@ -58,5 +34,5 @@ class DiscordAuthSettings(val context: AppContext): SettingsGroupImpl("DISCORDAU
 
     override fun getConfigurationItems(): List<SettingsItem> = emptyList()
 
-//    override fun showPage(exporting: Boolean): Boolean = exporting
+    override val hidden: Boolean = true
 }

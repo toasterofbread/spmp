@@ -1,13 +1,19 @@
 package com.toasterofbread.spmp.model.settings.category
 
+import LocalPlayerState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.settings.SettingsGroupImpl
 import com.toasterofbread.spmp.model.settings.packSetData
 import com.toasterofbread.spmp.platform.AppContext
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getYtmAuthItem
+import dev.toastbits.composekit.settings.ComposeKitSettingsGroupWithCustomPreview
 import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import dev.toastbits.ytmkt.model.ApiAuthenticationState
@@ -17,7 +23,7 @@ import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_cat_youtube_auth
 
-class YoutubeAuthSettings(val context: AppContext): SettingsGroupImpl("YTAUTH", context.getPrefs()) {
+class YoutubeAuthSettings(val context: AppContext): SettingsGroupImpl("YTAUTH", context.getPrefs()), ComposeKitSettingsGroupWithCustomPreview {
     override fun getUnregisteredProperties(): List<PlatformSettingsProperty<*>> =
         listOf(
             context.settings.System.ADD_SONGS_TO_HISTORY
@@ -44,23 +50,12 @@ class YoutubeAuthSettings(val context: AppContext): SettingsGroupImpl("YTAUTH", 
         }
     )
 
-    // TODO REFACTOR
-//    override fun getPage(): CategoryPage? =
-//        object : CategoryPage(
-//            this,
-//            { stringResource(Res.string.s_cat_youtube_auth) }
-//        ) {
-//            override fun openPage(context: AppContext) {
-//                val manual: Boolean = false
-//                SpMp.player_state.app_page_state.Settings.settings_interface.openPageById(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, manual)
-//            }
-//
-//            override fun getTitleItem(context: AppContext): SettingsItem? =
-//                getYtmAuthItem(
-//                    context,
-//                    YTM_AUTH
-//                )
-//        }
+    @Composable
+    override fun PreviewContent(modifier: Modifier, onSelected: () -> Unit) {
+        val player: PlayerState = LocalPlayerState.current
+        val item: SettingsItem = remember { getYtmAuthItem(player.context, YTM_AUTH) }
+        item.Item(modifier)
+    }
 
     @Composable
     override fun getTitle(): String = stringResource(Res.string.s_cat_youtube_auth)

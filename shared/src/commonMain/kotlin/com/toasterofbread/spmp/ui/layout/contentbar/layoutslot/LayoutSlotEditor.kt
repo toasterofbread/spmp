@@ -266,7 +266,7 @@ fun LayoutSlotEditor(
 
                 val slots: MutableMap<String, ContentBarReference?> = parseSlots().toMutableMap()
                 for ((key, slot) in slots.entries) {
-                    if (slot?.type != ContentBarReference.Type.CUSTOM) {
+                if (slot?.type != ContentBarReference.Type.CUSTOM) {
                         continue
                     }
 
@@ -285,9 +285,9 @@ fun LayoutSlotEditor(
     }
 
     DisposableEffect(state) {
-        ContentBar.bar_selection_state = state
+        ContentBar.addBarSelectionState(state)
         onDispose {
-            ContentBar.bar_selection_state = null
+            ContentBar.removeBarSelectionState(state)
         }
     }
 

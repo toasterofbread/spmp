@@ -95,10 +95,16 @@ sealed class ContentBar {
     }
 
     companion object {
-        var _bar_selection_state: BarSelectionState? by mutableStateOf(null)
-        var bar_selection_state: BarSelectionState?
-            get() = if (disable_bar_selection) null else _bar_selection_state
-            set(value) { _bar_selection_state = value }
+        private var _bar_selection_states: MutableList<BarSelectionState> = mutableStateListOf()
+        val bar_selection_state: BarSelectionState?
+            get() = _bar_selection_states.lastOrNull()
+
+        fun addBarSelectionState(state: BarSelectionState) {
+            _bar_selection_states.add(state)
+        }
+        fun removeBarSelectionState(state: BarSelectionState) {
+            _bar_selection_states.remove(state)
+        }
 
         var disable_bar_selection: Boolean by mutableStateOf(false)
     }

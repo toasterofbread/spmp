@@ -7,5 +7,6 @@ object ProjectJson {
         Json {
             ignoreUnknownKeys = true
             explicitNulls = false
+            useArrayPolymorphism = true
         }
 }

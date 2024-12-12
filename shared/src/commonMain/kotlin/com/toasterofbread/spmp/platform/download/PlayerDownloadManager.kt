@@ -64,14 +64,11 @@ enum class DownloadMethod {
                             false
                         )
 
-                    println("DLLLLL 1 $file")
-
                     if (file == null) {
                         callback?.invoke(null)
                         return
                     }
 
-                    // TODO REFACTOR | Test this
                     context.download_manager.startDownload(
                         songs.single(),
                         custom_uri = file.uri,

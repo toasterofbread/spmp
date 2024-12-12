@@ -2,6 +2,8 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -17,6 +19,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.settings.PlatformSettings
 import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
@@ -117,7 +120,7 @@ fun getYtmAuthItem(context: AppContext, ytmAuth: PlatformSettingsProperty<Set<St
             }
 
             own_channel?.also { channel ->
-                MediaItemPreviewLong(channel, modifier, show_type = false)
+                MediaItemPreviewLong(channel, modifier.requiredHeight(45.dp), show_type = false)
             }
         },
         extra_items = getYoutubeAccountCategory(context),

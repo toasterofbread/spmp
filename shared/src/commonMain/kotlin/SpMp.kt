@@ -43,6 +43,7 @@ import com.toasterofbread.spmp.ui.layout.loadingsplash.SplashMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import dev.toastbits.composekit.application.ApplicationTheme
+import dev.toastbits.composekit.commonsettings.impl.LocalComposeKitSettings
 import dev.toastbits.composekit.commonsettings.impl.group.rememberThemeConfiguration
 import dev.toastbits.composekit.navigation.screen.Screen
 import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
@@ -250,7 +251,8 @@ object SpMp {
                     LocalProgramArguments provides arguments,
                     LocalContext provides context,
                     LocalNavigator provides navigator,
-                    LocalComposeEnvironment provides LocalisedComposeEnvironment { ui_language }
+                    LocalComposeEnvironment provides LocalisedComposeEnvironment { ui_language },
+                    LocalComposeKitSettings provides context.settings
                 ) {
                     var mismatched_server_api_version: Int? by remember { mutableStateOf(null) }
                     val splash_mode: SplashMode? = when (Platform.current) {

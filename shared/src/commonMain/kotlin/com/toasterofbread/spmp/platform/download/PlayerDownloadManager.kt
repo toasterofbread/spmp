@@ -56,7 +56,7 @@ enum class DownloadMethod {
             }
             CUSTOM -> {
                 if (songs.size == 1) {
-                    val uri: PlatformFile? =
+                    val file: PlatformFile? =
                         context.promptUserForFileCreation(
                             // TODO | Remove hardcoded MIME type
                             "audio/mp4",
@@ -64,7 +64,9 @@ enum class DownloadMethod {
                             false
                         )
 
-                    if (uri == null) {
+                    println("DLLLLL 1 $file")
+
+                    if (file == null) {
                         callback?.invoke(null)
                         return
                     }
@@ -72,7 +74,7 @@ enum class DownloadMethod {
                     // TODO REFACTOR | Test this
                     context.download_manager.startDownload(
                         songs.single(),
-                        custom_uri = uri.uri,
+                        custom_uri = file.uri,
                         download_lyrics = false,
                         direct = true,
                         callback = callback

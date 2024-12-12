@@ -30,15 +30,17 @@ import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
 import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
 import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
 import com.toasterofbread.spmp.widget.configuration.ui.screen.WidgetConfigurationScreen
-import dev.toastbits.composekit.navigation.screen.Screen
-import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
-import dev.toastbits.composekit.navigation.navigator.CurrentScreen
-import dev.toastbits.composekit.navigation.navigator.ExtendableNavigator
-import dev.toastbits.composekit.navigation.navigator.Navigator
-import dev.toastbits.composekit.context.ApplicationContext
+import dev.toastbits.composekit.commonsettings.impl.group.rememberThemeConfiguration
 import dev.toastbits.composekit.components.LocalContext
-import dev.toastbits.composekit.util.plus
 import dev.toastbits.composekit.components.utils.modifier.background
+import dev.toastbits.composekit.context.ApplicationContext
+import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
+import dev.toastbits.composekit.navigation.navigator.BaseNavigator
+import dev.toastbits.composekit.navigation.navigator.CurrentScreen
+import dev.toastbits.composekit.navigation.navigator.Navigator
+import dev.toastbits.composekit.navigation.screen.Screen
+import dev.toastbits.composekit.theme.model.ThemeConfiguration
+import dev.toastbits.composekit.util.composable.plus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -103,7 +105,7 @@ class WidgetConfigurationActivity: ComponentActivity() {
                 widget_type = widget_type
             )
         }
-        val navigator: Navigator = ExtendableNavigator(configuration_screen)
+        val navigator: Navigator = BaseNavigator(configuration_screen)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.setFlags(
@@ -129,9 +131,8 @@ class WidgetConfigurationActivity: ComponentActivity() {
                     return@providesComputed dummy_player_state!!
                 }
             ) {
-                if (!context.theme.Update()) {
-                    return@CompositionLocalProvider
-                }
+                val theme_configuration: ThemeConfiguration = context.settings.Theme.rememberThemeConfiguration()
+                context.theme.Update(theme_configuration)
 
                 val ui_language: String by context.observeUiLanguage()
 

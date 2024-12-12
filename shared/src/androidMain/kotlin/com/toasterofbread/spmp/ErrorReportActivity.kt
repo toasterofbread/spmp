@@ -51,10 +51,12 @@ import com.toasterofbread.spmp.platform.AppThemeManager
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.resources.stringResourceTODO
 import com.toasterofbread.spmp.ui.component.uploadErrorToPasteEe
+import dev.toastbits.composekit.application.ApplicationTheme
+import dev.toastbits.composekit.commonsettings.impl.group.rememberThemeConfiguration
 import dev.toastbits.composekit.context.ApplicationContext
-import dev.toastbits.composekit.components.platform.composable.theme.ApplicationTheme
 import dev.toastbits.composekit.util.thenIf
 import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.theme.model.ThemeConfiguration
 import io.ktor.client.HttpClient
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
@@ -83,7 +85,6 @@ private const val LOGCAT_LINES_TO_DISPLAY: Int = 100
 class ErrorReportActivity : ComponentActivity() {
     private val coroutine_scope = CoroutineScope(Job())
     private var logcat_output: String? by mutableStateOf(null)
-    private var context: AppContext? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -91,12 +92,15 @@ class ErrorReportActivity : ComponentActivity() {
         val message: String = intent.getStringExtra("message") ?: "No message"
         val stack_trace: String = intent.getStringExtra("stack_trace") ?: "No stack trace"
 
-        try {
-            context = runBlocking {
-                AppContext.create(this@ErrorReportActivity, coroutine_scope, ApplicationContext(this@ErrorReportActivity))
+        val context: AppContext? =
+            try {
+                runBlocking {
+                    AppContext.create(this@ErrorReportActivity, coroutine_scope, ApplicationContext(this@ErrorReportActivity))
+                }
             }
-        }
-        catch (_: Throwable) {}
+            catch (_: Throwable) {
+                null
+            }
 
         val logcat_lines = LOGCAT_LINES_TO_DISPLAY + stack_trace.count("\n")
 
@@ -111,13 +115,15 @@ class ErrorReportActivity : ComponentActivity() {
                 }
 
                 val theme: AppThemeManager? = context?.theme
-                if (theme?.Update() == true) {
-                    theme.ApplicationTheme(context!!) {
-                        ErrorDisplay(message, stack_trace, logcat, error_text)
+                if (theme != null) {
+                    val themeConfiguration: ThemeConfiguration = context.settings.Theme.rememberThemeConfiguration()
+                    theme.Update(themeConfiguration)
+                    theme.ApplicationTheme(context, context.settings) {
+                        ErrorDisplay(context, message, stack_trace, logcat, error_text)
                     }
                 }
                 else {
-                    ErrorDisplay(message, stack_trace, logcat, error_text)
+                    ErrorDisplay(null, message, stack_trace, logcat, error_text)
                 }
                 return@setContent
             }
@@ -135,7 +141,7 @@ class ErrorReportActivity : ComponentActivity() {
     }
 
     @Composable
-    fun ErrorDisplay(message: String, stack_trace: String, logs: String, error_text: String) {
+    fun ErrorDisplay(context: AppContext?, message: String, stack_trace: String, logs: String, error_text: String) {
         val share_intent = remember {
             Intent.createChooser(Intent().apply {
                 action = Intent.ACTION_SEND

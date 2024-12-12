@@ -22,6 +22,7 @@ import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.LayoutDirection
@@ -52,10 +53,7 @@ import androidx.glance.layout.wrapContentSize
 import androidx.glance.unit.ColorProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
-import com.toasterofbread.spmp.model.settings.category.FontMode
-import com.toasterofbread.spmp.model.settings.category.observeCurrentTheme
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.shared.R
 import com.toasterofbread.spmp.ui.component.Thumbnail
@@ -77,10 +75,14 @@ import com.toasterofbread.spmp.widget.configuration.enum.colour
 import com.toasterofbread.spmp.widget.configuration.type.TypeConfigurationDefaultsMask
 import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
 import com.toasterofbread.spmp.widget.modifier.systemCornerRadius
+import dev.toastbits.composekit.commonsettings.impl.group.rememberThemeConfiguration
+import dev.toastbits.composekit.commonsettings.impl.group.theme.LocalContextThemeIndexOverride
 import dev.toastbits.composekit.theme.ui.LocalComposeKitTheme
-import dev.toastbits.composekit.theme.model.NamedTheme
 import dev.toastbits.composekit.theme.ThemeValues
-import dev.toastbits.composekit.settings.ui.ThemeValuesData
+import dev.toastbits.composekit.theme.model.ComposeKitFont
+import dev.toastbits.composekit.theme.model.ThemeConfiguration
+import dev.toastbits.composekit.theme.model.ThemeValuesData
+import dev.toastbits.composekit.theme.util.rememberFont
 import dev.toastbits.composekit.util.getThemeColour
 import dev.toastbits.composekit.util.thenIf
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
@@ -88,7 +90,6 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.FontResource
 
 @Suppress("UNCHECKED_CAST")
 abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
@@ -153,7 +154,8 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
             CompositionLocalProvider(
                 // App
                 LocalPlayerState provides state,
-                dev.toastbits.composekit.context.LocalContext provides this.context,
+                dev.toastbits.composekit.components.LocalContext provides this.context,
+                LocalContextThemeIndexOverride provides base_configuration.theme_index,
 
                 // System
                 LocalContext provides context,
@@ -161,18 +163,24 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
                 LocalDensity provides Density(context.resources.displayMetrics.density),
                 LocalLayoutDirection provides if (context.resources.getBoolean(R.bool.is_rtl)) LayoutDirection.Rtl else LayoutDirection.Ltr
             ) {
-                val theme: NamedTheme by observeCurrentTheme(this.context, base_configuration.theme_index)
+                val theme_configuration: ThemeConfiguration = this.context.settings.Theme.rememberThemeConfiguration()
+                this.context.theme.Update(theme_configuration)
 
                 val on_background_colour: Color =
                     when (base_configuration.content_colour) {
-                        THEME -> theme.theme.onBackground
+                        THEME -> this.context.theme.onBackground
                         LIGHT -> Color.White
                         DARK -> Color.Black
                     }
 
+                val theme: ThemeValues =
+                    remember(this.context.theme) {
+                        ThemeValuesData.of(this.context.theme).copy(onBackground = on_background_colour)
+                    }
+
                 CompositionLocalProvider(
                     *listOfNotNull(
-                        LocalComposeKitTheme provides theme.theme.copy(onBackground = on_background_colour),
+                        LocalComposeKitTheme provides theme,
                         if (!custom_background) LocalContentColor provides on_background_colour else null
                     ).toTypedArray()
                 ) {
@@ -193,7 +201,7 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
 
                             GlanceBorderBox(
                                 base_configuration.border_radius_dp.dp,
-                                theme.theme.accent,
+                                theme.accent,
                                 GlanceModifier
                                     .fillMaxSize()
                                     .systemCornerRadius()
@@ -308,9 +316,8 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
         alpha: Float = 1f,
         max_width: Dp? = null
     ) {
-        val ui_language: String by context.observeUiLanguage()
-        val app_font_mode: FontMode by context.settings.System.FONT.observe()
-        val font: FontResource? = (base_configuration.font ?: app_font_mode).getFontResource(ui_language)
+        val app_font_mode: ComposeKitFont by context.settings.Theme.FONT.observe()
+        val font: Font? = (base_configuration.font ?: app_font_mode).rememberFont()
 
         GlanceText(
             text = text,

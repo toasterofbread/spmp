@@ -108,8 +108,10 @@ abstract class SongDownloader(
         }
 
         suspend fun getDestinationFile(extension: String): PlatformFile =
-            custom_uri?.let { context.getUserDirectoryFile(it) }
-                ?: getSongStorageDir().resolve(generatePath(extension, false))
+            (custom_uri?.let { context.getUserDirectoryFile(it) }
+                ?: getSongStorageDir().resolve(generatePath(extension, false))).also {
+                    println("DOWNLOAD DEST $custom_uri -> $it")
+            }
 
         override fun toString(): String =
             "Download(id=${song.id}, quality=$quality, silent=$silent, instance=$instance, file=$song_file)"
@@ -239,12 +241,15 @@ abstract class SongDownloader(
             )
 
         download.mutex.withLock {
+            println("DLLLLL inner 1")
             if (download.finished) {
+            println("DLLLLL inner 2")
                 callback(download, Result.success(download.song_file))
                 return@withContext
             }
 
             if (download.downloading) {
+            println("DLLLLL inner 3")
                 if (paused) {
                     paused = false
                 }
@@ -253,7 +258,9 @@ abstract class SongDownloader(
             }
 
             withDownloads {
+            println("DLLLLL inner 4")
                 if (downloads.isEmpty()) {
+            println("DLLLLL inner 5")
                     onFirstDownloadStarting(download)
                     start_time_ms = System.currentTimeMillis()
                     completed_downloads = 0
@@ -261,8 +268,10 @@ abstract class SongDownloader(
                     cancelled = false
                 }
 
+            println("DLLLLL inner 6")
                 downloads.add(download)
                 onDownloadStatusChanged(download, true)
+            println("DLLLLL inner 7")
             }
         }
 

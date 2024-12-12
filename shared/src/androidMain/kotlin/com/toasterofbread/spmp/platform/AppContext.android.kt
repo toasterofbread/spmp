@@ -19,7 +19,7 @@ import com.toasterofbread.spmp.youtubeapi.YtmApiType
 import dev.toastbits.composekit.context.ApplicationContext
 import dev.toastbits.composekit.context.PlatformContext
 import dev.toastbits.composekit.settings.PlatformSettings
-import dev.toastbits.composekit.context.PlatformPreferencesImpl
+import dev.toastbits.composekit.settings.PlatformSettingsImpl
 import dev.toastbits.composekit.util.getThemeColour
 import dev.toastbits.composekit.util.platform.launchSingle
 import dev.toastbits.ytmkt.model.YtmApi
@@ -44,7 +44,7 @@ actual class AppContext private constructor(
             coroutine_scope: CoroutineScope,
             application_context: ApplicationContext? = null
         ): AppContext {
-            val prefs: PlatformSettings = PlatformPreferencesImpl.getInstance(context, ProjectJson.instance)
+            val prefs: PlatformSettings = PlatformSettingsImpl.getInstance(context, ProjectJson.instance)
             val settings: YTApiSettings = YTApiSettings(prefs)
 
             return AppContext(

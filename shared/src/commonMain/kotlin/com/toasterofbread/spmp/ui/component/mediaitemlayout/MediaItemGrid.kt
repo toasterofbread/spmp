@@ -30,10 +30,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.*
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.utils.modifier.background
-import dev.toastbits.composekit.utils.modifier.horizontal
-import dev.toastbits.composekit.utils.modifier.vertical
+import dev.toastbits.composekit.util.platform.Platform
+import dev.toastbits.composekit.components.utils.modifier.background
+import dev.toastbits.composekit.components.utils.modifier.horizontal
+import dev.toastbits.composekit.components.utils.modifier.vertical
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.getUid

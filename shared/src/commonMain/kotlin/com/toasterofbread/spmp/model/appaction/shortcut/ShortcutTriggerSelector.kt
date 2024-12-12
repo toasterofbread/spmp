@@ -10,7 +10,7 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.ShortcutTrigger
-import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.components.utils.composable.LargeDropdownMenu
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.getName
 
 @Composable

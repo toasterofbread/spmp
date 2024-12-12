@@ -480,8 +480,8 @@
     <string name="s_theme_editor_button_preview">Önizleme</string>
 
     <string name="s_key_accent_source">Vurgu rengi</string>
-    <string name="s_option_accent_theme">Temadan</string>
-    <string name="s_option_accent_thumbnail">Küçük resimden</string>
+    <string name="s_optionAccent_theme">Temadan</string>
+    <string name="s_optionAccent_thumbnail">Küçük resimden</string>
 
     <string name="s_key_np_theme_mode">Şu an çalan tema modu</string>
     <string name="s_option_np_accent_background">Arka planı vurgu rengi ile renklendir</string>

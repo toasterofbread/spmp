@@ -91,9 +91,11 @@ kotlin {
                 implementation(compose.components.resources)
 
                 implementation(deps.get("dev.toastbits:spms"))
-                implementation(deps.get("dev.toastbits.composekit:library"))
                 implementation(deps.get("dev.toastbits.ytmkt:ytmkt"))
                 implementation(deps.get("dev.toastbits.kana-kt:kanakt"))
+                for (dependency in deps.getAllComposeKit()) {
+                    implementation(dependency)
+                }
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")

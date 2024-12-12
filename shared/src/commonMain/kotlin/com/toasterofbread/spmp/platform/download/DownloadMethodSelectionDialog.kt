@@ -26,7 +26,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.composable.WidthShrinkText
+import dev.toastbits.composekit.util.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
@@ -47,21 +47,21 @@ fun DownloadMethodSelectionDialog(
 ) {
     val player: PlayerState = LocalPlayerState.current
 
-    var download_method: DownloadMethod by player.settings.streaming.DOWNLOAD_METHOD.observe()
-    var skip_confirmation: Boolean by player.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.observe()
+    var download_method: DownloadMethod by player.settings.Streaming.DOWNLOAD_METHOD.observe()
+    var skip_confirmation: Boolean by player.settings.Streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.observe()
     var show: Boolean by remember { mutableStateOf(false) }
 
     var initial_download_method: DownloadMethod? by remember { mutableStateOf(null) }
     var initial_skip_confirmation: Boolean? by remember { mutableStateOf(null) }
 
     LaunchedEffect(Unit) {
-        initial_download_method = player.settings.streaming.DOWNLOAD_METHOD.get()
-        initial_skip_confirmation = player.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.get()
+        initial_download_method = player.settings.Streaming.DOWNLOAD_METHOD.get()
+        initial_skip_confirmation = player.settings.Streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.get()
     }
 
     fun cancel() {
-        player.settings.streaming.DOWNLOAD_METHOD.set(initial_download_method!!)
-        player.settings.streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.set(initial_skip_confirmation!!)
+        player.settings.Streaming.DOWNLOAD_METHOD.set(initial_download_method!!)
+        player.settings.Streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.set(initial_skip_confirmation!!)
         onCancelled()
     }
 

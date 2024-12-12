@@ -19,9 +19,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.draw.alpha
-import dev.toastbits.composekit.utils.common.getValue
-import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.modifier.bounceOnClick
+import dev.toastbits.composekit.util.composable.getValue
+import dev.toastbits.composekit.util.thenIf
+import dev.toastbits.composekit.components.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.ui.component.HorizontalLyricsLineDisplay
@@ -29,6 +29,7 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.theme.appHover
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LandscapeLayoutSlot
 import com.toasterofbread.spmp.ui.layout.contentbar.DisplayBar
+import dev.toastbits.composekit.util.composable.thenIf
 
 @Composable
 internal fun LargeBottomBar(

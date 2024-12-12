@@ -1,6 +1,6 @@
 package com.toasterofbread.spmp.platform.download
 
-import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.context.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
@@ -74,10 +74,10 @@ actual class PlayerDownloadManager actual constructor(private val context: AppCo
         direct: Boolean,
         callback: DownloadRequestCallback?,
     ) {
-        context.coroutine_scope.launch {
+        context.coroutineScope.launch {
             getDownloader().startDownload(song, silent, custom_uri, download_lyrics, direct) { download, result ->
                 val status: DownloadStatus = download.getStatusObject()
-                context.coroutine_scope.launch {
+                context.coroutineScope.launch {
                     if (custom_uri == null) {
                         MediaItemLibrary.onSongFileAdded(status)
                     }

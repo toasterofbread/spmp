@@ -38,12 +38,13 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
     repositories {
         mavenLocal()
+        maven("https://maven.toastbits.dev/")
 
         google()
         mavenCentral()
         maven("https://jitpack.io")
 
         // https://github.com/KevinnZou/compose-webview-multiplatform
-        maven("https://jogamp.org/deployment/maven")
+        maven("https://jogamp.org/deployment/aven")
     }
 }

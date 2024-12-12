@@ -14,11 +14,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material3.LocalContentColor
 import androidx.compose.material3.LocalTextStyle
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -26,13 +22,10 @@ import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.util.LyricsLineState
-import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsFuriganaTokeniser
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.utils.composable.AlignableCrossfade
-import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
-import kotlinx.coroutines.delay
+import dev.toastbits.composekit.util.platform.Platform
+import dev.toastbits.composekit.util.composable.AlignableCrossfade
+import dev.toastbits.composekit.components.utils.composable.animatedvisibility.NullableValueAnimatedVisibility
 
 @Composable
 fun HorizontalLyricsLineDisplay(
@@ -49,7 +42,7 @@ fun HorizontalLyricsLineDisplay(
 ) {
     require(lyrics.synced)
 
-    val show_furigana_option: Boolean by LocalPlayerState.current.settings.lyrics.DEFAULT_FURIGANA.observe()
+    val show_furigana_option: Boolean by LocalPlayerState.current.settings.Lyrics.DEFAULT_FURIGANA.observe()
     val current_line_state: LyricsLineState? = LyricsLineState.rememberCurrentLineState(lyrics, lyrics_linger, getTime = getTime)
 
     val lyrics_text_style: TextStyle =

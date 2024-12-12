@@ -123,7 +123,7 @@ class PlayerStatus internal constructor() {
                 val context: AppContext = player?.context ?: return
                 val song: Song = m_song ?: return
 
-                context.coroutine_scope.launch(Dispatchers.IO) {
+                context.coroutineScope.launch(Dispatchers.IO) {
                     song.Duration.set(duration_ms, context.database)
                 }
             }

@@ -10,10 +10,10 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
 import com.toasterofbread.spmp.widget.action.WidgetClickAction
 import com.toasterofbread.spmp.widget.configuration.WidgetConfig
-import dev.toastbits.composekit.platform.MutableStatePreferencesProperty
-import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.context.MutableStatePreferencesProperty
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.util.composable.OnChangedEffect
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -84,7 +84,7 @@ sealed class TypeWidgetConfig<A: TypeWidgetClickAction>: WidgetConfig() {
 
         val click_action_state: MutableState<Int> =
             remember { mutableIntStateOf(actions.indexOf(action)) }
-        val click_action_property: PreferencesProperty<Int> = remember {
+        val click_action_property: PlatformSettingsProperty<Int> = remember {
             MutableStatePreferencesProperty(
                 click_action_state,
                 { stringResource(title) },

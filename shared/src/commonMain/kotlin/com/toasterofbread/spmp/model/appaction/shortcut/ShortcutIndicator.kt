@@ -21,7 +21,7 @@ fun ShortcutIndicator() {
     //     exit = fadeOut()
     // ) {
     //     val indicator_colour: Color =
-    //         if (button == current_button) player.theme.on_accent
+    //         if (button == current_button) player.theme.onAccent
     //         else player.theme.accent
 
     //     Box(

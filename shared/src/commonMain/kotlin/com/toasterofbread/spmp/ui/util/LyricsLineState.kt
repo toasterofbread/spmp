@@ -78,7 +78,7 @@ class LyricsLineState(
             getTime: () -> Long
         ): LyricsLineState? {
             val player: PlayerState = LocalPlayerState.current
-            val romanise_furigana: Boolean by player.settings.lyrics.ROMANISE_FURIGANA.observe()
+            val romanise_furigana: Boolean by player.settings.Lyrics.ROMANISE_FURIGANA.observe()
 
             var state: LyricsLineState? by remember { mutableStateOf(null) }
 

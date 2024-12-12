@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalDensity
-import dev.toastbits.composekit.utils.common.*
+import dev.toastbits.composekit.util.*
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 
 private const val BRACKET_CHARS: String = "「」[](){}<>"

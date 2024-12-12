@@ -60,13 +60,13 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltOnBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
-import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
-import dev.toastbits.composekit.platform.composable.composeScope
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.utils.common.launchSingle
-import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.common.thenWith
-import dev.toastbits.composekit.utils.modifier.background
+import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyColumn
+import dev.toastbits.composekit.components.platform.composable.composeScope
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.util.platform.launchSingle
+import dev.toastbits.composekit.util.thenIf
+import dev.toastbits.composekit.util.thenWith
+import dev.toastbits.composekit.components.utils.modifier.background
 import kotlinx.coroutines.delay
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.rememberReorderableLazyListState
@@ -99,7 +99,7 @@ internal fun QueueTab(
     val scroll_coroutine_scope = rememberCoroutineScope()
 
     var key_inc by remember { mutableStateOf(0) }
-    val radio_info_position: NowPlayingQueueRadioInfoPosition by player.settings.player.QUEUE_RADIO_INFO_POSITION.observe()
+    val radio_info_position: NowPlayingQueueRadioInfoPosition by player.settings.Player.QUEUE_RADIO_INFO_POSITION.observe()
     val multiselect_context: MediaItemMultiSelectContext = remember { MediaItemMultiSelectContext(player.context) }
 
     val song_items: SnapshotStateList<QueueTabItem> = remember { mutableStateListOf<QueueTabItem>().also { list ->
@@ -266,7 +266,7 @@ internal fun QueueTab(
 
                 val show_border: Boolean by remember { derivedStateOf { getBackgroundOpacity() >= 1f } }
                 if (show_border) {
-                    val wave_border_mode_state: NowPlayingQueueWaveBorderMode by player.settings.player.QUEUE_WAVE_BORDER_MODE.observe()
+                    val wave_border_mode_state: NowPlayingQueueWaveBorderMode by player.settings.Player.QUEUE_WAVE_BORDER_MODE.observe()
                     wave_border_mode = wave_border_mode_override ?: wave_border_mode_state
 
                     QueueBorder(
@@ -302,7 +302,7 @@ internal fun QueueTab(
                             list_position = with(density) { coords.positionInParent().y.toDp() }
                         }
                     ) {
-                        val extra_side_padding: Float by player.settings.player.QUEUE_EXTRA_SIDE_PADDING.observe()
+                        val extra_side_padding: Float by player.settings.Player.QUEUE_EXTRA_SIDE_PADDING.observe()
                         val side_padding: Dp = maxWidth * extra_side_padding * 0.25f
 
                         ScrollBarLazyColumn(

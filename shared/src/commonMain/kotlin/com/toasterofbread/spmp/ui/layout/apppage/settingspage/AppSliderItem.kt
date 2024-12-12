@@ -1,12 +1,12 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import androidx.compose.ui.Modifier
-import dev.toastbits.composekit.utils.common.roundTo
+import dev.toastbits.composekit.util.roundTo
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
-import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import dev.toastbits.composekit.settings.ui.component.item.SliderSettingsItem
-import dev.toastbits.composekit.utils.common.CustomStringResource
-import dev.toastbits.composekit.utils.common.toCustomResource
+import dev.toastbits.composekit.util.CustomStringResource
+import dev.toastbits.composekit.util.toCustomResource
 import org.jetbrains.compose.resources.getString
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.settings_value_not_int
@@ -14,7 +14,7 @@ import spmp.shared.generated.resources.settings_value_not_float
 import spmp.shared.generated.resources.`settings_value_out_of_$range`
 
 fun AppSliderItem(
-    state: PreferencesProperty<out Number>,
+    state: PlatformSettingsProperty<out Number>,
     min_label: CustomStringResource? = null,
     max_label: CustomStringResource? = null,
     steps: Int = 0,

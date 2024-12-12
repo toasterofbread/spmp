@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.platform.download
 
-import dev.toastbits.composekit.platform.PlatformFile
-import dev.toastbits.composekit.platform.getPlatformForbiddenFilenameCharacters
+import dev.toastbits.composekit.context.PlatformFile
+import dev.toastbits.composekit.context.getPlatformForbiddenFilenameCharacters
 import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
@@ -121,7 +121,7 @@ abstract class SongDownloader(
 
     private var download_inc: Int = 0
     private suspend fun getOrCreateDownload(song: Song, silent: Boolean, custom_uri: String?, download_lyrics: Boolean, direct: Boolean): Download {
-        val audio_quality = context.settings.streaming.DOWNLOAD_AUDIO_QUALITY.get()
+        val audio_quality = context.settings.Streaming.DOWNLOAD_AUDIO_QUALITY.get()
         synchronized(downloads) {
             for (download in downloads) {
                 if (download.song.id == song.id) {

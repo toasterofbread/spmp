@@ -19,7 +19,7 @@ import com.toasterofbread.spmp.widget.component.GlanceLazyColumn
 import com.toasterofbread.spmp.widget.configuration.type.SongQueueWidgetConfig
 import com.toasterofbread.spmp.widget.action.QueueSeekAction
 import com.toasterofbread.spmp.widget.component.spmp.GlanceSongPreview
-import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.util.thenIf
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.widget_empty_status_nothing_playing

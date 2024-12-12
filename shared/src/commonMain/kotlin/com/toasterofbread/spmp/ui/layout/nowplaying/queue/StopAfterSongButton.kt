@@ -20,8 +20,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.rotate
 import androidx.compose.ui.graphics.Color
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.utils.modifier.background
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.components.utils.modifier.background
 
 @Composable
 fun StopAfterSongButton(getBackgroundColour: () -> Color, modifier: Modifier = Modifier) {

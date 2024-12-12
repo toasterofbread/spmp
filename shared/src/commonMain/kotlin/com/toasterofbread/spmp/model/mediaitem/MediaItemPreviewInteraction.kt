@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem
 
 import LocalPlayerState
-import androidx.compose.foundation.Indication
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.interaction.collectIsPressedAsState
@@ -12,17 +11,16 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.geometry.Offset
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalViewConfiguration
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.platform.composable.platformClickableWithOffset
-import dev.toastbits.composekit.platform.vibrateShort
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
 import com.toasterofbread.spmp.ui.component.longpressmenu.longPressItem
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.composekit.components.platform.composable.platformClickableWithOffset
+import dev.toastbits.composekit.context.vibrateShort
+import dev.toastbits.composekit.util.composable.OnChangedEffect
+import dev.toastbits.composekit.util.platform.Platform
 import kotlinx.coroutines.delay
 
 enum class MediaItemPreviewInteractionPressStage {

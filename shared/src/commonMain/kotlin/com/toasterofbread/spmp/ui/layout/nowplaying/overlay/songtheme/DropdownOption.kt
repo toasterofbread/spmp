@@ -18,8 +18,8 @@ import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
+import dev.toastbits.composekit.components.utils.composable.LargeDropdownMenu
 import org.jetbrains.compose.resources.StringResource
 
 internal abstract class DropdownOption<T: Enum<*>>(
@@ -27,7 +27,7 @@ internal abstract class DropdownOption<T: Enum<*>>(
     val getEntryText: @Composable (T) -> String,
     override val titleResource: StringResource,
     override val icon: ImageVector,
-    val getProperty: Settings.() -> PreferencesProperty<T>,
+    val getProperty: Settings.() -> PlatformSettingsProperty<T>,
     val getSongProperty: Song.() -> Property<T?>
 ): SongThemeOption() {
     @Composable

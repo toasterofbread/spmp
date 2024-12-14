@@ -12,7 +12,7 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.DpSize
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.util.platform.Platform
 import com.toasterofbread.spmp.model.mediaitem.MediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.toMediaItemRef
 import com.toasterofbread.spmp.model.mediaitem.MediaItem

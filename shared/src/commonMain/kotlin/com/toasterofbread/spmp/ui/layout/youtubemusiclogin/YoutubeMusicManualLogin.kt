@@ -5,7 +5,7 @@ import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
-import dev.toastbits.composekit.utils.common.indexOfOrNull
+import dev.toastbits.composekit.util.indexOfOrNull
 import com.toasterofbread.spmp.ui.layout.ManualLoginPage
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState

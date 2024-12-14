@@ -26,13 +26,13 @@ import androidx.compose.ui.layout.layout
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.common.getValue
-import dev.toastbits.composekit.utils.common.isJa
-import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.util.composable.getValue
+import dev.toastbits.composekit.util.isJa
+import dev.toastbits.composekit.util.thenIf
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.playerservice.seekToPreviousOrRepeat
-import dev.toastbits.composekit.utils.composable.RowOrColumn
+import dev.toastbits.composekit.components.utils.composable.RowOrColumn
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding

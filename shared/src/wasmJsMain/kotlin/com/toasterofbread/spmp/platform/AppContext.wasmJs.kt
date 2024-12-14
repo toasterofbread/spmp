@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.platform
 
-import dev.toastbits.composekit.platform.PlatformContext
-import dev.toastbits.composekit.platform.PlatformPreferences
+import dev.toastbits.composekit.context.PlatformContext
+import dev.toastbits.composekit.settings.PlatformSettings
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.YTApiSettings
@@ -9,13 +9,13 @@ import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.resources.Language
 import com.toasterofbread.spmp.resources.getAvailableLanguages
 import com.toasterofbread.spmp.youtubeapi.YtmApiType
-import dev.toastbits.composekit.platform.InMemoryPlatformPreferences
+import dev.toastbits.composekit.context.InMemoryPlatformPreferences
 import dev.toastbits.ytmkt.model.YtmApi
 import kotlinx.coroutines.CoroutineScope
 
 actual class AppContext private constructor(
     coroutine_scope: CoroutineScope,
-    prefs: PlatformPreferences,
+    prefs: PlatformSettings,
     api_type: YtmApiType,
     api_url: String,
     data_language: Language,
@@ -23,7 +23,7 @@ actual class AppContext private constructor(
 ): PlatformContext(coroutine_scope) {
     companion object {
         suspend fun create(coroutine_scope: CoroutineScope): AppContext {
-            val prefs: PlatformPreferences = InMemoryPlatformPreferences()
+            val prefs: PlatformSettings = InMemoryPlatformPreferences()
             val settings: YTApiSettings = YTApiSettings(prefs)
 
             return AppContext(
@@ -37,8 +37,8 @@ actual class AppContext private constructor(
         }
     }
 
-    private val _prefs: PlatformPreferences = prefs
-    actual fun getPrefs(): PlatformPreferences = _prefs
+    private val _prefs: PlatformSettings = prefs
+    actual fun getPrefs(): PlatformSettings = _prefs
 
     actual val database: Database = createDatabase()
     actual val settings: Settings = Settings(this, available_languages)

@@ -6,7 +6,7 @@ import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
-import dev.toastbits.composekit.utils.common.getThemeColour
+import dev.toastbits.composekit.util.getThemeColour
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider as YtmThumbnailProvider

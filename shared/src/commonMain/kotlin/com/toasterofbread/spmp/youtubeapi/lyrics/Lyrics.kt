@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.youtubeapi.lyrics
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.context.PlatformFile
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.db.mediaitem.LyricsById
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
@@ -94,7 +94,7 @@ sealed class LyricsSource(val source_index: Int) {
             val duration_ms: Long? = song.Duration.get(db)
 
             var fail_exception: Throwable? = null
-            iterateByPriority(default ?: context.settings.lyrics.DEFAULT_SOURCE.get()) { source ->
+            iterateByPriority(default ?: context.settings.Lyrics.DEFAULT_SOURCE.get()) { source ->
                 var lyrics_reference: LyricsReference? = null
 
                 if (source.supportsLyricsBySong()) {

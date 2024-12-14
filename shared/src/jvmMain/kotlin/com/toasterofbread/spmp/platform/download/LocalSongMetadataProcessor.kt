@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.platform.download
 
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.context.PlatformFile
 import com.toasterofbread.spmp.platform.AppContext
 
 expect val LocalSongMetadataProcessor: MetadataProcessor

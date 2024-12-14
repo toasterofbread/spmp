@@ -23,22 +23,23 @@ import androidx.core.view.WindowCompat
 import androidx.glance.GlanceId
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
 import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
 import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
 import com.toasterofbread.spmp.widget.configuration.ui.screen.WidgetConfigurationScreen
-import dev.toastbits.composekit.navigation.Screen
+import dev.toastbits.composekit.commonsettings.impl.group.rememberThemeConfiguration
+import dev.toastbits.composekit.components.LocalContext
+import dev.toastbits.composekit.components.utils.modifier.background
+import dev.toastbits.composekit.context.ApplicationContext
 import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
+import dev.toastbits.composekit.navigation.navigator.BaseNavigator
 import dev.toastbits.composekit.navigation.navigator.CurrentScreen
-import dev.toastbits.composekit.navigation.navigator.ExtendableNavigator
 import dev.toastbits.composekit.navigation.navigator.Navigator
-import dev.toastbits.composekit.platform.ApplicationContext
-import dev.toastbits.composekit.platform.LocalContext
-import dev.toastbits.composekit.utils.common.plus
-import dev.toastbits.composekit.utils.modifier.background
+import dev.toastbits.composekit.navigation.screen.Screen
+import dev.toastbits.composekit.theme.model.ThemeConfiguration
+import dev.toastbits.composekit.util.composable.plus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel
@@ -103,7 +104,7 @@ class WidgetConfigurationActivity: ComponentActivity() {
                 widget_type = widget_type
             )
         }
-        val navigator: Navigator = ExtendableNavigator(configuration_screen)
+        val navigator: Navigator = BaseNavigator(configuration_screen)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.setFlags(
@@ -113,8 +114,8 @@ class WidgetConfigurationActivity: ComponentActivity() {
 
         setContent {
             val composable_coroutine_scope: CoroutineScope = rememberCoroutineScope()
-            val np_theme_mode: ThemeMode by context.settings.theme.NOWPLAYING_THEME_MODE.observe()
-            val swipe_sensitivity: Float by context.settings.player.EXPAND_SWIPE_SENSITIVITY.observe()
+            val np_theme_mode: ThemeMode by context.settings.Theme.NOWPLAYING_THEME_MODE.observe()
+            val swipe_sensitivity: Float by context.settings.Player.EXPAND_SWIPE_SENSITIVITY.observe()
 
             CompositionLocalProvider(
                 LocalContext provides context,
@@ -129,13 +130,10 @@ class WidgetConfigurationActivity: ComponentActivity() {
                     return@providesComputed dummy_player_state!!
                 }
             ) {
-                if (!context.theme.Update()) {
-                    return@CompositionLocalProvider
-                }
+                val theme_configuration: ThemeConfiguration = context.settings.Theme.rememberThemeConfiguration()
+                context.theme.Update(theme_configuration)
 
-                val ui_language: String by context.observeUiLanguage()
-
-                SpMp.Theme(context, ui_language) {
+                SpMp.Theme(context) {
                     Scaffold { inner_padding ->
                         navigator.CurrentScreen(
                             Modifier
@@ -176,13 +174,13 @@ class WidgetConfigurationActivity: ComponentActivity() {
                 }
             },
             onSetDefaultBaseConfig = { new_base_configuration ->
-                context.settings.widget.DEFAULT_BASE_WIDGET_CONFIGURATION.set(new_base_configuration)
+                context.settings.Widget.DEFAULT_BASE_WIDGET_CONFIGURATION.set(new_base_configuration)
             },
             onSetDefaultTypeConfig = { new_type_configuration ->
                 coroutine_scope.launch {
                     val types: Map<SpMpWidgetType, TypeWidgetConfig<out TypeWidgetClickAction>> =
-                        context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.get()
-                    context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.set(
+                        context.settings.Widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.get()
+                    context.settings.Widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.set(
                         types.toMutableMap().apply {
                             set(widget_type, new_type_configuration)
                         }

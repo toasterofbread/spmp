@@ -16,13 +16,14 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.*
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.DpSize
-import dev.toastbits.composekit.utils.common.getValue
-import dev.toastbits.composekit.utils.composable.*
+import dev.toastbits.composekit.util.composable.getValue
+import dev.toastbits.composekit.components.utils.composable.*
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
+import dev.toastbits.composekit.util.composable.AlignableCrossfade
 import kotlin.math.sign
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringResource
@@ -135,10 +136,11 @@ data class ContentBarElementLyrics(
         var show_alignment_selector: Boolean by remember { mutableStateOf(false) }
 
         LargeDropdownMenu(
-            expanded = show_alignment_selector,
+            title = stringResource(Res.string.content_bar_element_lyrics_config_alignment),
+            isOpen = show_alignment_selector,
             onDismissRequest = { show_alignment_selector = false },
-            item_count = 3,
-            selected = alignment.sign + 1,
+            items = (0 until 3).toList(),
+            selectedItem = alignment.sign + 1,
             itemContent = {
                 Text(
                     if (it == 0) stringResource(Res.string.s_option_lyrics_text_alignment_start)
@@ -146,8 +148,8 @@ data class ContentBarElementLyrics(
                     else stringResource(Res.string.s_option_lyrics_text_alignment_end)
                 )
             },
-            onSelected = {
-                onModification(copy(alignment = it - 1))
+            onSelected = { _, index ->
+                onModification(copy(alignment = index - 1))
                 show_alignment_selector = false
             }
         )

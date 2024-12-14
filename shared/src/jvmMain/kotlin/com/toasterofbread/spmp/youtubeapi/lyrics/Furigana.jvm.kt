@@ -2,15 +2,15 @@ package com.toasterofbread.spmp.youtubeapi.lyrics
 
 import com.atilika.kuromoji.ipadic.Token
 import com.atilika.kuromoji.ipadic.Tokenizer
-import dev.toastbits.composekit.utils.common.hasKanjiAndHiraganaOrKatakana
-import dev.toastbits.composekit.utils.common.isHiragana
-import dev.toastbits.composekit.utils.common.isKanji
-import dev.toastbits.composekit.utils.common.isKatakana
-import dev.toastbits.composekit.utils.common.toHiragana
+import dev.toastbits.composekit.util.hasKanjiAndHiraganaOrKatakana
+import dev.toastbits.composekit.util.isHiragana
+import dev.toastbits.composekit.util.isKanji
+import dev.toastbits.composekit.util.isKatakana
+import dev.toastbits.composekit.util.toHiragana
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import java.nio.channels.ClosedByInterruptException
 import com.moji4j.MojiConverter
-import dev.toastbits.composekit.utils.common.isJa
+import dev.toastbits.composekit.util.isJa
 
 private val tokeniser_impl: Tokenizer by lazy { Tokenizer() }
 

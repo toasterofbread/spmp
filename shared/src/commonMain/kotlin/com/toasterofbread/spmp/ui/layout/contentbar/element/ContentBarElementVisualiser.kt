@@ -16,7 +16,7 @@ import androidx.compose.foundation.layout.padding
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import LocalPlayerState
-import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.util.thenIf
 
 @Serializable
 data class ContentBarElementVisualiser(

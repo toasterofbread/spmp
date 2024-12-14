@@ -34,6 +34,19 @@ class SpMpDeps(extra: Map<String, Any>) {
         throw RuntimeException("No dependency found matching artifact '$artifact")
     }
 
+    fun getAllComposeKit(): List<String> =
+        listOf(
+            "dev.toastbits:composekit-util",
+            "dev.toastbits:composekit-utilKt",
+            "dev.toastbits:composekit-context",
+            "dev.toastbits:composekit-settings",
+            "dev.toastbits:composekit-theme",
+            "dev.toastbits:composekit-navigation",
+            "dev.toastbits:composekit-components",
+            "dev.toastbits:composekit-commonsettings",
+            "dev.toastbits:composekit-application"
+        ).map { get(it, "dev.toastbits:composekit") }
+
     val dependencies: Map<String, DependencyInfo> =
         mapOf(
             "dev.toastbits:spms" to DependencyInfo(
@@ -44,8 +57,8 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license = "GPL-3.0",
                 license_url = "https://github.com/toasterofbread/spmp-server/blob/6dde651ffc102d604ac7ecd5ac7471b1572fd2e6/LICENSE"
             ),
-            "dev.toastbits.composekit" to DependencyInfo(
-                version = "64b947f17e",
+            "dev.toastbits:composekit" to DependencyInfo(
+                version = "979f8703",
                 name = "ComposeKit",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/composekit",
@@ -86,7 +99,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/Kotlin/kotlinx.serialization/blob/51cb8e8e556983fc83a565d5f04bb089363453e0/LICENSE.txt"
             ),
             "org.jetbrains.compose" to DependencyInfo(
-                version = "1.6.2",
+                version = "1.8.0-alpha01",
                 name = "Compose Multiplatform",
                 author = "JetBrains",
                 url = "https://github.com/JetBrains/compose-multiplatform",
@@ -142,7 +155,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/MohamedRejeb/Ksoup/blob/5f07e799c95e518d80caf70fc586ddcc649e1315/LICENSE"
             ),
             "com.github.toasterofbread.ComposeReorderable" to DependencyInfo(
-                version = "349bdb3a2a",
+                version = "77c7652169",
                 name = "ComposeReorderable",
                 author = "aclassen",
                 url = "https://github.com/aclassen/ComposeReorderable",
@@ -151,6 +164,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 fork_url = "https://github.com/toasterofbread/ComposeReorderable/",
 //                redirect = "org.burnoutcrew.composereorderable:reorderable"
             ),
+
             "com.github.SvenWoltmann:color-thief-java" to DependencyInfo(
                 version = "v1.1.2",
                 name = "Color Thief Java",

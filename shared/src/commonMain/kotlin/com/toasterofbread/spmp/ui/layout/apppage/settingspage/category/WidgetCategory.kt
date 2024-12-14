@@ -22,7 +22,7 @@ import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
 import com.toasterofbread.spmp.widget.configuration.ui.screen.WidgetConfigurationScreen
 import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
 import dev.toastbits.composekit.navigation.navigator.Navigator
-import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
+import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyColumn
 import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import org.jetbrains.compose.resources.stringResource
@@ -37,8 +37,8 @@ internal fun getWidgetCategoryItems(context: AppContext): List<SettingsItem> =
     listOf(
         ComposableSettingsItem {
             val navigator: Navigator = LocalNavigator.current
-            val base_configuration: BaseWidgetConfig by context.settings.widget.DEFAULT_BASE_WIDGET_CONFIGURATION.observe()
-            val type_configurations: Map<SpMpWidgetType, TypeWidgetConfig<out TypeWidgetClickAction>> by context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.observe()
+            val base_configuration: BaseWidgetConfig by context.settings.Widget.DEFAULT_BASE_WIDGET_CONFIGURATION.observe()
+            val type_configurations: Map<SpMpWidgetType, TypeWidgetConfig<out TypeWidgetClickAction>> by context.settings.Widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.observe()
 
             var show_type_selector: Boolean by remember { mutableStateOf(false) }
 
@@ -65,10 +65,10 @@ internal fun getWidgetCategoryItems(context: AppContext): List<SettingsItem> =
                                     navigator.navigateBackward()
 
                                     if (new_base != null) {
-                                        context.settings.widget.DEFAULT_BASE_WIDGET_CONFIGURATION.set(new_base)
+                                        context.settings.Widget.DEFAULT_BASE_WIDGET_CONFIGURATION.set(new_base)
                                     }
                                     if (new_type != null) {
-                                        context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.set(
+                                        context.settings.Widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.set(
                                             type_configurations.toMutableMap().apply { set(type!!, new_type) }
                                         )
                                     }

@@ -8,18 +8,22 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
-import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.observeUiLanguage
-import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.createThemeSelectorSettingsItem
 import com.toasterofbread.spmp.widget.SpMpWidgetType
 import com.toasterofbread.spmp.widget.configuration.WidgetConfig
 import com.toasterofbread.spmp.widget.configuration.enum.WidgetStyledBorderMode
-import dev.toastbits.composekit.platform.MutableStatePreferencesProperty
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.NamedTheme
-import dev.toastbits.composekit.settings.ui.ThemeValuesData
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.commonsettings.impl.LocalComposeKitSettings
+import dev.toastbits.composekit.commonsettings.impl.group.rememberThemeConfiguration
+import dev.toastbits.composekit.settings.MutableStateSettingsProperty
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
+import dev.toastbits.composekit.settings.ui.component.item.ThemeSelectorSettingsItem
+import dev.toastbits.composekit.theme.model.ComposeKitFont
+import dev.toastbits.composekit.theme.model.NamedTheme
+import dev.toastbits.composekit.theme.model.ThemeConfiguration
+import dev.toastbits.composekit.theme.model.ThemeValuesData
+import dev.toastbits.composekit.theme.util.rememberAvailableFonts
+import dev.toastbits.composekit.util.composable.OnChangedEffect
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -34,7 +38,7 @@ import spmp.shared.generated.resources.widget_config_common_key_hide_when_no_con
 import spmp.shared.generated.resources.widget_config_common_key_show_app_icon
 import spmp.shared.generated.resources.widget_config_common_key_styled_border_mode
 import spmp.shared.generated.resources.widget_config_common_key_theme
-import spmp.shared.generated.resources.widget_config_common_option_accent_colour_source_app
+import spmp.shared.generated.resources.widget_config_common_optionAccent_colour_source_app
 import spmp.shared.generated.resources.widget_config_common_option_content_colour_dark
 import spmp.shared.generated.resources.widget_config_common_option_content_colour_light
 import spmp.shared.generated.resources.widget_config_common_option_content_colour_theme
@@ -47,7 +51,7 @@ import kotlin.math.roundToInt
 data class BaseWidgetConfig(
     val theme_index: Int? = null,
     val accent_colour_source: AccentColourSource? = null,
-    val font: FontMode? = null,
+    val font: ComposeKitFont? = null,
     val font_size: Float = 1f,
     val content_colour: ContentColour = ContentColour.THEME,
     val background_opacity: Float = 1f,
@@ -84,7 +88,7 @@ data class BaseWidgetConfig(
                 Res.string.widget_config_common_key_accent_colour_source,
                 modifier,
                 getItemName = {
-                    stringResource(it?.getNameResource() ?: Res.string.widget_config_common_option_accent_colour_source_app)
+                    stringResource(it?.getNameResource() ?: Res.string.widget_config_common_optionAccent_colour_source_app)
                 }
             ) {
                 onChanged(copy(accent_colour_source = it))
@@ -96,16 +100,25 @@ data class BaseWidgetConfig(
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(font = it)) }
         ) { modifier, onItemChanged ->
-            val ui_language: String by context.observeUiLanguage()
-            NullableDropdownItem(
-                font,
+            val available_fonts: List<ComposeKitFont> = ComposeKitFont.rememberAvailableFonts()
+
+            DropdownItem(
+                if (font == null) 0 else (available_fonts.indexOf(font) + 1),
+                available_fonts.size + 1,
                 Res.string.widget_config_common_key_font,
                 modifier,
                 getItemName = {
-                    it?.getReadable(ui_language) ?: stringResource(Res.string.widget_config_common_option_font_app)
+                    if (it == 0) stringResource(Res.string.widget_config_common_option_font_app)
+                    else available_fonts[it - 1].getDisplayName()
                 }
             ) {
-                onChanged(copy(font = it))
+                onChanged(
+                    copy(
+                        font =
+                            if (it == 0) null
+                            else available_fonts[it - 1]
+                    )
+                )
                 onItemChanged()
             }
         }
@@ -236,26 +249,30 @@ data class BaseWidgetConfig(
     private fun ThemeIndexItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
         val theme_index_state: MutableState<Int> =
             remember { mutableIntStateOf(theme_index?.plus(1) ?: 0) }
-        val theme_index_property: PreferencesProperty<Int> = remember {
-            MutableStatePreferencesProperty(
+        val theme_index_property: PlatformSettingsProperty<Int> = remember {
+            MutableStateSettingsProperty(
                 theme_index_state,
                 { stringResource(Res.string.widget_config_common_key_theme) },
                 { null }
             )
         }
 
-        remember {
-            createThemeSelectorSettingsItem(
-                context,
-                theme_index_property,
-                getExtraStartThemes = {
+        val widgetApplicationThemeLabel: String = stringResource(Res.string.widget_application_theme_label)
+
+        remember(widgetApplicationThemeLabel) {
+            ThemeSelectorSettingsItem(
+                getThemeConfiguration = {
+                    LocalComposeKitSettings.current?.Theme?.rememberThemeConfiguration() ?: ThemeConfiguration()
+                },
+                themeIndexProperty = theme_index_property,
+                themesProperty = context.settings.Theme.THEMES,
+                extraStartThemes =
                     listOf(
                         NamedTheme(
-                            stringResource(Res.string.widget_application_theme_label),
+                            widgetApplicationThemeLabel,
                             ThemeValuesData.of(context.theme)
                         )
                     )
-                }
             )
         }.Item(modifier)
 

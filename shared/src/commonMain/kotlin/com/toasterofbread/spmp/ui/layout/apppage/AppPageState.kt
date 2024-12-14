@@ -1,17 +1,14 @@
 package com.toasterofbread.spmp.ui.layout.apppage
 
-import LocalPlayerState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.ui.layout.apppage.library.LibraryAppPage
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.layout.apppage.library.LibraryAppPage
+import com.toasterofbread.spmp.ui.layout.apppage.searchpage.SearchAppPage
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.SettingsAppPage
 import com.toasterofbread.spmp.ui.layout.apppage.songfeedpage.SongFeedAppPage
-import com.toasterofbread.spmp.ui.layout.apppage.searchpage.SearchAppPage
-import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
 
 class AppPageState(val player: PlayerState) {
     val SongFeed = SongFeedAppPage(this)

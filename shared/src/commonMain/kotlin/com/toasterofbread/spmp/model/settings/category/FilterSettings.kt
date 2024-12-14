@@ -4,9 +4,10 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.FilterAlt
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.toasterofbread.spmp.model.settings.SettingsGroupImpl
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getFilterCategoryItems
-import dev.toastbits.composekit.platform.PreferencesProperty
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -19,28 +20,28 @@ import spmp.shared.generated.resources.s_key_filter_enable
 import spmp.shared.generated.resources.s_key_filter_title_keywords
 import spmp.shared.generated.resources.s_sub_filter_title_keywords
 
-class FilterSettings(val context: AppContext): SettingsGroup("FILTER", context.getPrefs()) {
-    val ENABLE: PreferencesProperty<Boolean> by property(
+class FilterSettings(val context: AppContext): SettingsGroupImpl("FILTER", context.getPrefs()) {
+    val ENABLE: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_filter_enable) },
         getDescription = { null },
         getDefaultValue = { true }
     )
-    val APPLY_TO_PLAYLIST_ITEMS: PreferencesProperty<Boolean> by property(
+    val APPLY_TO_PLAYLIST_ITEMS: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_filter_apply_to_playlist_items) },
         getDescription = { null },
         getDefaultValue = { false }
     )
-    val APPLY_TO_ARTISTS: PreferencesProperty<Boolean> by property(
+    val APPLY_TO_ARTISTS: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_filter_apply_to_artists) },
         getDescription = { null },
         getDefaultValue = { false }
     )
-    val APPLY_TO_ARTIST_ITEMS: PreferencesProperty<Boolean> by property(
+    val APPLY_TO_ARTIST_ITEMS: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_filter_apply_to_artist_items) },
         getDescription = { null },
         getDefaultValue = { false }
     )
-    val TITLE_KEYWORDS: PreferencesProperty<Set<String>> by property(
+    val TITLE_KEYWORDS: PlatformSettingsProperty<Set<String>> by property(
         getName = { stringResource(Res.string.s_key_filter_title_keywords) },
         getDescription = { stringResource(Res.string.s_sub_filter_title_keywords) },
         getDefaultValue = { emptySet() }

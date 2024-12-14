@@ -20,7 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElement
-import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.components.utils.composable.LargeDropdownMenu
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.content_bar_editor_add_element
@@ -37,23 +37,23 @@ internal fun ContentBarElementSelector(
     val available_elements: List<ContentBarElement.Type> = ContentBarElement.Type.entries.filter { it.isAvailable() }
 
     LargeDropdownMenu(
-        show_element_selector,
-        { show_element_selector = false },
-        available_elements.size,
-        null,
-        {
-            val element: ContentBarElement.Type = available_elements[it]
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Icon(element.getIcon(), null)
-                Text(element.getName(), softWrap = false)
-            }
+        title = stringResource(Res.string.content_bar_editor_add_element),
+        isOpen = show_element_selector,
+        onDismissRequest = { show_element_selector = false },
+        items = available_elements,
+        selectedItem = null,
+        onSelected = { _, item ->
+            onSelected(item)
+            show_element_selector = false
         }
-    ) {
-        onSelected(available_elements[it])
-        show_element_selector = false
+    ) { element ->
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Icon(element.getIcon(), null)
+            Text(element.getName(), softWrap = false)
+        }
     }
 
     if (!show_element_buttons) {

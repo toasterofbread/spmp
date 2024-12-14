@@ -11,9 +11,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.platform.PlatformFile
-import dev.toastbits.composekit.platform.synchronized
+import dev.toastbits.composekit.util.platform.Platform
+import dev.toastbits.composekit.context.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -48,7 +47,7 @@ enum class DownloadMethod {
             CUSTOM -> stringResource(Res.string.download_method_desc_custom)
         }
 
-    suspend fun execute(context: AppContext, songs: List<Song>, callback: DownloadRequestCallback?) =
+    suspend fun execute(context: AppContext, songs: List<Song>, callback: DownloadRequestCallback?) {
         when (this) {
             LIBRARY -> {
                 for (song in songs) {
@@ -57,67 +56,66 @@ enum class DownloadMethod {
             }
             CUSTOM -> {
                 if (songs.size == 1) {
-                    context.promptUserForFileCreation(
-                        // TODO | Remove hardcoded MIME type
-                        "audio/mp4",
-                        songs.single().getActiveTitle(context.database),
-                        false
-                    ) { uri ->
-                        if (uri == null) {
-                            callback?.invoke(null)
-                            return@promptUserForFileCreation
-                        }
-
-                        context.download_manager.startDownload(
-                            songs.single(),
-                            custom_uri = uri,
-                            download_lyrics = false,
-                            direct = true,
-                            callback = callback
+                    val file: PlatformFile? =
+                        context.promptUserForFileCreation(
+                            // TODO | Remove hardcoded MIME type
+                            "audio/mp4",
+                            songs.single().getActiveTitle(context.database),
+                            false
                         )
+
+                    if (file == null) {
+                        callback?.invoke(null)
+                        return
                     }
+
+                    context.download_manager.startDownload(
+                        songs.single(),
+                        custom_uri = file.uri,
+                        download_lyrics = false,
+                        direct = true,
+                        callback = callback
+                    )
                 }
                 else {
-                    context.promptUserForDirectory(persist = true) { uri ->
-                        if (uri == null) {
-                            callback?.invoke(null)
-                            return@promptUserForDirectory
-                        }
+                    val directory: PlatformFile? = context.promptUserForDirectory(persist = true)
+                    if (directory == null) {
+                        callback?.invoke(null)
+                        return
+                    }
 
-                        val directory: PlatformFile = context.getUserDirectoryFile(uri) ?: return@promptUserForDirectory
+                    Platform.ANDROID.only {
+                        directory.mkdirs()
+                    }
 
-                        Platform.ANDROID.only {
-                            directory.mkdirs()
-                        }
+                    context.coroutineScope.launch {
+                        for (song in songs) {
+                            var file: PlatformFile
+                            val name: String = song.getActiveTitle(context.database) ?: getString(MediaItemType.SONG.getReadable(false))
 
-                        context.coroutine_scope.launch {
-                            for (song in songs) {
-                                var file: PlatformFile
-                                val name: String = song.getActiveTitle(context.database) ?: getString(MediaItemType.SONG.getReadable(false))
-
-                                var i: Int = 0
-                                do {
-                                    // TODO | Remove hardcoded file type
-                                    var file_name = name + ".m4a"
-                                    if (i++ >= 1) {
-                                        file_name += " (${i + 1})"
-                                    }
-                                    file = directory.resolve(file_name)
+                            var i: Int = 0
+                            do {
+                                // TODO | Remove hardcoded file type
+                                var file_name = name + ".m4a"
+                                if (i++ >= 1) {
+                                    file_name += " (${i + 1})"
                                 }
-                                while (file.exists)
-
-                                Platform.ANDROID.only {
-                                    // File must be created at this stage on Android, it will fail if done later
-                                    file.createFile()
-                                }
-
-                                context.download_manager.startDownload(song, custom_uri = file.uri, download_lyrics = false, callback = callback)
+                                file = directory.resolve(file_name)
                             }
+                            while (file.exists)
+
+                            Platform.ANDROID.only {
+                                // File must be created at this stage on Android, it will fail if done later
+                                file.createFile()
+                            }
+
+                            context.download_manager.startDownload(song, custom_uri = file.uri, download_lyrics = false, callback = callback)
                         }
                     }
                 }
             }
         }
+    }
 
     companion object {
         val DEFAULT: DownloadMethod = LIBRARY

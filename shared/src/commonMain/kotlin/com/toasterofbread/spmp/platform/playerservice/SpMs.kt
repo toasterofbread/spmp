@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.platform.playerservice
 
 import androidx.compose.runtime.Composable
 import dev.toastbits.spms.socketapi.shared.SpMsClientType
-import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.context.PlatformFile
 import com.toasterofbread.spmp.platform.AppContext
 import okio.buffer
 import okio.use

@@ -33,8 +33,8 @@ import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.settings.PlatformSettingsProperty
+import dev.toastbits.composekit.util.composable.OnChangedEffect
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.StringResource
@@ -43,7 +43,7 @@ import kotlin.math.roundToInt
 internal abstract class SliderOption(
     override val titleResource: StringResource,
     override val icon: ImageVector,
-    val getProperty: Settings.() -> PreferencesProperty<Float>,
+    val getProperty: Settings.() -> PlatformSettingsProperty<Float>,
     val getSongProperty: Song.() -> Property<Float?>
 ): SongThemeOption() {
 
@@ -81,7 +81,7 @@ internal abstract class SliderOption(
                 )
             }
 
-            val slider_colour: Color = player.theme.on_background
+            val slider_colour: Color = player.theme.onBackground
 
             Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
                 Slider(

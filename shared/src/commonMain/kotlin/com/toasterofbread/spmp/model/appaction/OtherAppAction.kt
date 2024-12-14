@@ -1,33 +1,41 @@
 package com.toasterofbread.spmp.model.appaction
 
 import SpMp
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.foundation.layout.Row
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Fullscreen
+import androidx.compose.material.icons.filled.Refresh
+import androidx.compose.material.icons.filled.UnfoldLess
+import androidx.compose.material.icons.filled.UnfoldMore
+import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Text
-import androidx.compose.material3.Button
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import com.toasterofbread.spmp.model.appaction.AppAction
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.platform.composable.onWindowBackPressed
+import dev.toastbits.composekit.components.platform.composable.onWindowBackPressed
+import dev.toastbits.composekit.components.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.util.platform.Platform
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.appaction_config_other_action
-import spmp.shared.generated.resources.appaction_other_action_navigate_back
-import spmp.shared.generated.resources.appaction_other_action_toggle_fullscreen
-import spmp.shared.generated.resources.appaction_other_action_reload_page
-import spmp.shared.generated.resources.appaction_other_action_increase_ui_scale
 import spmp.shared.generated.resources.appaction_other_action_decrease_ui_scale
+import spmp.shared.generated.resources.appaction_other_action_increase_ui_scale
+import spmp.shared.generated.resources.appaction_other_action_navigate_back
+import spmp.shared.generated.resources.appaction_other_action_reload_page
+import spmp.shared.generated.resources.appaction_other_action_toggle_fullscreen
 
 @Serializable
 data class OtherAppAction(
@@ -58,22 +66,22 @@ data class OtherAppAction(
         var show_action_selector: Boolean by remember { mutableStateOf(false) }
 
         LargeDropdownMenu(
-            expanded = show_action_selector,
+            title =stringResource(Res.string.appaction_config_other_action),
+            isOpen = show_action_selector,
             onDismissRequest = { show_action_selector = false },
-            item_count = Action.AVAILABLE.size,
-            selected = action.ordinal,
-            itemContent = {
+            items = Action.AVAILABLE,
+            selectedItem = action,
+            itemContent = { action ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    val action: Action = Action.AVAILABLE[it]
                     Icon(action.getIcon(), null)
                     Text(action.getName())
                 }
             },
-            onSelected = {
-                onModification(copy(action = Action.AVAILABLE[it]))
+            onSelected = { _, action ->
+                onModification(copy(action = action))
                 show_action_selector = false
             }
         )
@@ -148,8 +156,8 @@ data class OtherAppAction(
 
                 INCREASE_UI_SCALE, DECREASE_UI_SCALE -> {
                     val delta: Float = if (this == INCREASE_UI_SCALE) 0.1f else -0.1f
-                    val current: Float = player.context.settings.system.UI_SCALE.get()
-                    player.context.settings.system.UI_SCALE.set((current + delta).coerceAtLeast(0.1f))
+                    val current: Float = player.context.settings.Interface.UI_SCALE.get()
+                    player.context.settings.Interface.UI_SCALE.set((current + delta).coerceAtLeast(0.1f))
                 }
             }
         }

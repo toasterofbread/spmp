@@ -548,7 +548,7 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
                         song.incrementPlayCount(context)
 
                         val mark_endpoint = context.ytapi.user_auth_state?.MarkSongAsWatched
-                        if (mark_endpoint?.isImplemented() == true && context.settings.System.ADD_SONGS_TO_HISTORY.get()) {
+                        if (mark_endpoint?.isImplemented() == true && context.settings.Misc.ADD_SONGS_TO_HISTORY.get()) {
                             val result = mark_endpoint.markSongAsWatched(song.id)
                             result.onFailure {
                                 context.sendNotification(it)

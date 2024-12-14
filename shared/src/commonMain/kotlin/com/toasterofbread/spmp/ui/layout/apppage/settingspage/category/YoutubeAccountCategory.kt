@@ -7,6 +7,6 @@ import com.toasterofbread.spmp.platform.AppContext
 internal fun getYoutubeAccountCategory(context: AppContext): List<SettingsItem> =
     listOf(
         ToggleSettingsItem(
-            context.settings.System.ADD_SONGS_TO_HISTORY
+            context.settings.Misc.ADD_SONGS_TO_HISTORY
         )
     )

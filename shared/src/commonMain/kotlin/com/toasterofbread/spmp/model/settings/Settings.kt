@@ -16,7 +16,6 @@ import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import com.toasterofbread.spmp.model.settings.category.SearchSettings
 import com.toasterofbread.spmp.model.settings.category.ShortcutSettings
 import com.toasterofbread.spmp.model.settings.category.StreamingSettings
-import com.toasterofbread.spmp.model.settings.category.SystemSettings
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.model.settings.category.WidgetSettings
 import com.toasterofbread.spmp.model.settings.category.YTApiSettings
@@ -31,7 +30,6 @@ class Settings(
     available_languages: List<Language>
 ): ComposeKitSettings {
     val YoutubeAuth: YoutubeAuthSettings = YoutubeAuthSettings(context)
-    val System: SystemSettings = SystemSettings(context, available_languages)
     val Behaviour: BehaviourSettings = BehaviourSettings(context)
     val Layout: LayoutSettings = LayoutSettings(context)
     val Player: PlayerSettings = PlayerSettings(context)
@@ -59,9 +57,8 @@ class Settings(
         listOf(
             YoutubeAuth,
 
-            System,
-            Behaviour,
             Interface,
+            Behaviour,
             Layout,
             Player,
             Feed,

@@ -14,15 +14,35 @@ import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_cat_desc_misc
 import spmp.shared.generated.resources.s_cat_misc
+import spmp.shared.generated.resources.s_key_add_songs_to_history
 import spmp.shared.generated.resources.s_key_enable_thumbnail_cache
+import spmp.shared.generated.resources.s_key_library_path
 import spmp.shared.generated.resources.s_key_navbar_height_multiplier
+import spmp.shared.generated.resources.s_key_persistent_queue
 import spmp.shared.generated.resources.s_key_status_webhook_payload
 import spmp.shared.generated.resources.s_key_status_webhook_url
+import spmp.shared.generated.resources.s_sub_library_path
 import spmp.shared.generated.resources.s_sub_navbar_height_multiplier
+import spmp.shared.generated.resources.s_sub_persistent_queue
 import spmp.shared.generated.resources.s_sub_status_webhook_payload
 import spmp.shared.generated.resources.s_sub_status_webhook_url
 
 class MiscSettings(val context: AppContext): SettingsGroupImpl("MISC", context.getPrefs()) {
+    val LIBRARY_PATH: PlatformSettingsProperty<String> by property(
+        getName = { stringResource(Res.string.s_key_library_path) },
+        getDescription = { stringResource(Res.string.s_sub_library_path) },
+        getDefaultValue = { "" }
+    )
+    val PERSISTENT_QUEUE: PlatformSettingsProperty<Boolean> by property(
+        getName = { stringResource(Res.string.s_key_persistent_queue) },
+        getDescription = { stringResource(Res.string.s_sub_persistent_queue) },
+        getDefaultValue = { true }
+    )
+    val ADD_SONGS_TO_HISTORY: PlatformSettingsProperty<Boolean> by property(
+        getName = { stringResource(Res.string.s_key_add_songs_to_history) },
+        getDescription = { stringResource(Res.string.s_key_add_songs_to_history) },
+        getDefaultValue = { false }
+    )
     val NAVBAR_HEIGHT_MULTIPLIER: PlatformSettingsProperty<Float> by property(
         getName = { stringResource(Res.string.s_key_navbar_height_multiplier) },
         getDescription = { stringResource(Res.string.s_sub_navbar_height_multiplier) },

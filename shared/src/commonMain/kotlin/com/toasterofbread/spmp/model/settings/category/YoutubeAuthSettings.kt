@@ -26,7 +26,7 @@ import spmp.shared.generated.resources.s_cat_youtube_auth
 class YoutubeAuthSettings(val context: AppContext): SettingsGroupImpl("YTAUTH", context.getPrefs()), ComposeKitSettingsGroupWithCustomPreview {
     override fun getUnregisteredProperties(): List<PlatformSettingsProperty<*>> =
         listOf(
-            context.settings.System.ADD_SONGS_TO_HISTORY
+            context.settings.Misc.ADD_SONGS_TO_HISTORY
         )
 
     val YTM_AUTH: PlatformSettingsProperty<Set<String>> by property(

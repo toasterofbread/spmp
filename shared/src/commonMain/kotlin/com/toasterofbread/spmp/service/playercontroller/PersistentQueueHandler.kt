@@ -27,7 +27,7 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
         PersistentQueueMetadata(0, player.current_item_index.toLong(), player.current_position_ms)
 
     suspend fun savePersistentQueue() {
-        if (!persistent_queue_loaded || !context.settings.System.PERSISTENT_QUEUE.get() || ProjectBuildConfig.DISABLE_PERSISTENT_QUEUE == true) {
+        if (!persistent_queue_loaded || !context.settings.Misc.PERSISTENT_QUEUE.get() || ProjectBuildConfig.DISABLE_PERSISTENT_QUEUE == true) {
             return
         }
 
@@ -80,7 +80,7 @@ internal class PersistentQueueHandler(val player: PlayerServicePlayer, val conte
         }
 
         withContext(Dispatchers.PlatformIO) {
-            if (!context.settings.System.PERSISTENT_QUEUE.get()) {
+            if (!context.settings.Misc.PERSISTENT_QUEUE.get()) {
                 println("loadPersistentQueue: Skipping, feature disabled")
 
                 return@withContext

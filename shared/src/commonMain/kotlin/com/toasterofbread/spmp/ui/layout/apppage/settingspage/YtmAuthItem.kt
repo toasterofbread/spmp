@@ -100,8 +100,9 @@ fun getYtmAuthItem(context: AppContext, ytmAuth: PlatformSettingsProperty<Set<St
                 return state
             }
 
-            override fun reset() =
-                ytmAuth.reset()
+            override fun reset(editor: PlatformSettings.Editor?) {
+                ytmAuth.reset(editor)
+            }
         },
         enabledContent = { modifier ->
 //            val auth_value: Set<String> = ytm_auth.get()

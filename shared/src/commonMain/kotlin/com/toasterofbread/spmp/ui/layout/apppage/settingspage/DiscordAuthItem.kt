@@ -76,7 +76,9 @@ fun getDiscordAuthItem(
             override fun serialise(value: Any?): JsonElement =
                 JsonPrimitive(value as Boolean?)
 
-            override fun reset() = discord_auth.reset()
+            override fun reset(editor: PlatformSettings.Editor?) {
+                discord_auth.reset(editor)
+            }
 
             override fun getDefaultValue(): Boolean =
                 discord_auth.getDefaultValue().isNotEmpty()

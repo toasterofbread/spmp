@@ -15,13 +15,8 @@ import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_cat_desc_general
 import spmp.shared.generated.resources.s_cat_general
 import spmp.shared.generated.resources.s_key_add_songs_to_history
-import spmp.shared.generated.resources.s_key_data_lang
-import spmp.shared.generated.resources.s_key_interface_lang
 import spmp.shared.generated.resources.s_key_library_path
 import spmp.shared.generated.resources.s_key_persistent_queue
-import spmp.shared.generated.resources.s_key_ui_scale
-import spmp.shared.generated.resources.s_sub_data_lang
-import spmp.shared.generated.resources.s_sub_interface_lang
 import spmp.shared.generated.resources.s_sub_library_path
 import spmp.shared.generated.resources.s_sub_persistent_queue
 
@@ -29,21 +24,6 @@ class SystemSettings(
     val context: AppContext,
     private val available_languages: List<Language>
 ): SettingsGroupImpl("SYSTEM", context.getPrefs()) {
-    val LANG_UI: PlatformSettingsProperty<String> by property(
-        getName = { stringResource(Res.string.s_key_interface_lang) },
-        getDescription = { stringResource(Res.string.s_sub_interface_lang) },
-        getDefaultValue = { "" }
-    )
-    val LANG_DATA: PlatformSettingsProperty<String> by property(
-        getName = { stringResource(Res.string.s_key_data_lang) },
-        getDescription = { stringResource(Res.string.s_sub_data_lang) },
-        getDefaultValue = { "" }
-    )
-    val UI_SCALE: PlatformSettingsProperty<Float> by property(
-        getName = { stringResource(Res.string.s_key_ui_scale) },
-        getDescription = { null },
-        getDefaultValue = { 1f }
-    )
     val LIBRARY_PATH: PlatformSettingsProperty<String> by property(
         getName = { stringResource(Res.string.s_key_library_path) },
         getDescription = { stringResource(Res.string.s_sub_library_path) },

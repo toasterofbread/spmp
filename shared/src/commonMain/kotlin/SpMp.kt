@@ -1,6 +1,3 @@
-@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
-
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -21,16 +18,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.text.intl.platformLocaleDelegate
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.appaction.shortcut.LocalShortcutState
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.service.playercontroller.openUri
@@ -45,27 +37,19 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import dev.toastbits.composekit.application.ApplicationTheme
 import dev.toastbits.composekit.commonsettings.impl.LocalComposeKitSettings
 import dev.toastbits.composekit.commonsettings.impl.group.rememberThemeConfiguration
-import dev.toastbits.composekit.navigation.screen.Screen
+import dev.toastbits.composekit.components.LocalContext
 import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
 import dev.toastbits.composekit.navigation.navigator.Navigator
-import dev.toastbits.composekit.components.LocalContext
+import dev.toastbits.composekit.navigation.screen.Screen
 import dev.toastbits.composekit.navigation.screen.ScreenButton
-import dev.toastbits.composekit.util.platform.Platform
 import dev.toastbits.composekit.settings.PlatformSettings
 import dev.toastbits.composekit.theme.ThemeValues
 import dev.toastbits.composekit.theme.model.ThemeConfiguration
+import dev.toastbits.composekit.util.platform.Platform
 import dev.toastbits.composekit.util.thenIf
 import dev.toastbits.spms.socketapi.shared.SPMS_API_VERSION
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.ComposeEnvironment
-import org.jetbrains.compose.resources.DensityQualifier
-import org.jetbrains.compose.resources.InternalResourceApi
-import org.jetbrains.compose.resources.LanguageQualifier
-import org.jetbrains.compose.resources.LocalComposeEnvironment
-import org.jetbrains.compose.resources.RegionQualifier
-import org.jetbrains.compose.resources.ResourceEnvironment
-import org.jetbrains.compose.resources.ThemeQualifier
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_close
@@ -230,9 +214,7 @@ object SpMp {
             }
         }
 
-        val ui_language: String by context.observeUiLanguage()
-
-        Theme(context, ui_language) {
+        Theme(context) {
             LaunchedEffect(open_uri) {
                 if (open_uri != null) {
                     player_state.openUri(open_uri).onFailure {
@@ -242,16 +224,12 @@ object SpMp {
             }
 
             Surface(modifier = modifier.fillMaxSize()) {
-                val ui_scale: Float by context.settings.System.UI_SCALE.observe()
-
                 CompositionLocalProvider(
                     LocalPlayerState provides player_state,
                     LocalShortcutState provides shortcut_state,
-                    LocalDensity provides Density(LocalDensity.current.density * ui_scale, 1f),
                     LocalProgramArguments provides arguments,
                     LocalContext provides context,
                     LocalNavigator provides navigator,
-                    LocalComposeEnvironment provides LocalisedComposeEnvironment { ui_language },
                     LocalComposeKitSettings provides context.settings
                 ) {
                     var mismatched_server_api_version: Int? by remember { mutableStateOf(null) }
@@ -361,35 +339,12 @@ expect fun isWindowTransparencySupported(): Boolean
 @Composable
 fun SpMp.Theme(
     context: AppContext,
-    ui_language: String,
     theme: ThemeValues = context.theme,
     content: @Composable () -> Unit
 ) {
     theme.ApplicationTheme(
         context,
         context.settings,
-        content
+        content = content
     )
-}
-
-private class LocalisedComposeEnvironment(
-    private val getUiLanguage: @Composable () -> String
-): ComposeEnvironment {
-    @Composable
-    @OptIn(InternalResourceApi::class)
-    override fun rememberEnvironment(): ResourceEnvironment {
-        val uiLanguage: String = getUiLanguage()
-        val composeLocale: Locale = remember(uiLanguage) { Locale(platformLocaleDelegate.parseLanguageTag(uiLanguage)) }
-        val composeTheme: Boolean = isSystemInDarkTheme()
-        val composeDensity: Density = LocalDensity.current
-
-        return remember(composeLocale, composeTheme, composeDensity) {
-            ResourceEnvironment(
-                LanguageQualifier(composeLocale.language),
-                RegionQualifier(composeLocale.region),
-                ThemeQualifier.selectByValue(composeTheme),
-                DensityQualifier.selectByDensity(composeDensity.density)
-            )
-        }
-    }
 }

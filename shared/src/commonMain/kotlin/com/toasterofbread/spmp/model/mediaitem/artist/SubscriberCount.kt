@@ -5,6 +5,7 @@ import androidx.compose.runtime.getValue
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.observeUiLanguage
+import dev.toastbits.composekit.util.model.Locale
 import dev.toastbits.ytmkt.uistrings.amountToString
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -15,6 +16,6 @@ fun Artist.getSubscriberCount(context: AppContext): Int? =
 
 @Composable
 fun Int.toReadableSubscriberCount(context: AppContext): String {
-    val ui_language: String by context.observeUiLanguage()
-    return stringResource(Res.string.artist_x_subscribers).replace("\$x", amountToString(this, ui_language))
+    val ui_language: Locale by context.observeUiLanguage()
+    return stringResource(Res.string.artist_x_subscribers).replace("\$x", amountToString(this, ui_language.toTag()))
 }

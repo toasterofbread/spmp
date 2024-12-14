@@ -100,7 +100,6 @@ data class BaseWidgetConfig(
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(font = it)) }
         ) { modifier, onItemChanged ->
-            val ui_language: String by context.observeUiLanguage()
             val available_fonts: List<ComposeKitFont> = ComposeKitFont.rememberAvailableFonts()
 
             DropdownItem(

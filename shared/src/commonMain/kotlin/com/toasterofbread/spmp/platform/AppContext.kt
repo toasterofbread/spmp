@@ -25,6 +25,7 @@ import dev.toastbits.composekit.theme.ThemeValues
 import dev.toastbits.composekit.util.platform.Platform
 import dev.toastbits.ytmkt.model.YtmApi
 import kotlinx.coroutines.launch
+import dev.toastbits.composekit.util.model.Locale as ComposeKitLocale
 
 expect class AppContext: PlatformContext {
     val database: Database
@@ -82,33 +83,34 @@ fun PlayerState.getDefaultVerticalPadding(): Dp =
 @Composable
 fun PlayerState.getDefaultPaddingValues(): PaddingValues = PaddingValues(horizontal = getDefaultHorizontalPadding(), vertical = getDefaultVerticalPadding())
 
-suspend fun AppContext.getUiLanguage(): String =
-    settings.System.LANG_UI.get().ifEmpty { getDefaultLanguage() }
+suspend fun AppContext.getUiLanguage() =
+    settings.Interface.UI_LOCALE.get() ?: getDefaultLanguage()
 
 @Composable
-fun AppContext.observeUiLanguage(): State<String> {
-    val lang_ui: String by settings.System.LANG_UI.observe()
+fun AppContext.observeUiLanguage(): State<ComposeKitLocale> {
+    val lang_ui: ComposeKitLocale? by settings.Interface.UI_LOCALE.observe()
     return remember { derivedStateOf {
-        lang_ui.ifEmpty { getDefaultLanguage() }
+        lang_ui ?: getDefaultLanguage()
     } }
 }
 
-suspend fun AppContext.getDataLanguage(): String =
-    settings.System.LANG_DATA.get().ifEmpty { getDefaultLanguage() }
-        .let { if (it == "en-GB") "en-US" else it }
+suspend fun AppContext.getDataLanguage(): ComposeKitLocale =
+    settings.Interface.DATA_LOCALE.get() ?: getDefaultLanguage()
+        .let {
+            if (it == ComposeKitLocale("en", "GB")) ComposeKitLocale("en", "US")
+            else it
+        }
 
 @Composable
-fun AppContext.observeDataLanguage(): State<String> {
-    val lang_data: String by settings.System.LANG_DATA.observe()
+fun AppContext.observeDataLanguage(): State<ComposeKitLocale> {
+    val lang_data: ComposeKitLocale? by settings.Interface.DATA_LOCALE.observe()
     return remember { derivedStateOf {
-        lang_data.ifEmpty { getDefaultLanguage() }
+        lang_data ?: getDefaultLanguage()
     } }
 }
 
-fun AppContext.getDefaultLanguage(): String =
-    Locale.current.run {
-        "$language-$region"
-    }
+fun AppContext.getDefaultLanguage(): ComposeKitLocale =
+    ComposeKitLocale(Locale.current.language, Locale.current.region)
 
 fun <T> Result<T>.getOrNotify(context: AppContext, error_key: String): T? =
     fold(

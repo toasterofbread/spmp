@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import LocalPlayerState
+import PlatformIO
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -38,8 +39,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -48,41 +49,40 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.util.composable.getValue
-import dev.toastbits.composekit.components.utils.composable.LargeDropdownMenu
-import dev.toastbits.composekit.util.composable.OnChangedEffect
-import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.db.Database
+import dev.toastbits.composekit.components.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.theme.onAccent
+import dev.toastbits.composekit.util.composable.OnChangedEffect
+import dev.toastbits.composekit.util.composable.getValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import PlatformIO
-import androidx.compose.ui.graphics.Color
-import dev.toastbits.composekit.theme.onAccent
-import dev.toastbits.composekit.theme.vibrantAccent
 import kotlinx.io.IOException
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_cancel
+import spmp.shared.generated.resources.action_close
+import spmp.shared.generated.resources.action_confirm_action
+import spmp.shared.generated.resources.artist
+import spmp.shared.generated.resources.lyrics_no_lyrics_set_confirmation_title
 import spmp.shared.generated.resources.lyrics_none_found
 import spmp.shared.generated.resources.`lyrics_search_on_$source`
-import spmp.shared.generated.resources.action_confirm_action
-import spmp.shared.generated.resources.action_cancel
-import spmp.shared.generated.resources.prompt_confirm_action
-import spmp.shared.generated.resources.lyrics_no_lyrics_set_confirmation_title
-import spmp.shared.generated.resources.song_name
-import spmp.shared.generated.resources.artist
 import spmp.shared.generated.resources.lyrics_source_cannot_search
-import spmp.shared.generated.resources.action_close
+import spmp.shared.generated.resources.lyrics_source_dialog_title
+import spmp.shared.generated.resources.prompt_confirm_action
+import spmp.shared.generated.resources.song_name
 import java.util.concurrent.locks.ReentrantLock
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -233,17 +233,17 @@ fun LyricsSearchMenu(
                             )
 
                             LargeDropdownMenu(
-                                source_selector_open,
-                                { source_selector_open = false },
-                                LyricsSource.SOURCE_AMOUNT,
-                                selected_source.source_index,
-                                { source_idx ->
-                                    Text(LyricsSource.fromIdx(source_idx).getReadable())
-                                },
-                                selected_border_colour = player.theme.vibrantAccent
+                                title = stringResource(Res.string.lyrics_source_dialog_title),
+                                isOpen = source_selector_open,
+                                onDismissRequest = { source_selector_open = false },
+                                items = (0 until LyricsSource.SOURCE_AMOUNT).toList(),
+                                selectedItem = selected_source.source_index,
+                                onSelected = { _, source_idx ->
+                                    selected_source = LyricsSource.fromIdx(source_idx)
+                                    source_selector_open = false
+                                }
                             ) { source_idx ->
-                                selected_source = LyricsSource.fromIdx(source_idx)
-                                source_selector_open = false
+                                Text(LyricsSource.fromIdx(source_idx).getReadable())
                             }
                         }
 

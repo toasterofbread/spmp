@@ -66,7 +66,7 @@ internal class SpMpYoutubeiApi(
         PlatformSettingsListener { key ->
             when (key) {
                 context.settings.YoutubeAuth.YTM_AUTH.key -> context.coroutineScope.launch { user_auth_state = getCurrentUserAuthState() }
-                context.settings.System.LANG_DATA.key -> context.coroutineScope.launch { _data_language = context.getDataLanguage() }
+                context.settings.Interface.DATA_LOCALE.key -> context.coroutineScope.launch { _data_language = context.getDataLanguage().toTag() }
                 context.settings.Streaming.VIDEO_FORMATS_METHOD.key -> context.coroutineScope.launch {
                     _VideoFormats = context.settings.Streaming.VIDEO_FORMATS_METHOD.get().instantiate(this@SpMpYoutubeiApi)
                 }
@@ -80,7 +80,7 @@ internal class SpMpYoutubeiApi(
             user_auth_state = getCurrentUserAuthState()
         }
         context.coroutineScope.launch {
-            _data_language = context.getDataLanguage()
+            _data_language = context.getDataLanguage().toTag()
         }
         context.coroutineScope.launch {
             _VideoFormats = context.settings.Streaming.VIDEO_FORMATS_METHOD.get().instantiate(this@SpMpYoutubeiApi)

@@ -15,6 +15,7 @@ import com.toasterofbread.spmp.ui.component.shortcut.trigger.getName
 
 @Composable
 fun ShortcutTriggerSelector(
+    title: String,
     trigger: ShortcutTrigger? = null,
     modifier: Modifier = Modifier,
     onModification: (ShortcutTrigger?) -> Unit
@@ -22,15 +23,16 @@ fun ShortcutTriggerSelector(
     var selecting_type: Boolean by remember { mutableStateOf(false) }
 
     LargeDropdownMenu(
-        selecting_type,
-        { selecting_type = false },
-        ShortcutTrigger.Type.entries.size + 1,
-        trigger?.getType()?.ordinal?.plus(1) ?: 0,
+        title = title,
+        isOpen = selecting_type,
+        onDismissRequest = { selecting_type = false },
+        items = (0 until ShortcutTrigger.Type.entries.size + 1).toList(),
+        selectedItem = trigger?.getType()?.ordinal?.plus(1) ?: 0,
         itemContent = {
             val type: ShortcutTrigger.Type? = if (it == 0) null else ShortcutTrigger.Type.entries[it - 1]
             type.Preview()
         },
-        onSelected = { type ->
+        onSelected = { _, type ->
             if (type == 0) {
                 onModification(null)
             }

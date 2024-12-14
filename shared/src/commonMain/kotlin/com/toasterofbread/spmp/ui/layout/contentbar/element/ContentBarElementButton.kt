@@ -148,15 +148,16 @@ data class ContentBarElementButton(
         var show_type_selector: Boolean by remember { mutableStateOf(false) }
 
         LargeDropdownMenu(
-            expanded = show_type_selector,
+            title = stringResource(Res.string.content_bar_element_button_config_type),
+            isOpen = show_type_selector,
             onDismissRequest = { show_type_selector = false },
-            item_count = AppAction.Type.entries.size,
-            selected = action.getType().ordinal,
-            itemContent = {
-                AppAction.Type.entries[it].Preview()
+            items = AppAction.Type.entries,
+            selectedItem = action.getType(),
+            itemContent = { action ->
+                action.Preview()
             },
-            onSelected = {
-                onModification(copy(action = AppAction.Type.entries[it].createAction()))
+            onSelected = { _, action ->
+                onModification(copy(action = action.createAction()))
                 show_type_selector = false
             }
         )

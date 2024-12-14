@@ -113,22 +113,22 @@ data class SongAppAction(
         val available_actions: List<Action> = remember { Action.getAvailable(player.context) }
 
         LargeDropdownMenu(
-            expanded = show_action_selector,
+            title = stringResource(Res.string.appaction_config_song_action),
+            isOpen = show_action_selector,
             onDismissRequest = { show_action_selector = false },
-            item_count = available_actions.size,
-            selected = action.ordinal,
-            itemContent = {
+            items = available_actions,
+            selectedItem = action,
+            itemContent = { action ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    val action: Action = available_actions[it]
                     Icon(action.getIcon(), null)
                     Text(action.getName())
                 }
             },
-            onSelected = {
-                onModification(copy(action = available_actions[it]))
+            onSelected = { _, action ->
+                onModification(copy(action = action))
                 show_action_selector = false
             }
         )

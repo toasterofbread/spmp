@@ -31,6 +31,7 @@ import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorder
 import LocalPlayerState
 import com.toasterofbread.spmp.platform.observeUiLanguage
+import dev.toastbits.composekit.util.model.Locale
 
 internal fun PlaylistAppPage.PlaylistItems(
     playlist: Playlist,
@@ -74,11 +75,11 @@ internal fun PlaylistAppPage.PlaylistItems(
                         show_type = false,
                         getExtraInfo = {
                             val item_duration: Long? by (item as? Song)?.Duration?.observe(player.database)
-                            val ui_language: String by player.context.observeUiLanguage()
+                            val ui_language: Locale by player.context.observeUiLanguage()
                             remember(item_duration, ui_language) {
                                 listOfNotNull(
                                     item_duration?.let { duration ->
-                                        durationToString(duration, ui_language, true)
+                                        durationToString(duration, ui_language.toTag(), true)
                                     }
                                 )
                             }

@@ -26,13 +26,8 @@ fun AppSliderItem(
 ): SliderSettingsItem =
     SliderSettingsItem(
         state = state,
-        getErrMsgValueOutOfRange = {
-            getString(Res.string.`settings_value_out_of_$range`).replace("\$range", it.toString())
-        },
-        errmsg_value_not_int = Res.string.settings_value_not_int.toCustomResource(),
-        errmsg_value_not_float = Res.string.settings_value_not_float.toCustomResource(),
-        min_label = min_label,
-        max_label = max_label,
+        minLabel = min_label,
+        maxLabel = max_label,
         steps = steps,
         range = range,
         getValueText = getValueText,

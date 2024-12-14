@@ -37,23 +37,23 @@ internal fun ContentBarElementSelector(
     val available_elements: List<ContentBarElement.Type> = ContentBarElement.Type.entries.filter { it.isAvailable() }
 
     LargeDropdownMenu(
-        show_element_selector,
-        { show_element_selector = false },
-        available_elements.size,
-        null,
-        {
-            val element: ContentBarElement.Type = available_elements[it]
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(10.dp)
-            ) {
-                Icon(element.getIcon(), null)
-                Text(element.getName(), softWrap = false)
-            }
+        title = stringResource(Res.string.content_bar_editor_add_element),
+        isOpen = show_element_selector,
+        onDismissRequest = { show_element_selector = false },
+        items = available_elements,
+        selectedItem = null,
+        onSelected = { _, item ->
+            onSelected(item)
+            show_element_selector = false
         }
-    ) {
-        onSelected(available_elements[it])
-        show_element_selector = false
+    ) { element ->
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(10.dp)
+        ) {
+            Icon(element.getIcon(), null)
+            Text(element.getName(), softWrap = false)
+        }
     }
 
     if (!show_element_buttons) {

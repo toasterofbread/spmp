@@ -177,16 +177,17 @@ class SongThemePlayerOverlayMenu(
 
                             var show_position_selector: Boolean by remember { mutableStateOf(false) }
                             LargeDropdownMenu(
-                                show_position_selector,
-                                { show_position_selector = false },
-                                ThemeSettings.VideoPosition.entries.size,
-                                (song_video_position ?: default_video_position).ordinal,
-                                {
-                                    Text(ThemeSettings.VideoPosition.entries[it].getReadable())
+                                title = stringResource(Res.string.song_theme_menu_video_position),
+                                isOpen = show_position_selector,
+                                onDismissRequest = { show_position_selector = false },
+                                items = ThemeSettings.VideoPosition.entries,
+                                selectedItem = song_video_position ?: default_video_position,
+                                onSelected = { _, position ->
+                                    song_video_position = position
+                                    show_position_selector = false
                                 }
-                            ) {
-                                song_video_position = ThemeSettings.VideoPosition.entries[it]
-                                show_position_selector = false
+                            ) { position ->
+                                Text(position.getReadable())
                             }
 
                             FlowRow(

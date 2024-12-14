@@ -1,38 +1,22 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
-import LocalPlayerState
 import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import androidx.compose.material3.Text
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.resources.Language
 import com.toasterofbread.spmp.resources.getStringTODO
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.composekit.context.PlatformFile
 import dev.toastbits.composekit.settings.PlatformSettingsProperty
-import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.FileSettingsItem
 import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem.Companion.ItemTitleText
 import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
-import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
-import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.getString
@@ -94,47 +78,6 @@ fun getLanguageDropdownItem(
 
 internal fun getSystemCategoryItems(context: AppContext, available_languages: List<Language>): List<SettingsItem> =
     listOf(
-        getLanguageDropdownItem(
-            context.settings.System.LANG_UI,
-            available_languages
-        ),
-
-        getLanguageDropdownItem(
-            context.settings.System.LANG_DATA,
-            available_languages
-        ),
-
-        ComposableSettingsItem(
-            listOf(context.settings.System.UI_SCALE),
-            resetSettingsValues = {
-                context.settings.System.UI_SCALE.set(1f)
-            }
-        ) {
-            val player: PlayerState = LocalPlayerState.current
-
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                ItemTitleText(context.settings.System.UI_SCALE.getName(), player.theme, Modifier.weight(1f))
-
-                Spacer(Modifier.fillMaxWidth().weight(1f))
-
-                var ui_scale: Float by player.settings.System.UI_SCALE.observe()
-
-                ShapedIconButton({
-                    ui_scale = (ui_scale - 0.1f).coerceAtLeast(0.1f)
-                }) {
-                    Icon(Icons.Default.Remove, null)
-                }
-
-                Text("${(ui_scale * 100).toInt()}%")
-
-                ShapedIconButton({
-                    ui_scale += 0.1f
-                }) {
-                    Icon(Icons.Default.Add, null)
-                }
-            }
-        },
-
         ToggleSettingsItem(
             context.settings.System.PERSISTENT_QUEUE
         ),

@@ -45,10 +45,11 @@ data class NavigationAppAction(
         var show_action_selector: Boolean by remember { mutableStateOf(false) }
 
         LargeDropdownMenu(
-            expanded = show_action_selector,
+            title = stringResource(Res.string.appaction_config_navigation_action),
+            isOpen = show_action_selector,
             onDismissRequest = { show_action_selector = false },
-            item_count = AppPage.Type.entries.size + NavigationAction.Type.entries.size - 1,
-            selected =
+            items = (0 until AppPage.Type.entries.size + NavigationAction.Type.entries.size - 1).toList(),
+            selectedItem =
                 if (action is AppPageNavigationAction) action.page.ordinal + 1
                 else action.getType().ordinal - 1,
             itemContent = {
@@ -67,13 +68,13 @@ data class NavigationAppAction(
                     }
                 }
             },
-            onSelected = {
+            onSelected = { _, item ->
                 val action: NavigationAction
-                if (it < NavigationAction.Type.entries.size - 1) {
-                    action = NavigationAction.Type.entries[it + 1].createAction()
+                if (item < NavigationAction.Type.entries.size - 1) {
+                    action = NavigationAction.Type.entries[item + 1].createAction()
                 }
                 else {
-                    action = AppPageNavigationAction(AppPage.Type.entries[it + 1 - NavigationAction.Type.entries.size])
+                    action = AppPageNavigationAction(AppPage.Type.entries[item + 1 - NavigationAction.Type.entries.size])
                 }
 
                 onModification(copy(action = action))

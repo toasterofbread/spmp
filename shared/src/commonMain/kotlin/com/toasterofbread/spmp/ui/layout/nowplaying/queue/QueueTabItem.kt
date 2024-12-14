@@ -40,6 +40,7 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.theme.appHover
+import dev.toastbits.composekit.util.model.Locale
 import dev.toastbits.ytmkt.uistrings.durationToString
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorder
@@ -119,13 +120,13 @@ class QueueTabItem(val song: Song, val key: Int) {
 
         val `lpm_song_played_$x_ago`: String = stringResource(Res.string.`lpm_song_played_$x_ago`)
         val `lpm_song_playing_in_$x`: String = stringResource(Res.string.`lpm_song_playing_in_$x`)
-        val ui_langauge: String by player.context.observeUiLanguage()
+        val ui_language: Locale by player.context.observeUiLanguage()
 
-        return remember(delta, ui_langauge) {
+        return remember(delta, ui_language) {
             (
                 if (index < playing_index) `lpm_song_played_$x_ago`
                 else `lpm_song_playing_in_$x`
-            ).replace("\$x", durationToString(delta, ui_langauge, true))
+            ).replace("\$x", durationToString(delta, ui_language.toTag(), true))
         }
     }
 

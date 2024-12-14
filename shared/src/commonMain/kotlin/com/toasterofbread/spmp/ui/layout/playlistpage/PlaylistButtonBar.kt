@@ -34,6 +34,7 @@ import dev.toastbits.ytmkt.uistrings.durationToString
 import LocalPlayerState
 import com.toasterofbread.spmp.model.mediaitem.observeUrl
 import com.toasterofbread.spmp.platform.observeUiLanguage
+import dev.toastbits.composekit.util.model.Locale
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.playlist_x_songs
@@ -97,7 +98,7 @@ private fun PlaylistAppPage.PlaylistInfoText(items: List<Song>?, modifier: Modif
             val total_duration: Long? by playlist.TotalDuration.observe(db)
 
             if (item_count > 0) {
-                val ui_language: String by player.context.observeUiLanguage()
+                val ui_language: Locale by player.context.observeUiLanguage()
                 val playlist_x_songs: String = stringResource(Res.string.playlist_x_songs)
 
                 val text: String = remember(total_duration, item_count, ui_language) {
@@ -125,7 +126,7 @@ private fun PlaylistAppPage.PlaylistInfoText(items: List<Song>?, modifier: Modif
                         else (
                             durationToString(
                                 duration,
-                                ui_language,
+                                ui_language.toTag(),
                                 short = true
                             )
                             + (if (incomplete_duration) "+" else "")

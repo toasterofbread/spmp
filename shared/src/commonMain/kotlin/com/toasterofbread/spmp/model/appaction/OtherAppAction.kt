@@ -66,22 +66,22 @@ data class OtherAppAction(
         var show_action_selector: Boolean by remember { mutableStateOf(false) }
 
         LargeDropdownMenu(
-            expanded = show_action_selector,
+            title =stringResource(Res.string.appaction_config_other_action),
+            isOpen = show_action_selector,
             onDismissRequest = { show_action_selector = false },
-            item_count = Action.AVAILABLE.size,
-            selected = action.ordinal,
-            itemContent = {
+            items = Action.AVAILABLE,
+            selectedItem = action,
+            itemContent = { action ->
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    val action: Action = Action.AVAILABLE[it]
                     Icon(action.getIcon(), null)
                     Text(action.getName())
                 }
             },
-            onSelected = {
-                onModification(copy(action = Action.AVAILABLE[it]))
+            onSelected = { _, action ->
+                onModification(copy(action = action))
                 show_action_selector = false
             }
         )
@@ -156,8 +156,8 @@ data class OtherAppAction(
 
                 INCREASE_UI_SCALE, DECREASE_UI_SCALE -> {
                     val delta: Float = if (this == INCREASE_UI_SCALE) 0.1f else -0.1f
-                    val current: Float = player.context.settings.System.UI_SCALE.get()
-                    player.context.settings.System.UI_SCALE.set((current + delta).coerceAtLeast(0.1f))
+                    val current: Float = player.context.settings.Interface.UI_SCALE.get()
+                    player.context.settings.Interface.UI_SCALE.set((current + delta).coerceAtLeast(0.1f))
                 }
             }
         }

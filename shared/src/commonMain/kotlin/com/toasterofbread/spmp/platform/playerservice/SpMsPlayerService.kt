@@ -211,7 +211,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                 name = getClientName(),
                 type = if (plays_audio) SpMsClientType.SPMP_PLAYER else SpMsClientType.SPMP_STANDALONE,
                 machine_id = getSpMsMachineId(context),
-                language = context.getUiLanguage()
+                language = context.getUiLanguage().toTag()
             )
 
         val server_handshake: SpMsServerHandshake =
@@ -481,7 +481,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                     name = getClientName(),
                     type = SpMsClientType.SPMP_STANDALONE,
                     machine_id = getSpMsMachineId(context),
-                    language = context.getUiLanguage()
+                    language = context.getUiLanguage().toTag()
                 )
 
             val server_handshake: SpMsServerHandshake? =

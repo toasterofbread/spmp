@@ -26,7 +26,7 @@ internal fun getStreamingCategoryItems(context: AppContext): List<SettingsItem> 
                 fromProperty = { it.ordinal },
                 toProperty = { available_video_formats[it] }
             ),
-            item_count = available_video_formats.size,
+            itemCount = available_video_formats.size,
             getItem = { available_video_formats[it].getReadable() }
         ),
 

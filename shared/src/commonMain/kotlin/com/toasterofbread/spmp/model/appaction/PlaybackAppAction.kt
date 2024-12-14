@@ -40,15 +40,16 @@ data class PlaybackAppAction(
         var show_action_selector: Boolean by remember { mutableStateOf(false) }
 
         LargeDropdownMenu(
-            expanded = show_action_selector,
+            title = stringResource(Res.string.appaction_config_playback_action_type),
+            isOpen = show_action_selector,
             onDismissRequest = { show_action_selector = false },
-            item_count = PlaybackAction.Type.entries.size,
-            selected = action.getType().ordinal,
-            itemContent = {
-                PlaybackAction.Type.entries[it].Preview()
+            items = PlaybackAction.Type.entries,
+            selectedItem = action.getType(),
+            itemContent = { action ->
+                action.Preview()
             },
-            onSelected = {
-                onModification(copy(action = PlaybackAction.Type.entries[it].createAction()))
+            onSelected = { _, action ->
+                onModification(copy(action = action.createAction()))
                 show_action_selector = false
             }
         )

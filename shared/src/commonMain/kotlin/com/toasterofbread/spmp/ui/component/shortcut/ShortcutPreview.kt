@@ -94,6 +94,7 @@ fun ShortcutPreview(
                     Spacer(Modifier.fillMaxWidth().weight(1f))
 
                     ShortcutTriggerSelector(
+                        stringResource(Res.string.shortcut_editor_trigger),
                         shortcut.trigger,
                         onModification = {
                             onModification(shortcut.copy(trigger = it))

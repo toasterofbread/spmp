@@ -54,6 +54,7 @@ import dev.toastbits.composekit.components.utils.composable.RowOrColumnScope
 import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
 import dev.toastbits.composekit.components.utils.composable.crossfade.EmptyListCrossfade
 import dev.toastbits.composekit.util.composable.getValue
+import dev.toastbits.composekit.util.model.Locale
 import dev.toastbits.ytmkt.endpoint.LoadPlaylistEndpoint
 import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import dev.toastbits.ytmkt.model.implementedOrNull
@@ -195,10 +196,10 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
                                     show_play_count = true,
                                     show_download_indicator = false,
                                     getExtraInfo = {
-                                        val ui_language: String by player.context.observeUiLanguage()
+                                        val ui_language: Locale by player.context.observeUiLanguage()
                                         val duration_string: String? = remember(song.id, ui_language) {
                                             song.Duration.get(player.database)?.let { duration ->
-                                                durationToString(duration, ui_language, true)
+                                                durationToString(duration, ui_language.toTag(), true)
                                             }
                                         }
 
@@ -258,7 +259,7 @@ private fun InfoRow(songs: List<Song>, modifier: Modifier = Modifier, show_sync_
             return@LaunchedEffect
         }
 
-        total_duration_string = durationToString(duration, hl = player.context.getUiLanguage())
+        total_duration_string = durationToString(duration, hl = player.context.getUiLanguage().toTag())
     }
 
     Row(

@@ -66,12 +66,14 @@ data class AppPageNavigationAction(
         val settings_pages: List<PlatformSettingsGroupScreen> = remember { player.settings.group_pages }
 
         LargeDropdownMenu(
-            expanded = show_settings_group_selector,
+            title = stringResource(Res.string.appaction_config_navigation_settings_group),
+            isOpen = show_settings_group_selector,
             onDismissRequest = { show_settings_group_selector = false },
-            item_count = settings_pages.size + 1,
-            selected = settings_group?.let { group_key ->
-                settings_pages.indexOfFirst { it.group.groupKey == group_key } + 1
-            } ?: 0,
+            items = (0 until settings_pages.size + 1).toList(),
+            selectedItem =
+                settings_group?.let { group_key ->
+                    settings_pages.indexOfFirst { it.group.groupKey == group_key } + 1
+                } ?: 0,
             itemContent = {
                 if (it == 0) {
                     Text(stringResource(Res.string.appaction_config_navigation_settings_group_none))
@@ -80,10 +82,10 @@ data class AppPageNavigationAction(
                     Text(settings_pages[it - 1].title)
                 }
             },
-            onSelected = {
+            onSelected = { _, index ->
                 val group_key: String? =
-                    if (it == 0) null
-                    else settings_pages[it - 1].group.groupKey
+                    if (index == 0) null
+                    else settings_pages[index - 1].group.groupKey
 
                 onModification(copy(settings_group = group_key))
                 show_settings_group_selector = false

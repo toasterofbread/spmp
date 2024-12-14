@@ -23,7 +23,6 @@ import androidx.core.view.WindowCompat
 import androidx.glance.GlanceId
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
@@ -134,9 +133,7 @@ class WidgetConfigurationActivity: ComponentActivity() {
                 val theme_configuration: ThemeConfiguration = context.settings.Theme.rememberThemeConfiguration()
                 context.theme.Update(theme_configuration)
 
-                val ui_language: String by context.observeUiLanguage()
-
-                SpMp.Theme(context, ui_language) {
+                SpMp.Theme(context) {
                     Scaffold { inner_padding ->
                         navigator.CurrentScreen(
                             Modifier

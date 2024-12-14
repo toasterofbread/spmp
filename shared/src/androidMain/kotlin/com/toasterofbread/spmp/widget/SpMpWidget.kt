@@ -82,7 +82,6 @@ import dev.toastbits.composekit.theme.ThemeValues
 import dev.toastbits.composekit.theme.model.ComposeKitFont
 import dev.toastbits.composekit.theme.model.ThemeConfiguration
 import dev.toastbits.composekit.theme.model.ThemeValuesData
-import dev.toastbits.composekit.theme.util.rememberFont
 import dev.toastbits.composekit.util.getThemeColour
 import dev.toastbits.composekit.util.thenIf
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
@@ -316,7 +315,7 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
         alpha: Float = 1f,
         max_width: Dp? = null
     ) {
-        val app_font_mode: ComposeKitFont by context.settings.Theme.FONT.observe()
+        val app_font_mode: ComposeKitFont by context.settings.Interface.FONT.observe()
         val font: Font? = (base_configuration.font ?: app_font_mode).rememberFont()
 
         GlanceText(
@@ -328,6 +327,16 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
             colour = colour.copy(alpha = alpha)
         )
     }
+
+    @Composable
+    private fun ComposeKitFont.rememberFont(): Font? =
+        when (this) {
+            ComposeKitFont.System -> null
+            is ComposeKitFont.BuiltIn -> rememberFont()
+            is ComposeKitFont.ResolvableFont -> rememberFont()
+            is ComposeKitFont.Composite -> fonts.first().rememberFont()
+            is ComposeKitFont.Default -> font.rememberFont()
+        }
 
     @Composable
     fun StyledColumn(

@@ -11,6 +11,7 @@ import dev.toastbits.composekit.context.PlatformContext
 import dev.toastbits.composekit.context.getDesktopFilesDir
 import dev.toastbits.composekit.settings.PlatformSettings
 import dev.toastbits.composekit.settings.PlatformSettingsImpl
+import dev.toastbits.composekit.theme.core.ThemeManager
 import dev.toastbits.ytmkt.model.YtmApi
 import kotlinx.coroutines.CoroutineScope
 import org.jetbrains.compose.resources.getString
@@ -54,5 +55,5 @@ actual class AppContext private constructor(
     actual val settings: Settings = Settings(this, available_languages)
     actual val download_manager: PlayerDownloadManager = PlayerDownloadManager(this)
     actual val ytapi: YtmApi = api_type.instantiate(this, api_url, data_language)
-    actual val theme: AppThemeManager = AppThemeManager(this@AppContext)
+    actual val theme: ThemeManager = AppThemeManager(this@AppContext)
 }

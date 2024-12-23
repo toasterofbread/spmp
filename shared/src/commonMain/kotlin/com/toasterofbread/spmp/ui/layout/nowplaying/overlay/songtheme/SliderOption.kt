@@ -33,7 +33,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
 import dev.toastbits.composekit.util.composable.OnChangedEffect
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch

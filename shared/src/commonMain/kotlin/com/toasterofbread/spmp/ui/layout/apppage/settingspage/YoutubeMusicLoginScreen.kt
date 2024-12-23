@@ -14,15 +14,19 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
 import com.toasterofbread.spmp.model.settings.packSetData
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.LoginPage
+import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
 import dev.toastbits.composekit.navigation.navigator.Navigator
 import dev.toastbits.composekit.navigation.screen.Screen
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 
 class YoutubeMusicLoginScreen(
     private val ytmAuth: PlatformSettingsProperty<Set<String>>,
@@ -41,7 +45,9 @@ class YoutubeMusicLoginScreen(
 //        get() = loginPage.getIcon(confirm_param)
 
     @Composable
-    override fun Content(navigator: Navigator, modifier: Modifier, contentPadding: PaddingValues) {
+    override fun Content(modifier: Modifier, contentPadding: PaddingValues) {
+        val navigator: Navigator = LocalNavigator.current
+        val coroutine_scope: CoroutineScope = rememberCoroutineScope()
         var login_error: Throwable? by remember { mutableStateOf(null) }
 
         Crossfade(login_error) { error ->
@@ -49,10 +55,12 @@ class YoutubeMusicLoginScreen(
                 loginPage.LoginPage(Modifier.fillMaxSize(), confirmParam, contentPadding) { result ->
                     result?.fold(
                         { auth_info ->
-                            ytmAuth.set(
-                                ApiAuthenticationState.packSetData(auth_info.own_channel_id, auth_info.headers)
-                            )
-                            navigator.navigateBackward(1)
+                            coroutine_scope.launch {
+                                ytmAuth.set(
+                                    ApiAuthenticationState.packSetData(auth_info.own_channel_id, auth_info.headers)
+                                )
+                                navigator.navigateBackward(1)
+                            }
                         },
                         { error ->
                             login_error = error

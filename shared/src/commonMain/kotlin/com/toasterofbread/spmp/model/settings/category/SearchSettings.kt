@@ -7,8 +7,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.model.settings.SettingsGroupImpl
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getSearchCategoryItems
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_key_search_search_for_non_music

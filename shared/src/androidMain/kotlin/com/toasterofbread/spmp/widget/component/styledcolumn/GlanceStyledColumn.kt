@@ -117,7 +117,7 @@ private fun ColumnWaveBorder(
         )
 
         val bottom_wave_path: Path = Path()
-        wavePath(
+        com.toasterofbread.spmp.ui.util.wavePath(
             path = bottom_wave_path,
             size = image_size,
             waves = 9,
@@ -153,7 +153,7 @@ private fun Canvas.drawWave(
     fill_direction: Int = 0
 ) {
     val path: Path = Path()
-    wavePath(
+    com.toasterofbread.spmp.ui.util.wavePath(
         path = path,
         size = wave_size,
         waves = waves,

@@ -20,7 +20,7 @@ import dev.toastbits.composekit.settings.ui.screen.PlatformSettingsScreen
 
 class SettingsAppPage(override val state: AppPageState): AppPage() {
     fun openScreen(screen: Screen) {
-        settingsScreen.pushScreen(screen)
+        settingsScreen.internalNavigator.pushScreen(screen)
     }
 
     fun openGroup(group: SettingsGroup) {
@@ -33,7 +33,7 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
 
     private val settingsScreen: PlatformSettingsScreen =
         PlatformSettingsScreen(
-            state.context.settings.prefs,
+            state.context.settings.preferences,
             state.context.settings.groups_with_page,
             initialStartPaneRatioSource =
                 InitialPaneRatioSource.Remembered(

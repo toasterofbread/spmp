@@ -18,7 +18,6 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -29,11 +28,11 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.widget.configuration.enum.WidgetSectionTheme
 import dev.toastbits.composekit.components.utils.composable.WithStickySize
-import dev.toastbits.composekit.settings.MutableStateSettingsProperty
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
-import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.SliderSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
+import dev.toastbits.composekit.settingsitem.domain.MutableStateSettingsProperty
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.DropdownSettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.SliderSettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.ToggleSettingsItem
 import dev.toastbits.composekit.util.composable.OnChangedEffect
 import dev.toastbits.composekit.util.roundTo
 import dev.toastbits.composekit.util.thenIf
@@ -129,8 +128,7 @@ abstract class WidgetConfig {
                 opacity_state,
                 { stringResource(Res.string.widget_config_common_key_section_theme_opacity) },
                 { null },
-                getPropertyDefaultValue = { WidgetSectionTheme.DEFAULT_OPACITY },
-                getPropertyDefaultValueComposable = { WidgetSectionTheme.DEFAULT_OPACITY }
+                getPropertyDefaultValue = { WidgetSectionTheme.DEFAULT_OPACITY }
             )
         }
         val opacity_item: SliderSettingsItem? = remember(theme.mode) {
@@ -223,8 +221,7 @@ abstract class WidgetConfig {
                 value_state,
                 { stringResource(title) },
                 { null },
-                getPropertyDefaultValue = { default_value },
-                getPropertyDefaultValueComposable = { default_value }
+                getPropertyDefaultValue = { default_value }
             )
         }
 

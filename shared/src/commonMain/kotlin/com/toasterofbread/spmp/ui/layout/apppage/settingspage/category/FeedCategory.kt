@@ -6,8 +6,8 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.ToggleSettingsItem
 import com.toasterofbread.spmp.model.deserialise
 import com.toasterofbread.spmp.model.getString
 import com.toasterofbread.spmp.model.serialise

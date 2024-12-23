@@ -15,7 +15,7 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.components.platform.composable.BackHandler
-import dev.toastbits.composekit.settings.ui.component.item.*
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.*
 import dev.toastbits.composekit.components.utils.composable.animatedvisibility.NullableValueAnimatedVisibility
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
@@ -31,8 +31,9 @@ import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElementCon
 import com.toasterofbread.spmp.ui.layout.contentbar.element.ContentBarElement
 import com.toasterofbread.spmp.ui.layout.contentbar.CircularReferenceWarning
 import com.toasterofbread.spmp.util.removeLastBuiltIn
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import kotlinx.serialization.*
 import kotlinx.serialization.json.JsonElement
 import org.jetbrains.compose.resources.getString

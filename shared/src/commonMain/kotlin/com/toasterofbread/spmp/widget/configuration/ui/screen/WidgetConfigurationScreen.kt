@@ -31,14 +31,13 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.widget.SpMpWidgetType
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
+import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
 import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfig
 import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfigDefaultsMask
-import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
 import com.toasterofbread.spmp.widget.configuration.type.TypeConfigurationDefaultsMask
 import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
 import dev.toastbits.composekit.navigation.screen.Screen
-import dev.toastbits.composekit.navigation.navigator.Navigator
-import dev.toastbits.composekit.theme.ui.LocalComposeKitTheme
+import dev.toastbits.composekit.theme.core.ui.LocalComposeKitTheme
 import dev.toastbits.composekit.util.composable.copy
 import dev.toastbits.composekit.util.thenIf
 import org.jetbrains.compose.resources.stringResource
@@ -80,7 +79,7 @@ class WidgetConfigurationScreen<A: TypeWidgetClickAction>(
     private var type_config: TypeWidgetConfig<A>? by mutableStateOf(initial_type_config)
 
     @Composable
-    override fun Content(navigator: Navigator, modifier: Modifier, contentPadding: PaddingValues) {
+    override fun Content(modifier: Modifier, contentPadding: PaddingValues) {
         Column(modifier) {
             LazyColumn(
                 Modifier.fillMaxHeight().weight(1f),

@@ -43,7 +43,7 @@ import dev.toastbits.composekit.components.platform.composable.SwipeRefresh
 import dev.toastbits.composekit.components.utils.modifier.background
 import dev.toastbits.composekit.components.utils.modifier.brushBackground
 import dev.toastbits.composekit.components.utils.modifier.horizontal
-import dev.toastbits.composekit.theme.makeVibrant
+import dev.toastbits.composekit.theme.core.makeVibrant
 import dev.toastbits.composekit.util.getThemeColour
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 

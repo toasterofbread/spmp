@@ -446,16 +446,16 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
 
     override suspend fun sendAuthInfoToPlayers(ytm_auth: Pair<String?, Headers>?): Result<Unit> = withContext(Dispatchers.PlatformIO) {
         return@withContext runCatching {
-            runCommandOnEachLocalPlayer(
-                "setAuthInfo",
-                ytm_auth?.second?.let {
-                    buildJsonObject {
-                        for ((key, value) in it.flattenEntries()) {
-                            put(key, value)
-                        }
-                    }
-                }
-            )
+            // runCommandOnEachLocalPlayer(
+            //     "setAuthInfo",
+            //     ytm_auth?.second?.let {
+            //         buildJsonObject {
+            //             for ((key, value) in it.flattenEntries()) {
+            //                 put(key, value)
+            //             }
+            //         }
+            //     }
+            // )
         }
     }
 

@@ -24,8 +24,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.theme.onAccent
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.theme.core.onAccent
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import dev.toastbits.composekit.components.utils.composable.NoRipple
 import dev.toastbits.ytmkt.endpoint.RadioBuilderModifier
 import kotlinx.coroutines.launch

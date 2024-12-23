@@ -9,9 +9,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.AppContext
-import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.ComposableSettingsItem
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.ToggleSettingsItem
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.button_android_monet_open_dependency

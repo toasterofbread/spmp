@@ -58,7 +58,7 @@ import com.toasterofbread.spmp.resources.stringResourceTODO
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyColumn
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import dev.toastbits.composekit.util.getContrasted
 import dev.toastbits.composekit.util.platform.launchSingle
 import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator

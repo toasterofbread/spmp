@@ -52,7 +52,7 @@ class NowPlayingMainTabPage: NowPlayingPage() {
 
     fun setThemeColour(value: Color?, custom: Boolean) {
         theme_colour = value
-        player.theme.onCurrentThumbnailColourChanged(theme_colour)
+        player.theme.onContextualColourChanged(theme_colour)
 
         if (custom) {
             player.status.song

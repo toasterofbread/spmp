@@ -21,15 +21,18 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.alpha
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.util.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
+import dev.toastbits.composekit.util.composable.WidthShrinkText
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_cancel
@@ -46,6 +49,7 @@ fun DownloadMethodSelectionDialog(
     songs: List<Song>? = null
 ) {
     val player: PlayerState = LocalPlayerState.current
+    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
     var download_method: DownloadMethod by player.settings.Streaming.DOWNLOAD_METHOD.observe()
     var skip_confirmation: Boolean by player.settings.Streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.observe()
@@ -59,7 +63,7 @@ fun DownloadMethodSelectionDialog(
         initial_skip_confirmation = player.settings.Streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.get()
     }
 
-    fun cancel() {
+    suspend fun cancel() {
         player.settings.Streaming.DOWNLOAD_METHOD.set(initial_download_method!!)
         player.settings.Streaming.SKIP_DOWNLOAD_METHOD_CONFIRMATION.set(initial_skip_confirmation!!)
         onCancelled()
@@ -81,11 +85,15 @@ fun DownloadMethodSelectionDialog(
     AlertDialog(
         modifier = modifier,
         onDismissRequest = {
-            cancel()
+            coroutine_scope.launch {
+                cancel()
+            }
         },
         dismissButton = {
             Button({
-                cancel()
+                coroutine_scope.launch {
+                    cancel()
+                }
             }) {
                 Text(stringResource(Res.string.action_cancel))
             }

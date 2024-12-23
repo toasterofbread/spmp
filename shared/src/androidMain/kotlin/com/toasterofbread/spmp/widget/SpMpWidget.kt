@@ -75,13 +75,17 @@ import com.toasterofbread.spmp.widget.configuration.enum.colour
 import com.toasterofbread.spmp.widget.configuration.type.TypeConfigurationDefaultsMask
 import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
 import com.toasterofbread.spmp.widget.modifier.systemCornerRadius
-import dev.toastbits.composekit.commonsettings.impl.group.rememberThemeConfiguration
-import dev.toastbits.composekit.commonsettings.impl.group.theme.LocalContextThemeIndexOverride
-import dev.toastbits.composekit.theme.ui.LocalComposeKitTheme
-import dev.toastbits.composekit.theme.ThemeValues
-import dev.toastbits.composekit.theme.model.ComposeKitFont
-import dev.toastbits.composekit.theme.model.ThemeConfiguration
-import dev.toastbits.composekit.theme.model.ThemeValuesData
+import dev.toastbits.composekit.theme.core.ThemeManager
+import dev.toastbits.composekit.theme.core.ThemeValues
+import dev.toastbits.composekit.theme.core.model.ComposeKitFont
+import dev.toastbits.composekit.theme.core.model.ComposeKitFont.Default.font
+import dev.toastbits.composekit.theme.core.model.NamedTheme
+import dev.toastbits.composekit.theme.core.model.SerialisableTheme
+import dev.toastbits.composekit.theme.core.model.ThemeReference
+import dev.toastbits.composekit.theme.core.model.ThemeValuesData
+import dev.toastbits.composekit.theme.core.provider.ContextThemeProvider
+import dev.toastbits.composekit.theme.core.provider.ThemeProvider
+import dev.toastbits.composekit.theme.core.ui.LocalComposeKitTheme
 import dev.toastbits.composekit.util.getThemeColour
 import dev.toastbits.composekit.util.thenIf
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
@@ -126,8 +130,22 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
             )
         )
 
+    private val themeManager: StaticThemeManager = StaticThemeManager(ThemeValuesData.ofSingleColour(Color.Blue))
+
+    private class StaticThemeManager(initialTheme: ThemeValues): ThemeManager {
+        var theme: ThemeValues by mutableStateOf(initialTheme)
+
+        override val accent: Color get() = theme.accent
+        override val background: Color get() = theme.background
+        override val card: Color get() = theme.card
+        override val error: Color get() = theme.error
+        override val onBackground: Color get() = theme.onBackground
+
+        override fun onContextualColourChanged(thumbnailColour: Color?) {}
+    }
+
     final override suspend fun provideGlance(context: Context, id: GlanceId) {
-        this.context = AppContext.create(context, coroutine_scope)
+        this.context = AppContext.create(context, coroutine_scope, themeManager = themeManager)
 
         val np_theme_mode: ThemeMode = this.context.settings.Theme.NOWPLAYING_THEME_MODE.get()
         val swipe_sensitivity: Float = this.context.settings.Player.EXPAND_SWIPE_SENSITIVITY.get()
@@ -150,11 +168,35 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
 
             println("Widget $widget_id update received ($widget_type)")
 
+            val custom_themes: List<NamedTheme> by this@SpMpWidget.context.settings.Theme.CUSTOM_THEMES.observe()
+
+            val theme_reference: ThemeReference =
+                configuration.base_configuration.theme
+                    ?: this@SpMpWidget.context.settings.Theme.CURRENT_THEME.observe().value
+
+            val themeProvider: ThemeProvider =
+                object : ContextThemeProvider(this.context) {
+                    override fun getCustomTheme(index: Int): SerialisableTheme? = custom_themes.getOrNull(index)
+                    override fun getCustomThemes(): List<NamedTheme> = custom_themes
+                }
+
+            val theme: ThemeValuesData =
+                ThemeValuesData.of(theme_reference.getTheme(themeProvider))
+                    .run {
+                        copy(
+                            onBackground =
+                                when (base_configuration.content_colour) {
+                                    THEME -> onBackground
+                                    LIGHT -> Color.White
+                                    DARK -> Color.Black
+                                }
+                        )
+                    }
+
             CompositionLocalProvider(
                 // App
                 LocalPlayerState provides state,
                 dev.toastbits.composekit.components.LocalContext provides this.context,
-                LocalContextThemeIndexOverride provides base_configuration.theme_index,
 
                 // System
                 LocalContext provides context,
@@ -162,25 +204,10 @@ abstract class SpMpWidget<A: TypeWidgetClickAction, T: TypeWidgetConfig<A>>(
                 LocalDensity provides Density(context.resources.displayMetrics.density),
                 LocalLayoutDirection provides if (context.resources.getBoolean(R.bool.is_rtl)) LayoutDirection.Rtl else LayoutDirection.Ltr
             ) {
-                val theme_configuration: ThemeConfiguration = this.context.settings.Theme.rememberThemeConfiguration()
-                this.context.theme.Update(theme_configuration)
-
-                val on_background_colour: Color =
-                    when (base_configuration.content_colour) {
-                        THEME -> this.context.theme.onBackground
-                        LIGHT -> Color.White
-                        DARK -> Color.Black
-                    }
-
-                val theme: ThemeValues =
-                    remember(this.context.theme) {
-                        ThemeValuesData.of(this.context.theme).copy(onBackground = on_background_colour)
-                    }
-
                 CompositionLocalProvider(
                     *listOfNotNull(
                         LocalComposeKitTheme provides theme,
-                        if (!custom_background) LocalContentColor provides on_background_colour else null
+                        if (!custom_background) LocalContentColor provides theme.onBackground else null
                     ).toTypedArray()
                 ) {
                     Box(

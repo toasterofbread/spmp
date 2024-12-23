@@ -23,6 +23,7 @@ import com.toasterofbread.spmp.model.settings.category.YoutubeAuthSettings
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.resources.Language
 import dev.toastbits.composekit.commonsettings.impl.ComposeKitSettings
+import dev.toastbits.composekit.settings.ComposeKitSettingsGroup
 import dev.toastbits.composekit.settings.ui.screen.PlatformSettingsGroupScreen
 
 class Settings(
@@ -50,8 +51,11 @@ class Settings(
     val YtApi: YTApiSettings = YTApiSettings(context.getPrefs())
     override val Interface: InterfaceSettings = InterfaceSettings(context)
 
-    override val prefs: dev.toastbits.composekit.settings.PlatformSettings
+    override val preferences: dev.toastbits.composekit.settings.PlatformSettings
         get() = context.getPrefs()
+
+    override val allGroups: List<ComposeKitSettingsGroup>
+        get() = all_groups.values.toList()
 
     val all_groups: Map<String, SettingsGroup> =
         listOf(

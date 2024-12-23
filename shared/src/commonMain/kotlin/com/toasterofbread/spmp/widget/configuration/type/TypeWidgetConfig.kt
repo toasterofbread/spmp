@@ -10,9 +10,9 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
 import com.toasterofbread.spmp.widget.action.WidgetClickAction
 import com.toasterofbread.spmp.widget.configuration.WidgetConfig
-import dev.toastbits.composekit.settings.MutableStateSettingsProperty
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
-import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
+import dev.toastbits.composekit.settingsitem.domain.MutableStateSettingsProperty
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.DropdownSettingsItem
 import dev.toastbits.composekit.util.composable.OnChangedEffect
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.StringResource

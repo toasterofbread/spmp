@@ -18,8 +18,8 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.theme.appHover
-import dev.toastbits.composekit.theme.ThemeValues
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.theme.core.ThemeValues
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.content_bar_template_navigation

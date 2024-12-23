@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class BaseWidgetConfigDefaultsMask(
-    val theme_index: Boolean = true,
+    val theme: Boolean = true,
     val accent_colour_source: Boolean = true,
     val font: Boolean = true,
     val font_size: Boolean = true,
@@ -17,7 +17,7 @@ data class BaseWidgetConfigDefaultsMask(
 ) {
     fun applyTo(config: BaseWidgetConfig, default: BaseWidgetConfig): BaseWidgetConfig =
         BaseWidgetConfig(
-            theme_index = if (this.theme_index) default.theme_index else config.theme_index,
+            theme = if (this.theme) default.theme else config.theme,
             accent_colour_source = if (this.accent_colour_source) default.accent_colour_source else config.accent_colour_source,
             font = if (this.font) default.font else config.font,
             font_size = if (this.font_size) default.font_size else config.font_size,

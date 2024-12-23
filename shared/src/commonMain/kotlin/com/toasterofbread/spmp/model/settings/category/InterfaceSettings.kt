@@ -3,9 +3,9 @@ package com.toasterofbread.spmp.model.settings.category
 import com.toasterofbread.spmp.model.settings.SettingsGroup
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.composekit.commonsettings.impl.group.impl.ComposeKitSettingsGroupInterfaceImpl
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
-import dev.toastbits.composekit.settings.ui.component.item.LocaleSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.LocaleSettingsItem
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
 import dev.toastbits.composekit.util.model.Locale
 import dev.toastbits.composekit.util.model.LocaleList
 import org.jetbrains.compose.resources.stringResource

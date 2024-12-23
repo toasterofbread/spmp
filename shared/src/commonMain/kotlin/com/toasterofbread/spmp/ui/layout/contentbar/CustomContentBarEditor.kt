@@ -22,8 +22,8 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.vertical
 import dev.toastbits.composekit.components.utils.composable.animatedvisibility.NullableValueAnimatedVisibility
-import dev.toastbits.composekit.theme.ThemeValues
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.theme.core.ThemeValues
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import dev.toastbits.composekit.util.composable.WidthShrinkText
 import kotlin.math.roundToInt
 import org.jetbrains.compose.resources.stringResource

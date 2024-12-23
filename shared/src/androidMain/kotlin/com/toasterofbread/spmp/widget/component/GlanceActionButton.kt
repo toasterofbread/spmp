@@ -27,8 +27,8 @@ import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClick
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.SEEK_PREVIOUS
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.TOGGLE_LIKE
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.TOGGLE_VISIBILITY
-import dev.toastbits.composekit.theme.ui.LocalComposeKitTheme
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.theme.core.ui.LocalComposeKitTheme
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import dev.toastbits.composekit.util.getContrasted
 import dev.toastbits.composekit.util.composable.getValue
 import dev.toastbits.ytmkt.model.external.SongLikedStatus

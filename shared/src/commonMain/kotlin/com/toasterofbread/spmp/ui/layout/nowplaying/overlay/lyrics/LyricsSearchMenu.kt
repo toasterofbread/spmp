@@ -63,7 +63,7 @@ import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import dev.toastbits.composekit.components.utils.composable.LargeDropdownMenu
-import dev.toastbits.composekit.theme.onAccent
+import dev.toastbits.composekit.theme.core.onAccent
 import dev.toastbits.composekit.util.composable.OnChangedEffect
 import dev.toastbits.composekit.util.composable.getValue
 import kotlinx.coroutines.Dispatchers

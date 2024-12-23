@@ -2,8 +2,8 @@ package com.toasterofbread.spmp.widget.configuration.enum
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import dev.toastbits.composekit.theme.ui.LocalComposeKitTheme
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.theme.core.ui.LocalComposeKitTheme
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import dev.toastbits.composekit.util.blendWith
 import dev.toastbits.composekit.util.thenIf
 import kotlinx.serialization.Serializable

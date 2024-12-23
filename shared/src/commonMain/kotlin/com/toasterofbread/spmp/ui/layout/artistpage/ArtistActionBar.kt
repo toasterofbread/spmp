@@ -48,7 +48,7 @@ import dev.toastbits.composekit.components.utils.modifier.vertical
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.observeUrl
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.artist_chip_shuffle

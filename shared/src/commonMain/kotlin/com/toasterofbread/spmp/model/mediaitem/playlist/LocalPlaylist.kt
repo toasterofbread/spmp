@@ -19,7 +19,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import PlatformIO
-import dev.toastbits.composekit.theme.onAccent
+import dev.toastbits.composekit.theme.core.onAccent
 
 sealed interface LocalPlaylist: Playlist {
     suspend fun getLocalPlaylistFile(context: AppContext): PlatformFile? =

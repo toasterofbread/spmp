@@ -14,8 +14,8 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.getYtmAuthItem
 import dev.toastbits.composekit.settings.ComposeKitSettingsGroupWithCustomPreview
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
 import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import io.ktor.http.Headers
 import kotlinx.serialization.json.Json

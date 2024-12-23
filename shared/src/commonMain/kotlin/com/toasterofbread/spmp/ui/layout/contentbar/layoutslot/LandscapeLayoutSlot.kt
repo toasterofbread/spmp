@@ -5,8 +5,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.*
 import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.platform.AppContext
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
-import dev.toastbits.composekit.theme.ThemeValues
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.theme.core.ThemeValues
 import kotlinx.serialization.json.*
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res

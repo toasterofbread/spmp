@@ -7,8 +7,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.model.settings.SettingsGroupImpl
 import com.toasterofbread.spmp.youtubeapi.YtmApiType
 import dev.toastbits.composekit.settings.PlatformSettings
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
 
 class YTApiSettings(prefs: PlatformSettings): SettingsGroupImpl("YTAPI", prefs) {
     val API_TYPE: PlatformSettingsProperty<YtmApiType> by enumProperty(

@@ -22,10 +22,10 @@ import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.platform.playerservice.LocalServer
 import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
 import LocalProgramArguments
 import ProgramArguments
-import dev.toastbits.composekit.theme.onAccent
+import dev.toastbits.composekit.theme.core.onAccent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.loading_splash_button_configure_connection

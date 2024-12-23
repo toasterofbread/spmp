@@ -84,7 +84,7 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.songThu
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
 import dev.toastbits.composekit.components.platform.composable.composeScope
 import dev.toastbits.composekit.components.utils.composable.getTop
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import dev.toastbits.composekit.util.amplify
 import dev.toastbits.composekit.util.composable.getValue
 import dev.toastbits.composekit.util.getContrasted

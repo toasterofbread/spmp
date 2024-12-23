@@ -5,8 +5,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
-import dev.toastbits.composekit.settings.ui.component.item.StringSetSettingsItem
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.StringSetSettingsItem
 import org.jetbrains.compose.resources.StringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.settings_string_set_item_already_added

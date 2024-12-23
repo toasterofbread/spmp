@@ -7,13 +7,17 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.DiscordLogin
+import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
 import dev.toastbits.composekit.navigation.navigator.Navigator
 import dev.toastbits.composekit.navigation.screen.Screen
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.discord_manual_login_title
@@ -32,8 +36,10 @@ class DiscordLoginScreen(
 //        get() = if (manual) DiscordSettings.getDiscordIcon() else null
 
     @Composable
-    override fun Content(navigator: Navigator, modifier: Modifier, contentPadding: PaddingValues) {
+    override fun Content(modifier: Modifier, contentPadding: PaddingValues) {
         val player: PlayerState = LocalPlayerState.current
+        val navigator: Navigator = LocalNavigator.current
+        val coroutine_scope: CoroutineScope = rememberCoroutineScope()
         var exited: Boolean by remember { mutableStateOf(false) }
 
         DiscordLogin(contentPadding, Modifier.fillMaxSize(), manual = manual) { auth_info ->
@@ -49,11 +55,13 @@ class DiscordLoginScreen(
 
             auth_info.fold(
                 {
-                    if (it != null) {
-                        authState.set(it)
+                    coroutine_scope.launch {
+                        if (it != null) {
+                            authState.set(it)
+                        }
+                        navigator.navigateBackward(1)
+                        exited = true
                     }
-                    navigator.navigateBackward(1)
-                    exited = true
                 },
                 { error ->
                     error.message?.also {

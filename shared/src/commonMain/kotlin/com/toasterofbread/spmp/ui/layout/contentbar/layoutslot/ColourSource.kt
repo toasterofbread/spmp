@@ -8,8 +8,8 @@ import androidx.compose.runtime.*
 import kotlinx.serialization.Serializable
 import LocalPlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
-import dev.toastbits.composekit.theme.ThemeValues
-import dev.toastbits.composekit.theme.get
+import dev.toastbits.composekit.theme.core.ThemeValues
+import dev.toastbits.composekit.theme.core.get
 
 @Serializable
 sealed interface ColourSource {

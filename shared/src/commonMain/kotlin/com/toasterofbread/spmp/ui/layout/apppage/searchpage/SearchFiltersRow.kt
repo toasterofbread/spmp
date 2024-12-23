@@ -10,7 +10,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.components.utils.composable.ScrollableRowOrColumn
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.theme.onAccent
+import dev.toastbits.composekit.theme.core.onAccent
 import dev.toastbits.ytmkt.endpoint.*
 
 @Composable

@@ -13,8 +13,8 @@ import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfig
 import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
 import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
 import dev.toastbits.composekit.util.platform.Platform
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_cat_desc_widget

@@ -36,9 +36,9 @@ import com.toasterofbread.spmp.SpMpDeps
 import com.toasterofbread.spmp.model.settings.SettingsGroupImpl
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.ComposableSettingsItem
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import dev.toastbits.composekit.util.thenIf
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res

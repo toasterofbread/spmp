@@ -149,25 +149,25 @@ class SongThemePlayerOverlayMenu(
                     ) {
                         ValueSlider(
                             song.ThumbnailRounding.observe(player.database),
-                            player.settings.Theme.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING.getDefaultValueComposable(),
+                            player.settings.Theme.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING.getDefaultValue(),
                             stringResource(Res.string.song_theme_menu_corner_radius)
                         )
 
                         ValueSlider(
                             song.PlayerGradientDepth.observe(player.database),
-                            player.settings.Theme.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.getDefaultValueComposable(),
+                            player.settings.Theme.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.getDefaultValue(),
                             stringResource(Res.string.song_theme_menu_gradient_depth)
                         )
 
                         ValueSlider(
                             song.BackgroundWaveSpeed.observe(player.database),
-                            player.settings.Theme.NOWPLAYING_DEFAULT_WAVE_SPEED.getDefaultValueComposable(),
+                            player.settings.Theme.NOWPLAYING_DEFAULT_WAVE_SPEED.getDefaultValue(),
                             stringResource(Res.string.song_theme_menu_wave_speed)
                         )
 
                         ValueSlider(
                             song.BackgroundWaveOpacity.observe(player.database),
-                            player.settings.Theme.NOWPLAYING_DEFAULT_WAVE_OPACITY.getDefaultValueComposable(),
+                            player.settings.Theme.NOWPLAYING_DEFAULT_WAVE_OPACITY.getDefaultValue(),
                             stringResource(Res.string.song_theme_menu_wave_opacity)
                         )
 
@@ -208,21 +208,21 @@ class SongThemePlayerOverlayMenu(
 
                         ValueSlider(
                             song.BackgroundImageOpacity.observe(player.database),
-                            player.settings.Theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.getDefaultValueComposable(),
+                            player.settings.Theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.getDefaultValue(),
                             stringResource(Res.string.song_theme_menu_background_image_opacity)
                         )
 
                         if (player.form_factor == FormFactor.LANDSCAPE) {
                             ValueSlider(
                                 song.LandscapeQueueOpacity.observe(player.database),
-                                player.settings.Theme.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.getDefaultValueComposable(),
+                                player.settings.Theme.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.getDefaultValue(),
                                 stringResource(Res.string.song_theme_menu_queue_opacity)
                             )
                         }
 
                         ValueSlider(
                             song.ShadowRadius.observe(player.database),
-                            player.settings.Theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS.getDefaultValueComposable(),
+                            player.settings.Theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS.getDefaultValue(),
                             stringResource(Res.string.song_theme_menu_image_shadow_radius)
                         )
 

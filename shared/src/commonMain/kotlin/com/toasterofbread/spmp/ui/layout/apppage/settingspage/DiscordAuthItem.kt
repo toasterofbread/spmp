@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import LocalPlayerState
+import SpMp
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -21,12 +22,13 @@ import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.DiscordAccountPreview
 import com.toasterofbread.spmp.ui.layout.DiscordLoginConfirmation
-import dev.toastbits.composekit.settings.PlatformSettings
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
-import dev.toastbits.composekit.settings.ui.component.item.LargeToggleSettingsItem
-import dev.toastbits.composekit.theme.onAccent
-import dev.toastbits.composekit.theme.vibrantAccent
 import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsEditor
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.LargeToggleSettingsItem
+import dev.toastbits.composekit.theme.core.onAccent
+import dev.toastbits.composekit.theme.core.vibrantAccent
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
@@ -63,29 +65,25 @@ fun getDiscordAuthItem(
 
             override fun get(): Boolean = discord_auth.get().isNotEmpty()
 
-            override fun set(value: Boolean, editor: PlatformSettings.Editor?) {
+            override suspend fun set(value: Boolean, editor: PlatformSettingsEditor?) {
                 if (!value) {
                     discord_auth.set("", editor)
                 }
             }
 
-            override fun set(data: JsonElement, editor: PlatformSettings.Editor?) {
+            override suspend fun set(data: JsonElement, editor: PlatformSettingsEditor?) {
                 set(data.jsonPrimitive.boolean, editor)
             }
 
             override fun serialise(value: Any?): JsonElement =
                 JsonPrimitive(value as Boolean?)
 
-            override fun reset(editor: PlatformSettings.Editor?) {
+            override suspend fun reset(editor: PlatformSettingsEditor?) {
                 discord_auth.reset(editor)
             }
 
             override fun getDefaultValue(): Boolean =
                 discord_auth.getDefaultValue().isNotEmpty()
-
-            @Composable
-            override fun getDefaultValueComposable(): Boolean =
-                discord_auth.getDefaultValueComposable().isNotEmpty()
 
             @Composable
             override fun observe(): MutableState<Boolean> {
@@ -183,7 +181,9 @@ fun getDiscordAuthItem(
                 )
             }
             else {
-                discord_auth.set("0")
+                context.coroutineScope.launch {
+                    discord_auth.set("0")
+                }
             }
         }
         else {

@@ -2,19 +2,10 @@ package com.toasterofbread.spmp.widget.configuration.type
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.widget.action.SongQueueWidgetClickAction
 import com.toasterofbread.spmp.widget.action.WidgetClickAction
-import dev.toastbits.composekit.settings.MutableStateSettingsProperty
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
-import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
-import dev.toastbits.composekit.util.composable.OnChangedEffect
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource

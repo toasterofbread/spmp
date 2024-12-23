@@ -41,8 +41,8 @@ import com.toasterofbread.spmp.widget.component.styledcolumn.GLANCE_STYLED_COLUM
 import com.toasterofbread.spmp.widget.configuration.enum.WidgetSectionTheme
 import com.toasterofbread.spmp.widget.configuration.type.SplitImageControlsWidgetConfig
 import com.toasterofbread.spmp.widget.modifier.systemCornerRadius
-import dev.toastbits.composekit.theme.ui.LocalComposeKitTheme
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.theme.core.ui.LocalComposeKitTheme
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import dev.toastbits.composekit.util.blendWith
 import dev.toastbits.composekit.util.composable.getValue
 import org.jetbrains.compose.resources.stringResource

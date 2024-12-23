@@ -67,7 +67,8 @@ import dev.toastbits.composekit.settings.PlatformSettingsListener
 import dev.toastbits.composekit.components.platform.composable.BackHandler
 import dev.toastbits.composekit.components.utils.composable.getEnd
 import dev.toastbits.composekit.components.utils.composable.getStart
-import dev.toastbits.composekit.theme.onAccent
+import dev.toastbits.composekit.theme.core.ThemeManager
+import dev.toastbits.composekit.theme.core.onAccent
 import dev.toastbits.composekit.util.composable.OnChangedEffect
 import dev.toastbits.ytmkt.model.external.YoutubePage
 import kotlinx.coroutines.CoroutineScope
@@ -91,7 +92,7 @@ class PlayerState(
 ) {
     val database: Database get() = context.database
     val settings: Settings get() = context.settings
-    val theme: AppThemeManager get() = context.theme
+    val theme: ThemeManager get() = context.theme
     val app_page: AppPage get() = app_page_state.current_page
 
     private var _player: PlayerService? by mutableStateOf(null)

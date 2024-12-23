@@ -37,7 +37,8 @@ import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.rememberColourSource
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.vertical
 import com.toasterofbread.spmp.ui.theme.appHover
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.theme.core.readableName
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonElement
@@ -123,7 +124,7 @@ internal fun ContentBarSelector(
                         Icon(Icons.Default.Palette, null, rotate_modifier)
 
                         slot_colour_source.theme_colour?.also {
-                            Text(it.getReadable(), lineHeight = 10.sp)
+                            Text(it.readableName, lineHeight = 10.sp)
                         }
                     }
 

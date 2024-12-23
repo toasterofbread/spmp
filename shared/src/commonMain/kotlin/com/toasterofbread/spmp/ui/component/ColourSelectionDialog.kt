@@ -1,64 +1,62 @@
 package com.toasterofbread.spmp.ui.component
 
-import androidx.compose.ui.Modifier
-import androidx.compose.runtime.*
+import LocalPlayerState
+import androidx.compose.animation.Crossfade
+import androidx.compose.animation.animateContentSize
+import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.background
-import LocalPlayerState
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.Text
-import androidx.compose.material3.MaterialTheme
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.border
-import androidx.compose.material3.AlertDialog
-import androidx.compose.animation.Crossfade
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.Shape
-import androidx.compose.material3.Button
-import dev.toastbits.composekit.components.platform.composable.platformClickable
-import dev.toastbits.composekit.components.utils.composable.ColourPicker
-import androidx.compose.material.icons.filled.Done
-import androidx.compose.material3.Icon
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material3.IconButtonDefaults
-import dev.toastbits.composekit.util.getContrasted
-import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
-import com.toasterofbread.spmp.ui.theme.appHover
-import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
-import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
-import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ThemeColourSource
-import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.PlayerBackgroundColourSource
-import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
-import dev.toastbits.composekit.components.utils.modifier.bounceOnClick
-import androidx.compose.material3.LocalContentColor
-import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.material.icons.filled.Done
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonColors
 import androidx.compose.material3.ButtonDefaults
-import androidx.compose.animation.animateContentSize
-import androidx.compose.foundation.lazy.items
-import dev.toastbits.composekit.theme.ThemeValues
-import dev.toastbits.composekit.theme.get
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButtonDefaults
+import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Shape
+import androidx.compose.ui.unit.dp
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.PlayerBackgroundColourSource
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ThemeColourSource
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
+import com.toasterofbread.spmp.ui.theme.appHover
+import dev.toastbits.composekit.components.platform.composable.platformClickable
+import dev.toastbits.composekit.components.utils.composable.ColourPicker
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.components.utils.modifier.bounceOnClick
+import dev.toastbits.composekit.theme.core.ThemeValues
+import dev.toastbits.composekit.theme.core.get
+import dev.toastbits.composekit.theme.core.readableName
+import dev.toastbits.composekit.util.getContrasted
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
-import spmp.shared.generated.resources.colour_selector_dialog_title
-import spmp.shared.generated.resources.colour_selector_dialog_select_theme
-import spmp.shared.generated.resources.colour_selector_dialog_select_custom
 import spmp.shared.generated.resources.action_cancel
 import spmp.shared.generated.resources.colour_selector_dialog_player_background
+import spmp.shared.generated.resources.colour_selector_dialog_select_custom
+import spmp.shared.generated.resources.colour_selector_dialog_select_theme
+import spmp.shared.generated.resources.colour_selector_dialog_title
 import spmp.shared.generated.resources.colour_selector_dialog_transparent
-import spmp.shared.generated.resources.theme_colour_background
-import spmp.shared.generated.resources.theme_colour_accent
-import spmp.shared.generated.resources.theme_colour_vibrant_accent
-import spmp.shared.generated.resources.theme_colour_card
-import spmp.shared.generated.resources.theme_colour_on_background
-import spmp.shared.generated.resources.theme_colour_onAccent
-import spmp.shared.generated.resources.theme_colour_error
 
 @Composable
 fun ColourSelectionDialog(
@@ -125,7 +123,7 @@ private fun ThemeColourSelectionList(
         items(ThemeValues.Slot.entries) { slot ->
             ColourCard(
                 colour = player.theme[slot],
-                name = slot.getReadable(),
+                name = slot.readableName,
                 onSelected = {
                     onSelected(ThemeColourSource(slot))
                 }
@@ -187,7 +185,8 @@ private fun CustomColourSelector(
         verticalArrangement = Arrangement.spacedBy(10.dp)
     ) {
         ColourPicker(
-            current_colour,
+            Unit,
+            { current_colour },
             modifier,
             bottomRowExtraContent = {
                 ShapedIconButton(
@@ -205,15 +204,3 @@ private fun CustomColourSelector(
         }
     }
 }
-
-@Composable
-fun ThemeValues.Slot.getReadable(): String =
-    when (this) {
-        ThemeValues.Slot.BuiltIn.BACKGROUND -> stringResource(Res.string.theme_colour_background)
-        ThemeValues.Slot.BuiltIn.ACCENT -> stringResource(Res.string.theme_colour_accent)
-        ThemeValues.Slot.BuiltIn.CARD -> stringResource(Res.string.theme_colour_card)
-        ThemeValues.Slot.BuiltIn.ON_BACKGROUND -> stringResource(Res.string.theme_colour_on_background)
-        ThemeValues.Slot.BuiltIn.ERROR -> stringResource(Res.string.theme_colour_error)
-        ThemeValues.Slot.Extension.VIBRANT_ACCENT -> stringResource(Res.string.theme_colour_vibrant_accent)
-        ThemeValues.Slot.Extension.ON_ACCENT -> stringResource(Res.string.theme_colour_onAccent)
-    }

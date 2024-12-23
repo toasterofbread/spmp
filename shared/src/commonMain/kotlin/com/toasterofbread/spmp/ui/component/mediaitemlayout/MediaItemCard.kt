@@ -66,7 +66,7 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getThumbShape
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import dev.toastbits.composekit.components.platform.composable.platformClickable
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import dev.toastbits.composekit.util.getContrasted
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import org.jetbrains.compose.resources.stringResource

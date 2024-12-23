@@ -2,9 +2,9 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage.category
 
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
-import dev.toastbits.composekit.settings.ui.component.item.GroupSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.GroupSettingsItem
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.ToggleSettingsItem
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_group_long_press_menu
 

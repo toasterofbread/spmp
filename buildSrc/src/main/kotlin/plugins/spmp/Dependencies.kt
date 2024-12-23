@@ -36,15 +36,17 @@ class SpMpDeps(extra: Map<String, Any>) {
 
     fun getAllComposeKit(): List<String> =
         listOf(
-            "dev.toastbits:composekit-util",
-            "dev.toastbits:composekit-utilKt",
-            "dev.toastbits:composekit-context",
-            "dev.toastbits:composekit-settings",
-            "dev.toastbits:composekit-theme",
-            "dev.toastbits:composekit-navigation",
-            "dev.toastbits:composekit-components",
+            "dev.toastbits:composekit-application",
             "dev.toastbits:composekit-commonsettings",
-            "dev.toastbits:composekit-application"
+            "dev.toastbits:composekit-components",
+            "dev.toastbits:composekit-context",
+            "dev.toastbits:composekit-navigation",
+            "dev.toastbits:composekit-settings",
+            "dev.toastbits:composekit-settingsitem-presentation",
+            "dev.toastbits:composekit-theme-core",
+            "dev.toastbits:composekit-theme-config",
+            "dev.toastbits:composekit-util",
+            "dev.toastbits:composekit-utilKt"
         ).map { get(it, "dev.toastbits:composekit") }
 
     val dependencies: Map<String, DependencyInfo> =
@@ -58,7 +60,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/toasterofbread/spmp-server/blob/6dde651ffc102d604ac7ecd5ac7471b1572fd2e6/LICENSE"
             ),
             "dev.toastbits:composekit" to DependencyInfo(
-                version = "979f8703",
+                version = "0.1.0-SNAPSHOT",
                 name = "ComposeKit",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/composekit",

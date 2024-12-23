@@ -16,7 +16,7 @@ import dev.toastbits.composekit.components.utils.composable.*
 import dev.toastbits.composekit.components.utils.modifier.horizontal
 import dev.toastbits.composekit.components.utils.modifier.vertical
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import dev.toastbits.composekit.util.composable.WidthShrinkText
 
 @Composable

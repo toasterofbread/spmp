@@ -3,8 +3,8 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 import androidx.compose.ui.Modifier
 import dev.toastbits.composekit.util.roundTo
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
-import dev.toastbits.composekit.settings.ui.component.item.SliderSettingsItem
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.SliderSettingsItem
 import dev.toastbits.composekit.util.CustomStringResource
 import dev.toastbits.composekit.util.toCustomResource
 import org.jetbrains.compose.resources.getString

@@ -29,6 +29,8 @@ import com.toasterofbread.spmp.ui.component.NotImplementedMessage
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import dev.toastbits.ytmkt.model.external.ItemLayoutType
 import dev.toastbits.ytmkt.uistrings.UiString
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_confirm_action
@@ -56,6 +58,7 @@ internal fun SongFeedAppPage.LFFSongFeedAppPage(
     }
 
     val player: PlayerState = LocalPlayerState.current
+    val coroutine_scope: CoroutineScope = rememberCoroutineScope()
     val form_factor: FormFactor by FormFactor.observe()
 
     val hidden_rows: Set<String> by player.settings.Feed.HIDDEN_ROWS.observe()
@@ -129,11 +132,13 @@ internal fun SongFeedAppPage.LFFSongFeedAppPage(
                         onDismissRequest = { hiding_layout = null },
                         confirmButton = {
                             Button({
-                                player.settings.Feed.HIDDEN_ROWS.set(
-                                    hidden_rows.plus(title.serialise())
-                                )
+                                coroutine_scope.launch {
+                                    player.settings.Feed.HIDDEN_ROWS.set(
+                                        hidden_rows.plus(title.serialise())
+                                    )
 
-                                hiding_layout = null
+                                    hiding_layout = null
+                                }
                             }) {
                                 Text(stringResource(Res.string.action_confirm_action))
                             }

@@ -10,17 +10,15 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
-import dev.toastbits.composekit.util.*
-import dev.toastbits.composekit.components.utils.composable.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
-import dev.toastbits.composekit.theme.ThemeValues
-import dev.toastbits.composekit.theme.get
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.components.utils.composable.*
+import dev.toastbits.composekit.theme.core.ThemeValues
+import dev.toastbits.composekit.theme.core.get
+import dev.toastbits.composekit.theme.core.vibrantAccent
+import dev.toastbits.composekit.util.*
 import kotlinx.serialization.*
-import kotlinx.serialization.json.Json
 
 const val CUSTOM_CONTENT_BAR_DEFAULT_SIZE_DP: Float = 50f
 

@@ -36,7 +36,7 @@ import dev.toastbits.composekit.components.utils.composable.RowOrColumn
 import dev.toastbits.composekit.components.utils.composable.ScrollableRowOrColumn
 import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
 import dev.toastbits.composekit.components.utils.modifier.horizontal
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import dev.toastbits.composekit.util.composable.getValue
 import dev.toastbits.composekit.util.getContrasted
 import dev.toastbits.composekit.util.platform.Platform

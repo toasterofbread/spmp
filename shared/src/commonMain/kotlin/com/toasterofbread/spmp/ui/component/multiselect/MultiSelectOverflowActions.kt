@@ -45,7 +45,7 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
 import dev.toastbits.composekit.context.vibrateShort
-import dev.toastbits.composekit.theme.onAccent
+import dev.toastbits.composekit.theme.core.onAccent
 import dev.toastbits.composekit.components.utils.composable.PlatformClickableButton
 import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
 import kotlinx.coroutines.CoroutineScope

@@ -4,12 +4,12 @@ import LocalPlayerState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import dev.toastbits.composekit.settings.ui.component.item.GroupSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.InfoTextSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.GroupSettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.InfoTextSettingsItem
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
 import dev.toastbits.composekit.util.platform.Platform
-import dev.toastbits.composekit.settings.ui.component.item.TextFieldSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.TextFieldSettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.ToggleSettingsItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.playerservice.PlatformInternalPlayerService
@@ -21,6 +21,7 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
+import dev.toastbits.composekit.settingsitem.presentation.util.getConvertedProperty
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_group_desktop_system

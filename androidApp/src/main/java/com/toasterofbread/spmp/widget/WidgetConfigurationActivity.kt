@@ -18,6 +18,7 @@ import androidx.compose.runtime.CompositionLocalProvider
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.dp
 import androidx.core.view.WindowCompat
 import androidx.glance.GlanceId
@@ -29,8 +30,6 @@ import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
 import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
 import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
 import com.toasterofbread.spmp.widget.configuration.ui.screen.WidgetConfigurationScreen
-import dev.toastbits.composekit.commonsettings.impl.group.rememberThemeConfiguration
-import dev.toastbits.composekit.components.LocalContext
 import dev.toastbits.composekit.components.utils.modifier.background
 import dev.toastbits.composekit.context.ApplicationContext
 import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
@@ -38,7 +37,12 @@ import dev.toastbits.composekit.navigation.navigator.BaseNavigator
 import dev.toastbits.composekit.navigation.navigator.CurrentScreen
 import dev.toastbits.composekit.navigation.navigator.Navigator
 import dev.toastbits.composekit.navigation.screen.Screen
-import dev.toastbits.composekit.theme.model.ThemeConfiguration
+import dev.toastbits.composekit.theme.core.model.NamedTheme
+import dev.toastbits.composekit.theme.core.model.SerialisableTheme
+import dev.toastbits.composekit.theme.core.model.ThemeReference
+import dev.toastbits.composekit.theme.core.provider.ContextThemeProvider
+import dev.toastbits.composekit.theme.core.provider.ThemeProvider
+import dev.toastbits.composekit.theme.core.ui.LocalThemeProvider
 import dev.toastbits.composekit.util.composable.plus
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
@@ -46,6 +50,9 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
+import org.jetbrains.compose.resources.stringResource
+import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.widget_application_theme_label
 
 class WidgetConfigurationActivity: ComponentActivity() {
     private var app_widget_id: Int = AppWidgetManager.INVALID_APPWIDGET_ID
@@ -104,7 +111,7 @@ class WidgetConfigurationActivity: ComponentActivity() {
                 widget_type = widget_type
             )
         }
-        val navigator: Navigator = BaseNavigator(configuration_screen)
+        val navigator: Navigator = BaseNavigator(configuration_screen, isTopLevel = true)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.setFlags(
@@ -118,7 +125,6 @@ class WidgetConfigurationActivity: ComponentActivity() {
             val swipe_sensitivity: Float by context.settings.Player.EXPAND_SWIPE_SENSITIVITY.observe()
 
             CompositionLocalProvider(
-                LocalContext provides context,
                 LocalNavigator provides navigator,
                 LocalPlayerState providesComputed {
                     SpMp._player_state?.also { return@providesComputed it }
@@ -130,17 +136,34 @@ class WidgetConfigurationActivity: ComponentActivity() {
                     return@providesComputed dummy_player_state!!
                 }
             ) {
-                val theme_configuration: ThemeConfiguration = context.settings.Theme.rememberThemeConfiguration()
-                context.theme.Update(theme_configuration)
-
                 SpMp.Theme(context) {
-                    Scaffold { inner_padding ->
-                        navigator.CurrentScreen(
-                            Modifier
-                                .fillMaxSize()
-                                .background { context.theme.background },
-                            inner_padding + PaddingValues(20.dp)
-                        )
+                    val themeProvider: ThemeProvider = LocalThemeProvider.current
+                    val applicationTheme: ThemeReference by context.settings.Theme.CURRENT_THEME.observe()
+                    val applicationThemeName: String = stringResource(Res.string.widget_application_theme_label)
+
+                    CompositionLocalProvider(
+                        LocalThemeProvider provides object : ContextThemeProvider(context) {
+                            override fun getCustomTheme(index: Int): SerialisableTheme? =
+                                if (index == -1)
+                                    NamedTheme(
+                                        NamedTheme.Type.CUSTOM,
+                                        applicationThemeName,
+                                        applicationTheme.getTheme(themeProvider)
+                                    )
+                                else themeProvider.getCustomTheme(index)
+
+                            override fun getCustomThemes(): List<NamedTheme> =
+                                themeProvider.getCustomThemes()
+                        }
+                    ) {
+                        Scaffold { inner_padding ->
+                            navigator.CurrentScreen(
+                                Modifier
+                                    .fillMaxSize()
+                                    .background { context.theme.background },
+                                inner_padding + PaddingValues(20.dp)
+                            )
+                        }
                     }
                 }
             }
@@ -174,7 +197,9 @@ class WidgetConfigurationActivity: ComponentActivity() {
                 }
             },
             onSetDefaultBaseConfig = { new_base_configuration ->
-                context.settings.Widget.DEFAULT_BASE_WIDGET_CONFIGURATION.set(new_base_configuration)
+                coroutine_scope.launch {
+                    context.settings.Widget.DEFAULT_BASE_WIDGET_CONFIGURATION.set(new_base_configuration)
+                }
             },
             onSetDefaultTypeConfig = { new_type_configuration ->
                 coroutine_scope.launch {

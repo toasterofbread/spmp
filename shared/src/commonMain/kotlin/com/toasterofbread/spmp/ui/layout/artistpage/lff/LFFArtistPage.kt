@@ -23,8 +23,8 @@ import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
-import dev.toastbits.composekit.theme.makeVibrant
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.theme.core.makeVibrant
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import dev.toastbits.ytmkt.endpoint.ArtistWithParamsRow
 
 @Composable

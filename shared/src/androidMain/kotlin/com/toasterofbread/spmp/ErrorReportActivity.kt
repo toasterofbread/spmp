@@ -47,16 +47,14 @@ import androidx.compose.ui.unit.sp
 import com.anggrayudi.storage.extension.count
 import com.toasterofbread.spmp.model.JsonHttpClient
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.AppThemeManager
 import com.toasterofbread.spmp.resources.getStringTODO
 import com.toasterofbread.spmp.resources.stringResourceTODO
 import com.toasterofbread.spmp.ui.component.uploadErrorToPasteEe
 import dev.toastbits.composekit.application.ApplicationTheme
-import dev.toastbits.composekit.commonsettings.impl.group.rememberThemeConfiguration
-import dev.toastbits.composekit.context.ApplicationContext
-import dev.toastbits.composekit.util.thenIf
 import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
-import dev.toastbits.composekit.theme.model.ThemeConfiguration
+import dev.toastbits.composekit.context.ApplicationContext
+import dev.toastbits.composekit.theme.core.ThemeManager
+import dev.toastbits.composekit.util.thenIf
 import io.ktor.client.HttpClient
 import io.ktor.client.request.request
 import io.ktor.client.request.setBody
@@ -114,10 +112,8 @@ class ErrorReportActivity : ComponentActivity() {
                     "---STACK TRACE---\n$stack_trace\n---LOGCAT (last $logcat_lines lines)---\n$logcat"
                 }
 
-                val theme: AppThemeManager? = context?.theme
+                val theme: ThemeManager? = context?.theme
                 if (theme != null) {
-                    val themeConfiguration: ThemeConfiguration = context.settings.Theme.rememberThemeConfiguration()
-                    theme.Update(themeConfiguration)
                     theme.ApplicationTheme(context, context.settings) {
                         ErrorDisplay(context, message, stack_trace, logcat, error_text)
                     }

@@ -17,11 +17,12 @@ import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
 import com.toasterofbread.spmp.platform.download.PlayerDownloadManager
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.commonsettings.impl.group.theme.ContextThemeManager
+import dev.toastbits.composekit.commonsettings.impl.group.theme.SettingsThemeManager
 import dev.toastbits.composekit.context.PlatformContext
 import dev.toastbits.composekit.settings.PlatformSettings
 import dev.toastbits.composekit.settings.PlatformSettingsListener
-import dev.toastbits.composekit.theme.ThemeValues
+import dev.toastbits.composekit.theme.core.ThemeManager
+import dev.toastbits.composekit.theme.core.ThemeValues
 import dev.toastbits.composekit.util.platform.Platform
 import dev.toastbits.ytmkt.model.YtmApi
 import kotlinx.coroutines.launch
@@ -31,7 +32,7 @@ expect class AppContext: PlatformContext {
     val database: Database
     val download_manager: PlayerDownloadManager
     val ytapi: YtmApi
-    val theme: AppThemeManager
+    val theme: ThemeManager
     val settings: Settings
 
     fun getPrefs(): PlatformSettings
@@ -39,7 +40,7 @@ expect class AppContext: PlatformContext {
 
 class AppThemeManager(
     private val context: AppContext
-): ContextThemeManager(context.settings, context) {
+): SettingsThemeManager(context.settings) {
     private var accent_colour_source: AccentColourSource? by mutableStateOf(null)
 
     override fun selectAccentColour(values: ThemeValues, contextualColour: Color?): Color =
@@ -47,10 +48,6 @@ class AppThemeManager(
             AccentColourSource.THEME -> values.accent
             AccentColourSource.THUMBNAIL -> contextualColour ?: values.accent
         }
-
-    fun onCurrentThumbnailColourChanged(thumbnail_colour: Color?) {
-        onContextualColourChanged(thumbnail_colour)
-    }
 
     private val prefs_listener: PlatformSettingsListener =
         PlatformSettingsListener { key ->

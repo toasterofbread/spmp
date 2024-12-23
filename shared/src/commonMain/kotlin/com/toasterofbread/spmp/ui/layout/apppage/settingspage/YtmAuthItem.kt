@@ -21,10 +21,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import dev.toastbits.composekit.settings.PlatformSettings
-import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.LargeToggleSettingsItem
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.ComposableSettingsItem
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.LargeToggleSettingsItem
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
 import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
@@ -35,8 +35,9 @@ import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getYoutub
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.ui.component.NotImplementedMessage
 import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.LoginPage
-import dev.toastbits.composekit.theme.onAccent
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsEditor
+import dev.toastbits.composekit.theme.core.onAccent
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import io.ktor.http.Headers
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonPrimitive
@@ -68,13 +69,13 @@ fun getYtmAuthItem(context: AppContext, ytmAuth: PlatformSettingsProperty<Set<St
             override fun get(): Boolean =
                 ytmAuth.get().isNotEmpty()
 
-            override fun set(value: Boolean, editor: PlatformSettings.Editor?) {
+            override suspend fun set(value: Boolean, editor: PlatformSettingsEditor?) {
                 if (!value) {
                     ytmAuth.set(emptySet(), editor)
                 }
             }
 
-            override fun set(data: JsonElement, editor: PlatformSettings.Editor?) {
+            override suspend fun set(data: JsonElement, editor: PlatformSettingsEditor?) {
                 set(data.jsonPrimitive.boolean, editor)
             }
 
@@ -83,10 +84,6 @@ fun getYtmAuthItem(context: AppContext, ytmAuth: PlatformSettingsProperty<Set<St
 
             override fun getDefaultValue(): Boolean =
                 ytmAuth.getDefaultValue().isNotEmpty()
-
-            @Composable
-            override fun getDefaultValueComposable(): Boolean =
-                ytmAuth.getDefaultValueComposable().isNotEmpty()
 
             @Composable
             override fun observe(): MutableState<Boolean> {
@@ -100,7 +97,7 @@ fun getYtmAuthItem(context: AppContext, ytmAuth: PlatformSettingsProperty<Set<St
                 return state
             }
 
-            override fun reset(editor: PlatformSettings.Editor?) {
+            override suspend fun reset(editor: PlatformSettingsEditor?) {
                 ytmAuth.reset(editor)
             }
         },

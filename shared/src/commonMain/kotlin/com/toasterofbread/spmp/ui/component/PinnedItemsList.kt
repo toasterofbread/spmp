@@ -92,7 +92,7 @@ fun PinnedItemsList(
                 !vertical,
                 arrangement = arrangement,
                 alignment = -1,
-                show_scrollbar = false
+                showScrollbar = false
             ) {
                 items(pinned_items) { item ->
                     Item(item, vertical, multiselect_context, onClick, Modifier.animateItem())

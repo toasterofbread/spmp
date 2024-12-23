@@ -13,8 +13,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Text
 import androidx.compose.material3.Switch
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
-import dev.toastbits.composekit.theme.ThemeValues
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.theme.core.ThemeValues
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement

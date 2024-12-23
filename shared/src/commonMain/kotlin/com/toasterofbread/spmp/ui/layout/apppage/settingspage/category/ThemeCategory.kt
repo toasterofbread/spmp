@@ -4,10 +4,10 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.doesPlatformSupportVideoPlayback
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.AppSliderItem
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
-import dev.toastbits.composekit.settings.ui.component.item.GroupSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.MultipleChoiceSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.ToggleSettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.GroupSettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.MultipleChoiceSettingsItem
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.ToggleSettingsItem
 import dev.toastbits.composekit.util.platform.Platform
 import isWindowTransparencySupported
 import org.jetbrains.compose.resources.stringResource

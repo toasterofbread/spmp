@@ -44,10 +44,10 @@ import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.ui.layout.contentbar.CustomContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlotEditorPreviewOptions
-import dev.toastbits.composekit.settings.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
 import dev.toastbits.composekit.components.platform.composable.platformClickable
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
-import dev.toastbits.composekit.theme.vibrantAccent
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import dev.toastbits.composekit.util.thenWith
 import kotlinx.serialization.json.JsonElement
 import org.jetbrains.compose.resources.stringResource

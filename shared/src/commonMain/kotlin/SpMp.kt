@@ -36,15 +36,13 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import dev.toastbits.composekit.application.ApplicationTheme
 import dev.toastbits.composekit.commonsettings.impl.LocalComposeKitSettings
-import dev.toastbits.composekit.commonsettings.impl.group.rememberThemeConfiguration
 import dev.toastbits.composekit.components.LocalContext
 import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
 import dev.toastbits.composekit.navigation.navigator.Navigator
 import dev.toastbits.composekit.navigation.screen.Screen
 import dev.toastbits.composekit.navigation.screen.ScreenButton
 import dev.toastbits.composekit.settings.PlatformSettings
-import dev.toastbits.composekit.theme.ThemeValues
-import dev.toastbits.composekit.theme.model.ThemeConfiguration
+import dev.toastbits.composekit.theme.core.ThemeValues
 import dev.toastbits.composekit.util.platform.Platform
 import dev.toastbits.composekit.util.thenIf
 import dev.toastbits.spms.socketapi.shared.SPMS_API_VERSION
@@ -131,7 +129,7 @@ object SpMp {
             throw IllegalStateException()
         }
 
-        override fun addChild(navigator: Navigator) {
+        override fun addHistoryResetListener(listener: Navigator.HistoryResetListener) {
             TODO("Not yet implemented")
         }
 
@@ -145,34 +143,30 @@ object SpMp {
         override fun navigateForward(by: Int) {}
         override fun peekRelative(offset: Int): Screen? = null
 
-        override fun pushScreen(screen: Screen, skipIfSameClass: Boolean) {
+        override fun pushScreen(screen: Screen) {
             val player: PlayerState = _player_state ?: return
-            player.openAppPage(screen.toAppPage(player.app_page_state, this), replace_current = false)
+            player.openAppPage(screen.toAppPage(player.app_page_state), replace_current = false)
         }
 
-        override fun <T : Screen> pushScreenAndListenForClose(
-            screen: T,
-            skipIfSameClass: Boolean,
-            listener: Navigator.ScreenCloseListener<T>,
-        ) {
-            TODO("Not yet implemented")
-        }
-
-        override fun removeChild(navigator: Navigator) {
+        override fun removeHistoryResetListener(listener: Navigator.HistoryResetListener) {
             TODO("Not yet implemented")
         }
 
         override fun replaceScreen(screen: Screen) {
             val player: PlayerState = _player_state ?: return
-            player.openAppPage(screen.toAppPage(player.app_page_state, this), replace_current = true)
+            player.openAppPage(screen.toAppPage(player.app_page_state), replace_current = true)
         }
 
         override fun replaceScreenUpTo(screen: Screen, isLastScreenToReplace: (Screen) -> Boolean) {
             TODO("Not yet implemented")
         }
+
+        override fun visualise(): String {
+            TODO("Not yet implemented")
+        }
     }
 
-    private fun Screen.toAppPage(state: AppPageState, navigator: Navigator): AppPage =
+    private fun Screen.toAppPage(state: AppPageState): AppPage =
         object : AppPage() {
             override val state: AppPageState = state
 
@@ -183,7 +177,7 @@ object SpMp {
                 content_padding: PaddingValues,
                 close: () -> Unit
             ) {
-                this@toAppPage.Content(navigator, modifier, content_padding)
+                this@toAppPage.Content(modifier, content_padding)
             }
 
             override fun onClosed(next_page: AppPage?) {
@@ -201,9 +195,6 @@ object SpMp {
         window_fullscreen_toggler: (() -> Unit)? = null
     ) {
         shortcut_state.ObserveState()
-
-        val themeConfiguration: ThemeConfiguration = context.settings.Theme.rememberThemeConfiguration()
-        context.theme.Update(themeConfiguration)
 
         val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 

@@ -20,6 +20,7 @@ import dev.toastbits.composekit.context.ApplicationContext
 import dev.toastbits.composekit.context.PlatformContext
 import dev.toastbits.composekit.settings.PlatformSettings
 import dev.toastbits.composekit.settings.PlatformSettingsImpl
+import dev.toastbits.composekit.theme.core.ThemeManager
 import dev.toastbits.composekit.util.getThemeColour
 import dev.toastbits.composekit.util.platform.launchSingle
 import dev.toastbits.ytmkt.model.YtmApi
@@ -36,13 +37,15 @@ actual class AppContext private constructor(
     data_language: Language,
     available_languages: List<Language>,
     private val prefs: PlatformSettings,
-    application_context: ApplicationContext? = null
+    application_context: ApplicationContext? = null,
+    themeManager: ThemeManager? = null
 ): PlatformContext(context, coroutine_scope, application_context) {
     companion object {
         suspend fun create(
             context: Context,
             coroutine_scope: CoroutineScope,
-            application_context: ApplicationContext? = null
+            application_context: ApplicationContext? = null,
+            themeManager: ThemeManager? = null
         ): AppContext {
             val prefs: PlatformSettings = PlatformSettingsImpl.getInstance(context, ProjectJson.instance)
             val settings: YTApiSettings = YTApiSettings(prefs)
@@ -55,7 +58,8 @@ actual class AppContext private constructor(
                 Language.getSystem(),
                 getAvailableLanguages(),
                 prefs,
-                application_context
+                application_context,
+                themeManager
             )
         }
 
@@ -109,5 +113,5 @@ actual class AppContext private constructor(
     actual val settings: Settings = Settings(this, available_languages)
     actual val download_manager: PlayerDownloadManager = PlayerDownloadManager(this)
     actual val ytapi: YtmApi = api_type.instantiate(this, api_url, data_language)
-    actual val theme: AppThemeManager = AppThemeManager(this@AppContext)
+    actual val theme: ThemeManager = themeManager ?: AppThemeManager(this@AppContext)
 }

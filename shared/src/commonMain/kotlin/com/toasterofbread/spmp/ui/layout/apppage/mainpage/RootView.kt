@@ -46,7 +46,6 @@ fun RootView(player: PlayerState) {
     )
 
     var window_transparency_enabled: Boolean by remember { mutableStateOf(false) }
-    val background_opacity: Float by player.settings.Theme.WINDOW_BACKGROUND_OPACITY.observe()
 
     LaunchedEffect(Unit) {
         window_transparency_enabled = player.settings.Theme.ENABLE_WINDOW_TRANSPARENCY.get()
@@ -54,7 +53,7 @@ fun RootView(player: PlayerState) {
 
     Canvas(Modifier.fillMaxSize()) {
         drawRect(
-            player.theme.background.thenIf(window_transparency_enabled) { copy(alpha = background_opacity) },
+            player.theme.background,
             blendMode = BlendMode.SrcIn
         )
     }

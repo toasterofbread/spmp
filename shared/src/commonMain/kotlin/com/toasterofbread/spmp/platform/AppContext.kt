@@ -41,7 +41,10 @@ expect class AppContext: PlatformContext {
 class AppThemeManager(
     private val context: AppContext
 ): SettingsThemeManager(context.settings) {
-    private var accent_colour_source: AccentColourSource? by mutableStateOf(null)
+    private var accent_colour_source: AccentColourSource? by
+        mutableStateOf(context.settings.Theme.ACCENT_COLOUR_SOURCE.get())
+    private var background_opacity: Float by
+        mutableStateOf(context.settings.Theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.get())
 
     override fun selectAccentColour(values: ThemeValues, contextualColour: Color?): Color =
         when(accent_colour_source ?: AccentColourSource.THEME) {
@@ -53,20 +56,25 @@ class AppThemeManager(
         PlatformSettingsListener { key ->
             when (key) {
                 context.settings.Theme.ACCENT_COLOUR_SOURCE.key -> {
-                    context.coroutineScope.launch {
-                        accent_colour_source = context.settings.Theme.ACCENT_COLOUR_SOURCE.get()
-                    }
+                    accent_colour_source = context.settings.Theme.ACCENT_COLOUR_SOURCE.get()
+                }
+                context.settings.Theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.key -> {
+                    background_opacity = context.settings.Theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.get()
                 }
             }
         }
+
+    override val background: Color
+        get() = super.background.copy(alpha = background_opacity)
+
+    override val card: Color
+        get() = super.card.copy(alpha = background_opacity)
 
     init {
         val prefs: PlatformSettings = context.getPrefs()
         prefs.addListener(prefs_listener)
 
-        context.coroutineScope.launch {
-            accent_colour_source = context.settings.Theme.ACCENT_COLOUR_SOURCE.get()
-        }
+        accent_colour_source = context.settings.Theme.ACCENT_COLOUR_SOURCE.get()
     }
 }
 

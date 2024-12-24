@@ -9,7 +9,7 @@ import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
-import dev.toastbits.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.components.platform.composable.platformClickable
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.layout_editor_preview_option_show_bar_content

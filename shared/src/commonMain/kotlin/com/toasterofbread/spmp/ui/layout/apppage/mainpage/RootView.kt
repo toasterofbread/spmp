@@ -1,10 +1,8 @@
 @file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
 package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 
-import LocalPlayerState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -16,8 +14,8 @@ import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.DpSize
-import dev.toastbits.composekit.utils.common.addUnique
-import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.util.addUnique
+import dev.toastbits.composekit.util.thenIf
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerHeight
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.getMinimisedPlayerVPadding
@@ -48,15 +46,14 @@ fun RootView(player: PlayerState) {
     )
 
     var window_transparency_enabled: Boolean by remember { mutableStateOf(false) }
-    val background_opacity: Float by player.settings.theme.WINDOW_BACKGROUND_OPACITY.observe()
 
     LaunchedEffect(Unit) {
-        window_transparency_enabled = player.settings.theme.ENABLE_WINDOW_TRANSPARENCY.get()
+        window_transparency_enabled = player.settings.Theme.ENABLE_WINDOW_TRANSPARENCY.get()
     }
 
     Canvas(Modifier.fillMaxSize()) {
         drawRect(
-            player.theme.background.thenIf(window_transparency_enabled) { copy(alpha = background_opacity) },
+            player.theme.background,
             blendMode = BlendMode.SrcIn
         )
     }

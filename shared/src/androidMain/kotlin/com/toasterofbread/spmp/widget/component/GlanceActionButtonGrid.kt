@@ -16,8 +16,8 @@ import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
 import com.toasterofbread.spmp.widget.action.WidgetClickAction
 import com.toasterofbread.spmp.widget.component.styledcolumn.GLANCE_STYLED_COLUMN_DEFAULT_SPACING
 import com.toasterofbread.spmp.widget.modifier.size
-import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
-import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.theme.core.ui.LocalComposeKitTheme
+import dev.toastbits.composekit.theme.core.vibrantAccent
 
 enum class GlanceActionButtonGridMode {
     FILL,
@@ -50,7 +50,7 @@ fun <T: TypeWidgetClickAction> GlanceActionButtonGrid(
     button_modifier: GlanceModifier = GlanceModifier,
     spacing: Dp = GLANCE_STYLED_COLUMN_DEFAULT_SPACING,
     alignment: Alignment = Alignment.Center,
-    button_background_colour: Color = LocalApplicationTheme.current.vibrant_accent
+    button_background_colour: Color = LocalComposeKitTheme.current.vibrantAccent
 ) {
     val button_size: DpSize = mode.getButtonSize(size, spacing)
     val button_icon_size: Dp = minOf(button_size.width, button_size.height) * 0.37f

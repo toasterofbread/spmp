@@ -37,8 +37,8 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.composable.PlatformClickableIconButton
-import dev.toastbits.composekit.utils.composable.WidthShrinkText
+import dev.toastbits.composekit.components.utils.composable.PlatformClickableIconButton
+import dev.toastbits.composekit.util.composable.WidthShrinkText
 import com.toasterofbread.spmp.model.getString
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.layout.open
@@ -91,7 +91,7 @@ fun TitleBar(
                 modifier = modifier.weight(1f)
             ) {
                 subtitle_string?.also { subtitle ->
-                    WidthShrinkText(subtitle, style = layout_params.getTitleTextStyle(MaterialTheme.typography.titleSmall.copy(color = player.theme.on_background)))
+                    WidthShrinkText(subtitle, style = layout_params.getTitleTextStyle(MaterialTheme.typography.titleSmall.copy(color = player.theme.onBackground)))
                 }
 
                 title_string?.also { title ->
@@ -101,7 +101,7 @@ fun TitleBar(
                         style = MaterialTheme.typography.headlineMedium.let { style ->
                             layout_params.getTitleTextStyle(
                                 style.copy(
-                                    color = player.theme.on_background,
+                                    color = player.theme.onBackground,
                                     fontSize = font_size ?: style.fontSize
                                 )
                             )

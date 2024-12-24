@@ -5,11 +5,12 @@ import androidx.compose.material.icons.outlined.Speaker
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
+import com.toasterofbread.spmp.model.settings.SettingsGroupImpl
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadMethod
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getStreamingCategoryItems
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
 import dev.toastbits.ytmkt.formats.VideoFormatsEndpoint
 import dev.toastbits.ytmkt.model.YtmApi
 import org.jetbrains.compose.resources.stringResource
@@ -37,58 +38,58 @@ import spmp.shared.generated.resources.video_format_endpoint_newpipe
 import spmp.shared.generated.resources.video_format_endpoint_piped
 import spmp.shared.generated.resources.video_format_endpoint_youtubei
 
-class StreamingSettings(val context: AppContext): SettingsGroup("STREAMING", context.getPrefs()) {
-    val VIDEO_FORMATS_METHOD: PreferencesProperty<VideoFormatsEndpointType> by enumProperty(
+class StreamingSettings(val context: AppContext): SettingsGroupImpl("STREAMING", context.getPrefs()) {
+    val VIDEO_FORMATS_METHOD: PlatformSettingsProperty<VideoFormatsEndpointType> by enumProperty(
         getName = { stringResource(Res.string.s_key_video_formats_endpoint) },
         getDescription = { null },
         getDefaultValue = { VideoFormatsEndpointType.DEFAULT }
     )
-    val ENABLE_VIDEO_FORMAT_FALLBACK: PreferencesProperty<Boolean> by property(
+    val ENABLE_VIDEO_FORMAT_FALLBACK: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_enable_video_format_fallback) },
         getDescription = { null },
         getDefaultValue = { true }
     )
-    val AUTO_DOWNLOAD_ENABLED: PreferencesProperty<Boolean> by property(
+    val AUTO_DOWNLOAD_ENABLED: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_auto_download_enabled) },
         getDescription = { null },
         getDefaultValue = { true }
     )
-    val AUTO_DOWNLOAD_THRESHOLD: PreferencesProperty<Int> by property(
+    val AUTO_DOWNLOAD_THRESHOLD: PlatformSettingsProperty<Int> by property(
         getName = { stringResource(Res.string.s_key_auto_download_threshold) },
         getDescription = { stringResource(Res.string.s_sub_auto_download_threshold) },
         getDefaultValue = { 1 } // Listens
     )
-    val AUTO_DOWNLOAD_ON_METERED: PreferencesProperty<Boolean> by property(
+    val AUTO_DOWNLOAD_ON_METERED: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_auto_download_on_metered) },
         getDescription = { null },
         getDefaultValue = { false }
     )
-    val STREAM_AUDIO_QUALITY: PreferencesProperty<SongAudioQuality> by enumProperty(
+    val STREAM_AUDIO_QUALITY: PlatformSettingsProperty<SongAudioQuality> by enumProperty(
         getName = { stringResource(Res.string.s_key_stream_audio_quality) },
         getDescription = { stringResource(Res.string.s_sub_stream_audio_quality) },
         getDefaultValue = { SongAudioQuality.HIGH }
     )
-    val DOWNLOAD_AUDIO_QUALITY: PreferencesProperty<SongAudioQuality> by enumProperty(
+    val DOWNLOAD_AUDIO_QUALITY: PlatformSettingsProperty<SongAudioQuality> by enumProperty(
         getName = { stringResource(Res.string.s_key_download_audio_quality) },
         getDescription = { stringResource(Res.string.s_sub_download_audio_quality) },
         getDefaultValue = { SongAudioQuality.HIGH }
     )
-    val ENABLE_AUDIO_NORMALISATION: PreferencesProperty<Boolean> by property(
+    val ENABLE_AUDIO_NORMALISATION: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_enable_audio_normalisation) },
         getDescription = { stringResource(Res.string.s_sub_enable_audio_normalisation) },
         getDefaultValue = { false }
     )
-    val ENABLE_SILENCE_SKIPPING: PreferencesProperty<Boolean> by property(
+    val ENABLE_SILENCE_SKIPPING: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_enable_silence_skipping) },
         getDescription = { null },
         getDefaultValue = { false }
     )
-    val DOWNLOAD_METHOD: PreferencesProperty<DownloadMethod> by enumProperty(
+    val DOWNLOAD_METHOD: PlatformSettingsProperty<DownloadMethod> by enumProperty(
         getName = { stringResource(Res.string.s_key_download_method) },
         getDescription = { stringResource(Res.string.s_sub_download_method) },
         getDefaultValue = { DownloadMethod.DEFAULT }
     )
-    val SKIP_DOWNLOAD_METHOD_CONFIRMATION: PreferencesProperty<Boolean> by property(
+    val SKIP_DOWNLOAD_METHOD_CONFIRMATION: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_skip_download_method_confirmation) },
         getDescription = { stringResource(Res.string.s_sub_skip_download_method_confirmation) },
         getDefaultValue = { false }

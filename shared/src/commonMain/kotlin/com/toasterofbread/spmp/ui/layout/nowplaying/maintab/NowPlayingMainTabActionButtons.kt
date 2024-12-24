@@ -14,9 +14,9 @@ import androidx.compose.ui.platform.ClipboardManager
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import com.toasterofbread.spmp.model.mediaitem.observeUrl
-import dev.toastbits.composekit.platform.vibrateShort
-import dev.toastbits.composekit.utils.composable.PlatformClickableIconButton
-import dev.toastbits.composekit.utils.modifier.bounceOnClick
+import dev.toastbits.composekit.context.vibrateShort
+import dev.toastbits.composekit.components.utils.composable.PlatformClickableIconButton
+import dev.toastbits.composekit.components.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.ui.component.LikeDislikeButton
 import com.toasterofbread.spmp.service.playercontroller.PlayerState

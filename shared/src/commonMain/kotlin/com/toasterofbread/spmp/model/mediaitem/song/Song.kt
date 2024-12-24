@@ -179,9 +179,9 @@ interface Song: MediaItem.WithArtists {
         val controller: PlayerService? = player.controller
 
         val internal_offset: Long? by LyricsSyncOffset.observe(database)
-        val settings_delay: Float by player.settings.lyrics.SYNC_DELAY.observe()
-        val settings_delay_topbar: Float by player.settings.lyrics.SYNC_DELAY_TOPBAR.observe()
-        val settings_delay_bt: Float by player.settings.lyrics.SYNC_DELAY_BLUETOOTH.observe()
+        val settings_delay: Float by player.settings.Lyrics.SYNC_DELAY.observe()
+        val settings_delay_topbar: Float by player.settings.Lyrics.SYNC_DELAY_TOPBAR.observe()
+        val settings_delay_bt: Float by player.settings.Lyrics.SYNC_DELAY_BLUETOOTH.observe()
 
         return remember(controller, is_topbar) { derivedStateOf {
             var delay: Float = settings_delay
@@ -232,7 +232,7 @@ private data class SongThumbnailProvider(val id: String): ThumbnailProvider {
 @Composable
 fun Song?.observeThumbnailRounding(): Int {
     val player: PlayerState = LocalPlayerState.current
-    val default: Float by player.settings.theme.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING.observe()
+    val default: Float by player.settings.Theme.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING.observe()
     val corner_rounding: Float? = this?.ThumbnailRounding?.observe(player.database)?.value
     return ((corner_rounding ?: default) * 50f).roundToInt()
 }

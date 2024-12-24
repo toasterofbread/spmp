@@ -26,7 +26,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
-import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.context.PlatformFile
 
 class LocalPlaylistData(id: String): PlaylistData(id), LocalPlaylist {
     var play_count: Int = 0

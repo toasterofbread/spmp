@@ -1,7 +1,6 @@
 package com.toasterofbread.spmp.platform.download
 
-import dev.toastbits.composekit.platform.PlatformFile
-import dev.toastbits.composekit.platform.getPlatformForbiddenFilenameCharacters
+import dev.toastbits.composekit.context.PlatformFile
 import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.loader.SongLyricsLoader
@@ -9,6 +8,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongAudioQuality
 import com.toasterofbread.spmp.model.mediaitem.song.getSongAudioFormatByQuality
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.composekit.util.platform.getPlatformForbiddenFilenameCharacters
 import dev.toastbits.ytmkt.model.external.YoutubeVideoFormat
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -108,8 +108,7 @@ abstract class SongDownloader(
         }
 
         suspend fun getDestinationFile(extension: String): PlatformFile =
-            custom_uri?.let { context.getUserDirectoryFile(it) }
-                ?: getSongStorageDir().resolve(generatePath(extension, false))
+            custom_uri?.let { context.getUserDirectoryFile(it) } ?: getSongStorageDir().resolve(generatePath(extension, false))
 
         override fun toString(): String =
             "Download(id=${song.id}, quality=$quality, silent=$silent, instance=$instance, file=$song_file)"
@@ -121,7 +120,7 @@ abstract class SongDownloader(
 
     private var download_inc: Int = 0
     private suspend fun getOrCreateDownload(song: Song, silent: Boolean, custom_uri: String?, download_lyrics: Boolean, direct: Boolean): Download {
-        val audio_quality = context.settings.streaming.DOWNLOAD_AUDIO_QUALITY.get()
+        val audio_quality = context.settings.Streaming.DOWNLOAD_AUDIO_QUALITY.get()
         synchronized(downloads) {
             for (download in downloads) {
                 if (download.song.id == song.id) {

@@ -41,16 +41,16 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.layout.onSizeChanged
-import dev.toastbits.composekit.platform.composable.BackHandler
-import dev.toastbits.composekit.utils.common.contrastAgainst
-import dev.toastbits.composekit.utils.common.launchSingle
-import dev.toastbits.composekit.utils.composable.getBottom
-import dev.toastbits.composekit.utils.composable.getEnd
-import dev.toastbits.composekit.utils.composable.getStart
+import dev.toastbits.composekit.components.platform.composable.BackHandler
+import dev.toastbits.composekit.util.contrastAgainst
+import dev.toastbits.composekit.util.platform.launchSingle
+import dev.toastbits.composekit.components.utils.composable.getEnd
+import dev.toastbits.composekit.components.utils.composable.getStart
 import com.toasterofbread.spmp.model.mediaitem.db.rememberThemeColour
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.BarColourState
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.CustomColourSource
+import dev.toastbits.composekit.components.utils.composable.getBottom
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.delay
 import kotlin.math.roundToInt
@@ -172,7 +172,7 @@ internal fun AndroidLongPressMenu(
                 }
 
                 Box(Modifier.fillMaxSize(), contentAlignment = Alignment.BottomCenter) {
-                    val close_on_action: Boolean by player.settings.behaviour.LPM_CLOSE_ON_ACTION.observe()
+                    val close_on_action: Boolean by player.settings.Behaviour.LPM_CLOSE_ON_ACTION.observe()
 
                     LongPressMenuContent(
                         data,

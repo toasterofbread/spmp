@@ -95,6 +95,6 @@ suspend fun YoutubePage.open(player: PlayerState, title: UiString?) {
                 browse_params = getBrowseParamsData()
             )
         is PlainYoutubePage ->
-            player.openViewMorePage(browse_id, runBlocking { title?.getString(player.context.getUiLanguage()) })
+            player.openViewMorePage(browse_id, runBlocking { title?.getString(player.context.getUiLanguage().toTag()) })
     }
 }

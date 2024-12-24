@@ -2,24 +2,35 @@ package com.toasterofbread.spmp.widget.configuration.base
 
 import androidx.compose.foundation.lazy.LazyListScope
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.model.settings.category.AccentColourSource
-import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.observeUiLanguage
-import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.createThemeSelectorSettingsItem
 import com.toasterofbread.spmp.widget.SpMpWidgetType
 import com.toasterofbread.spmp.widget.configuration.WidgetConfig
 import com.toasterofbread.spmp.widget.configuration.enum.WidgetStyledBorderMode
-import dev.toastbits.composekit.platform.MutableStatePreferencesProperty
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.NamedTheme
-import dev.toastbits.composekit.settings.ui.ThemeValuesData
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
+import dev.toastbits.composekit.navigation.navigator.Navigator
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.domain.StateSettingsProperty
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.ThemeSelectorSettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.theme.provider.ThemeStorageHandlerProvider
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.util.ThemeStorageHandlerProviderImpl
+import dev.toastbits.composekit.settingsitem.presentation.ui.screen.ThemeConfirmationScreen
+import dev.toastbits.composekit.settingsitem.presentation.ui.screen.ThemePickerScreen
+import dev.toastbits.composekit.settingsitem.presentation.ui.screen.ThemePickerScreen.ResultHandler
+import dev.toastbits.composekit.theme.config.ThemeTypeConfigProviderImpl
+import dev.toastbits.composekit.theme.core.ThemeValues
+import dev.toastbits.composekit.theme.core.model.ComposeKitFont
+import dev.toastbits.composekit.theme.core.model.SerialisableTheme
+import dev.toastbits.composekit.theme.core.model.ThemeReference
+import dev.toastbits.composekit.theme.core.provider.ThemeProvider
+import dev.toastbits.composekit.theme.core.provider.ThemeTypeConfigProvider
+import dev.toastbits.composekit.theme.core.type.ThemeType
+import dev.toastbits.composekit.theme.core.type.ThemeTypeConfig
+import dev.toastbits.composekit.theme.core.ui.LocalThemeProvider
+import dev.toastbits.composekit.theme.core.util.rememberAvailableFonts
+import dev.toastbits.composekit.util.composable.getValue
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -34,7 +45,7 @@ import spmp.shared.generated.resources.widget_config_common_key_hide_when_no_con
 import spmp.shared.generated.resources.widget_config_common_key_show_app_icon
 import spmp.shared.generated.resources.widget_config_common_key_styled_border_mode
 import spmp.shared.generated.resources.widget_config_common_key_theme
-import spmp.shared.generated.resources.widget_config_common_option_accent_colour_source_app
+import spmp.shared.generated.resources.widget_config_common_optionAccent_colour_source_app
 import spmp.shared.generated.resources.widget_config_common_option_content_colour_dark
 import spmp.shared.generated.resources.widget_config_common_option_content_colour_light
 import spmp.shared.generated.resources.widget_config_common_option_content_colour_theme
@@ -45,9 +56,9 @@ import kotlin.math.roundToInt
 
 @Serializable
 data class BaseWidgetConfig(
-    val theme_index: Int? = null,
+    val theme: ThemeReference? = null,
     val accent_colour_source: AccentColourSource? = null,
-    val font: FontMode? = null,
+    val font: ComposeKitFont? = null,
     val font_size: Float = 1f,
     val content_colour: ContentColour = ContentColour.THEME,
     val background_opacity: Float = 1f,
@@ -65,9 +76,9 @@ data class BaseWidgetConfig(
         onDefaultsMaskChanged: (BaseWidgetConfigDefaultsMask) -> Unit
     ) {
         configItem(
-            defaults_mask?.theme_index,
+            defaults_mask?.theme,
             item_modifier,
-            { onDefaultsMaskChanged(defaults_mask!!.copy(theme_index = it)) }
+            { onDefaultsMaskChanged(defaults_mask!!.copy(theme = it)) }
         ) { modifier, onItemChanged ->
             ThemeIndexItem(context, modifier) {
                 onChanged(it)
@@ -84,7 +95,7 @@ data class BaseWidgetConfig(
                 Res.string.widget_config_common_key_accent_colour_source,
                 modifier,
                 getItemName = {
-                    stringResource(it?.getNameResource() ?: Res.string.widget_config_common_option_accent_colour_source_app)
+                    stringResource(it?.getNameResource() ?: Res.string.widget_config_common_optionAccent_colour_source_app)
                 }
             ) {
                 onChanged(copy(accent_colour_source = it))
@@ -96,16 +107,25 @@ data class BaseWidgetConfig(
             item_modifier,
             { onDefaultsMaskChanged(defaults_mask!!.copy(font = it)) }
         ) { modifier, onItemChanged ->
-            val ui_language: String by context.observeUiLanguage()
-            NullableDropdownItem(
-                font,
+            val available_fonts: List<ComposeKitFont> = ComposeKitFont.rememberAvailableFonts()
+
+            DropdownItem(
+                if (font == null) 0 else (available_fonts.indexOf(font) + 1),
+                available_fonts.size + 1,
                 Res.string.widget_config_common_key_font,
                 modifier,
                 getItemName = {
-                    it?.getReadable(ui_language) ?: stringResource(Res.string.widget_config_common_option_font_app)
+                    if (it == 0) stringResource(Res.string.widget_config_common_option_font_app)
+                    else available_fonts[it - 1].getDisplayName()
                 }
             ) {
-                onChanged(copy(font = it))
+                onChanged(
+                    copy(
+                        font =
+                            if (it == 0) null
+                            else available_fonts[it - 1]
+                    )
+                )
                 onItemChanged()
             }
         }
@@ -234,42 +254,94 @@ data class BaseWidgetConfig(
 
     @Composable
     private fun ThemeIndexItem(context: AppContext, modifier: Modifier, onChanged: (BaseWidgetConfig) -> Unit) {
-        val theme_index_state: MutableState<Int> =
-            remember { mutableIntStateOf(theme_index?.plus(1) ?: 0) }
-        val theme_index_property: PreferencesProperty<Int> = remember {
-            MutableStatePreferencesProperty(
-                theme_index_state,
-                { stringResource(Res.string.widget_config_common_key_theme) },
-                { null }
+        val navigator: Navigator = LocalNavigator.current
+        val themeProvider: ThemeProvider = LocalThemeProvider.current
+
+        val widget_application_theme_label: String =
+            stringResource(Res.string.widget_application_theme_label)
+        val application_theme_reference: ThemeReference =
+            remember { ThemeReference.CustomTheme(-1) }
+
+        val current_application_theme: ThemeReference? by context.settings.Theme.CURRENT_THEME.observe()
+
+        val theme_property: PlatformSettingsProperty<ThemeReference> =
+            remember {
+                StateSettingsProperty(
+                    initialValue = theme ?: application_theme_reference,
+                    onValueSet = { value ->
+                        onChanged(
+                            this.copy(
+                                theme =
+                                if (value == application_theme_reference) null
+                                else value
+                            )
+                        )
+                    },
+                    getPropertyName = { stringResource(Res.string.widget_config_common_key_theme) },
+                    getPropertyDescription = { null }
+                )
+            }
+
+        fun <T: ThemeValues> ThemeType.ThemeAndType<T>.callResultHandler(
+            resultHandler: ResultHandler,
+            navigator: Navigator,
+            storageHandlerProvider: ThemeStorageHandlerProvider,
+            themeTypeConfigProvider: ThemeTypeConfigProvider
+        ) {
+            resultHandler.onResult(
+                navigator,
+                theme,
+                themeTypeConfigProvider.getConfig(type),
+                storageHandlerProvider
             )
         }
 
-        remember {
-            createThemeSelectorSettingsItem(
-                context,
-                theme_index_property,
-                getExtraStartThemes = {
-                    listOf(
-                        NamedTheme(
-                            stringResource(Res.string.widget_application_theme_label),
-                            ThemeValuesData.of(context.theme)
+        remember(widget_application_theme_label) {
+            val storageHandlerProvider: ThemeStorageHandlerProvider =
+                ThemeStorageHandlerProviderImpl(theme_property, context.settings.Theme.CUSTOM_THEMES)
+
+            val pickerResultProvider: ResultHandler =
+                object : ThemePickerScreen.ResultHandler {
+                    override fun <T : ThemeValues> onResult(
+                        navigator: Navigator,
+                        initialTheme: T,
+                        config: ThemeTypeConfig<T>,
+                        themeStorageHandlerProvider: ThemeStorageHandlerProvider
+                    ) {
+                        navigator.pushScreen(
+                            ThemeConfirmationScreen(
+                                initialTheme,
+                                config,
+                                themeStorageHandlerProvider(config.type),
+                                onFinished = {
+                                    navigator.navigateBackward(2)
+                                }
+                            )
                         )
-                    )
+                    }
                 }
+
+            ThemeSelectorSettingsItem(
+                currentThemeProperty = theme_property,
+                customThemesProperty = context.settings.Theme.CUSTOM_THEMES,
+                canSelectThemesDirectly = false,
+                themeStorageHandlerProvider = storageHandlerProvider,
+                extraThemes =
+                    listOf(
+                        application_theme_reference
+                    ),
+                onExtraThemeEdited = {
+                    if (it != 0) {
+                        return@ThemeSelectorSettingsItem
+                    }
+
+                    onChanged(this.copy(theme = null))
+                    navigator.navigateBackward()
+                },
+                themeTypeConfigProvider = ThemeTypeConfigProviderImpl,
+                pickerResultHandler = pickerResultProvider
             )
         }.Item(modifier)
-
-        OnChangedEffect(theme_index_state.value) {
-            onChanged(
-                this.copy(
-                    theme_index =
-                    theme_index_state.value.let { index ->
-                        if (index <= 0) null
-                        else index - 1
-                    }
-                )
-            )
-        }
     }
 
     enum class ContentColour {

@@ -3,29 +3,51 @@ package com.toasterofbread.spmp.ui.layout.apppage.mainpage
 import LocalPlayerState
 import androidx.compose.animation.Crossfade
 import androidx.compose.animation.core.animateDpAsState
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.runtime.*
-import androidx.compose.ui.*
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.DisposableEffect
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.*
-import dev.toastbits.composekit.utils.common.*
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.utils.composable.*
-import dev.toastbits.composekit.utils.composable.getTop
-import dev.toastbits.composekit.utils.modifier.background
-import com.toasterofbread.spmp.platform.*
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.zIndex
+import com.toasterofbread.spmp.platform.FormFactor
+import com.toasterofbread.spmp.platform.getDefaultHorizontalPadding
+import com.toasterofbread.spmp.platform.getDefaultVerticalPadding
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.BarColourState
-import com.toasterofbread.spmp.ui.layout.contentbar.*
-import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
+import com.toasterofbread.spmp.ui.layout.contentbar.DisplayBar
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LandscapeLayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.PortraitLayoutSlot
+import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.rememberColourSource
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopOffsetSection
-import dev.toastbits.composekit.navigation.navigator.ExtendableNavigator
-import dev.toastbits.composekit.navigation.navigator.Navigator
+import dev.toastbits.composekit.components.utils.composable.getEnd
+import dev.toastbits.composekit.components.utils.composable.getStart
+import dev.toastbits.composekit.components.utils.composable.getTop
+import dev.toastbits.composekit.components.utils.modifier.background
+import dev.toastbits.composekit.util.composable.getValue
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.util.thenIf
 
 @Composable
 fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
@@ -83,7 +105,7 @@ fun MainPageDisplay(bottom_padding: Dp = 0.dp) {
                 }
 
                 Column(Modifier.zIndex(1f)) {
-                    CompositionLocalProvider(LocalContentColor provides (highest_colour?.get(player)?.getContrasted() ?: player.theme.on_background)) {
+                    CompositionLocalProvider(LocalContentColor provides (highest_colour?.get(player)?.getContrasted() ?: player.theme.onBackground)) {
                         player.main_multiselect_context.InfoDisplay(
                             Modifier
                                 .fillMaxWidth()

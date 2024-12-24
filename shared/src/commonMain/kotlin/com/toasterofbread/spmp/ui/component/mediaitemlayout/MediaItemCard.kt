@@ -65,9 +65,9 @@ import com.toasterofbread.spmp.ui.component.longpressmenu.longPressMenuIcon
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.mediaitempreview.getThumbShape
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import dev.toastbits.composekit.platform.composable.platformClickable
-import dev.toastbits.composekit.settings.ui.vibrant_accent
-import dev.toastbits.composekit.utils.common.getContrasted
+import dev.toastbits.composekit.components.platform.composable.platformClickable
+import dev.toastbits.composekit.theme.core.vibrantAccent
+import dev.toastbits.composekit.util.getContrasted
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
@@ -210,8 +210,8 @@ fun MediaItemCard(
                 Modifier.fillMaxWidth(),
                 shape = shape,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = accent_colour ?: player.theme.vibrant_accent,
-                    contentColor = (accent_colour ?: player.theme.vibrant_accent).getContrasted()
+                    containerColor = accent_colour ?: player.theme.vibrantAccent,
+                    contentColor = (accent_colour ?: player.theme.vibrantAccent).getContrasted()
                 )
             ) {
                 Text(

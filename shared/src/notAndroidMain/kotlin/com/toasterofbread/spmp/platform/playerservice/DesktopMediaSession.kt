@@ -116,7 +116,7 @@ private fun MediaSession.onSongChanged(song: Song?, service: PlayerService) {
     val album: Playlist? = song?.Album?.get(db)
     val album_items: List<Song>? = album?.Items?.get(db)
 
-    service.context.coroutine_scope.launch {
+    service.context.coroutineScope.launch {
         setMetadata(
             MediaSessionMetadata(
                 length_ms = service.duration_ms,

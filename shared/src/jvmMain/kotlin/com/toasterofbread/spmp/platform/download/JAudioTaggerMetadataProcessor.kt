@@ -3,7 +3,7 @@ package com.toasterofbread.spmp.platform.download
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemData
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
-import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.context.PlatformFile
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistData
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylist

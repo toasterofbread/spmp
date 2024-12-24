@@ -30,7 +30,7 @@ private suspend fun List<MediaItemHolder>.filterItems(
     hidden_items: List<MediaItem>,
     is_song_feed: Boolean = false
 ): List<MediaItem> {
-    val hide_radios: Boolean = is_song_feed && !context.settings.feed.SHOW_RADIOS.get()
+    val hide_radios: Boolean = is_song_feed && !context.settings.Feed.SHOW_RADIOS.get()
 
     return mapNotNull {
         val item: MediaItem? = it.item

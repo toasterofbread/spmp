@@ -15,12 +15,12 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.graphics.compositeOver
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.common.getContrasted
+import dev.toastbits.composekit.util.getContrasted
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
-import dev.toastbits.composekit.settings.ui.ThemeValues
+import dev.toastbits.composekit.theme.core.ThemeValues
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.Serializable
@@ -75,7 +75,7 @@ sealed class ContentBar {
     @Composable
     abstract fun BarContent(
         slot: LayoutSlot,
-        background_colour: ThemeValues.Colour?,
+        background_colour: ThemeValues.Slot?,
         content_padding: PaddingValues,
         distance_to_page: Dp,
         lazy: Boolean,
@@ -95,10 +95,16 @@ sealed class ContentBar {
     }
 
     companion object {
-        var _bar_selection_state: BarSelectionState? by mutableStateOf(null)
-        var bar_selection_state: BarSelectionState?
-            get() = if (disable_bar_selection) null else _bar_selection_state
-            set(value) { _bar_selection_state = value }
+        private var _bar_selection_states: MutableList<BarSelectionState> = mutableStateListOf()
+        val bar_selection_state: BarSelectionState?
+            get() = _bar_selection_states.lastOrNull()
+
+        fun addBarSelectionState(state: BarSelectionState) {
+            _bar_selection_states.add(state)
+        }
+        fun removeBarSelectionState(state: BarSelectionState) {
+            _bar_selection_states.remove(state)
+        }
 
         var disable_bar_selection: Boolean by mutableStateOf(false)
     }

@@ -2,7 +2,7 @@ package com.toasterofbread.spmp.model.mediaitem
 
 import androidx.compose.runtime.Composable
 import androidx.compose.material3.Text
-import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.components.utils.composable.LargeDropdownMenu
 import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.db.getPlayCount
 import com.toasterofbread.spmp.model.mediaitem.song.Song
@@ -10,6 +10,7 @@ import com.toasterofbread.spmp.resources.rememberStringResourceByKey
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmMediaItem
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.sort_type
 import spmp.shared.generated.resources.sort_type_alphabet
 import spmp.shared.generated.resources.sort_type_artist
 import spmp.shared.generated.resources.sort_type_duration
@@ -83,16 +84,17 @@ enum class MediaItemSortType {
             val index_offset = if (native_string_key == null) 1 else 0
 
             LargeDropdownMenu(
-                expanded,
-                onDismissed,
-                entries.size - index_offset,
-                selected_option.ordinal - index_offset,
-                {
-                    Text(entries[it + index_offset].getReadable(native_string_key))
+                title = stringResource(Res.string.sort_type),
+                isOpen = expanded,
+                onDismissRequest = onDismissed,
+                items = (0 until entries.size - index_offset).toList(),
+                selectedItem = selected_option.ordinal - index_offset,
+                onSelected = { _, index ->
+                    onSelected(entries[index + index_offset])
+                    onDismissed()
                 }
-            ) {
-                onSelected(entries[it + index_offset])
-                onDismissed()
+            ) { index ->
+                Text(entries[index + index_offset].getReadable(native_string_key))
             }
         }
     }

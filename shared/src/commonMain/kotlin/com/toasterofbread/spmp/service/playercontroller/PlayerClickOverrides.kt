@@ -30,8 +30,8 @@ data class PlayerClickOverrides(
                 player.onPlayActionOccurred()
             } else if (
                 item is Playlist
-                && player.settings.behaviour.TREAT_SINGLES_AS_SONG.get()
-                && player.settings.behaviour.TREAT_ANY_SINGLE_ITEM_PLAYLIST_AS_SINGLE.get()
+                && player.settings.Behaviour.TREAT_SINGLES_AS_SONG.get()
+                && player.settings.Behaviour.TREAT_ANY_SINGLE_ITEM_PLAYLIST_AS_SINGLE.get()
             ) {
                 player.coroutine_scope.launch {
                     item.loadData(player.context).onSuccess { data ->

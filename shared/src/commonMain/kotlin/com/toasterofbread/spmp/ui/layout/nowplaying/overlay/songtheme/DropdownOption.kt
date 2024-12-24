@@ -18,16 +18,17 @@ import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.components.utils.composable.LargeDropdownMenu
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.stringResource
 
 internal abstract class DropdownOption<T: Enum<*>>(
     val entries: List<T>,
     val getEntryText: @Composable (T) -> String,
     override val titleResource: StringResource,
     override val icon: ImageVector,
-    val getProperty: Settings.() -> PreferencesProperty<T>,
+    val getProperty: Settings.() -> PlatformSettingsProperty<T>,
     val getSongProperty: Song.() -> Property<T?>
 ): SongThemeOption() {
     @Composable
@@ -39,16 +40,17 @@ internal abstract class DropdownOption<T: Enum<*>>(
 
         var show_position_selector: Boolean by remember { mutableStateOf(false) }
         LargeDropdownMenu(
-            show_position_selector,
-            { show_position_selector = false },
-            entries.size,
-            (song_value ?: global_value).ordinal,
-            {
-                Text(getEntryText(entries[it]))
+            title = stringResource(titleResource),
+            isOpen = show_position_selector,
+            onDismissRequest = { show_position_selector = false },
+            items = entries,
+            selectedItem = song_value ?: global_value,
+            onSelected = { _, item ->
+                song_value = item
+                show_position_selector = false
             }
-        ) {
-            song_value = entries[it]
-            show_position_selector = false
+        ) { item ->
+            Text(getEntryText(item))
         }
 
         FlowRow(

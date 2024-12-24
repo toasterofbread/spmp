@@ -13,8 +13,8 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.material3.Text
 import androidx.compose.material3.Switch
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.ThemeValues
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.theme.core.ThemeValues
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.decodeFromJsonElement
@@ -46,8 +46,8 @@ enum class PortraitLayoutSlot: LayoutSlot {
             PLAYER_TOP -> true
         }
 
-    override fun getSlotsProperty(context: AppContext): PreferencesProperty<Map<String, ContentBarReference?>> =
-        context.settings.layout.PORTRAIT_SLOTS
+    override fun getSlotsProperty(context: AppContext): PlatformSettingsProperty<Map<String, ContentBarReference?>> =
+        context.settings.Layout.PORTRAIT_SLOTS
 
     override fun getKey(): String = name
 
@@ -72,10 +72,10 @@ enum class PortraitLayoutSlot: LayoutSlot {
 
     override fun getDefaultBackgroundColour(theme: ThemeValues): ColourSource =
         when (this) {
-            UPPER_TOP_BAR -> ThemeColourSource(ThemeValues.Colour.BACKGROUND)
-            LOWER_TOP_BAR -> ThemeColourSource(ThemeValues.Colour.BACKGROUND)
+            UPPER_TOP_BAR -> ThemeColourSource(ThemeValues.Slot.BuiltIn.BACKGROUND)
+            LOWER_TOP_BAR -> ThemeColourSource(ThemeValues.Slot.BuiltIn.BACKGROUND)
             ABOVE_PLAYER -> CustomColourSource(Color.Transparent)
-            BELOW_PLAYER -> ThemeColourSource(ThemeValues.Colour.ACCENT)
+            BELOW_PLAYER -> ThemeColourSource(ThemeValues.Slot.BuiltIn.ACCENT)
             PLAYER_TOP -> CustomColourSource(Color.Transparent)
         }
 

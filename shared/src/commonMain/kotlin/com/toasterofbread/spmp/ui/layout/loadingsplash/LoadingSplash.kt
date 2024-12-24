@@ -45,17 +45,14 @@ import com.toasterofbread.spmp.platform.playerservice.PlayerServiceLoadState
 import com.toasterofbread.spmp.platform.playerservice.PlayerServiceCompanion
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.theme.core.onAccent
 import kotlinx.coroutines.delay
 import org.jetbrains.compose.resources.*
 import spmp.shared.generated.resources.*
-import dev.toastbits.composekit.utils.common.toFloat
-import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.common.blockGestures
-import dev.toastbits.composekit.utils.composable.wave.OverlappingWaves
-import dev.toastbits.composekit.utils.composable.wave.getDefaultOverlappingWavesLayers
-import dev.toastbits.composekit.utils.composable.wave.WaveLayer
-import dev.toastbits.composekit.utils.composable.NullableValueAnimatedVisibility
+import dev.toastbits.composekit.components.utils.composable.wave.OverlappingWaves
+import dev.toastbits.composekit.components.utils.composable.wave.getDefaultOverlappingWavesLayers
+import dev.toastbits.composekit.components.utils.composable.wave.WaveLayer
+import dev.toastbits.composekit.components.utils.composable.animatedvisibility.NullableValueAnimatedVisibility
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.error_player_service_not_connected
@@ -171,7 +168,7 @@ fun LoadingSplash(
                                     if (message != null) {
                                         Text(
                                             message,
-                                            color = player.theme.on_background,
+                                            color = player.theme.onBackground,
                                             modifier = Modifier.wrapContentWidth()
                                         )
                                     }
@@ -214,13 +211,13 @@ fun LoadingSplash(
                         horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.spacedBy(10.dp, Alignment.CenterVertically)
                     ) {
-                        CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
+                        CompositionLocalProvider(LocalContentColor provides player.theme.onBackground) {
                             Row(
                                 verticalAlignment = Alignment.CenterVertically,
                                 horizontalArrangement = Arrangement.spacedBy(10.dp)
                             ) {
-                                Icon(Icons.Default.Warning, null, tint = player.theme.on_background)
-                                Text(stringResource(Res.string.error_player_service_not_connected), color = player.theme.on_background)
+                                Icon(Icons.Default.Warning, null, tint = player.theme.onBackground)
+                                Text(stringResource(Res.string.error_player_service_not_connected), color = player.theme.onBackground)
                             }
 
                             if (player.context.canOpenUrl()) {
@@ -232,7 +229,7 @@ fun LoadingSplash(
                                     },
                                     colors = ButtonDefaults.buttonColors(
                                         containerColor = player.theme.accent,
-                                        contentColor = player.theme.on_accent
+                                        contentColor = player.theme.onAccent
                                     )
                                 ) {
                                     Text(stringResource(Res.string.report_error))

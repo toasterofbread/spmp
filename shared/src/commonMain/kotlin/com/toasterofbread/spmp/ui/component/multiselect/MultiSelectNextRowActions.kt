@@ -30,7 +30,7 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import dev.toastbits.composekit.platform.vibrateShort
+import dev.toastbits.composekit.context.vibrateShort
 
 @Composable
 internal fun ColumnScope.MultiSelectNextRowActions(multiselect_context: MediaItemMultiSelectContext) {

@@ -34,9 +34,9 @@ suspend fun isMediaItemHidden(
     isMediaItemHiddenImpl(
         item,
         context,
-        context.settings.filter.ENABLE.get(),
-        context.settings.filter.APPLY_TO_ARTISTS.get(),
-        context.settings.filter.TITLE_KEYWORDS.get(),
+        context.settings.Filter.ENABLE.get(),
+        context.settings.Filter.APPLY_TO_ARTISTS.get(),
+        context.settings.Filter.TITLE_KEYWORDS.get(),
         hidden_items
     )
 
@@ -46,9 +46,9 @@ fun observeIsMediaItemHidden(
     hidden_items: List<MediaItem>? = null
 ): State<Boolean> {
     val player: PlayerState = LocalPlayerState.current
-    val filter_enabled: Boolean by player.settings.filter.ENABLE.observe()
-    val filter_apply_to_artists: Boolean by player.settings.filter.APPLY_TO_ARTISTS.observe()
-    val filter_title_keywords: Set<String> by player.settings.filter.TITLE_KEYWORDS.observe()
+    val filter_enabled: Boolean by player.settings.Filter.ENABLE.observe()
+    val filter_apply_to_artists: Boolean by player.settings.Filter.APPLY_TO_ARTISTS.observe()
+    val filter_title_keywords: Set<String> by player.settings.Filter.TITLE_KEYWORDS.observe()
 
     return remember { derivedStateOf {
         isMediaItemHiddenImpl(

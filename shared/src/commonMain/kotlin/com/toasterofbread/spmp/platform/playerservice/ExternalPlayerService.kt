@@ -32,7 +32,7 @@ import com.toasterofbread.spmp.model.radio.RadioInstance
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
-import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.theme.core.onAccent
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import kotlinx.coroutines.CoroutineScope
@@ -61,9 +61,9 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
     private var local_server_process: Job? by mutableStateOf(null)
 
     override suspend fun getIpAddress(): String =
-        if (local_server_process != null) "127.0.0.1" else context.settings.platform.SERVER_IP_ADDRESS.get()
+        if (local_server_process != null) "127.0.0.1" else context.settings.Platform.SERVER_IP_ADDRESS.get()
     override suspend fun getPort(): Int =
-        context.settings.platform.SERVER_PORT.get()
+        context.settings.Platform.SERVER_PORT.get()
 
     internal lateinit var _context: AppContext
     override val context: AppContext get() = _context
@@ -293,7 +293,7 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
 
             LocalServer.startLocalServer(
                 player.context,
-                player.settings.platform.SERVER_PORT.get()
+                player.settings.Platform.SERVER_PORT.get()
             ).fold(
                 onSuccess = {
                     local_server_process = it
@@ -344,7 +344,7 @@ open class ExternalPlayerService(plays_audio: Boolean): SpMsPlayerService(plays_
                 colors =
                     ButtonDefaults.buttonColors(
                         containerColor = player.theme.accent,
-                        contentColor = player.theme.on_accent
+                        contentColor = player.theme.onAccent
                     ),
                 modifier = item_modifier
             ) {

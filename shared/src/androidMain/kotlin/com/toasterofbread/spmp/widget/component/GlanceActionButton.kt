@@ -27,10 +27,10 @@ import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClick
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.SEEK_PREVIOUS
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.TOGGLE_LIKE
 import com.toasterofbread.spmp.widget.action.WidgetClickAction.CommonWidgetClickAction.TOGGLE_VISIBILITY
-import dev.toastbits.composekit.platform.composable.theme.LocalApplicationTheme
-import dev.toastbits.composekit.settings.ui.vibrant_accent
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.utils.common.getValue
+import dev.toastbits.composekit.theme.core.ui.LocalComposeKitTheme
+import dev.toastbits.composekit.theme.core.vibrantAccent
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.util.composable.getValue
 import dev.toastbits.ytmkt.model.external.SongLikedStatus
 
 @Composable
@@ -38,7 +38,7 @@ internal fun <T: TypeWidgetClickAction> CommonActionButton(
     action: WidgetClickAction<T>,
     modifier: GlanceModifier = GlanceModifier,
     icon_modifier: GlanceModifier = GlanceModifier,
-    background_colour: Color = LocalApplicationTheme.current.vibrant_accent,
+    background_colour: Color = LocalComposeKitTheme.current.vibrantAccent,
     getTypeActionIcon: (T) -> Int?
 ) {
     Box(

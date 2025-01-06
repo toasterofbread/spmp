@@ -24,11 +24,11 @@ import com.toasterofbread.spmp.service.playercontroller.*
 import com.toasterofbread.spmp.ui.component.MediaItemTitleEditDialog
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.nowplaying.*
-import dev.toastbits.composekit.platform.composable.platformClickable
-import dev.toastbits.composekit.platform.vibrateShort
-import dev.toastbits.composekit.utils.common.getValue
-import dev.toastbits.composekit.utils.composable.Marquee
-import dev.toastbits.composekit.utils.modifier.bounceOnClick
+import dev.toastbits.composekit.components.platform.composable.platformClickable
+import dev.toastbits.composekit.context.vibrateShort
+import dev.toastbits.composekit.util.composable.getValue
+import dev.toastbits.composekit.components.utils.composable.Marquee
+import dev.toastbits.composekit.components.utils.modifier.bounceOnClick
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_cancel
@@ -60,7 +60,7 @@ fun PlayerButton(
             )
     ) {
         val painter: VectorPainter = rememberVectorPainter(image)
-        val np_theme_mode: ThemeMode by player.settings.theme.NOWPLAYING_THEME_MODE.observe()
+        val np_theme_mode: ThemeMode by player.settings.Theme.NOWPLAYING_THEME_MODE.observe()
 
         Canvas(
             Modifier

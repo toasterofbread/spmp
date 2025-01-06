@@ -4,7 +4,6 @@ import android.media.AudioDeviceCallback
 import android.media.AudioDeviceInfo
 import android.os.Build
 import androidx.media3.common.Player
-import com.toasterofbread.spmp.model.settings.category.PlayerSettings
 import kotlinx.coroutines.launch
 
 internal class PlayerAudioDeviceCallback(
@@ -33,8 +32,8 @@ internal class PlayerAudioDeviceCallback(
         }
 
         service.coroutine_scope.launch {
-            val resume_on_bt: Boolean = service.context.settings.player.RESUME_ON_BT_CONNECT.get()
-            val resume_on_wired: Boolean = service.context.settings.player.RESUME_ON_WIRED_CONNECT.get()
+            val resume_on_bt: Boolean = service.context.settings.Player.RESUME_ON_BT_CONNECT.get()
+            val resume_on_wired: Boolean = service.context.settings.Player.RESUME_ON_WIRED_CONNECT.get()
 
             for (device in addedDevices) {
                 if ((resume_on_bt && isBluetoothAudio(device)) || (resume_on_wired && isWiredAudio(device))) {
@@ -51,8 +50,8 @@ internal class PlayerAudioDeviceCallback(
         }
 
         service.coroutine_scope.launch {
-            val pause_on_bt: Boolean = service.context.settings.player.PAUSE_ON_BT_DISCONNECT.get()
-            val pause_on_wired: Boolean = service.context.settings.player.PAUSE_ON_WIRED_DISCONNECT.get()
+            val pause_on_bt: Boolean = service.context.settings.Player.PAUSE_ON_BT_DISCONNECT.get()
+            val pause_on_wired: Boolean = service.context.settings.Player.PAUSE_ON_WIRED_DISCONNECT.get()
 
             for (device in removedDevices) {
                 if ((pause_on_bt && isBluetoothAudio(device)) || (pause_on_wired && isWiredAudio(device))) {

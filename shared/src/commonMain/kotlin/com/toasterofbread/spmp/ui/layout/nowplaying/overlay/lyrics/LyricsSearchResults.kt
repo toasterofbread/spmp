@@ -25,14 +25,14 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.toastbits.composekit.platform.composable.BackHandler
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.utils.composable.Marquee
+import dev.toastbits.composekit.components.platform.composable.BackHandler
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.components.utils.composable.Marquee
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
 import com.toasterofbread.spmp.resources.stringResourceTODO
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource.SearchResult
-import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.theme.core.onAccent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.lyrics_no_more_results
@@ -85,7 +85,7 @@ internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<Searc
                             val shape = RoundedCornerShape(16)
 
                             Marquee(Modifier.fillMaxWidth()) {
-                                Text(result.name, color = player.theme.on_accent, softWrap = false)
+                                Text(result.name, color = player.theme.onAccent, softWrap = false)
                             }
 
                             Row(
@@ -117,20 +117,20 @@ internal fun ColumnScope.LyricsSearchResults(results_and_source: Pair<List<Searc
 
                             Column(
                                 Modifier
-                                    .border(Dp.Hairline, player.theme.on_accent, shape)
+                                    .border(Dp.Hairline, player.theme.onAccent, shape)
                                     .background(
                                         player.theme
-                                            .on_accent
+                                            .onAccent
                                             .copy(alpha = 0.1f), shape
                                     )
                                     .padding(2.dp)
                                     .fillMaxWidth()
                             ) {
                                 if (result.artist_name != null) {
-                                    Item(stringResource(Res.string.artist), result.artist_name!!, player.theme.on_accent)
+                                    Item(stringResource(Res.string.artist), result.artist_name!!, player.theme.onAccent)
                                 }
                                 if (result.album_name != null) {
-                                    Item(stringResource(Res.string.album), result.album_name!!, player.theme.on_accent)
+                                    Item(stringResource(Res.string.album), result.album_name!!, player.theme.onAccent)
                                 }
                             }
                         }

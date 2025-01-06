@@ -21,7 +21,7 @@ internal class HeadlessExternalPlayerService: ExternalPlayerService(plays_audio 
     override fun PersistentContent(requestServiceChange: (PlayerServiceCompanion) -> Unit) {
         val player: PlayerState = LocalPlayerState.current
         val launch_arguments: ProgramArguments = LocalProgramArguments.current
-        val ui_only: Boolean by player.settings.platform.EXTERNAL_SERVER_MODE_UI_ONLY.observe()
+        val ui_only: Boolean by player.settings.Platform.EXTERNAL_SERVER_MODE_UI_ONLY.observe()
         LaunchedEffect(ui_only) {
             if (!ui_only && PlatformExternalPlayerService.isAvailable(player.context, launch_arguments)) {
                 requestServiceChange(PlatformExternalPlayerService.Companion)

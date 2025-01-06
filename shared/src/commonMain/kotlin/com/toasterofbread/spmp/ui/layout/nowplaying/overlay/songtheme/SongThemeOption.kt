@@ -91,49 +91,49 @@ internal abstract class SongThemeOption {
     private object CornerRadius: SliderOption(
         Res.string.song_theme_menu_corner_radius,
         Icons.Default.RoundedCorner,
-        { theme.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING },
+        { Theme.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING },
         { ThumbnailRounding }
     )
 
     private object PlayerGradientDepth: SliderOption(
         Res.string.song_theme_menu_gradient_depth,
         Icons.Default.Gradient,
-        { theme.NOWPLAYING_DEFAULT_GRADIENT_DEPTH },
+        { Theme.NOWPLAYING_DEFAULT_GRADIENT_DEPTH },
         { PlayerGradientDepth }
     )
 
     private object BackgroundWaveSpeed: SliderOption(
         Res.string.song_theme_menu_wave_speed,
         Icons.Default.Speed,
-        { theme.NOWPLAYING_DEFAULT_WAVE_SPEED },
+        { Theme.NOWPLAYING_DEFAULT_WAVE_SPEED },
         { BackgroundWaveSpeed }
     )
 
     private object BackgroundWaveOpacity: SliderOption(
         Res.string.song_theme_menu_wave_opacity,
         Icons.Default.Opacity,
-        { theme.NOWPLAYING_DEFAULT_WAVE_OPACITY },
+        { Theme.NOWPLAYING_DEFAULT_WAVE_OPACITY },
         { BackgroundWaveOpacity }
     )
 
     private object BackgroundImageOpacity: SliderOption(
         Res.string.song_theme_menu_background_image_opacity,
         Icons.Default.Opacity,
-        { theme.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY },
+        { Theme.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY },
         { BackgroundImageOpacity }
     )
 
     private object LandscapeQueueOpacity: SliderOption(
         Res.string.song_theme_menu_queue_opacity,
         Icons.Default.Opacity,
-        { theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS },
+        { Theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS },
         { LandscapeQueueOpacity }
     )
 
     private object ShadowRadius: SliderOption(
         Res.string.song_theme_menu_image_shadow_radius,
         Icons.Default.Scale,
-        { theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS },
+        { Theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS },
         { ShadowRadius }
     )
 
@@ -142,7 +142,7 @@ internal abstract class SongThemeOption {
         { it.getReadable() },
         Res.string.song_theme_menu_video_position,
         Icons.Default.FitScreen,
-        { theme.NOWPLAYING_DEFAULT_VIDEO_POSITION },
+        { Theme.NOWPLAYING_DEFAULT_VIDEO_POSITION },
         { VideoPosition }
     )
 }

@@ -77,7 +77,7 @@ internal abstract class LyricsWidget: SpMpWidget<LyricsWidgetClickAction, Lyrics
                     show_readings =
                         when (type_configuration.furigana_mode) {
                             LyricsWidgetConfig.FuriganaMode.APP_DEFAULT ->
-                                LocalPlayerState.current.settings.lyrics.DEFAULT_FURIGANA.observe().value
+                                LocalPlayerState.current.settings.Lyrics.DEFAULT_FURIGANA.observe().value
 
                             LyricsWidgetConfig.FuriganaMode.SHOW ->
                                 true

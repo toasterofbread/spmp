@@ -25,7 +25,7 @@ internal fun UpdateAnchors(
     val density: Density = LocalDensity.current
     val minimised_now_playing_height: Dp = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
 
-    val swipe_sensitivity: Float by player.settings.player.EXPAND_SWIPE_SENSITIVITY.observe()
+    val swipe_sensitivity: Float by player.settings.Player.EXPAND_SWIPE_SENSITIVITY.observe()
 
     LaunchedEffect(page_height, pages.size, minimised_now_playing_height, swipe_sensitivity) {
         val sensitivity: Float = processSwipeSensitivity(swipe_sensitivity)

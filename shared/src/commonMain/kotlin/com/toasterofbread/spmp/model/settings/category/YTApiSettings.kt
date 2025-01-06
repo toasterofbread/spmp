@@ -4,21 +4,19 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.PlayCircle
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.toasterofbread.spmp.model.settings.SettingsGroupImpl
 import com.toasterofbread.spmp.youtubeapi.YtmApiType
-import com.toasterofbread.spmp.platform.AppContext
-import dev.toastbits.composekit.platform.PlatformPreferences
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.settings.PlatformSettings
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
 
-class YTApiSettings(prefs: PlatformPreferences): SettingsGroup("YTAPI", prefs) {
-    override fun getPage(): CategoryPage? = null
-
-    val API_TYPE: PreferencesProperty<YtmApiType> by enumProperty(
+class YTApiSettings(prefs: PlatformSettings): SettingsGroupImpl("YTAPI", prefs) {
+    val API_TYPE: PlatformSettingsProperty<YtmApiType> by enumProperty(
         getName = { "" },
         getDescription = { null },
         getDefaultValue = { YtmApiType.DEFAULT }
     )
-    val API_URL: PreferencesProperty<String> by property(
+    val API_URL: PlatformSettingsProperty<String> by property(
         getName = { "" },
         getDescription = { null },
         getDefaultValue = { YtmApiType.DEFAULT.getDefaultUrl() }
@@ -34,4 +32,6 @@ class YTApiSettings(prefs: PlatformPreferences): SettingsGroup("YTAPI", prefs) {
     override fun getIcon(): ImageVector = Icons.Outlined.PlayCircle
 
     override fun getConfigurationItems(): List<SettingsItem> = emptyList()
+
+    override val hidden: Boolean = true
 }

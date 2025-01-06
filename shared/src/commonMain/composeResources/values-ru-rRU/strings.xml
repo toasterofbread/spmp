@@ -459,8 +459,8 @@
     <string name="s_theme_editor_button_preview">Превью</string>
 
     <string name="s_key_accent_source">Цвет акцента</string>
-    <string name="s_option_accent_theme">Из темы</string>
-    <string name="s_option_accent_thumbnail">Из превью трека</string>
+    <string name="s_optionAccent_theme">Из темы</string>
+    <string name="s_optionAccent_thumbnail">Из превью трека</string>
 
     <string name="s_key_np_theme_mode">Мод темы текущего воспроизведения</string>
     <string name="s_option_np_accent_background">Красить фон в цвет акцента</string>

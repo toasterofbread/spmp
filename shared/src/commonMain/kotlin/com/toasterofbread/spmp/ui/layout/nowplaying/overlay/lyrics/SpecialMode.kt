@@ -26,11 +26,11 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.platform.composable.BackHandler
-import dev.toastbits.composekit.utils.composable.WidthShrinkText
-import dev.toastbits.composekit.utils.modifier.background
+import dev.toastbits.composekit.components.platform.composable.BackHandler
+import dev.toastbits.composekit.util.composable.WidthShrinkText
+import dev.toastbits.composekit.components.utils.modifier.background
 import com.toasterofbread.spmp.model.mediaitem.song.Song
-import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.theme.core.onAccent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.lyrics_sync_long_press_line
@@ -57,7 +57,7 @@ internal fun SpecialModeMenu(special_mode: SpecialMode?, song: Song, setMode: (S
             Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            CompositionLocalProvider(LocalContentColor provides player.theme.on_accent) {
+            CompositionLocalProvider(LocalContentColor provides player.theme.onAccent) {
                 when (mode) {
                     SpecialMode.ADJUST_SYNC -> {
                         var sync_offset: Long? by song.LyricsSyncOffset.observe(LocalPlayerState.current.database)
@@ -105,7 +105,7 @@ internal fun SpecialModeMenu(special_mode: SpecialMode?, song: Song, setMode: (S
                         WidthShrinkText(
                             stringResource(Res.string.lyrics_sync_long_press_line),
                             Modifier.fillMaxWidth().weight(1f),
-                            style = LocalTextStyle.current.copy(color = player.theme.on_accent)
+                            style = LocalTextStyle.current.copy(color = player.theme.onAccent)
                         )
                     }
 

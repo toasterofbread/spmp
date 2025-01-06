@@ -11,12 +11,13 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.common.*
-import dev.toastbits.composekit.utils.composable.*
-import dev.toastbits.composekit.utils.modifier.horizontal
-import dev.toastbits.composekit.utils.modifier.vertical
+import dev.toastbits.composekit.util.*
+import dev.toastbits.composekit.components.utils.composable.*
+import dev.toastbits.composekit.components.utils.modifier.horizontal
+import dev.toastbits.composekit.components.utils.modifier.vertical
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.theme.core.vibrantAccent
+import dev.toastbits.composekit.util.composable.WidthShrinkText
 
 @Composable
 fun LargeFilterList(
@@ -42,12 +43,12 @@ fun LargeFilterList(
             Modifier.padding(horizontal_padding).aspectRatio(1f),
             colors =
                 if (is_selected) CardDefaults.cardColors(
-                    containerColor = player.theme.vibrant_accent,
-                    contentColor = player.theme.vibrant_accent.getContrasted()
+                    containerColor = player.theme.vibrantAccent,
+                    contentColor = player.theme.vibrantAccent.getContrasted()
                 )
                 else CardDefaults.cardColors(
                     containerColor = player.theme.accent.blendWith(player.theme.background, 0.05f),
-                    contentColor = player.theme.on_background
+                    contentColor = player.theme.onBackground
                 ),
             shape = RoundedCornerShape(25.dp)
         ) {
@@ -60,7 +61,7 @@ fun LargeFilterList(
                         Modifier.aspectRatio(1f).fillMaxHeight().weight(1f).padding(10.dp),
                         tint =
                             if (is_selected) LocalContentColor.current
-                            else player.theme.vibrant_accent
+                            else player.theme.vibrantAccent
                     )
                 }
 

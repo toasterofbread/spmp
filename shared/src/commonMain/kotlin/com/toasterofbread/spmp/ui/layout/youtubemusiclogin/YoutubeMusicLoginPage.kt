@@ -29,9 +29,9 @@ import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.youtubeapi.AccountSwitcherEndpoint
 import com.toasterofbread.spmp.youtubeapi.YTMLogin
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.composable.LinkifyText
+import dev.toastbits.composekit.util.platform.Platform
+import dev.toastbits.composekit.util.thenIf
+import dev.toastbits.composekit.components.utils.composable.LinkifyText
 import dev.toastbits.ytmkt.impl.youtubei.YoutubeiApi
 import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState
 import dev.toastbits.ytmkt.model.ApiAuthenticationState

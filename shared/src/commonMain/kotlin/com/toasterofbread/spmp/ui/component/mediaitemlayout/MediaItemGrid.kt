@@ -30,10 +30,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.*
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.utils.modifier.background
-import dev.toastbits.composekit.utils.modifier.horizontal
-import dev.toastbits.composekit.utils.modifier.vertical
+import dev.toastbits.composekit.util.platform.Platform
+import dev.toastbits.composekit.components.utils.modifier.background
+import dev.toastbits.composekit.components.utils.modifier.horizontal
+import dev.toastbits.composekit.components.utils.modifier.vertical
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.getUid
@@ -172,7 +172,7 @@ fun MediaItemGrid(
 
                 items(filtered_items.size, { filtered_items[it].item.getUid() }) { i ->
                     val item: MediaItem = filtered_items[i].item
-                    val preview_modifier: Modifier = Modifier.animateItemPlacement().size(item_size)
+                    val preview_modifier: Modifier = Modifier.animateItem().size(item_size)
 
                     if (grid_params.alt_style) {
                         MediaItemPreviewLong(

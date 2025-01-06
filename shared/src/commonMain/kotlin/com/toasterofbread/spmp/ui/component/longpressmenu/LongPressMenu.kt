@@ -7,7 +7,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
-import dev.toastbits.composekit.platform.Platform
+import dev.toastbits.composekit.util.platform.Platform
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.songtheme.DEFAULT_THUMBNAIL_ROUNDING
 
 private const val LONG_PRESS_ICON_INDICATION_SCALE: Float = 0.4f

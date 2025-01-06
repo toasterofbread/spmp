@@ -23,7 +23,7 @@ import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.createImageBitmapUtil
-import dev.toastbits.composekit.utils.common.generatePalette
+import dev.toastbits.composekit.util.generatePalette
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
@@ -32,8 +32,8 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.Colourp
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.NotifImagePlayerOverlayMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.notifImagePlayerOverlayMenuButtonText
-import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
-import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyColumn
+import dev.toastbits.composekit.util.thenIf
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
 
@@ -142,7 +142,7 @@ class SongThemePlayerOverlayMenu(
                                     .thenIf(index + 1 != sections.size) {
                                         padding(bottom = 20.dp)
                                     }
-                                    .border(1.dp, player.theme.on_background, RoundedCornerShape(5.dp))
+                                    .border(1.dp, player.theme.onBackground, RoundedCornerShape(5.dp))
                                     .padding(5.dp)
                             ) {
                                 for (item in items) {

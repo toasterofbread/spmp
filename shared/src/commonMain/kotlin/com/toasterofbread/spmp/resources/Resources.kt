@@ -17,6 +17,7 @@ import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.allStringResources
 import spmp.shared.generated.resources.language_name
 
+// TODO | Replace with ComposeKit Locale
 data class Language(
     val family: String,
     val locale: String?,

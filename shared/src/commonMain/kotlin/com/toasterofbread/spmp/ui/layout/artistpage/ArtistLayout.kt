@@ -1,13 +1,10 @@
 package com.toasterofbread.spmp.ui.layout.artistpage
 
 import LocalPlayerState
-import androidx.compose.animation.AnimatedVisibility
-import androidx.compose.animation.core.animateFloatAsState
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.aspectRatio
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -29,30 +26,26 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.input.pointer.pointerInput
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.zIndex
-import dev.toastbits.composekit.platform.composable.SwipeRefresh
-import dev.toastbits.composekit.utils.common.getThemeColour
-import dev.toastbits.composekit.utils.composable.getTop
-import dev.toastbits.composekit.utils.modifier.background
-import dev.toastbits.composekit.utils.modifier.brushBackground
-import dev.toastbits.composekit.utils.modifier.drawScopeBackground
-import dev.toastbits.composekit.utils.modifier.horizontal
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.loader.MediaItemThumbnailLoader
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.Thumbnail
-import com.toasterofbread.spmp.ui.component.WaveBorder
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.component.multiselect.MultiSelectItem
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.settings.ui.makeVibrant
+import dev.toastbits.composekit.components.platform.composable.SwipeRefresh
+import dev.toastbits.composekit.components.utils.modifier.background
+import dev.toastbits.composekit.components.utils.modifier.brushBackground
+import dev.toastbits.composekit.components.utils.modifier.horizontal
+import dev.toastbits.composekit.theme.core.makeVibrant
+import dev.toastbits.composekit.util.getThemeColour
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 
 private const val ARTIST_IMAGE_SCROLL_MODIFIER = 0.25f
 

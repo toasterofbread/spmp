@@ -8,7 +8,7 @@ import androidx.compose.ui.graphics.asAndroidBitmap
 import androidx.compose.ui.graphics.asImageBitmap
 import androidx.palette.graphics.Palette
 import java.io.ByteArrayOutputStream
-import dev.toastbits.composekit.utils.common.sortedByHue
+import dev.toastbits.composekit.util.sortedByHue
 
 actual fun createImageBitmapUtil(): ImageBitmapUtil? = AndroidImageBitmapUtil()
 

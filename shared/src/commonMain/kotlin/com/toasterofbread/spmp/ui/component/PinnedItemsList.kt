@@ -8,9 +8,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.composable.*
-import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.common.thenWith
+import dev.toastbits.composekit.components.utils.composable.*
+import dev.toastbits.composekit.util.thenIf
+import dev.toastbits.composekit.util.thenWith
 import com.toasterofbread.spmp.model.mediaitem.*
 import com.toasterofbread.spmp.model.mediaitem.db.rememberPinnedItems
 import com.toasterofbread.spmp.ui.component.longpressmenu.LongPressMenuData
@@ -92,10 +92,10 @@ fun PinnedItemsList(
                 !vertical,
                 arrangement = arrangement,
                 alignment = -1,
-                show_scrollbar = false
+                showScrollbar = false
             ) {
                 items(pinned_items) { item ->
-                    Item(item, vertical, multiselect_context, onClick, Modifier.animateItemPlacement())
+                    Item(item, vertical, multiselect_context, onClick, Modifier.animateItem())
                 }
             }
         }

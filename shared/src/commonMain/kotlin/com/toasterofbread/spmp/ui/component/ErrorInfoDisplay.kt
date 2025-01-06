@@ -56,11 +56,11 @@ import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.layout.onSizeChanged
 import androidx.compose.ui.platform.LocalDensity
-import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
-import dev.toastbits.composekit.utils.composable.WidthShrinkText
-import dev.toastbits.composekit.utils.modifier.background
-import dev.toastbits.composekit.utils.modifier.disableParentScroll
+import dev.toastbits.composekit.util.thenIf
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.util.composable.WidthShrinkText
+import dev.toastbits.composekit.components.utils.modifier.background
+import dev.toastbits.composekit.components.utils.modifier.disableParentScroll
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.model.JsonHttpClient
@@ -76,7 +76,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.Serializable
 import SpMp.isDebugBuild
-import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.theme.core.onAccent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_load_retry
@@ -145,20 +145,20 @@ fun ErrorInfoDisplay(
                     Icon(
                         if (expanded) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
                         null,
-                        tint = player.theme.on_accent
+                        tint = player.theme.onAccent
                     )
                 }
 
                 WidthShrinkText(
                     message ?: pair_error?.first ?: error!!::class.simpleName ?: error!!::class.toString(),
                     modifier = Modifier.fillMaxWidth().weight(1f),
-                    style = LocalTextStyle.current.copy(color = player.theme.on_accent),
+                    style = LocalTextStyle.current.copy(color = player.theme.onAccent),
                     max_lines = 2
                 )
 
                 val button_colours = ButtonDefaults.buttonColors(
                     containerColor = player.theme.background,
-                    contentColor = player.theme.on_background
+                    contentColor = player.theme.onBackground
                 )
 
                 if (onExtraButtonPressed != null) {
@@ -187,7 +187,7 @@ fun ErrorInfoDisplay(
                         shape = shape,
                         colours = IconButtonDefaults.iconButtonColors(
                             containerColor = player.theme.background,
-                            contentColor = player.theme.on_background
+                            contentColor = player.theme.onBackground
                         )
                     ) {
                         Icon(Icons.Default.Close, null)
@@ -218,7 +218,7 @@ private fun LongTextDisplay(text: String, wrap_text: Boolean, modifier: Modifier
             modifier
                 .verticalScroll(rememberScrollState())
                 .padding(bottom = 50.dp),
-            color = player.theme.on_background,
+            color = player.theme.onBackground,
             softWrap = wrap_text
         )
     }
@@ -240,7 +240,7 @@ private fun ExpandedContent(
     var wrap_text by remember { mutableStateOf(false) }
     val button_colours = ButtonDefaults.buttonColors(
         containerColor = player.theme.accent,
-        contentColor = player.theme.on_accent
+        contentColor = player.theme.onAccent
     )
 
     var current_error: Throwable? by remember(error) { mutableStateOf(error) }
@@ -253,7 +253,7 @@ private fun ExpandedContent(
             .background({ player.theme.background })
             .padding(10.dp)
     ) {
-        CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
+        CompositionLocalProvider(LocalContentColor provides player.theme.onBackground) {
             Column(
                 Modifier.fillMaxSize(),
                 verticalArrangement = Arrangement.spacedBy(10.dp)
@@ -261,7 +261,7 @@ private fun ExpandedContent(
                 Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(10.dp)) {
                     Text(
                         stringResource(Res.string.wrap_text_switch_label),
-                        color = player.theme.on_background
+                        color = player.theme.onBackground
                     )
                     Switch(wrap_text, { wrap_text = !wrap_text }, Modifier.padding(end = 10.dp))
 
@@ -284,7 +284,7 @@ private fun ExpandedContent(
                         colors = button_colours,
                         contentPadding = PaddingValues(0.dp),
                     ) {
-                        Text(stringResource(Res.string.upload_to_paste_dot_ee), textAlign = TextAlign.Center, style = LocalTextStyle.current.copy(color = player.theme.on_accent), softWrap = false)
+                        Text(stringResource(Res.string.upload_to_paste_dot_ee), textAlign = TextAlign.Center, style = LocalTextStyle.current.copy(color = player.theme.onAccent), softWrap = false)
                     }
                 }
 

@@ -22,7 +22,7 @@ fun ThumbnailBackground(
     val player: PlayerState = LocalPlayerState.current
     val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
 
-    val default_background_image_opacity: Float by player.settings.theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.observe()
+    val default_background_image_opacity: Float by player.settings.Theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.observe()
     val current_song: Song? by player.status.song_state
 
     current_song?.also { song ->

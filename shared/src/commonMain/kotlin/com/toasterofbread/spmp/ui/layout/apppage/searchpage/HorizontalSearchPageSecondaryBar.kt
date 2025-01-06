@@ -14,9 +14,9 @@ import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.unit.*
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.utils.composable.*
-import dev.toastbits.composekit.utils.modifier.bounceOnClick
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.components.utils.composable.*
+import dev.toastbits.composekit.components.utils.modifier.bounceOnClick
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot

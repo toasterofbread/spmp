@@ -63,14 +63,13 @@ import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.container.npAnchorToDp
 import com.toasterofbread.spmp.ui.layout.nowplaying.overlay.PlayerOverlayMenu
 import com.toasterofbread.spmp.ui.layout.playlistpage.PlaylistAppPage
-import dev.toastbits.composekit.platform.PlatformPreferencesListener
-import dev.toastbits.composekit.platform.composable.BackHandler
-import dev.toastbits.composekit.platform.synchronized
-import dev.toastbits.composekit.settings.ui.ThemeValues
-import dev.toastbits.composekit.settings.ui.on_accent
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
-import dev.toastbits.composekit.utils.composable.getEnd
-import dev.toastbits.composekit.utils.composable.getStart
+import dev.toastbits.composekit.settings.PlatformSettingsListener
+import dev.toastbits.composekit.components.platform.composable.BackHandler
+import dev.toastbits.composekit.components.utils.composable.getEnd
+import dev.toastbits.composekit.components.utils.composable.getStart
+import dev.toastbits.composekit.theme.core.ThemeManager
+import dev.toastbits.composekit.theme.core.onAccent
+import dev.toastbits.composekit.util.composable.OnChangedEffect
 import dev.toastbits.ytmkt.model.external.YoutubePage
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
@@ -93,7 +92,7 @@ class PlayerState(
 ) {
     val database: Database get() = context.database
     val settings: Settings get() = context.settings
-    val theme: AppThemeManager get() = context.theme
+    val theme: ThemeManager get() = context.theme
     val app_page: AppPage get() = app_page_state.current_page
 
     private var _player: PlayerService? by mutableStateOf(null)
@@ -105,15 +104,14 @@ class PlayerState(
         private set
 
     private val low_memory_listener: () -> Unit
-    private val prefs_listner: PlatformPreferencesListener =
-        PlatformPreferencesListener { key ->
+    private val prefs_listner: PlatformSettingsListener =
+        PlatformSettingsListener { key ->
             when (key) {
-                settings.theme.NOWPLAYING_THEME_MODE.key -> coroutine_scope.launch {
-                    np_theme_mode = settings.theme.NOWPLAYING_THEME_MODE.get()
+                settings.Theme.NOWPLAYING_THEME_MODE.key -> coroutine_scope.launch {
+                    np_theme_mode = settings.Theme.NOWPLAYING_THEME_MODE.get()
                 }
-                settings.theme.ACCENT_COLOUR_SOURCE.key -> theme._manager?.updateColours()
-                settings.player.EXPAND_SWIPE_SENSITIVITY.key -> coroutine_scope.launch {
-                    np_swipe_sensitivity = settings.player.EXPAND_SWIPE_SENSITIVITY.get()
+                settings.Player.EXPAND_SWIPE_SENSITIVITY.key -> coroutine_scope.launch {
+                    np_swipe_sensitivity = settings.Player.EXPAND_SWIPE_SENSITIVITY.get()
                 }
             }
         }
@@ -231,7 +229,7 @@ class PlayerState(
         if (PlatformInternalPlayerService.isServiceAttached(context)) {
             return PlatformInternalPlayerService
         }
-        if (settings.platform.ENABLE_EXTERNAL_SERVER_MODE.get()) {
+        if (settings.Platform.ENABLE_EXTERNAL_SERVER_MODE.get()) {
             return PlatformExternalPlayerService
         }
         return PlatformInternalPlayerService
@@ -510,7 +508,7 @@ class PlayerState(
 
     fun onPlayActionOccurred() {
         coroutine_scope.launch {
-            if (np_swipe_state.targetValue == 0 && context.settings.behaviour.OPEN_NP_ON_SONG_PLAYED.get()) {
+            if (np_swipe_state.targetValue == 0 && context.settings.Behaviour.OPEN_NP_ON_SONG_PLAYED.get()) {
                 switchNowPlayingPage(1)
             }
         }
@@ -522,7 +520,7 @@ class PlayerState(
                 if (item is Song) {
                     playSong(
                         item,
-                        start_radio = context.settings.behaviour.START_RADIO_ON_SONG_PRESS.get(),
+                        start_radio = context.settings.Behaviour.START_RADIO_ON_SONG_PRESS.get(),
                         shuffle = shuffle,
                         at_index = at_index
                     )
@@ -615,7 +613,7 @@ class PlayerState(
                 Box(Modifier.fillMaxSize().padding(15.dp)) {
                     val background_colour: Color = theme.accent
 
-                    CompositionLocalProvider(LocalContentColor provides theme.on_accent) {
+                    CompositionLocalProvider(LocalContentColor provides theme.onAccent) {
                         main_multiselect_context.MultiSelectInfoDisplayContent(
                             Modifier
                                 .width(IntrinsicSize.Max)
@@ -647,7 +645,7 @@ class PlayerState(
 
         val form_factor: FormFactor by FormFactor.observe()
 
-        CompositionLocalProvider(LocalContentColor provides context.theme.on_background) {
+        CompositionLocalProvider(LocalContentColor provides context.theme.onBackground) {
             val bottom_padding: Dp by animateDpAsState(
                 if (form_factor.is_large && main_multiselect_context.is_active) multiselect_info_display_height
                 else 0.dp

@@ -16,13 +16,15 @@ class LocalPlaylistRef(override val id: String): LocalPlaylist, MediaItemRef() {
         throw IllegalStateException(id)
     }
 
-    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean, save: Boolean): Result<LocalPlaylistData> {
-        return runCatching {
-            val file: PlatformFile =
-                MediaItemLibrary.getLocalPlaylistFile(this, context)
-                ?: throw RuntimeException("Local file not available")
-            PlaylistFileConverter.loadFromFile(file, context)!!
+    override suspend fun loadData(context: AppContext, populate_data: Boolean, force: Boolean, save: Boolean): Result<LocalPlaylistData> = runCatching {
+        MediaItemLibrary.extra_local_playlists[id]?.also {
+            return@runCatching it
         }
+
+        val file: PlatformFile =
+            MediaItemLibrary.getLocalPlaylistFile(this, context)
+            ?: throw RuntimeException("Local file not available")
+        return@runCatching PlaylistFileConverter.loadFromFile(file, context)!!
     }
 
     override val property_rememberer: PropertyRememberer =

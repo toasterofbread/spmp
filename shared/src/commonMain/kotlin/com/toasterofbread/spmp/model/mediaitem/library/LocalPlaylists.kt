@@ -1,5 +1,6 @@
 package com.toasterofbread.spmp.model.mediaitem.library
 
+import PlatformIO
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -13,13 +14,10 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter.saveToFile
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.composekit.platform.PlatformFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.coroutines.*
-import PlatformIO
-import dev.toastbits.composekit.platform.PlatformFile
 import org.jetbrains.compose.resources.getString
-import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.new_playlist_title
 
@@ -60,13 +58,13 @@ fun MediaItemLibrary.rememberLocalPlaylists(context: AppContext): List<LocalPlay
 suspend fun MediaItemLibrary.loadLocalPlaylists(context: AppContext): List<LocalPlaylistData>? = withContext(Dispatchers.PlatformIO) {
     val playlists_dir: PlatformFile? = getLocalPlaylistsDir(context)
     if (playlists_dir?.is_directory != true) {
-        return@withContext null
+        return@withContext extra_local_playlists.values.toList()
     }
 
     val playlists = (playlists_dir.listFiles() ?: emptyList()).mapNotNull { file ->
         PlaylistFileConverter.loadFromFile(file, context)
     }
-    return@withContext playlists
+    return@withContext playlists + extra_local_playlists.values
 }
 
 suspend fun MediaItemLibrary.createLocalPlaylist(context: AppContext, base_data: PlaylistData? = null): Result<LocalPlaylistData> = withContext(Dispatchers.PlatformIO) {

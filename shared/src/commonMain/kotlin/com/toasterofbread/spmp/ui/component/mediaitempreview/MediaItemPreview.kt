@@ -47,6 +47,7 @@ import com.toasterofbread.spmp.model.mediaitem.db.observePlayCount
 import com.toasterofbread.spmp.model.mediaitem.db.observePropertyActiveTitles
 import com.toasterofbread.spmp.model.mediaitem.layout.getDefaultMediaItemPreviewSize
 import com.toasterofbread.spmp.model.mediaitem.layout.getMediaItemPreviewSquareAdditionalHeight
+import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.mediaItemPreviewInteraction
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
@@ -101,8 +102,10 @@ fun MediaItem.loadIfLocalPlaylist(): MediaItem? {
             return@LaunchedEffect
         }
 
-        state.value = null
-        state.value = item.getLocalPlaylistFile(context)?.let { PlaylistFileConverter.loadFromFile(it, context) }
+        state.value = MediaItemLibrary.extra_local_playlists[item.id]
+        if (state.value == null) {
+            state.value = item.getLocalPlaylistFile(context)?.let { PlaylistFileConverter.loadFromFile(it, context) }
+        }
     }
 
     return state.value

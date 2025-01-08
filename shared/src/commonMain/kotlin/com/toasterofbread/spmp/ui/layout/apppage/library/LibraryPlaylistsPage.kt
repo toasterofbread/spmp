@@ -66,7 +66,7 @@ internal class LibraryPlaylistsPage(context: AppContext): LibrarySubPage(context
 
         val show_likes_playlist: Boolean by player.settings.behaviour.SHOW_LIKES_PLAYLIST.observe()
 
-        val local_playlists: List<LocalPlaylistData> = MediaItemLibrary.rememberLocalPlaylists(player.context) ?: emptyList()
+        val local_playlists: List<PlaylistData> = MediaItemLibrary.rememberLocalPlaylists(player.context) ?: emptyList()
         val account_playlists: List<RemotePlaylistRef> = rememberOwnedPlaylists(api.user_auth_state?.own_channel_id, player.context)
 
         val sorted_local_playlists = library_page.sort_type.sortAndFilterItems(local_playlists, library_page.search_filter, player.database, library_page.reverse_sort)

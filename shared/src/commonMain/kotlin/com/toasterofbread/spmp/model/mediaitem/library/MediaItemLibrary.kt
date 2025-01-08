@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.model.mediaitem.library
 import SpMp
 import com.toasterofbread.spmp.model.lyrics.LyricsFileConverter
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistFileConverter
@@ -83,6 +84,22 @@ object MediaItemLibrary {
         playlists_listeners_lock.withLock {
             for (listener in playlists_listeners) {
                 listener.onPlaylistRemoved(playlist)
+            }
+        }
+    }
+
+    var extra_local_playlists: Map<String, LocalPlaylistData> = mapOf()
+        private set
+    fun updateExtraLocalPlaylists(playlists: List<LocalPlaylistData>) = playlists_listeners_lock.withLock {
+        for (playlist in extra_local_playlists.values) {
+            for (listener in playlists_listeners) {
+                listener.onPlaylistRemoved(playlist)
+            }
+        }
+        extra_local_playlists = playlists.associateBy { it.id }
+        for (playlist in extra_local_playlists.values) {
+            for (listener in playlists_listeners) {
+                listener.onPlaylistAdded(playlist)
             }
         }
     }

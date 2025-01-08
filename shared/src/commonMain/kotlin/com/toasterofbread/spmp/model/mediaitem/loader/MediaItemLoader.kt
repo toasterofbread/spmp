@@ -29,6 +29,7 @@ import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
 import dev.toastbits.ytmkt.radio.RadioContinuation
 import dev.toastbits.composekit.platform.PlatformFile
 import dev.toastbits.composekit.platform.ReentrantLock
+import dev.toastbits.ytmkt.radio.BuiltInRadioContinuation
 
 internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
     private val song_lock: ReentrantLock = ReentrantLock()
@@ -73,7 +74,7 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
         playlist: RemotePlaylistData,
         context: AppContext,
         save: Boolean = true,
-        continuation: RadioContinuation? = null
+        continuation: BuiltInRadioContinuation? = null
     ): Result<RemotePlaylistData> {
         return loadItem(playlist, loading_remote_playlists, playlist_lock, context, save, continuation)
     }
@@ -106,7 +107,7 @@ internal object MediaItemLoader: ListenerLoader<String, MediaItemData>() {
         lock: ReentrantLock,
         context: AppContext,
         save: Boolean,
-        continuation: RadioContinuation? = null
+        continuation: BuiltInRadioContinuation? = null
     ): Result<ItemType> =
         performSafeLoad(
             item.id,

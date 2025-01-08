@@ -93,7 +93,7 @@ abstract class RadioInstance(val context: AppContext) {
 
             val processed_songs: List<Song>? =
                 load_result.fold(
-                    { result -> result?.songs?.let{ processLoadedSongs(it) } },
+                    { result -> result?.songs?.let { processLoadedSongs(it) } },
                     { emptyList() }
                 )
 

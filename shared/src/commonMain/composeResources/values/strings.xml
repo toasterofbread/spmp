@@ -1170,4 +1170,6 @@
 
     <string name="widget_queue_heading_now_playing">Now playing</string>
     <string name="widget_queue_heading_up_next">Up next</string>
+
+    <string name="local_songs_playlist_name">Local songs</string>
 </resources>

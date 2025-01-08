@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.library
 
 import LocalPlayerState
+import SpMp
 import SpMp.isDebugBuild
 import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.animation.AnimatedVisibility
@@ -28,6 +29,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
+import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
 import dev.toastbits.composekit.utils.common.getValue
 import dev.toastbits.composekit.utils.composable.EmptyListCrossfade
@@ -37,9 +39,14 @@ import dev.toastbits.composekit.utils.composable.RowOrColumnScope
 import com.toasterofbread.spmp.model.mediaitem.db.rememberLocalLikedSongs
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
+import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
+import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.model.mediaitem.song.SongData
+import com.toasterofbread.spmp.model.mediaitem.toMediaItemData
+import com.toasterofbread.spmp.model.radio.RadioState
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.getUiLanguage
@@ -51,12 +58,16 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import dev.toastbits.composekit.platform.assert
+import dev.toastbits.composekit.utils.common.launchSingle
 import dev.toastbits.ytmkt.endpoint.LoadPlaylistEndpoint
 import dev.toastbits.ytmkt.model.implementedOrNull
 import dev.toastbits.ytmkt.uistrings.durationToString
 import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import org.jetbrains.compose.resources.StringResource
+import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.`library_$x_songs`
@@ -66,6 +77,7 @@ import spmp.shared.generated.resources.library_songs_liked_title
 import spmp.shared.generated.resources.library_songs_downloaded_title
 import spmp.shared.generated.resources.library_no_items_match_filter
 import spmp.shared.generated.resources.library_no_liked_songs
+import spmp.shared.generated.resources.local_songs_playlist_name
 import spmp.shared.generated.resources.library_no_local_songs
 
 class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
@@ -91,6 +103,7 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
         modifier: Modifier
     ) {
         val player: PlayerState = LocalPlayerState.current
+        val coroutine_scope: CoroutineScope = rememberCoroutineScope()
         val auth_state: ApiAuthenticationState? = player.context.ytapi.user_auth_state
 
         val downloads: List<DownloadStatus> by rememberSongDownloads()
@@ -180,7 +193,9 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
                         itemsIndexed(current_songs, { _, item -> item.id }) { index, song ->
                             CompositionLocalProvider(LocalPlayerClickOverrides provides LocalPlayerClickOverrides.current.copy(
                                 onClickOverride = { _, _ ->
-                                    onSongClicked(sorted_songs, player, song, index)
+                                    coroutine_scope.launchSingle {
+                                        onSongClicked(sorted_songs, player, song, index)
+                                    }
                                 }
                             )) {
                                 MediaItemPreviewLong(
@@ -302,28 +317,27 @@ private fun LibrarySyncButton() {
     }
 }
 
-private fun onSongClicked(songs: List<Song>, player: PlayerState, clicked_song: Song, index: Int) {
+private suspend fun onSongClicked(songs: List<Song>, player: PlayerState, clicked_song: Song, index: Int) = withContext(Dispatchers.Default) {
+    val playlist_name: String = getString(Res.string.local_songs_playlist_name)
     player.withPlayer {
-        val ADD_BEFORE = 0
-        val ADD_AFTER = 9
-
-        val add_songs = songs
-            .mapIndexedNotNull { song_index, song ->
-                if (song_index < index && index - song_index > ADD_BEFORE) {
-                    return@mapIndexedNotNull null
-                }
-
-                if (song_index > index && song_index - index > ADD_AFTER) {
-                    return@mapIndexedNotNull null
-                }
-
-                song
+        startRadioAtIndex(
+            index = 0,
+            object : RadioState.RadioStateSource {
+                private val playlist: PlaylistData =
+                    LocalPlaylistData("!LOCALSONGS").apply {
+                        name = playlist_name
+                        loaded = true
+                        items = songs.map {
+                            SongData(it.id)
+                        }
+                    }
+                override fun isItem(item: MediaItem): Boolean = false
+                override fun getMediaItem(): MediaItem = playlist
+                override fun getDesiredMinimumItemCount(): Int = index + 1
+            },
+            onSuccessfulLoad = {
+                seekToSong(index)
             }
-
-        val song_index = minOf(ADD_BEFORE, index)
-        assert(add_songs[song_index] == clicked_song)
-
-        addMultipleToQueue(add_songs, clear = true)
-        seekToSong(song_index)
+        )
     }
 }

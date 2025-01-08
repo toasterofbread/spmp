@@ -29,7 +29,7 @@ abstract class RadioInstance(val context: AppContext) {
     var state: RadioState by mutableStateOf(RadioState())
         private set
 
-    val is_active: Boolean get() = state.item_uid != null
+    val is_active: Boolean get() = state.source != null
     var is_loading: Boolean by mutableStateOf(false)
         private set
     var load_error: Throwable? by mutableStateOf(null)
@@ -68,7 +68,7 @@ abstract class RadioInstance(val context: AppContext) {
     ) {
         setRadioState(
             RadioState(
-                item_uid = item.getUid(),
+                source = RadioState.RadioStateSource.ItemUid(item.getUid()),
                 item_queue_index = index_in_queue,
                 shuffle = shuffle
             ),
@@ -89,12 +89,16 @@ abstract class RadioInstance(val context: AppContext) {
         load_error = null
 
         coroutine_scope.launchSingle(Dispatchers.PlatformIO) {
+            println("LOADCONT $current_state")
             val load_result: Result<RadioLoadResult?> = current_state.loadContinuation(context)
 
             val processed_songs: List<Song>? =
                 load_result.fold(
                     { result -> result?.songs?.let { processLoadedSongs(it) } },
-                    { emptyList() }
+                    {
+                        RuntimeException("Failed to load radio continuation from $current_state", it).printStackTrace()
+                        emptyList()
+                    }
                 )
 
             withContext(Dispatchers.Main) {
@@ -148,7 +152,7 @@ abstract class RadioInstance(val context: AppContext) {
     fun onQueueSongRemoved(from_index: Int, song: Song) {
         val item_index: Int = state.item_queue_index ?: return
         if (from_index == item_index) {
-            if (song.getUid() == state.item_uid) {
+            if (state.source?.isItem(song) == true) {
                 state = state.copy(item_queue_index = null)
             }
         }

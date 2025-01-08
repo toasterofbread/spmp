@@ -3,6 +3,7 @@ package com.toasterofbread.spmp.model.radio
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.getMediaItemFromUid
+import com.toasterofbread.spmp.model.mediaitem.getUid
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylist
 import com.toasterofbread.spmp.model.mediaitem.playlist.LocalPlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.PlaylistData
@@ -22,7 +23,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 data class RadioState(
-    val item_uid: String? = null,
+    val source: RadioStateSource? = null,
     val item_queue_index: Int? = null,
     val shuffle: Boolean = false,
     @Serializable(with = RadioContinuationSerializer::class)
@@ -32,18 +33,36 @@ data class RadioState(
     val filters: List<RadioFilter>? = null,
     val current_filter_index: Int? = null
 ) {
+    interface RadioStateSource {
+        fun getDesiredMinimumItemCount(): Int = 0
+
+        fun isItem(item: MediaItem): Boolean
+        fun getMediaItem(): MediaItem
+
+        data class ItemUid(val item_uid: String): RadioStateSource {
+            override fun isItem(item: MediaItem): Boolean =
+                item.getUid() == item_uid
+            override fun getMediaItem(): MediaItem =
+                getMediaItemFromUid(item_uid)
+        }
+    }
+
     fun isContinuationAvailable(): Boolean =
-        continuation != null || (item_uid != null && !initial_songs_loaded)
+        continuation != null || (source != null && !initial_songs_loaded)
 
     internal suspend fun loadContinuation(context: AppContext): Result<RadioLoadResult?> = runCatching {
-        if (item_uid == null) {
+        if (source == null) {
             return@runCatching null
         }
 
-        val item: MediaItem = getMediaItemFromUid(item_uid)
+        val item: MediaItem = source.getMediaItem()
 
         val result: RadioLoadResult = (
-            if (continuation == null) loadInitialSongs(context, item)
+            if (continuation == null) loadInitialSongs(
+                context = context,
+                item = item,
+                desired_minimum_item_count = source.getDesiredMinimumItemCount()
+            )
             else loadContinuationSongs(context, item, continuation)
         )
 
@@ -56,7 +75,8 @@ data class RadioState(
 
     private suspend fun loadInitialSongs(
         context: AppContext,
-        item: MediaItem
+        item: MediaItem,
+        desired_minimum_item_count: Int
     ): RadioLoadResult {
         if (initial_songs_loaded) {
             throw RuntimeException("Initial songs already loaded $this")
@@ -99,12 +119,12 @@ data class RadioState(
                 val playlist_data: RemotePlaylistData = item.loadData(context).getOrThrow()
                 val items: List<SongData>? = playlist_data.items
                 checkNotNull(items) { "playlist_data.items is null (${item.id})" }
-                return loadInitialPlaylistRadio(items, playlist_data.continuation)
+                return loadInitialPlaylistRadio(items, playlist_data.continuation, desired_minimum_item_count = desired_minimum_item_count)
             }
             is LocalPlaylist -> {
                 val items: List<SongData>? = item.loadData(context).getOrThrow().items
                 checkNotNull(items) { "playlist_data.items is null (${item.id})" }
-                return loadInitialPlaylistRadio(items)
+                return loadInitialPlaylistRadio(items, desired_minimum_item_count = desired_minimum_item_count)
             }
             else -> throw NotImplementedError(item::class.toString())
         }
@@ -112,19 +132,22 @@ data class RadioState(
 
     private fun loadInitialPlaylistRadio(
         items: List<SongData>,
-        next_continuation: RadioContinuation? = null
+        next_continuation: RadioContinuation? = null,
+        desired_minimum_item_count: Int = 0
     ): RadioLoadResult {
+        val step_size: Int =
+            maxOf(desired_minimum_item_count, PlaylistItemsRadioContinuation.PLAYLIST_RADIO_LOAD_STEP_SIZE)
         val continuation: RadioContinuation? =
-            if (items.size > PlaylistItemsRadioContinuation.PLAYLIST_RADIO_LOAD_STEP_SIZE)
+            if (items.size > step_size)
                 PlaylistItemsRadioContinuation(
                     song_ids = items.map { it.id },
-                    head = PlaylistItemsRadioContinuation.PLAYLIST_RADIO_LOAD_STEP_SIZE,
+                    head = step_size,
                     next_continuation = next_continuation
                 )
             else next_continuation
 
         return RadioLoadResult(
-            songs = items.take(PlaylistItemsRadioContinuation.PLAYLIST_RADIO_LOAD_STEP_SIZE),
+            songs = items.take(step_size),
             continuation = continuation
         )
     }

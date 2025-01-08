@@ -175,7 +175,13 @@ private fun CoroutineScope.getDownloadStatusFromFile(
 
         db_mutex.withLock {
             song.createDbEntry(context.database)
-            song.Title.set(file.name.split('.', limit = 2).firstOrNull() ?: "???", context.database)
+
+            val lastDot: Int = file.name.lastIndexOf('.')
+            song.Title.set(
+                if (lastDot == -1) file.name
+                else file.name.substring(0, lastDot),
+                context.database
+            )
         }
 
         withSong(song)

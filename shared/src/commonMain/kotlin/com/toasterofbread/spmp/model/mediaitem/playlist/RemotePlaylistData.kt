@@ -10,12 +10,13 @@ import com.toasterofbread.spmp.model.mediaitem.enums.PlaylistType
 import com.toasterofbread.spmp.model.mediaitem.song.toSongData
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
+import dev.toastbits.ytmkt.radio.BuiltInRadioContinuation
 import dev.toastbits.ytmkt.radio.RadioContinuation
 
 class RemotePlaylistData(
     id: String,
     var item_set_ids: List<String>? = null,
-    var continuation: RadioContinuation? = null
+    var continuation: BuiltInRadioContinuation? = null
 ): PlaylistData(id), RemotePlaylist {
     var playlist_url: String? = null
 

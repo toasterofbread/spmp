@@ -8,18 +8,19 @@ import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
 import com.toasterofbread.spmp.model.mediaitem.db.Property
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.platform.AppContext
+import dev.toastbits.ytmkt.radio.BuiltInRadioContinuation
 import dev.toastbits.ytmkt.radio.RadioContinuation
 import dev.toastbits.ytmkt.model.external.ThumbnailProvider as YtmThumbnailProvider
 
 sealed interface RemotePlaylist: Playlist {
-    val Continuation: Property<RadioContinuation?>
+    val Continuation: Property<BuiltInRadioContinuation?>
         get() = property_rememberer.rememberSingleQueryProperty(
             "Continuation",
             { playlistQueries.continuationById(id) },
             { continuation_token?.let {
-                RadioContinuation(
+                BuiltInRadioContinuation(
                     it,
-                    RadioContinuation.Type.entries[continuation_type!!.toInt()]
+                    BuiltInRadioContinuation.Type.entries[continuation_type!!.toInt()]
                 )
             }},
             { playlistQueries.updateContinuationById(it?.token, it?.type?.ordinal?.toLong(), id) }

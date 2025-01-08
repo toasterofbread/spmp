@@ -53,7 +53,7 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license_url = "https://github.com/toasterofbread/ComposeKit/blob/136f216e65395660255d3270af9b79c90ae2254c/LICENSE"
             ),
             "dev.toastbits.ytmkt" to DependencyInfo(
-                version = "0.4.0",
+                version = "0.4.1",
                 name = "ytm-kt",
                 author = "toasterofbread",
                 url = "https://github.com/toasterofbread/ytm-kt",

@@ -28,6 +28,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
 
         android:allowBackup="true"
+        android:allowAudioPlaybackCapture="true"
         android:dataExtractionRules="@xml/data_extraction_rules"
         android:fullBackupContent="@xml/backup_rules"
         android:extractNativeLibs="true"

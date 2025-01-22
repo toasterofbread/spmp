@@ -50,7 +50,7 @@ internal fun CurrentRadioIndicator(
     val filters: List<List<RadioBuilderModifier>>? = radio_state?.filters
     var show_radio_info: Boolean by remember { mutableStateOf(false) }
     val radio_item: MediaItem? =
-        radio_state?.item_uid?.let { getMediaItemFromUid(it) }
+        radio_state?.source?.getMediaItem()
             ?.takeIf { item ->
                 item !is Song || radio_state.item_queue_index == null
             }

@@ -40,6 +40,7 @@ import dev.toastbits.ytmkt.model.external.YoutubePage
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmArtist
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmPlaylist
 import dev.toastbits.ytmkt.model.external.mediaitem.YtmSong
+import dev.toastbits.ytmkt.radio.BuiltInRadioContinuation
 import dev.toastbits.ytmkt.radio.RadioContinuation
 import dev.toastbits.ytmkt.uistrings.UiString
 import kotlinx.coroutines.launch
@@ -143,7 +144,7 @@ internal class SpMpYoutubeiApi(
     inner class LoadPlaylistDataEndpoint: YTMLoadPlaylistEndpoint(this) {
         override suspend fun loadPlaylist(
             playlist_id: String,
-            continuation: RadioContinuation?,
+            continuation: BuiltInRadioContinuation?,
             browse_params: String?,
             playlist_url: String?,
             use_non_music_api: Boolean
@@ -162,7 +163,7 @@ internal class SpMpYoutubeiApi(
 
         suspend fun loadPlaylistData(
             playlist_id: String,
-            continuation: RadioContinuation? = null,
+            continuation: BuiltInRadioContinuation? = null,
             browse_params: String? = null,
             playlist_url: String? = null,
             use_non_music_api: Boolean = false,

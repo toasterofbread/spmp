@@ -284,6 +284,40 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
         }
     }
 
+
+    fun startRadioAtIndex(
+        index: Int,
+        source: RadioState.RadioStateSource,
+        shuffle: Boolean = false,
+        clear_queue: Boolean = true,
+        item_queue_index: Int? = null,
+        onSuccessfulLoad: (RadioInstance.LoadResult) -> Unit = {}
+    ) {
+        synchronized(radio) {
+            coroutine_scope.launch {
+                undo_handler.customUndoableAction { furtherAction ->
+                    if (clear_queue) {
+                        clearQueue(from = index, keep_current = false, save = false, cancel_radio = false)
+                    }
+
+                    return@customUndoableAction radio.setUndoableRadioState(
+                        RadioState(
+                            source = source,
+                            item_queue_index = item_queue_index,
+                            shuffle = shuffle
+                        ),
+                        furtherAction = { action: PlayerServicePlayer.() -> UndoRedoAction? ->
+                            furtherAction { action() }
+                        },
+                        onSuccessfulLoad = onSuccessfulLoad,
+                        insertion_index = index,
+                        clear_after = true
+                    )
+                }
+            }
+        }
+    }
+
     fun startRadioAtIndex(
         index: Int,
         item: MediaItem? = null,
@@ -306,25 +340,14 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
                 val playlist_data: RemotePlaylistData? =
                     (final_item as? RemotePlaylist)?.loadData(context)?.getOrNull()
 
-                undo_handler.customUndoableAction { furtherAction ->
-                    if (playlist_data == null || playlist_data?.continuation != null) {
-                        clearQueue(from = index, keep_current = false, save = false, cancel_radio = false)
-                    }
-
-                    return@customUndoableAction radio.setUndoableRadioState(
-                        RadioState(
-                            item_uid = final_item.getUid(),
-                            item_queue_index = final_index,
-                            shuffle = shuffle
-                        ),
-                        furtherAction = { action: PlayerServicePlayer.() -> UndoRedoAction? ->
-                            furtherAction { action() }
-                        },
-                        onSuccessfulLoad = onSuccessfulLoad,
-                        insertion_index = index,
-                        clear_after = true
-                    )
-                }
+                startRadioAtIndex(
+                    index = index,
+                    source = RadioState.RadioStateSource.ItemUid(final_item.getUid()),
+                    shuffle = shuffle,
+                    clear_queue = playlist_data == null || playlist_data.continuation != null,
+                    item_queue_index = final_index,
+                    onSuccessfulLoad = onSuccessfulLoad
+                )
             }
         }
     }
@@ -425,7 +448,7 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
                 synchronized(radio) {
                     return@customUndoableAction radio.setUndoableRadioState(
                         RadioState(
-                            item_uid = song.getUid(),
+                            source = RadioState.RadioStateSource.ItemUid(song.getUid()),
                             item_queue_index = add_to_index
                         ),
                         furtherAction = { action ->

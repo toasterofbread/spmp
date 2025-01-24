@@ -92,7 +92,7 @@ kotlin {
 
                 implementation(deps.get("dev.toastbits:spms"))
                 implementation(deps.get("dev.toastbits.composekit:library"))
-                implementation(deps.get("dev.toastbits.ytmkt:ytmkt"))
+                implementation(deps.get("dev.toastbits:ytm-kt"))
                 implementation(deps.get("dev.toastbits.kana-kt:kanakt"))
 
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")

@@ -52,13 +52,13 @@ class SpMpDeps(extra: Map<String, Any>) {
                 license = "GPL-3.0",
                 license_url = "https://github.com/toasterofbread/ComposeKit/blob/136f216e65395660255d3270af9b79c90ae2254c/LICENSE"
             ),
-            "dev.toastbits.ytmkt" to DependencyInfo(
-                version = "0.4.1",
+            "dev.toastbits:ytm-kt" to DependencyInfo(
+                version = "0.4.2",
                 name = "ytm-kt",
                 author = "toasterofbread",
-                url = "https://github.com/toasterofbread/ytm-kt",
+                url = "https://gitlab.com/toasterofbread/ytm-kt",
                 license = "Apache-2.0",
-                license_url = "https://github.com/toasterofbread/ytm-kt/blob/bc8ea6cef51d5da69e6ac2d898672db2825602fe/LICENSE"
+                license_url = "https://gitlab.com/toastbits/ytm-kt/-/blob/665916f150af57532e80ce3397d260af4cbee789/LICENSE"
             ),
             "dev.toastbits.mediasession" to DependencyInfo(
                 version = "0.1.0",

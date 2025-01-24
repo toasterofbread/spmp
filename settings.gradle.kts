@@ -38,6 +38,7 @@ dependencyResolutionManagement {
     repositoriesMode.set(RepositoriesMode.PREFER_PROJECT)
     repositories {
         mavenLocal()
+        maven("https://maven.toastbits.dev")
 
         google()
         mavenCentral()

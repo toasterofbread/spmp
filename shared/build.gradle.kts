@@ -6,6 +6,15 @@ import org.jetbrains.kotlin.gradle.targets.js.yarn.YarnLockStoreTask
 import plugin.spmp.SpMpDeps
 import plugin.spmp.getDeps
 
+buildscript {
+    configurations.all {
+        resolutionStrategy {
+            force("dev.toastbits:ytm-kt-android:0.4.2")
+	    force("dev.toastbits:ytm-kt:0.4.2")
+        }
+    }
+}
+
 plugins {
     id("generate-build-config")
     id("generate-dependency-list")
@@ -90,11 +99,15 @@ kotlin {
                 implementation(compose.material3)
                 implementation(compose.components.resources)
 
-                implementation(deps.get("dev.toastbits:spms"))
+                //implementation(deps.get("dev.toastbits:ytm-kt"))
+		implementation("dev.toastbits:ytm-kt:0.4.2")
+		implementation("dev.toastbits:ytm-kt-android:0.4.2")
+		implementation(deps.get("dev.toastbits:spms")) {
+			 exclude("dev.toastbits.ytmkt", "ytmkt-android")
+		}
                 implementation(deps.get("dev.toastbits.composekit:library"))
-                implementation(deps.get("dev.toastbits:ytm-kt"))
                 implementation(deps.get("dev.toastbits.kana-kt:kanakt"))
-
+                
                 implementation("org.jetbrains.kotlinx:kotlinx-coroutines-core:1.9.0-RC")
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
                 implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.6.0")
@@ -115,6 +128,14 @@ kotlin {
                 implementation(deps.get("io.ktor:ktor-client-core", "io.ktor"))
                 implementation(deps.get("io.ktor:ktor-client-content-negotiation", "io.ktor"))
                 implementation(deps.get("io.ktor:ktor-serialization-kotlinx-json", "io.ktor"))
+            }
+            
+            configurations.all {
+//		exclude(group:"dev.toastbits.ytmkt", module:"ytmkt-android")
+                resolutionStrategy {
+                   force("dev.toastbits:ytm-kt:0.4.2")
+		   force("dev.toastbits:ytm-kt-android:0.4.2")
+                }
             }
         }
 

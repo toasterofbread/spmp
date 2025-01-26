@@ -21,16 +21,8 @@ jobs:
     - uses: DeterminateSystems/magic-nix-cache-action@main
     - uses: nicknovitski/nix-develop@v1
 
-    - name: Build debug APK
-      run: ./gradlew androidApp:packageDebug
     - name: Build release APK
       run: ./gradlew androidApp:packageRelease
-
-    - name: Upload universal debug APK artifact
-      uses: actions/upload-artifact@v3
-      with:
-        name: spmp-android-debug
-        path: androidApp/build/outputs/apk/debug/*.apk
 
     - name: Upload universal release APK artifact
       uses: actions/upload-artifact@v3

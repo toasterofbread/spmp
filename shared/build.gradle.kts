@@ -91,7 +91,7 @@ kotlin {
                 implementation(compose.components.resources)
 
                 implementation(deps.get("dev.toastbits:spms"))
-                implementation(deps.get("dev.toastbits.ytmkt:ytmkt"))
+                implementation(deps.get("dev.toastbits:ytm-kt"))
                 implementation(deps.get("dev.toastbits.kana-kt:kanakt"))
                 for (dependency in deps.getAllComposeKit()) {
                     implementation(dependency)

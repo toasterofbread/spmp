@@ -2,11 +2,20 @@
 
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import com.toasterofbread.spmp.model.settings.SettingsGroup
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
@@ -33,7 +42,7 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
     }
 
     private val settingsScreen: PlatformSettingsScreen =
-        PlatformSettingsScreen(
+        object : PlatformSettingsScreen(
             state.context.settings.preferences,
             state.context.settings.groups_with_page,
             initialStartPaneRatioSource =
@@ -42,7 +51,42 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
                     InitialPaneRatioSource.Ratio(0.4f)
                 ),
             displayExtraButtonsAboveGroups = true
-        )
+        ) {
+            override var GroupsListFooterContent: (@Composable (Modifier) -> Unit)? = { modifier ->
+                Footer(
+                    center = !isDisplayingBothPanes,
+                    modifier = modifier
+                )
+            }
+        }
+
+    @Composable
+    private fun Footer(
+        center: Boolean,
+        modifier: Modifier = Modifier
+    ) {
+        FlowRow(
+            modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp)
+                .alpha(0.5f),
+            horizontalArrangement =
+                if (center) Arrangement.Center
+                else Arrangement.Start
+        ) {
+            for (part in ProgramArguments.getVersionMessageComposable(split_lines = true).split("\n")) {
+                SelectionContainer {
+                    Text(
+                        part,
+                        fontSize = 12.sp,
+                        textAlign =
+                            if (center) TextAlign.Center
+                            else TextAlign.Start
+                    )
+                }
+            }
+        }
+    }
 
     private val navigator: Navigator =
         BaseNavigator(

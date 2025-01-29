@@ -11,7 +11,8 @@ internal fun getShortcutCategoryItems(context: AppContext): List<SettingsItem> =
             listOf(
                 context.settings.Shortcut.CONFIGURED_SHORTCUTS,
                 context.settings.Shortcut.NAVIGATE_SONG_WITH_NUMBERS
-            )
+            ),
+            resetComposeUiState = {}
         ) { modifier ->
             ShortcutsEditor(modifier)
         }

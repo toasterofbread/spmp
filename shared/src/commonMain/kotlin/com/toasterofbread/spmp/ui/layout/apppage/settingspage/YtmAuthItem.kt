@@ -53,7 +53,7 @@ fun getYtmAuthItem(context: AppContext, ytmAuth: PlatformSettingsProperty<Set<St
     val login_page: LoginPage = context.ytapi.LoginPage
 
     if (!login_page.isImplemented()) {
-        return ComposableSettingsItem {
+        return ComposableSettingsItem(resetComposeUiState = {}) {
             login_page.NotImplementedMessage(Modifier.fillMaxSize())
         }
     }

@@ -111,7 +111,7 @@ class WidgetConfigurationActivity: ComponentActivity() {
                 widget_type = widget_type
             )
         }
-        val navigator: Navigator = BaseNavigator(configuration_screen, isTopLevel = true)
+        val navigator: Navigator = BaseNavigator(configuration_screen)
 
         WindowCompat.setDecorFitsSystemWindows(window, false)
         window.setFlags(

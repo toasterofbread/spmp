@@ -254,7 +254,7 @@ class LibraryArtistsPage(context: AppContext): LibrarySubPage(context) {
                     )
                     loaded = true
                 },
-                load_on_launch = true
+                loadOnLaunch = true
             ) {
                 Icon(Icons.Default.Refresh, null)
             }

@@ -62,7 +62,7 @@ class DependencySettings(val context: AppContext): SettingsGroupImpl("DEPENDENCY
 
     override fun getConfigurationItems(): List<SettingsItem> =
         listOf(
-            ComposableSettingsItem {
+            ComposableSettingsItem(resetComposeUiState = {}) {
                 DependencyList(Modifier.fillMaxSize())
             }
         )

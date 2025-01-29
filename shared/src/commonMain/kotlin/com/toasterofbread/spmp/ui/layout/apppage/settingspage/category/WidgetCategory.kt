@@ -37,7 +37,7 @@ import spmp.shared.generated.resources.s_key_default_widget_configurations
 
 internal fun getWidgetCategoryItems(context: AppContext): List<SettingsItem> =
     listOf(
-        ComposableSettingsItem {
+        ComposableSettingsItem(resetComposeUiState = {}) {
             val navigator: Navigator = LocalNavigator.current
             val base_configuration: BaseWidgetConfig by context.settings.Widget.DEFAULT_BASE_WIDGET_CONFIGURATION.observe()
             val type_configurations: Map<SpMpWidgetType, TypeWidgetConfig<out TypeWidgetClickAction>> by context.settings.Widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.observe()

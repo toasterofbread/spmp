@@ -71,7 +71,8 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
                 val accepted: Boolean by context.settings.DiscordAuth.DISCORD_WARNING_ACCEPTED.observe()
                 val warning_text: String? = DiscordStatus.getWarningText()
                 return@ComposableSettingsItem warning_text != null && !accepted
-            }
+            },
+            resetComposeUiState = {}
         ) { modifier ->
             val theme: ThemeValues = LocalComposeKitTheme.current
             var accepted: Boolean by context.settings.DiscordAuth.DISCORD_WARNING_ACCEPTED.observe()
@@ -111,7 +112,8 @@ internal fun getDiscordCategoryItems(context: AppContext): List<SettingsItem> {
         ComposableSettingsItem(
             shouldShowItem = {
                 LocalProgramArguments.current.is_flatpak
-            }
+            },
+            resetComposeUiState = {}
         ) { modifier ->
             val program_arguments: ProgramArguments = LocalProgramArguments.current
             val player: PlayerState = LocalPlayerState.current

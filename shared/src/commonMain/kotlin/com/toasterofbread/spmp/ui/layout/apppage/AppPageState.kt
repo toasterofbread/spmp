@@ -29,7 +29,7 @@ class AppPageState(val player: PlayerState) {
             val old_page = current_page
             current_page = new_page
 
-            old_page.onClosed(new_page)
+            old_page.onClosed(new_page, going_back)
 
             if (!going_back) {
                 new_page.onOpened(

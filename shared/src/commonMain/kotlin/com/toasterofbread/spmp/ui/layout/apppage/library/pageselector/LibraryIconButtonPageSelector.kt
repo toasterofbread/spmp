@@ -5,6 +5,8 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.tween
 import androidx.compose.foundation.*
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FilterAlt
 import androidx.compose.material3.*
@@ -27,6 +29,7 @@ import dev.toastbits.composekit.theme.core.vibrantAccent
 import dev.toastbits.composekit.util.*
 import dev.toastbits.composekit.components.utils.composable.*
 import dev.toastbits.composekit.components.utils.modifier.*
+import kotlinx.coroutines.flow.collectLatest
 import kotlin.math.roundToInt
 
 @Composable
@@ -246,11 +249,20 @@ private fun LibraryAppPage.FilterBar(modifier: Modifier = Modifier) {
             SortButton()
         }
 
-        ResizableOutlinedTextField(
-            search_filter ?: "",
-            { search_filter = it },
+        val state: TextFieldState = remember { TextFieldState(search_filter ?: "") }
+
+        LaunchedEffect(state) {
+            snapshotFlow { state.text }
+                .collectLatest {
+                    search_filter = it.toString()
+                }
+        }
+
+        OutlinedTextField(
+            state,
             Modifier.fillMaxWidth().weight(1f).focusRequester(focus_requester),
-            singleLine = true
+            lineLimits = TextFieldLineLimits.SingleLine,
+            contentPadding = OutlinedTextFieldDefaults.contentPadding().horizontal
         )
     }
 }

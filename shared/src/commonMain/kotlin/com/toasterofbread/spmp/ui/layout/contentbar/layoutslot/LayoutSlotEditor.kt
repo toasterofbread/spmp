@@ -54,7 +54,8 @@ fun getLayoutSlotEditorSettingsItems(context: AppContext): List<SettingsItem> {
                 context.settings.Layout.PORTRAIT_SLOTS,
                 context.settings.Layout.LANDSCAPE_SLOTS,
                 context.settings.Layout.CUSTOM_BARS
-            )
+            ),
+            resetComposeUiState = {}
         ) { modifier ->
             LayoutSlotEditor(modifier) {
                 SpMp.player_state.app_page_state.Settings.goBack()

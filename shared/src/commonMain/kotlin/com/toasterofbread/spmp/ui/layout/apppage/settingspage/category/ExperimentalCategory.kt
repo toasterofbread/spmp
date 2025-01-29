@@ -22,7 +22,7 @@ internal fun getExperimentalCategoryItems(context: AppContext): List<SettingsIte
     listOf(
         ToggleSettingsItem(context.settings.Experimental.ANDROID_MONET_COLOUR_ENABLE),
 
-        ComposableSettingsItem { modifier ->
+        ComposableSettingsItem(resetComposeUiState = {}) { modifier ->
             Column(
                 modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(5.dp)

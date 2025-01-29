@@ -152,12 +152,24 @@ object SpMp {
             TODO("Not yet implemented")
         }
 
-        override fun replaceScreen(screen: Screen) {
+        override fun removeScreens(amount: Int) {
+            TODO("Not yet implemented")
+        }
+
+        override fun replaceScreen(screen: Screen, inPlace: Boolean) {
             val player: PlayerState = _player_state ?: return
             player.openAppPage(screen.toAppPage(player.app_page_state), replace_current = true)
         }
 
-        override fun replaceScreenUpTo(screen: Screen, isLastScreenToReplace: (Screen) -> Boolean) {
+        override fun replaceScreenUpTo(
+            screen: Screen,
+            inPlace: Boolean,
+            isLastScreenToReplace: (Screen) -> Boolean
+        ) {
+            TODO("Not yet implemented")
+        }
+
+        override fun clearForwardNavigation() {
             TODO("Not yet implemented")
         }
 
@@ -180,9 +192,9 @@ object SpMp {
                 this@toAppPage.Content(modifier, content_padding)
             }
 
-            override fun onClosed(next_page: AppPage?) {
-                super.onClosed(next_page)
-                this@toAppPage.onClosed()
+            override fun onClosed(next_page: AppPage?, going_back: Boolean) {
+                super.onClosed(next_page, going_back)
+                this@toAppPage.onClosed(going_back)
             }
         }
 

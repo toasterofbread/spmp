@@ -4,6 +4,7 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.model.settings.SettingsGroup
@@ -46,7 +47,6 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
     private val navigator: Navigator =
         BaseNavigator(
             initialScreen = settingsScreen,
-            isTopLevel = false,
             extraButtonsHandledExternally = true
         )
 
@@ -58,7 +58,7 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
         return false
     }
 
-    override fun onClosed(next_page: AppPage?) {
+    override fun onClosed(next_page: AppPage?, going_back: Boolean) {
         settingsScreen.reset()
     }
 

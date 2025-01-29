@@ -110,7 +110,7 @@ class LibraryAppPage(override val state: AppPageState): AppPage() {
         setCurrentTab(tabs.first { !it.isHidden() })
     }
 
-    override fun onClosed(next_page: AppPage?) {
+    override fun onClosed(next_page: AppPage?, going_back: Boolean) {
         external_load_error = null
     }
 

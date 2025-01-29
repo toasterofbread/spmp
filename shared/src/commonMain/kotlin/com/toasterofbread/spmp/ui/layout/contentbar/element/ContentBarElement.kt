@@ -9,8 +9,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
-import dev.toastbits.composekit.utils.common.thenWith
-import dev.toastbits.composekit.utils.composable.*
+import dev.toastbits.composekit.util.thenWith
+import dev.toastbits.composekit.components.utils.composable.*
 import com.toasterofbread.spmp.platform.visualiser.MusicVisualiser
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.contentbar.ContentBarReference
@@ -107,22 +107,23 @@ sealed class ContentBarElement {
         var show_mode_selector: Boolean by remember { mutableStateOf(false) }
 
         LargeDropdownMenu(
-            show_mode_selector,
+            title = stringResource(Res.string.content_bar_element_builtin_config_size_mode),
+            isOpen = show_mode_selector,
             onDismissRequest = {
                 show_mode_selector = false
             },
-            SizeMode.entries.size,
-            config.size_mode.ordinal,
-            {
-                Text(SizeMode.entries[it].getName())
+            items = SizeMode.entries,
+            selectedItem = config.size_mode,
+            onSelected = { _, mode ->
+                onModification(
+                    copyWithConfig(config.copy(
+                        size_mode = mode, size = 50
+                    ))
+                )
+                show_mode_selector = false
             }
-        ) {
-            onModification(
-                copyWithConfig(config.copy(
-                    size_mode = SizeMode.entries[it], size = 50
-                ))
-            )
-            show_mode_selector = false
+        ) { mode ->
+            Text(mode.getName())
         }
 
         FlowRow(

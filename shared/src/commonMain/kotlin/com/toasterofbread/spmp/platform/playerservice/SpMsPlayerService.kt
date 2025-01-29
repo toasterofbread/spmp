@@ -11,10 +11,9 @@ import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.getUiLanguage
-import dev.toastbits.composekit.platform.PlatformPreferencesListener
-import dev.toastbits.composekit.platform.getPlatformHostName
-import dev.toastbits.composekit.platform.getPlatformOSName
-import dev.toastbits.composekit.platform.synchronized
+import dev.toastbits.composekit.settings.PlatformSettingsListener
+import dev.toastbits.composekit.util.platform.getPlatformHostName
+import dev.toastbits.composekit.util.platform.getPlatformOSName
 import dev.toastbits.spms.server.CLIENT_HEARTBEAT_MAX_PERIOD
 import dev.toastbits.spms.server.CLIENT_HEARTBEAT_TARGET_PERIOD
 import dev.toastbits.spms.socketapi.shared.SPMS_EXPECT_REPLY_CHAR
@@ -79,10 +78,10 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
         return getString(Res.string.app_name) + " [$os, $host]"
     }
 
-    private val prefs_listener: PlatformPreferencesListener =
-        PlatformPreferencesListener { key ->
+    private val prefs_listener: PlatformSettingsListener =
+        PlatformSettingsListener { key ->
             when (key) {
-                context.settings.youtube_auth.YTM_AUTH.key -> {
+                context.settings.YoutubeAuth.YTM_AUTH.key -> {
                     sendYtmAuthToPlayers()
                 }
             }
@@ -212,7 +211,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                 name = getClientName(),
                 type = if (plays_audio) SpMsClientType.SPMP_PLAYER else SpMsClientType.SPMP_STANDALONE,
                 machine_id = getSpMsMachineId(context),
-                language = context.getUiLanguage()
+                language = context.getUiLanguage().toTag()
             )
 
         val server_handshake: SpMsServerHandshake =
@@ -447,16 +446,16 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
 
     override suspend fun sendAuthInfoToPlayers(ytm_auth: Pair<String?, Headers>?): Result<Unit> = withContext(Dispatchers.PlatformIO) {
         return@withContext runCatching {
-            runCommandOnEachLocalPlayer(
-                "setAuthInfo",
-                ytm_auth?.second?.let {
-                    buildJsonObject {
-                        for ((key, value) in it.flattenEntries()) {
-                            put(key, value)
-                        }
-                    }
-                }
-            )
+            // runCommandOnEachLocalPlayer(
+            //     "setAuthInfo",
+            //     ytm_auth?.second?.let {
+            //         buildJsonObject {
+            //             for ((key, value) in it.flattenEntries()) {
+            //                 put(key, value)
+            //             }
+            //         }
+            //     }
+            // )
         }
     }
 
@@ -482,7 +481,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
                     name = getClientName(),
                     type = SpMsClientType.SPMP_STANDALONE,
                     machine_id = getSpMsMachineId(context),
-                    language = context.getUiLanguage()
+                    language = context.getUiLanguage().toTag()
                 )
 
             val server_handshake: SpMsServerHandshake? =
@@ -528,7 +527,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
         player_status_coroutine_scope.launch {
             val ytm_auth: Pair<String?, Headers>? =
                 ApiAuthenticationState.unpackSetData(
-                    context.settings.youtube_auth.YTM_AUTH.get(),
+                    context.settings.YoutubeAuth.YTM_AUTH.get(),
                     context
                 ).takeIf { it?.first != null }
             sendAuthInfoToPlayers(ytm_auth)

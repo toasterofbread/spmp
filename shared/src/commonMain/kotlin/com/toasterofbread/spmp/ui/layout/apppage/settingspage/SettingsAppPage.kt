@@ -2,71 +2,108 @@
 
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
-import LocalPlayerState
-import androidx.compose.animation.Crossfade
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.BoxWithConstraints
-import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ColumnScope
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.PaddingValues
-import androidx.compose.foundation.layout.calculateEndPadding
-import androidx.compose.foundation.layout.calculateStartPadding
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Refresh
-import androidx.compose.material3.LocalContentColor
+import androidx.compose.foundation.text.selection.SelectionContainer
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.CompositionLocalProvider
-import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalLayoutDirection
-import androidx.compose.ui.unit.Dp
-import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.draw.alpha
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.zIndex
-import dev.toastbits.composekit.settings.ui.SettingsInterface
-import dev.toastbits.composekit.platform.PreferencesProperty
-import com.toasterofbread.spmp.model.settings.Settings
-import com.toasterofbread.spmp.ui.component.PillMenu
-import com.toasterofbread.spmp.ui.component.WAVE_BORDER_HEIGHT_DP
-import com.toasterofbread.spmp.ui.component.WaveBorder
+import androidx.compose.ui.unit.sp
+import com.toasterofbread.spmp.model.settings.SettingsGroup
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import androidx.compose.runtime.MutableState
-import dev.toastbits.composekit.utils.common.copy
-
-internal const val PREFS_PAGE_EXTRA_PADDING_DP: Float = 10f
-
-internal enum class PrefsPageScreen {
-    ROOT,
-    YOUTUBE_MUSIC_LOGIN,
-    DISCORD_LOGIN,
-    UI_DEBUG_INFO
-}
+import dev.toastbits.composekit.components.utils.composable.pane.model.InitialPaneRatioSource
+import dev.toastbits.composekit.navigation.navigator.BaseNavigator
+import dev.toastbits.composekit.navigation.navigator.CurrentScreen
+import dev.toastbits.composekit.navigation.navigator.Navigator
+import dev.toastbits.composekit.navigation.screen.Screen
+import dev.toastbits.composekit.settings.ui.screen.PlatformSettingsGroupScreen
+import dev.toastbits.composekit.settings.ui.screen.PlatformSettingsScreen
 
 class SettingsAppPage(override val state: AppPageState): AppPage() {
-    private val pill_menu: PillMenu = PillMenu(follow_player = true)
-    val ytm_auth: PreferencesProperty<Set<String>> = state.context.settings.youtube_auth.YTM_AUTH
-    val settings_interface: SettingsInterface =
-        getPrefsPageSettingsInterface(
-            state,
-            pill_menu,
-            ytm_auth
+    fun openScreen(screen: Screen) {
+        settingsScreen.internalNavigator.pushScreen(screen)
+    }
+
+    fun openGroup(group: SettingsGroup) {
+        openScreen(PlatformSettingsGroupScreen(group))
+    }
+
+    fun goBack() {
+        navigator.navigateBackward(1)
+    }
+
+    private val settingsScreen: PlatformSettingsScreen =
+        object : PlatformSettingsScreen(
+            state.context.settings.preferences,
+            state.context.settings.groups_with_page,
+            initialStartPaneRatioSource =
+                InitialPaneRatioSource.Remembered(
+                    "com.toasterofbread.spmp.ui.layout.apppage.settingspage.SettingsAppPage",
+                    InitialPaneRatioSource.Ratio(0.4f)
+                ),
+            displayExtraButtonsAboveGroups = true
+        ) {
+            override var GroupsListFooterContent: (@Composable (Modifier) -> Unit)? = { modifier ->
+                Footer(
+                    center = !isDisplayingBothPanes,
+                    modifier = modifier
+                )
+            }
+        }
+
+    @Composable
+    private fun Footer(
+        center: Boolean,
+        modifier: Modifier = Modifier
+    ) {
+        FlowRow(
+            modifier
+                .fillMaxWidth()
+                .padding(top = 10.dp)
+                .alpha(0.5f),
+            horizontalArrangement =
+                if (center) Arrangement.Center
+                else Arrangement.Start
+        ) {
+            for (part in ProgramArguments.getVersionMessageComposable(split_lines = true).split("\n")) {
+                SelectionContainer {
+                    Text(
+                        part,
+                        fontSize = 12.sp,
+                        textAlign =
+                            if (center) TextAlign.Center
+                            else TextAlign.Start
+                    )
+                }
+            }
+        }
+    }
+
+    private val navigator: Navigator =
+        BaseNavigator(
+            initialScreen = settingsScreen,
+            extraButtonsHandledExternally = true
         )
 
     override fun onBackNavigation(): Boolean {
-        return settings_interface.goBack()
+        if (navigator.getNavigateBackwardCount() >= 1) {
+            navigator.navigateBackward(1)
+            return true
+        }
+        return false
     }
 
-    override fun onReopened() {
-        settings_interface.openPage(null)
+    override fun onClosed(next_page: AppPage?, going_back: Boolean) {
+        settingsScreen.reset()
     }
 
     @Composable
@@ -76,76 +113,6 @@ class SettingsAppPage(override val state: AppPageState): AppPage() {
         content_padding: PaddingValues,
         close: () -> Unit,
     ) {
-        val player: PlayerState = LocalPlayerState.current
-        val show_reset_confirmation: MutableState<Boolean> = remember { mutableStateOf(false) }
-
-        ResetConfirmationDialog(
-            show_reset_confirmation,
-            {
-                settings_interface.current_page.resetKeys()
-            }
-        )
-
-        val extra_action: @Composable PillMenu.Action.(action_count: Int) -> Unit = remember {{
-            if (it == 1) {
-                ActionButton(
-                    Icons.Filled.Refresh
-                ) {
-                    show_reset_confirmation.value = true
-                }
-            }
-        }}
-
-        DisposableEffect(settings_interface.current_page) {
-            if (settings_interface.current_page.id == PrefsPageScreen.ROOT.ordinal) {
-                pill_menu.addExtraAction(action = extra_action)
-            }
-            else {
-                pill_menu.removeExtraAction(extra_action)
-            }
-
-            onDispose {
-                pill_menu.removeExtraAction(extra_action)
-            }
-        }
-
-        Box(modifier) {
-            pill_menu.PillMenu()
-
-            Column(Modifier.fillMaxSize()) {
-                val layout_direction: LayoutDirection = LocalLayoutDirection.current
-
-                Crossfade(settings_interface.current_page.id != PrefsPageScreen.ROOT.ordinal) { open ->
-                    if (!open) {
-                        SettingsTopPage(
-                            content_padding = content_padding.copy(
-                                start = content_padding.calculateStartPadding(layout_direction) + PREFS_PAGE_EXTRA_PADDING_DP.dp,
-                                end = content_padding.calculateEndPadding(layout_direction) + PREFS_PAGE_EXTRA_PADDING_DP.dp
-                            ),
-                            top_padding = content_padding.calculateTopPadding()
-                        )
-                    }
-                    else {
-                        BoxWithConstraints(
-                            Modifier.pointerInput(Unit) {}
-                        ) {
-                            CompositionLocalProvider(LocalContentColor provides player.theme.on_background) {
-                                settings_interface.Interface(
-                                    Modifier.fillMaxSize(),
-                                    content_padding = content_padding.copy(
-                                        start = content_padding.calculateStartPadding(layout_direction) + PREFS_PAGE_EXTRA_PADDING_DP.dp,
-                                        end = content_padding.calculateEndPadding(layout_direction) + PREFS_PAGE_EXTRA_PADDING_DP.dp
-                                    ),
-                                    titleFooter = {
-                                        WaveBorder()
-                                    },
-                                    page_top_padding = WAVE_BORDER_HEIGHT_DP.dp
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-        }
+        navigator.CurrentScreen(modifier, content_padding)
     }
 }

@@ -3,9 +3,6 @@ package com.toasterofbread.spmp.platform.playerservice
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.setValue
-import dev.toastbits.composekit.utils.common.synchronizedBlock
-import dev.toastbits.composekit.platform.assert
-import dev.toastbits.composekit.platform.synchronized
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.util.removeLastBuiltIn
 
@@ -147,7 +144,7 @@ internal class UndoHandler(val player: PlayerServicePlayer, val service: PlayerS
     }
 
     fun performAction(action: UndoRedoAction) {
-        synchronizedBlock(action_list) {
+        synchronized(action_list) {
             action.redo(service)
 
             val current = current_action

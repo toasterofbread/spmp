@@ -1,6 +1,3 @@
-@file:Suppress("INVISIBLE_MEMBER", "INVISIBLE_REFERENCE")
-
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.foundation.layout.ColumnScope
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.fillMaxSize
@@ -20,21 +17,12 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.staticCompositionLocalOf
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.pointer.pointerInput
-import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.text.font.FontFamily
-import androidx.compose.ui.text.intl.Locale
-import androidx.compose.ui.text.intl.platformLocaleDelegate
-import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.appaction.shortcut.LocalShortcutState
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
-import com.toasterofbread.spmp.model.settings.category.FontMode
 import com.toasterofbread.spmp.platform.AppContext
-import com.toasterofbread.spmp.platform.ProjectJson
-import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.service.playercontroller.openUri
@@ -46,30 +34,20 @@ import com.toasterofbread.spmp.ui.layout.loadingsplash.LoadingSplash
 import com.toasterofbread.spmp.ui.layout.loadingsplash.SplashMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
-import dev.toastbits.composekit.navigation.Screen
+import dev.toastbits.composekit.application.ApplicationTheme
+import dev.toastbits.composekit.commonsettings.impl.LocalComposeKitSettings
+import dev.toastbits.composekit.components.LocalContext
 import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
 import dev.toastbits.composekit.navigation.navigator.Navigator
-import dev.toastbits.composekit.platform.LocalContext
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.platform.PlatformPreferences
-import dev.toastbits.composekit.platform.PreferencesGroup
-import dev.toastbits.composekit.platform.composable.theme.ApplicationTheme
-import dev.toastbits.composekit.settings.ui.SettingsScreen
-import dev.toastbits.composekit.settings.ui.ThemeValues
-import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.navigation.screen.Screen
+import dev.toastbits.composekit.navigation.screen.ScreenButton
+import dev.toastbits.composekit.settings.PlatformSettings
+import dev.toastbits.composekit.theme.core.ThemeValues
+import dev.toastbits.composekit.util.platform.Platform
+import dev.toastbits.composekit.util.thenIf
 import dev.toastbits.spms.socketapi.shared.SPMS_API_VERSION
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import org.jetbrains.compose.resources.ComposeEnvironment
-import org.jetbrains.compose.resources.DensityQualifier
-import org.jetbrains.compose.resources.Font
-import org.jetbrains.compose.resources.FontResource
-import org.jetbrains.compose.resources.InternalResourceApi
-import org.jetbrains.compose.resources.LanguageQualifier
-import org.jetbrains.compose.resources.LocalComposeEnvironment
-import org.jetbrains.compose.resources.RegionQualifier
-import org.jetbrains.compose.resources.ResourceEnvironment
-import org.jetbrains.compose.resources.ThemeQualifier
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_close
@@ -94,7 +72,7 @@ object SpMp {
         private set
     val player_state: PlayerState get() = _player_state!!
 
-    val prefs: PlatformPreferences get() = context.getPrefs()
+    val prefs: PlatformSettings get() = context.getPrefs()
 
     private val low_memory_listeners: MutableList<() -> Unit> = mutableListOf()
     private var window_fullscreen_toggler: (() -> Unit)? = null
@@ -107,8 +85,8 @@ object SpMp {
         launch_arguments: ProgramArguments,
         composable_coroutine_scope: CoroutineScope
     ): PlayerState {
-        val np_theme_mode: ThemeMode = context.settings.theme.NOWPLAYING_THEME_MODE.get()
-        val swipe_sensitivity: Float = context.settings.player.EXPAND_SWIPE_SENSITIVITY.get()
+        val np_theme_mode: ThemeMode = context.settings.Theme.NOWPLAYING_THEME_MODE.get()
+        val swipe_sensitivity: Float = context.settings.Player.EXPAND_SWIPE_SENSITIVITY.get()
         val player: PlayerState = PlayerState(context, launch_arguments, composable_coroutine_scope, np_theme_mode, swipe_sensitivity)
         _player_state = player
         return player
@@ -131,6 +109,15 @@ object SpMp {
     }
 
     private val navigator = object : Navigator {
+        override val currentExtraButtons: List<ScreenButton>
+            @Composable
+            get() = emptyList()
+        override val currentInfo: String?
+            @Composable
+            get() = null
+        override val currentTitle: String?
+            @Composable
+            get() = null
         override val currentScreen: Screen = Screen.EMPTY
 
         @Composable
@@ -142,28 +129,56 @@ object SpMp {
             throw IllegalStateException()
         }
 
-        override fun canNavigateBackward(): Boolean = false
-        override fun canNavigateForward(): Boolean = false
+        override fun addHistoryResetListener(listener: Navigator.HistoryResetListener) {
+            TODO("Not yet implemented")
+        }
+
+        override fun getNavigateBackwardCount(): Int = 0
+        override fun getNavigateForwardCount(): Int = 0
+
         override fun getMostRecentOfOrNull(predicate: (Screen) -> Boolean): Screen? = null
-        override fun handleKeyEvent(keyEvent: KeyEvent): Boolean = false
         override fun navigateBackward(by: Int) {
             _player_state?.navigateBack()
         }
         override fun navigateForward(by: Int) {}
         override fun peekRelative(offset: Int): Screen? = null
 
-        override fun pushScreen(screen: Screen, skipIfSameClass: Boolean) {
+        override fun pushScreen(screen: Screen) {
             val player: PlayerState = _player_state ?: return
-            player.openAppPage(screen.toAppPage(player.app_page_state, this), replace_current = false)
+            player.openAppPage(screen.toAppPage(player.app_page_state), replace_current = false)
         }
 
-        override fun replaceScreen(screen: Screen) {
+        override fun removeHistoryResetListener(listener: Navigator.HistoryResetListener) {
+            TODO("Not yet implemented")
+        }
+
+        override fun removeScreens(amount: Int) {
+            TODO("Not yet implemented")
+        }
+
+        override fun replaceScreen(screen: Screen, inPlace: Boolean) {
             val player: PlayerState = _player_state ?: return
-            player.openAppPage(screen.toAppPage(player.app_page_state, this), replace_current = true)
+            player.openAppPage(screen.toAppPage(player.app_page_state), replace_current = true)
+        }
+
+        override fun replaceScreenUpTo(
+            screen: Screen,
+            inPlace: Boolean,
+            isLastScreenToReplace: (Screen) -> Boolean
+        ) {
+            TODO("Not yet implemented")
+        }
+
+        override fun clearForwardNavigation() {
+            TODO("Not yet implemented")
+        }
+
+        override fun visualise(): String {
+            TODO("Not yet implemented")
         }
     }
 
-    private fun Screen.toAppPage(state: AppPageState, navigator: Navigator): AppPage =
+    private fun Screen.toAppPage(state: AppPageState): AppPage =
         object : AppPage() {
             override val state: AppPageState = state
 
@@ -174,15 +189,12 @@ object SpMp {
                 content_padding: PaddingValues,
                 close: () -> Unit
             ) {
-                this@toAppPage.Content(navigator, modifier, content_padding)
+                this@toAppPage.Content(modifier, content_padding)
             }
 
-            override fun onClosed(next_page: AppPage?) {
-                super.onClosed(next_page)
-
-                if (this@toAppPage is SettingsScreen) {
-                    this@toAppPage.onClosed()
-                }
+            override fun onClosed(next_page: AppPage?, going_back: Boolean) {
+                super.onClosed(next_page, going_back)
+                this@toAppPage.onClosed(going_back)
             }
         }
 
@@ -195,9 +207,6 @@ object SpMp {
         window_fullscreen_toggler: (() -> Unit)? = null
     ) {
         shortcut_state.ObserveState()
-        if (!context.theme.Update()) {
-            return
-        }
 
         val coroutine_scope: CoroutineScope = rememberCoroutineScope()
 
@@ -208,9 +217,7 @@ object SpMp {
             }
         }
 
-        val ui_language: String by context.observeUiLanguage()
-
-        Theme(context, ui_language) {
+        Theme(context) {
             LaunchedEffect(open_uri) {
                 if (open_uri != null) {
                     player_state.openUri(open_uri).onFailure {
@@ -220,21 +227,18 @@ object SpMp {
             }
 
             Surface(modifier = modifier.fillMaxSize()) {
-                val ui_scale: Float by context.settings.system.UI_SCALE.observe()
-
                 CompositionLocalProvider(
                     LocalPlayerState provides player_state,
                     LocalShortcutState provides shortcut_state,
-                    LocalDensity provides Density(LocalDensity.current.density * ui_scale, 1f),
                     LocalProgramArguments provides arguments,
                     LocalContext provides context,
                     LocalNavigator provides navigator,
-                    LocalComposeEnvironment provides LocalisedComposeEnvironment { ui_language }
+                    LocalComposeKitSettings provides context.settings
                 ) {
                     var mismatched_server_api_version: Int? by remember { mutableStateOf(null) }
                     val splash_mode: SplashMode? = when (Platform.current) {
                         Platform.ANDROID -> {
-                            val external_server_mode: Boolean by player_state.settings.platform.ENABLE_EXTERNAL_SERVER_MODE.observe()
+                            val external_server_mode: Boolean by player_state.settings.Platform.ENABLE_EXTERNAL_SERVER_MODE.observe()
                             if (!player_state.service_connected && external_server_mode) SplashMode.SPLASH
                             else null
                         }
@@ -338,43 +342,12 @@ expect fun isWindowTransparencySupported(): Boolean
 @Composable
 fun SpMp.Theme(
     context: AppContext,
-    ui_language: String,
     theme: ThemeValues = context.theme,
     content: @Composable () -> Unit
 ) {
     theme.ApplicationTheme(
         context,
-        getFontFamily(context, ui_language) ?: FontFamily.Default,
-        content
+        context.settings,
+        content = content
     )
-}
-
-@Composable
-private fun getFontFamily(context: AppContext, ui_language: String): FontFamily? {
-    val font_mode: FontMode by context.settings.system.FONT.observe()
-    val font_resource: FontResource? = remember(ui_language, font_mode) { font_mode.getFontResource(ui_language) }
-
-    return font_resource?.let { FontFamily(Font(it)) }
-}
-
-private class LocalisedComposeEnvironment(
-    private val getUiLanguage: @Composable () -> String
-): ComposeEnvironment {
-    @Composable
-    @OptIn(InternalResourceApi::class)
-    override fun rememberEnvironment(): ResourceEnvironment {
-        val uiLanguage: String = getUiLanguage()
-        val composeLocale: Locale = remember(uiLanguage) { Locale(platformLocaleDelegate.parseLanguageTag(uiLanguage)) }
-        val composeTheme: Boolean = isSystemInDarkTheme()
-        val composeDensity: Density = LocalDensity.current
-
-        return remember(composeLocale, composeTheme, composeDensity) {
-            ResourceEnvironment(
-                LanguageQualifier(composeLocale.language),
-                RegionQualifier(composeLocale.region),
-                ThemeQualifier.selectByValue(composeTheme),
-                DensityQualifier.selectByDensity(composeDensity.density)
-            )
-        }
-    }
 }

@@ -457,8 +457,8 @@
     <string name="s_theme_editor_button_preview">Aperçu</string>
 
     <string name="s_key_accent_source">Couleur d'accent</string>
-    <string name="s_option_accent_theme">À partir du thème</string>
-    <string name="s_option_accent_thumbnail">À partir de la miniature</string>
+    <string name="s_optionAccent_theme">À partir du thème</string>
+    <string name="s_optionAccent_thumbnail">À partir de la miniature</string>
 
     <string name="s_key_np_theme_mode">Mode de thème de lecture en cours</string>
     <string name="s_option_np_accent_background">Fond de couleur avec accent</string>

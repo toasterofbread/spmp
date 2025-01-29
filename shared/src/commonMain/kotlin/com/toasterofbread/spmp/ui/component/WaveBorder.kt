@@ -15,10 +15,10 @@ import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.Density
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.composable.wave.WaveShape
+import dev.toastbits.composekit.util.thenIf
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.settings.ui.ThemeValues
+import com.toasterofbread.spmp.ui.util.WaveShape
+import dev.toastbits.composekit.theme.core.ThemeValues
 
 const val WAVE_BORDER_HEIGHT_DP: Float = 20f
 

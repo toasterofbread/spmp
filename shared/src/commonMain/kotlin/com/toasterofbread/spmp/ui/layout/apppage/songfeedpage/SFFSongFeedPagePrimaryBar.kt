@@ -20,9 +20,9 @@ import com.toasterofbread.spmp.model.getDisplayStringResource
 import com.toasterofbread.spmp.model.getId
 import com.toasterofbread.spmp.model.getString
 import com.toasterofbread.spmp.model.observe
-import dev.toastbits.composekit.platform.composable.ScrollBarLazyRow
-import dev.toastbits.composekit.settings.ui.on_accent
-import dev.toastbits.composekit.utils.composable.ScrollableRowOrColumn
+import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyRow
+import dev.toastbits.composekit.theme.core.onAccent
+import dev.toastbits.composekit.components.utils.composable.ScrollableRowOrColumn
 import org.jetbrains.compose.resources.stringResource
 
 @Composable
@@ -58,13 +58,13 @@ internal fun SongFeedAppPage.SFFSongFeedPagePrimaryBar(
                 colors = with(player.theme) {
                     FilterChipDefaults.elevatedFilterChipColors(
                         containerColor = background,
-                        labelColor = on_background,
+                        labelColor = onBackground,
                         selectedContainerColor = accent,
-                        selectedLabelColor = on_accent
+                        selectedLabelColor = onAccent
                     )
                 },
                 border = FilterChipDefaults.filterChipBorder(
-                    borderColor = player.theme.on_background,
+                    borderColor = player.theme.onBackground,
                     enabled = true,
                     selected = is_selected
                 )

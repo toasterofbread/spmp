@@ -10,11 +10,10 @@ import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.input.key.Key
 import androidx.compose.ui.input.key.KeyEvent
 import androidx.compose.ui.input.key.key
-import androidx.compose.ui.input.key.nativeKeyCode
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.KeyboardShortcutTrigger
 import com.toasterofbread.spmp.ui.component.shortcut.trigger.MouseButtonShortcutTrigger
-import dev.toastbits.composekit.utils.common.addUnique
+import dev.toastbits.composekit.util.addUnique
 import kotlinx.coroutines.launch
 import kotlin.math.roundToLong
 
@@ -40,9 +39,9 @@ class ShortcutState {
     @Composable
     fun ObserveState() {
         val player: PlayerState = LocalPlayerState.current
-        navigate_song_with_numbers = player.settings.shortcut.NAVIGATE_SONG_WITH_NUMBERS.observe().value
+        navigate_song_with_numbers = player.settings.Shortcut.NAVIGATE_SONG_WITH_NUMBERS.observe().value
 
-        val shortcuts: List<Shortcut>? by player.settings.shortcut.CONFIGURED_SHORTCUTS.observe()
+        val shortcuts: List<Shortcut>? by player.settings.Shortcut.CONFIGURED_SHORTCUTS.observe()
         LaunchedEffect(shortcuts) {
             val keyboard_shortcuts: MutableList<Shortcut> = mutableListOf()
             val mouse_button_shortcuts: MutableList<Shortcut> = mutableListOf()

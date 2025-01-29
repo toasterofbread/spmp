@@ -15,17 +15,17 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getServerGroupItems
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.platform.playerservice.LocalServer
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
 import LocalProgramArguments
 import ProgramArguments
-import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.theme.core.onAccent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.loading_splash_button_configure_connection
@@ -43,7 +43,7 @@ fun SplashExtraLoadingContent(item_modifier: Modifier) {
     val button_colours: ButtonColors =
         ButtonDefaults.buttonColors(
             containerColor = player.theme.accent,
-            contentColor = player.theme.on_accent
+            contentColor = player.theme.onAccent
         )
 
     Button(
@@ -63,7 +63,7 @@ fun SplashExtraLoadingContent(item_modifier: Modifier) {
             },
             colours = IconButtonDefaults.iconButtonColors(
                 containerColor = player.theme.accent,
-                contentColor = player.theme.on_accent
+                contentColor = player.theme.onAccent
             ),
             modifier = item_modifier
         ) {

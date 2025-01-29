@@ -52,8 +52,8 @@ interface PlayerService: Player {
 }
 
 fun PlayerService.seekToPreviousOrRepeat() {
-    context.coroutine_scope.launch {
-        val threshold_s: Float = context.settings.behaviour.REPEAT_SONG_ON_PREVIOUS_THRESHOLD_S.get()
+    context.coroutineScope.launch {
+        val threshold_s: Float = context.settings.Behaviour.REPEAT_SONG_ON_PREVIOUS_THRESHOLD_S.get()
         val threshold: Duration? =
             if (threshold_s < 0f) null
             else (threshold_s * 1000).roundToLong().milliseconds

@@ -1,12 +1,12 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import androidx.compose.ui.Modifier
-import dev.toastbits.composekit.utils.common.roundTo
+import dev.toastbits.composekit.util.roundTo
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.component.item.SliderSettingsItem
-import dev.toastbits.composekit.utils.common.CustomStringResource
-import dev.toastbits.composekit.utils.common.toCustomResource
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.SliderSettingsItem
+import dev.toastbits.composekit.util.CustomStringResource
+import dev.toastbits.composekit.util.toCustomResource
 import org.jetbrains.compose.resources.getString
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.settings_value_not_int
@@ -14,7 +14,7 @@ import spmp.shared.generated.resources.settings_value_not_float
 import spmp.shared.generated.resources.`settings_value_out_of_$range`
 
 fun AppSliderItem(
-    state: PreferencesProperty<out Number>,
+    state: PlatformSettingsProperty<out Number>,
     min_label: CustomStringResource? = null,
     max_label: CustomStringResource? = null,
     steps: Int = 0,
@@ -26,13 +26,8 @@ fun AppSliderItem(
 ): SliderSettingsItem =
     SliderSettingsItem(
         state = state,
-        getErrMsgValueOutOfRange = {
-            getString(Res.string.`settings_value_out_of_$range`).replace("\$range", it.toString())
-        },
-        errmsg_value_not_int = Res.string.settings_value_not_int.toCustomResource(),
-        errmsg_value_not_float = Res.string.settings_value_not_float.toCustomResource(),
-        min_label = min_label,
-        max_label = max_label,
+        minLabel = min_label,
+        maxLabel = max_label,
         steps = steps,
         range = range,
         getValueText = getValueText,

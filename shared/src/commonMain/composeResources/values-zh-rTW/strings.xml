@@ -472,8 +472,8 @@
     <string name="s_theme_editor_button_preview">預覽</string>
 
     <string name="s_key_accent_source">強調色</string>
-    <string name="s_option_accent_theme">來自主題</string>
-    <string name="s_option_accent_thumbnail">來自縮圖</string>
+    <string name="s_optionAccent_theme">來自主題</string>
+    <string name="s_optionAccent_thumbnail">來自縮圖</string>
 
     <string name="s_key_np_theme_mode">正在播放的主題模式</string>
     <string name="s_option_np_accent_background">使用強調色彩色背景</string>

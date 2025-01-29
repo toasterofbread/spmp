@@ -1,23 +1,26 @@
 package com.toasterofbread.spmp.model.appaction
 
-import kotlinx.serialization.Serializable
-import com.toasterofbread.spmp.ui.layout.apppage.AppPage
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.model.appaction.AppAction
-import com.toasterofbread.spmp.model.appaction.action.navigation.*
-import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
-import androidx.compose.material3.Text
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
-import androidx.compose.ui.Modifier
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
-import androidx.compose.runtime.*
-import androidx.compose.animation.AnimatedVisibility
+import com.toasterofbread.spmp.model.appaction.action.navigation.AppPageNavigationAction
+import com.toasterofbread.spmp.model.appaction.action.navigation.NavigationAction
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import com.toasterofbread.spmp.ui.layout.apppage.AppPage
+import dev.toastbits.composekit.components.utils.composable.LargeDropdownMenu
+import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.appaction_config_navigation_action
@@ -42,10 +45,11 @@ data class NavigationAppAction(
         var show_action_selector: Boolean by remember { mutableStateOf(false) }
 
         LargeDropdownMenu(
-            expanded = show_action_selector,
+            title = stringResource(Res.string.appaction_config_navigation_action),
+            isOpen = show_action_selector,
             onDismissRequest = { show_action_selector = false },
-            item_count = AppPage.Type.entries.size + NavigationAction.Type.entries.size - 1,
-            selected =
+            items = (0 until AppPage.Type.entries.size + NavigationAction.Type.entries.size - 1).toList(),
+            selectedItem =
                 if (action is AppPageNavigationAction) action.page.ordinal + 1
                 else action.getType().ordinal - 1,
             itemContent = {
@@ -64,13 +68,13 @@ data class NavigationAppAction(
                     }
                 }
             },
-            onSelected = {
+            onSelected = { _, item ->
                 val action: NavigationAction
-                if (it < NavigationAction.Type.entries.size - 1) {
-                    action = NavigationAction.Type.entries[it + 1].createAction()
+                if (item < NavigationAction.Type.entries.size - 1) {
+                    action = NavigationAction.Type.entries[item + 1].createAction()
                 }
                 else {
-                    action = AppPageNavigationAction(AppPage.Type.entries[it + 1 - NavigationAction.Type.entries.size])
+                    action = AppPageNavigationAction(AppPage.Type.entries[item + 1 - NavigationAction.Type.entries.size])
                 }
 
                 onModification(copy(action = action))

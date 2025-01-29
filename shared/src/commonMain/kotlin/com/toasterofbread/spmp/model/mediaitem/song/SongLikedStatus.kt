@@ -3,7 +3,6 @@ package com.toasterofbread.spmp.model.mediaitem.song
 import com.toasterofbread.spmp.platform.AppContext
 import dev.toastbits.ytmkt.endpoint.SetSongLikedEndpoint
 import dev.toastbits.ytmkt.model.external.SongLikedStatus
-import dev.toastbits.composekit.platform.synchronized
 
 fun interface SongLikedStatusListener {
     fun onSongLikedStatusChanged(song: Song, liked_status: SongLikedStatus)

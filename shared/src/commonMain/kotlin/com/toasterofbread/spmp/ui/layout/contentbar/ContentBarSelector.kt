@@ -23,34 +23,30 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.unit.*
-import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.sp
-import dev.toastbits.composekit.platform.composable.*
-import dev.toastbits.composekit.utils.common.*
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.utils.modifier.background
-import dev.toastbits.composekit.utils.composable.NoRipple
+import dev.toastbits.composekit.components.platform.composable.*
+import dev.toastbits.composekit.util.*
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.components.utils.modifier.background
+import dev.toastbits.composekit.components.utils.composable.NoRipple
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.*
-import com.toasterofbread.spmp.ui.layout.contentbar.ContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.observeContentBar
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.ColourSource
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.rememberColourSource
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.vertical
 import com.toasterofbread.spmp.ui.theme.appHover
-import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.theme.core.readableName
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.JsonElement
-import kotlinx.serialization.json.Json
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_close
 import spmp.shared.generated.resources.content_bar_empty
 import spmp.shared.generated.resources.action_cancel
-import spmp.shared.generated.resources.content_bar_empty
 import spmp.shared.generated.resources.content_bar_selection
 import spmp.shared.generated.resources.content_bar_selection_list_built_in
 import spmp.shared.generated.resources.content_bar_selection_list_custom
@@ -90,7 +86,7 @@ internal fun ContentBarSelector(
                 .fillMaxSize()
                 .background(player.theme.background)
                 .padding(content_padding)
-                .border(1.dp, player.theme.vibrant_accent)
+                .border(1.dp, player.theme.vibrantAccent)
                 .padding(base_content_padding)
         ) {
             CompositionLocalProvider(LocalContentColor provides player.theme.background.getContrasted()) {
@@ -128,7 +124,7 @@ internal fun ContentBarSelector(
                         Icon(Icons.Default.Palette, null, rotate_modifier)
 
                         slot_colour_source.theme_colour?.also {
-                            Text(it.getReadable(), lineHeight = 10.sp)
+                            Text(it.readableName, lineHeight = 10.sp)
                         }
                     }
 
@@ -264,7 +260,7 @@ private fun BarSelectorPopup(
                 onDismissed,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = player.theme.background,
-                    contentColor = player.theme.on_background
+                    contentColor = player.theme.onBackground
                 ),
                 modifier = Modifier.appHover(true)
             ) {
@@ -321,7 +317,7 @@ internal fun CustomBarsContentBarList(
         stringResource(Res.string.content_bar_selection_list_custom),
         modifier,
         topContent = {
-            val background_colour: Color = player.theme.vibrant_accent
+            val background_colour: Color = player.theme.vibrantAccent
             CompositionLocalProvider(LocalContentColor provides background_colour.getContrasted()) {
                 ContentBarPreview(
                     stringResource(Res.string.content_bar_selection_create_new),
@@ -380,7 +376,7 @@ internal fun ContentBarList(
     onSelected: ((Int) -> Unit)?
 ) {
     val player: PlayerState = LocalPlayerState.current
-    val custom_bars: List<CustomContentBar> by player.settings.layout.CUSTOM_BARS.observe()
+    val custom_bars: List<CustomContentBar> by player.settings.Layout.CUSTOM_BARS.observe()
     val bars: List<ContentBar> = remember(bar_references, custom_bars) {
         bar_references.mapNotNull { it.getBar(custom_bars) }
     }

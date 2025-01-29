@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import LocalPlayerState
+import PlatformIO
 import SpMp
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
@@ -38,8 +39,8 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
@@ -48,43 +49,41 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.common.getValue
-import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
-import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.db.Database
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
+import com.toasterofbread.spmp.model.mediaitem.song.Song
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsReference
 import com.toasterofbread.spmp.youtubeapi.lyrics.LyricsSource
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.db.Database
+import dev.toastbits.composekit.components.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.theme.core.onAccent
+import dev.toastbits.composekit.util.composable.OnChangedEffect
+import dev.toastbits.composekit.util.composable.getValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import PlatformIO
-import androidx.compose.ui.graphics.Color
-import dev.toastbits.composekit.platform.ReentrantLock
-import dev.toastbits.composekit.platform.synchronized
-import dev.toastbits.composekit.settings.ui.on_accent
-import dev.toastbits.composekit.settings.ui.vibrant_accent
 import kotlinx.io.IOException
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
+import spmp.shared.generated.resources.action_cancel
+import spmp.shared.generated.resources.action_close
+import spmp.shared.generated.resources.action_confirm_action
+import spmp.shared.generated.resources.artist
+import spmp.shared.generated.resources.lyrics_no_lyrics_set_confirmation_title
 import spmp.shared.generated.resources.lyrics_none_found
 import spmp.shared.generated.resources.`lyrics_search_on_$source`
-import spmp.shared.generated.resources.action_confirm_action
-import spmp.shared.generated.resources.action_cancel
-import spmp.shared.generated.resources.prompt_confirm_action
-import spmp.shared.generated.resources.lyrics_no_lyrics_set_confirmation_title
-import spmp.shared.generated.resources.song_name
-import spmp.shared.generated.resources.artist
 import spmp.shared.generated.resources.lyrics_source_cannot_search
-import spmp.shared.generated.resources.action_close
+import spmp.shared.generated.resources.lyrics_source_dialog_title
+import spmp.shared.generated.resources.prompt_confirm_action
+import spmp.shared.generated.resources.song_name
+import java.util.concurrent.locks.ReentrantLock
 import kotlin.time.Duration.Companion.milliseconds
 
 private const val LYRICS_SEARCH_RETRY_COUNT = 3
@@ -102,7 +101,7 @@ fun LyricsSearchMenu(
     val song_artists: List<Artist>? by song.Artists.observe(db)
     val song_artist_title: String? by song_artists?.firstOrNull()?.observeActiveTitle()
 
-    val on_accent: Color = player.theme.on_accent
+    val onAccent: Color = player.theme.onAccent
     val accent: Color = player.theme.accent
 
     val load_lock: ReentrantLock = remember { ReentrantLock() }
@@ -112,13 +111,13 @@ fun LyricsSearchMenu(
         TextFieldDefaults.colors(
             focusedContainerColor = accent.copy(alpha = 0.75f),
             unfocusedContainerColor = accent.copy(alpha = 0.75f),
-            focusedTextColor = on_accent,
-            unfocusedTextColor = on_accent,
-            focusedLabelColor = on_accent,
-            unfocusedLabelColor = on_accent,
-            focusedTrailingIconColor = on_accent,
-            unfocusedTrailingIconColor = on_accent,
-            cursorColor = on_accent,
+            focusedTextColor = onAccent,
+            unfocusedTextColor = onAccent,
+            focusedLabelColor = onAccent,
+            unfocusedLabelColor = onAccent,
+            focusedTrailingIconColor = onAccent,
+            unfocusedTrailingIconColor = onAccent,
+            cursorColor = onAccent,
             focusedIndicatorColor = accent,
             unfocusedIndicatorColor = accent.copy(alpha = 0.5f)
         )
@@ -130,7 +129,7 @@ fun LyricsSearchMenu(
     val artist = remember (song_artist_title) { mutableStateOf(TextFieldValue(song_artist_title ?: "")) }
     var search_state: Boolean by remember { mutableStateOf(false) }
 
-    val default_source: Int by player.settings.lyrics.DEFAULT_SOURCE.observe()
+    val default_source: Int by player.settings.Lyrics.DEFAULT_SOURCE.observe()
     var selected_source: LyricsSource by remember { mutableStateOf(LyricsSource.fromIdx(default_source)) }
 
     var search_results: Pair<List<LyricsSource.SearchResult>, Int>? by remember { mutableStateOf(null) }
@@ -225,26 +224,26 @@ fun LyricsSearchMenu(
                                 .clickable { source_selector_open = !source_selector_open },
                             verticalAlignment = Alignment.CenterVertically
                         ) {
-                            Icon(Icons.Default.ArrowDropDown, null, tint = on_accent)
+                            Icon(Icons.Default.ArrowDropDown, null, tint = onAccent)
 
                             Text(
                                 stringResource(Res.string.`lyrics_search_on_$source`)
                                     .replace("\$source", selected_source.getReadable()),
-                                color = on_accent
+                                color = onAccent
                             )
 
                             LargeDropdownMenu(
-                                source_selector_open,
-                                { source_selector_open = false },
-                                LyricsSource.SOURCE_AMOUNT,
-                                selected_source.source_index,
-                                { source_idx ->
-                                    Text(LyricsSource.fromIdx(source_idx).getReadable())
-                                },
-                                selected_border_colour = player.theme.vibrant_accent
+                                title = stringResource(Res.string.lyrics_source_dialog_title),
+                                isOpen = source_selector_open,
+                                onDismissRequest = { source_selector_open = false },
+                                items = (0 until LyricsSource.SOURCE_AMOUNT).toList(),
+                                selectedItem = selected_source.source_index,
+                                onSelected = { _, source_idx ->
+                                    selected_source = LyricsSource.fromIdx(source_idx)
+                                    source_selector_open = false
+                                }
                             ) { source_idx ->
-                                selected_source = LyricsSource.fromIdx(source_idx)
-                                source_selector_open = false
+                                Text(LyricsSource.fromIdx(source_idx).getReadable())
                             }
                         }
 
@@ -258,7 +257,7 @@ fun LyricsSearchMenu(
                             Icon(
                                 Icons.Default.CommentsDisabled,
                                 null,
-                                tint = on_accent
+                                tint = onAccent
                             )
                         }
 
@@ -373,7 +372,7 @@ fun LyricsSearchMenu(
                         .weight(1f),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = player.theme.accent,
-                        contentColor = on_accent
+                        contentColor = onAccent
                     )
                 ) {
                     Text(stringResource(Res.string.action_close))
@@ -405,7 +404,7 @@ fun LyricsSearchMenu(
                         else 3
                     ) { icon ->
                         when (icon) {
-                            0 -> CircularProgressIndicator(Modifier.requiredSize(22.dp), color = on_accent, strokeWidth = 3.dp)
+                            0 -> CircularProgressIndicator(Modifier.requiredSize(22.dp), color = onAccent, strokeWidth = 3.dp)
                             else -> {
                                 Icon(
                                     when (icon) {
@@ -414,7 +413,7 @@ fun LyricsSearchMenu(
                                         else -> Icons.Default.Edit
                                     },
                                     null,
-                                    tint = on_accent
+                                    tint = onAccent
                                 )
                             }
                         }

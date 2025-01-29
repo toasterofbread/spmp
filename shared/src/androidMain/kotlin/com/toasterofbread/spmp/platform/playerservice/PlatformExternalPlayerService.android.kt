@@ -51,7 +51,7 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
     override fun PersistentContent(requestServiceChange: (PlayerServiceCompanion) -> Unit) {
         val player: PlayerState = LocalPlayerState.current
         val launch_arguments: ProgramArguments = LocalProgramArguments.current
-        val ui_only: Boolean by player.settings.platform.EXTERNAL_SERVER_MODE_UI_ONLY.observe()
+        val ui_only: Boolean by player.settings.Platform.EXTERNAL_SERVER_MODE_UI_ONLY.observe()
         LaunchedEffect(ui_only) {
             if (ui_only && PlatformExternalPlayerService.isAvailable(player.context, launch_arguments)) {
                 requestServiceChange(PlatformExternalPlayerService.Companion)
@@ -245,7 +245,7 @@ actual class PlatformExternalPlayerService: ForegroundPlayerService(play_when_re
             onConnected: (PlayerService) -> Unit,
             onDisconnected: () -> Unit
         ): Any {
-            if (context.settings.platform.EXTERNAL_SERVER_MODE_UI_ONLY.get()) {
+            if (context.settings.Platform.EXTERNAL_SERVER_MODE_UI_ONLY.get()) {
                 require(instance is ExternalPlayerService?)
                 val service: ExternalPlayerService =
                     if (instance != null) instance.also { it.setContext(context) }

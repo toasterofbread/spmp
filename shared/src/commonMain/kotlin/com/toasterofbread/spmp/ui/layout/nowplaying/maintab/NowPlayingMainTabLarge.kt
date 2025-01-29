@@ -6,10 +6,37 @@ import androidx.compose.animation.core.animateDpAsState
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.border
 import androidx.compose.foundation.gestures.detectTapGestures
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.RowScope
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.calculateEndPadding
+import androidx.compose.foundation.layout.calculateStartPadding
+import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.State
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -25,35 +52,47 @@ import androidx.compose.ui.layout.positionInRoot
 import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.platform.LocalLayoutDirection
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.DpOffset
+import androidx.compose.ui.unit.DpSize
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.LayoutDirection
+import androidx.compose.ui.unit.coerceAtLeast
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.lerp
+import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.times
 import androidx.compose.ui.zIndex
-import dev.toastbits.composekit.platform.composable.composeScope
-import dev.toastbits.composekit.utils.common.*
-import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.composable.getTop
-import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.observeThumbnailRounding
 import com.toasterofbread.spmp.model.settings.category.NowPlayingQueueWaveBorderMode
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.Thumbnail
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_HEIGHT_DP
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.MINIMISED_NOW_PLAYING_V_PADDING_DP
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.bottom_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.horizontal_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.horizontal_padding_minimised
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage.Companion.top_padding
 import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingTopBar
+import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
 import com.toasterofbread.spmp.ui.layout.nowplaying.ThemeMode
 import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.LargeThumbnailRow
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.thumbnailrow.songThumbnailShadow
 import com.toasterofbread.spmp.ui.layout.nowplaying.queue.QueueTab
+import dev.toastbits.composekit.components.platform.composable.composeScope
+import dev.toastbits.composekit.components.utils.composable.getTop
+import dev.toastbits.composekit.theme.core.vibrantAccent
+import dev.toastbits.composekit.util.amplify
+import dev.toastbits.composekit.util.composable.getValue
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.util.thenIf
+import dev.toastbits.composekit.util.toInt
+import dev.toastbits.ytmkt.model.external.ThumbnailProvider
 import kotlin.math.absoluteValue
 import kotlin.math.roundToInt
-import androidx.compose.runtime.State
-import dev.toastbits.composekit.settings.ui.vibrant_accent
 
 val NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT: Dp
     @Composable get() = MINIMISED_NOW_PLAYING_HEIGHT_DP.dp
@@ -106,7 +145,7 @@ internal fun NowPlayingMainTabPage.NowPlayingMainTabLarge(page_height: Dp, top_b
     val layout_direction: LayoutDirection = LocalLayoutDirection.current
     val density: Density = LocalDensity.current
 
-    val swap_controls_and_image: Boolean by player.settings.player.LANDSCAPE_SWAP_CONTROLS_AND_IMAGE.observe()
+    val swap_controls_and_image: Boolean by player.settings.Player.LANDSCAPE_SWAP_CONTROLS_AND_IMAGE.observe()
 
     val proportion: Float = WindowInsets.getTop() / page_height
     val proportion_exp: Float by remember { derivedStateOf {
@@ -393,7 +432,7 @@ private fun PlayerQueueTab(
     val queue_shape: Shape = RoundedCornerShape(10.dp)
     val width: Dp by width_state
 
-    val default_background_opacity: Float by player.settings.theme.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.observe()
+    val default_background_opacity: Float by player.settings.Theme.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.observe()
     val song_background_opacity: Float? by player.status.m_song?.LandscapeQueueOpacity?.observe(player.database)
 
     val background_opacity: Float by remember(player.status.m_song) { derivedStateOf { song_background_opacity ?: default_background_opacity } }
@@ -418,7 +457,7 @@ private fun PlayerQueueTab(
                 }
             }
     ) {
-        val np_theme_mode: ThemeMode by player.settings.theme.NOWPLAYING_THEME_MODE.observe()
+        val np_theme_mode: ThemeMode by player.settings.Theme.NOWPLAYING_THEME_MODE.observe()
 
         QueueTab(
             null,
@@ -449,9 +488,9 @@ private fun PlayerQueueTab(
             },
             getOnBackgroundColour = {
                 when (np_theme_mode) {
-                    ThemeMode.BACKGROUND -> theme.vibrant_accent
+                    ThemeMode.BACKGROUND -> theme.vibrantAccent
                     ThemeMode.ELEMENTS -> theme.accent
-                    ThemeMode.NONE -> theme.on_background
+                    ThemeMode.NONE -> theme.onBackground
                 }
             }
         )

@@ -7,13 +7,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.graphics.vector.ImageVector
-import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
-import com.toasterofbread.spmp.model.settings.category.SettingsGroup
+import dev.toastbits.composekit.components.utils.composable.LargeDropdownMenu
+import com.toasterofbread.spmp.model.settings.SettingsGroup
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.SettingsAppPage
 import kotlinx.serialization.Serializable
 import LocalPlayerState
+import dev.toastbits.composekit.settings.ui.screen.PlatformSettingsGroupScreen
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.appaction_config_navigation_settings_group_none
@@ -41,8 +42,8 @@ data class AppPageNavigationAction(
         player.openAppPage(page)
 
         if (page is SettingsAppPage && settings_group != null) {
-            val group_page: SettingsGroup.CategoryPage = player.settings.groupFromKey(settings_group)?.getPage() ?: return
-            group_page.openPage(player.context)
+            val group: SettingsGroup = player.settings.groupFromKey(settings_group) ?: return
+            player.app_page_state.Settings.openGroup(group)
         }
     }
 
@@ -62,27 +63,29 @@ data class AppPageNavigationAction(
     override fun ConfigurationItems(item_modifier: Modifier, onModification: (NavigationAction) -> Unit) {
         val player: PlayerState = LocalPlayerState.current
         var show_settings_group_selector: Boolean by remember { mutableStateOf(false) }
-        val settings_pages: List<SettingsGroup.CategoryPage> = remember { player.settings.group_pages }
+        val settings_pages: List<PlatformSettingsGroupScreen> = remember { player.settings.group_pages }
 
         LargeDropdownMenu(
-            expanded = show_settings_group_selector,
+            title = stringResource(Res.string.appaction_config_navigation_settings_group),
+            isOpen = show_settings_group_selector,
             onDismissRequest = { show_settings_group_selector = false },
-            item_count = settings_pages.size + 1,
-            selected = settings_group?.let { group_key ->
-                settings_pages.indexOfFirst { it.group.group_key == group_key } + 1
-            } ?: 0,
+            items = (0 until settings_pages.size + 1).toList(),
+            selectedItem =
+                settings_group?.let { group_key ->
+                    settings_pages.indexOfFirst { it.group.groupKey == group_key } + 1
+                } ?: 0,
             itemContent = {
                 if (it == 0) {
                     Text(stringResource(Res.string.appaction_config_navigation_settings_group_none))
                 }
                 else {
-                    Text(settings_pages[it - 1].getTitle())
+                    Text(settings_pages[it - 1].title)
                 }
             },
-            onSelected = {
+            onSelected = { _, index ->
                 val group_key: String? =
-                    if (it == 0) null
-                    else settings_pages[it - 1].group.group_key
+                    if (index == 0) null
+                    else settings_pages[index - 1].group.groupKey
 
                 onModification(copy(settings_group = group_key))
                 show_settings_group_selector = false
@@ -107,7 +110,7 @@ data class AppPageNavigationAction(
                         Text(stringResource(Res.string.appaction_config_navigation_settings_group_none))
                     }
                     else {
-                        Text(settings_pages.first { it.group.group_key == settings_group }.getTitle())
+                        Text(settings_pages.first { it.group.groupKey == settings_group }.title)
                     }
                 }
             }

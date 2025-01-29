@@ -39,7 +39,7 @@ fun ExoMediaItem.toSong(): Song =
     SongRef(mediaMetadata.artworkUri.toString())
 
 internal suspend fun LoudnessEnhancer.update(song: Song?, context: AppContext) {
-    if (song == null || !context.settings.streaming.ENABLE_AUDIO_NORMALISATION.get()) {
+    if (song == null || !context.settings.Streaming.ENABLE_AUDIO_NORMALISATION.get()) {
         enabled = false
         return
     }

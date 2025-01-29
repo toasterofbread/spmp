@@ -1,19 +1,21 @@
 package com.toasterofbread.spmp.model.appaction
 
-import kotlinx.serialization.Serializable
-import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
-import androidx.compose.ui.Alignment
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.FlowRow
-import androidx.compose.material3.Text
 import androidx.compose.material3.Button
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.vector.ImageVector
+import com.toasterofbread.spmp.model.appaction.action.playback.PlaybackAction
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.model.appaction.action.playback.*
-import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.components.utils.composable.LargeDropdownMenu
+import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.appaction_config_playback_action_type
@@ -38,15 +40,16 @@ data class PlaybackAppAction(
         var show_action_selector: Boolean by remember { mutableStateOf(false) }
 
         LargeDropdownMenu(
-            expanded = show_action_selector,
+            title = stringResource(Res.string.appaction_config_playback_action_type),
+            isOpen = show_action_selector,
             onDismissRequest = { show_action_selector = false },
-            item_count = PlaybackAction.Type.entries.size,
-            selected = action.getType().ordinal,
-            itemContent = {
-                PlaybackAction.Type.entries[it].Preview()
+            items = PlaybackAction.Type.entries,
+            selectedItem = action.getType(),
+            itemContent = { action ->
+                action.Preview()
             },
-            onSelected = {
-                onModification(copy(action = PlaybackAction.Type.entries[it].createAction()))
+            onSelected = { _, action ->
+                onModification(copy(action = action.createAction()))
                 show_action_selector = false
             }
         )

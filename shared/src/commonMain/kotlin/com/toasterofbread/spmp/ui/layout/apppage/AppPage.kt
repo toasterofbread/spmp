@@ -21,9 +21,6 @@ import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.artistpage.ArtistAppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
-import dev.toastbits.composekit.navigation.Screen
-import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
-import dev.toastbits.composekit.navigation.navigator.Navigator
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.app_page_control_panel
@@ -75,7 +72,7 @@ abstract class AppPage {
 
     open fun onOpened(from_item: MediaItemHolder? = null) {}
     open fun onReopened() {}
-    open fun onClosed(next_page: AppPage?) {}
+    open fun onClosed(next_page: AppPage?, going_back: Boolean) {}
     open fun onBackNavigation(): Boolean = false
 
     open fun canReload(): Boolean = false

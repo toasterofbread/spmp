@@ -12,6 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.sp
@@ -31,13 +32,13 @@ import org.jetbrains.compose.resources.FontResource
 internal fun GlanceText(
     text: String,
     modifier: GlanceModifier = GlanceModifier,
-    font: FontResource? = null,
+    font: Font? = null,
     font_size: TextUnit = 15.sp,
     colour: Color = LocalContentColor.current,
     max_width: Dp? = null
 ) {
     val context: Context = LocalContext.current
-    val typeface: Typeface? = font?.let { Font(it) }?.toAndroidTypeface()
+    val typeface: Typeface? = font?.toAndroidTypeface()
 
     val max_width_px: Int? = with (LocalDensity.current) {
         max_width?.roundToPx()

@@ -28,10 +28,10 @@ import androidx.compose.animation.core.tween
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.utils.common.thenIf
-import dev.toastbits.composekit.utils.modifier.background
+import dev.toastbits.composekit.util.platform.Platform
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.util.thenIf
+import dev.toastbits.composekit.components.utils.modifier.background
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
@@ -40,6 +40,7 @@ import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLon
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.theme.appHover
+import dev.toastbits.composekit.util.model.Locale
 import dev.toastbits.ytmkt.uistrings.durationToString
 import org.burnoutcrew.reorderable.ReorderableLazyListState
 import org.burnoutcrew.reorderable.detectReorder
@@ -119,13 +120,13 @@ class QueueTabItem(val song: Song, val key: Int) {
 
         val `lpm_song_played_$x_ago`: String = stringResource(Res.string.`lpm_song_played_$x_ago`)
         val `lpm_song_playing_in_$x`: String = stringResource(Res.string.`lpm_song_playing_in_$x`)
-        val ui_langauge: String by player.context.observeUiLanguage()
+        val ui_language: Locale by player.context.observeUiLanguage()
 
-        return remember(delta, ui_langauge) {
+        return remember(delta, ui_language) {
             (
                 if (index < playing_index) `lpm_song_played_$x_ago`
                 else `lpm_song_playing_in_$x`
-            ).replace("\$x", durationToString(delta, ui_langauge, true))
+            ).replace("\$x", durationToString(delta, ui_language.toTag(), true))
         }
     }
 
@@ -143,7 +144,7 @@ class QueueTabItem(val song: Song, val key: Int) {
 
         val max_offset: Float = with(LocalDensity.current) { player.screen_size.width.toPx() }
         val swipe_state: AnchoredDraggableState<Int> = queueElementSwipeState(requestRemove, max_offset)
-        val swipe_sensitivity: Float by player.settings.player.QUEUE_ITEM_SWIPE_SENSITIVITY.observe()
+        val swipe_sensitivity: Float by player.settings.Player.QUEUE_ITEM_SWIPE_SENSITIVITY.observe()
 
         TouchSlopScope({
             touchSlop * 2f * (2.1f - swipe_sensitivity)

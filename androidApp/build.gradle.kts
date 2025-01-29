@@ -5,6 +5,7 @@ import org.xmlpull.v1.XmlPullParserFactory
 import java.io.FileInputStream
 import java.util.Properties
 import com.android.build.api.dsl.ApplicationVariantDimension
+import org.jetbrains.kotlin.gradle.plugin.KotlinDependencyHandler
 import plugin.spmp.SpMpDeps
 import plugin.spmp.getDeps
 
@@ -57,7 +58,9 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 implementation(project(":shared"))
-                implementation(deps.get("dev.toastbits.composekit:library"))
+                for (dependency in deps.getAllComposeKit()) {
+                    implementation(dependency)
+                }
             }
         }
     }
@@ -166,8 +169,9 @@ android {
             implementation(project(":shared"))
 
             // Widget
-            implementation("androidx.glance:glance-appwidget:1.1.0")
-            implementation("androidx.glance:glance-material3:1.1.0")
+            val glance_version = "1.1.1"
+            implementation("androidx.glance:glance-appwidget:$glance_version")
+            implementation("androidx.glance:glance-material3:$glance_version")
             implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.7.3")
             implementation(compose.runtime)
 //            implementation(compose.foundation)
@@ -175,7 +179,7 @@ android {
 //            implementation(compose.ui)
 //            implementation(compose.material)
             implementation(compose.material3)
-//            implementation(compose.components.resources)
+            implementation(compose.components.resources)
         }
         manifest {
             srcFile("src/main/AndroidManifest.xml")

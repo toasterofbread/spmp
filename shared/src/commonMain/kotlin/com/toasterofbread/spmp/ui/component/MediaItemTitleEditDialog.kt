@@ -12,7 +12,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import dev.toastbits.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.util.platform.launchSingle
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import org.jetbrains.compose.resources.stringResource

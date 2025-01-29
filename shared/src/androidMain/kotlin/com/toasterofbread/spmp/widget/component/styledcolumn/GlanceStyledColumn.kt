@@ -29,8 +29,8 @@ import com.toasterofbread.spmp.widget.configuration.enum.WidgetSectionTheme
 import com.toasterofbread.spmp.widget.configuration.enum.WidgetStyledBorderMode
 import com.toasterofbread.spmp.widget.configuration.enum.colour
 import com.toasterofbread.spmp.widget.modifier.padding
-import dev.toastbits.composekit.utils.common.getContrasted
-import dev.toastbits.composekit.utils.composable.wave.wavePath
+import dev.toastbits.composekit.util.getContrasted
+import dev.toastbits.composekit.components.utils.composable.wave.wavePath
 
 val GLANCE_STYLED_COLUMN_DEFAULT_SPACING: Dp = 12.dp
 
@@ -117,7 +117,7 @@ private fun ColumnWaveBorder(
         )
 
         val bottom_wave_path: Path = Path()
-        wavePath(
+        com.toasterofbread.spmp.ui.util.wavePath(
             path = bottom_wave_path,
             size = image_size,
             waves = 9,
@@ -153,7 +153,7 @@ private fun Canvas.drawWave(
     fill_direction: Int = 0
 ) {
     val path: Path = Path()
-    wavePath(
+    com.toasterofbread.spmp.ui.util.wavePath(
         path = path,
         size = wave_size,
         waves = waves,

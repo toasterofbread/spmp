@@ -1,10 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.library
 
 import LocalPlayerState
-import SpMp
 import SpMp.isDebugBuild
-import dev.toastbits.ytmkt.model.ApiAuthenticationState
-import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -22,20 +19,20 @@ import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
-import androidx.compose.runtime.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
-import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
-import dev.toastbits.composekit.utils.common.getValue
-import dev.toastbits.composekit.utils.composable.EmptyListCrossfade
-import dev.toastbits.composekit.utils.composable.LoadActionIconButton
-import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
-import dev.toastbits.composekit.utils.composable.RowOrColumnScope
 import com.toasterofbread.spmp.model.mediaitem.db.rememberLocalLikedSongs
 import com.toasterofbread.spmp.model.mediaitem.enums.MediaItemType
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
@@ -45,21 +42,27 @@ import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistData
 import com.toasterofbread.spmp.model.mediaitem.playlist.RemotePlaylistRef
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongData
-import com.toasterofbread.spmp.model.mediaitem.toMediaItemData
 import com.toasterofbread.spmp.model.radio.RadioState
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
-import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.download.rememberSongDownloads
+import com.toasterofbread.spmp.platform.getUiLanguage
 import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
+import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.platform.assert
-import dev.toastbits.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyColumn
+import dev.toastbits.composekit.components.utils.composable.LoadActionIconButton
+import dev.toastbits.composekit.components.utils.composable.RowOrColumnScope
+import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.components.utils.composable.crossfade.EmptyListCrossfade
+import dev.toastbits.composekit.util.composable.getValue
+import dev.toastbits.composekit.util.model.Locale
+import dev.toastbits.composekit.util.platform.launchSingle
 import dev.toastbits.ytmkt.endpoint.LoadPlaylistEndpoint
+import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import dev.toastbits.ytmkt.model.implementedOrNull
 import dev.toastbits.ytmkt.uistrings.durationToString
 import kotlinx.coroutines.CoroutineScope
@@ -71,14 +74,14 @@ import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.`library_$x_songs`
-import spmp.shared.generated.resources.library_songs_downloaded
-import spmp.shared.generated.resources.library_songs_liked
-import spmp.shared.generated.resources.library_songs_liked_title
-import spmp.shared.generated.resources.library_songs_downloaded_title
 import spmp.shared.generated.resources.library_no_items_match_filter
 import spmp.shared.generated.resources.library_no_liked_songs
-import spmp.shared.generated.resources.local_songs_playlist_name
 import spmp.shared.generated.resources.library_no_local_songs
+import spmp.shared.generated.resources.library_songs_downloaded
+import spmp.shared.generated.resources.library_songs_downloaded_title
+import spmp.shared.generated.resources.library_songs_liked
+import spmp.shared.generated.resources.library_songs_liked_title
+import spmp.shared.generated.resources.local_songs_playlist_name
 
 class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
     override fun getIcon(): ImageVector =
@@ -206,10 +209,10 @@ class LibrarySongsPage(context: AppContext): LibrarySubPage(context) {
                                     show_play_count = true,
                                     show_download_indicator = false,
                                     getExtraInfo = {
-                                        val ui_language: String by player.context.observeUiLanguage()
+                                        val ui_language: Locale by player.context.observeUiLanguage()
                                         val duration_string: String? = remember(song.id, ui_language) {
                                             song.Duration.get(player.database)?.let { duration ->
-                                                durationToString(duration, ui_language, true)
+                                                durationToString(duration, ui_language.toTag(), true)
                                             }
                                         }
 
@@ -269,7 +272,7 @@ private fun InfoRow(songs: List<Song>, modifier: Modifier = Modifier, show_sync_
             return@LaunchedEffect
         }
 
-        total_duration_string = durationToString(duration, hl = player.context.getUiLanguage())
+        total_duration_string = durationToString(duration, hl = player.context.getUiLanguage().toTag())
     }
 
     Row(

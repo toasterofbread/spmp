@@ -1,7 +1,7 @@
 package com.toasterofbread.spmp.model.lyrics
 
-import dev.toastbits.composekit.platform.PlatformFile
-import dev.toastbits.composekit.utils.common.indexOfOrNull
+import dev.toastbits.composekit.context.PlatformFile
+import dev.toastbits.composekit.util.indexOfOrNull
 import com.toasterofbread.spmp.ProjectBuildConfig
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.mediaitem.song.SongRef

@@ -1,13 +1,12 @@
 package com.toasterofbread.spmp.ui.layout.nowplaying.overlay.lyrics
 
 import com.toasterofbread.spmp.model.lyrics.SongLyrics
-import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.platform.AppContext
 
 internal suspend fun getTermRangeOfTime(context: AppContext, lyrics: SongLyrics, time: Long): Pair<IntRange?, Long> {
     require(lyrics.synced)
 
-    val enable_word_sync: Boolean = context.settings.lyrics.ENABLE_WORD_SYNC.get()
+    val enable_word_sync: Boolean = context.settings.Lyrics.ENABLE_WORD_SYNC.get()
 
     var start: Int? = null
     var end: Int? = null

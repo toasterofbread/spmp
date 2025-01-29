@@ -19,7 +19,6 @@ import dev.toastbits.ytmkt.endpoint.AccountPlaylistEditorEndpoint
 import dev.toastbits.ytmkt.model.external.PlaylistEditor
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.withContext
-import dev.toastbits.composekit.platform.assert
 
 class InteractivePlaylistEditor(
     val playlist: Playlist,

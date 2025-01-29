@@ -4,10 +4,12 @@ package com.toasterofbread.spmp.model.settings.category
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
 import com.toasterofbread.spmp.ProjectBuildConfig
+import com.toasterofbread.spmp.model.settings.SettingsGroupImpl
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getDiscordCategoryItems
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
+import kotlinx.coroutines.runBlocking
 import org.jetbrains.compose.resources.getString
 import org.jetbrains.compose.resources.stringResource
 import org.jetbrains.compose.resources.vectorResource
@@ -44,95 +46,89 @@ import spmp.shared.generated.resources.s_sub_discord_status_text_a
 import spmp.shared.generated.resources.s_sub_discord_status_text_b
 import spmp.shared.generated.resources.s_sub_discord_status_text_c
 
-class DiscordSettings(val context: AppContext): SettingsGroup("DISCORD", context.getPrefs()) {
-    val STATUS_ENABLE: PreferencesProperty<Boolean> by property(
+class DiscordSettings(val context: AppContext): SettingsGroupImpl("DISCORD", context.getPrefs()) {
+    val STATUS_ENABLE: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_discord_status_enable) },
         getDescription = { null },
         getDefaultValue = { true }
     )
 
-    val STATUS_DISABLE_WHEN_INVISIBLE: PreferencesProperty<Boolean> by property(
+    val STATUS_DISABLE_WHEN_INVISIBLE: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_discord_status_disable_when_invisible) },
         getDescription = { null },
         getDefaultValue = { false }
     )
-    val STATUS_DISABLE_WHEN_DND: PreferencesProperty<Boolean> by property(
+    val STATUS_DISABLE_WHEN_DND: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_discord_status_disable_when_dnd) },
         getDescription = { null },
         getDefaultValue = { false }
     )
-    val STATUS_DISABLE_WHEN_IDLE: PreferencesProperty<Boolean> by property(
+    val STATUS_DISABLE_WHEN_IDLE: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_discord_status_disable_when_idle) },
         getDescription = { null },
         getDefaultValue = { false }
     )
-    val STATUS_DISABLE_WHEN_OFFLINE: PreferencesProperty<Boolean> by property(
+    val STATUS_DISABLE_WHEN_OFFLINE: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_discord_status_disable_when_offline) },
         getDescription = { null },
         getDefaultValue = { false }
     )
-    val STATUS_DISABLE_WHEN_ONLINE: PreferencesProperty<Boolean> by property(
+    val STATUS_DISABLE_WHEN_ONLINE: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_discord_status_disable_when_online) },
         getDescription = { null },
         getDefaultValue = { false }
     )
 
-    val LARGE_IMAGE_SOURCE: PreferencesProperty<ImageSource> by enumProperty(
+    val LARGE_IMAGE_SOURCE: PlatformSettingsProperty<ImageSource> by enumProperty(
         getName = { stringResource(Res.string.s_key_discord_status_large_image_source) },
         getDescription = { null },
         getDefaultValue = { ImageSource.SONG }
     )
-    val SMALL_IMAGE_SOURCE: PreferencesProperty<ImageSource> by enumProperty(
+    val SMALL_IMAGE_SOURCE: PlatformSettingsProperty<ImageSource> by enumProperty(
         getName = { stringResource(Res.string.s_key_discord_status_small_image_source) },
         getDescription = { null },
         getDefaultValue = { ImageSource.ARTIST }
     )
 
-    val STATUS_NAME: PreferencesProperty<String> by resourceDefaultValueProperty(
+    val STATUS_NAME: PlatformSettingsProperty<String> by resourceDefaultValueProperty(
         getName = { stringResource(Res.string.s_key_discord_status_name) },
         getDescription = { stringResource(Res.string.s_sub_discord_status_name) },
-        getDefaultValueSuspending = { ProjectBuildConfig.DISCORD_STATUS_TEXT_NAME_OVERRIDE ?: getString(Res.string.discord_status_default_name) },
-        getDefaultValueComposable = { ProjectBuildConfig.DISCORD_STATUS_TEXT_NAME_OVERRIDE ?: stringResource(Res.string.discord_status_default_name) }
+        getDefaultValue = { ProjectBuildConfig.DISCORD_STATUS_TEXT_NAME_OVERRIDE ?: runBlocking { getString(Res.string.discord_status_default_name) } }
     )
-    val STATUS_TEXT_A: PreferencesProperty<String> by resourceDefaultValueProperty(
+    val STATUS_TEXT_A: PlatformSettingsProperty<String> by resourceDefaultValueProperty(
         getName = { stringResource(Res.string.s_key_discord_status_text_a) },
         getDescription = { stringResource(Res.string.s_sub_discord_status_text_a) },
-        getDefaultValueSuspending = { ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_A_OVERRIDE ?: getString(Res.string.discord_status_default_text_a) },
-        getDefaultValueComposable = { ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_A_OVERRIDE ?: stringResource(Res.string.discord_status_default_text_a) }
+        getDefaultValue = { ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_A_OVERRIDE ?: runBlocking { getString(Res.string.discord_status_default_text_a) } }
     )
-    val STATUS_TEXT_B: PreferencesProperty<String> by resourceDefaultValueProperty(
+    val STATUS_TEXT_B: PlatformSettingsProperty<String> by resourceDefaultValueProperty(
         getName = { stringResource(Res.string.s_key_discord_status_text_b) },
         getDescription = { stringResource(Res.string.s_sub_discord_status_text_b) },
-        getDefaultValueSuspending = { ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_B_OVERRIDE ?: getString(Res.string.discord_status_default_text_b) },
-        getDefaultValueComposable = { ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_B_OVERRIDE ?: stringResource(Res.string.discord_status_default_text_b) }
+        getDefaultValue = { ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_B_OVERRIDE ?: runBlocking { getString(Res.string.discord_status_default_text_b) } }
     )
-    val STATUS_TEXT_C: PreferencesProperty<String> by resourceDefaultValueProperty(
+    val STATUS_TEXT_C: PlatformSettingsProperty<String> by resourceDefaultValueProperty(
         getName = { stringResource(Res.string.s_key_discord_status_text_c) },
         getDescription = { stringResource(Res.string.s_sub_discord_status_text_c) },
-        getDefaultValueSuspending = { ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_C_OVERRIDE ?: getString(Res.string.discord_status_default_text_c) },
-        getDefaultValueComposable = { ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_C_OVERRIDE ?: stringResource(Res.string.discord_status_default_text_c) }
+        getDefaultValue = { ProjectBuildConfig.DISCORD_STATUS_TEXT_TEXT_C_OVERRIDE ?: runBlocking { getString(Res.string.discord_status_default_text_c) } }
     )
-    val SHOW_SONG_BUTTON: PreferencesProperty<Boolean> by property(
+    val SHOW_SONG_BUTTON: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_discord_status_show_button_song) },
         getDescription = { stringResource(Res.string.s_sub_discord_status_show_button_song) },
         getDefaultValue = { true }
     )
-    val SONG_BUTTON_TEXT: PreferencesProperty<String> by resourceDefaultValueProperty(
+    val SONG_BUTTON_TEXT: PlatformSettingsProperty<String> by resourceDefaultValueProperty(
         getName = { stringResource(Res.string.s_key_discord_status_button_song_text) },
         getDescription = { null },
-        getDefaultValueSuspending = { ProjectBuildConfig.DISCORD_STATUS_TEXT_BUTTON_SONG_OVERRIDE ?: getString(Res.string.discord_status_default_button_song) },
-        getDefaultValueComposable = { ProjectBuildConfig.DISCORD_STATUS_TEXT_BUTTON_SONG_OVERRIDE ?: stringResource(Res.string.discord_status_default_button_song) }
+        getDefaultValue = { ProjectBuildConfig.DISCORD_STATUS_TEXT_BUTTON_SONG_OVERRIDE ?: runBlocking { getString(Res.string.discord_status_default_button_song) } }
     )
-    val SHOW_PROJECT_BUTTON: PreferencesProperty<Boolean> by property(
+    val SHOW_PROJECT_BUTTON: PlatformSettingsProperty<Boolean> by property(
         getName = { stringResource(Res.string.s_key_discord_status_show_button_project) },
         getDescription = { stringResource(Res.string.s_sub_discord_status_show_button_project) },
         getDefaultValue = { true }
     )
-    val PROJECT_BUTTON_TEXT: PreferencesProperty<String> by resourceDefaultValueProperty(
+    val PROJECT_BUTTON_TEXT: PlatformSettingsProperty<String> by resourceDefaultValueProperty(
         getName = { stringResource(Res.string.s_key_discord_status_button_project_text) },
         getDescription = { null },
-        getDefaultValueSuspending = { ProjectBuildConfig.DISCORD_STATUS_TEXT_BUTTON_PROJECT_OVERRIDE ?: getString(Res.string.discord_status_default_button_project) },
-        getDefaultValueComposable = { ProjectBuildConfig.DISCORD_STATUS_TEXT_BUTTON_PROJECT_OVERRIDE ?: stringResource(Res.string.discord_status_default_button_project) }
+        getDefaultValue = { ProjectBuildConfig.DISCORD_STATUS_TEXT_BUTTON_PROJECT_OVERRIDE ?: runBlocking { getString(Res.string.discord_status_default_button_project) } }
     )
 
     @Composable

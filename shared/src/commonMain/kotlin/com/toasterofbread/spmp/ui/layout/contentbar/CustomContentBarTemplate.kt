@@ -12,14 +12,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.*
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
-import dev.toastbits.composekit.platform.composable.platformClickable
+import dev.toastbits.composekit.components.platform.composable.platformClickable
 import com.toasterofbread.spmp.model.appaction.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.theme.appHover
-import dev.toastbits.composekit.settings.ui.ThemeValues
-import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.theme.core.ThemeValues
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.content_bar_template_navigation
@@ -153,8 +153,8 @@ enum class CustomContentBarTemplate {
             }
 
             bar.CustomBarContent(
-                modifier = Modifier.background(player.theme.vibrant_accent, RoundedCornerShape(16.dp)),
-                background_colour = ThemeValues.Colour.VIBRANT_ACCENT,
+                modifier = Modifier.background(player.theme.vibrantAccent, RoundedCornerShape(16.dp)),
+                background_colour = ThemeValues.Slot.Extension.VIBRANT_ACCENT,
                 vertical = false,
                 always_display = true,
                 content_padding = PaddingValues(5.dp),
@@ -178,7 +178,7 @@ enum class CustomContentBarTemplate {
                         { onSelected(null) },
                         colors = ButtonDefaults.buttonColors(
                             containerColor = player.theme.background,
-                            contentColor = player.theme.on_background
+                            contentColor = player.theme.onBackground
                         ),
                         modifier = Modifier.appHover(true)
                     ) {

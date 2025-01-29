@@ -1,6 +1,5 @@
 package com.toasterofbread.spmp.ui.layout.apppage.searchpage
 
-import LocalNowPlayingExpansion
 import LocalPlayerState
 import SpMp.isDebugBuild
 import androidx.compose.animation.*
@@ -20,14 +19,11 @@ import androidx.compose.ui.focus.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.Shape
 import androidx.compose.ui.platform.*
-import androidx.compose.ui.text.input.ImeAction
-import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.*
-import dev.toastbits.composekit.platform.composable.*
-import dev.toastbits.composekit.utils.common.*
-import dev.toastbits.composekit.utils.common.launchSingle
-import dev.toastbits.composekit.utils.composable.*
-import dev.toastbits.composekit.utils.modifier.bounceOnClick
+import dev.toastbits.composekit.components.platform.composable.*
+import dev.toastbits.composekit.util.*
+import dev.toastbits.composekit.util.platform.launchSingle
+import dev.toastbits.composekit.components.utils.composable.*
 import com.toasterofbread.spmp.model.mediaitem.MediaItemHolder
 import com.toasterofbread.spmp.model.mediaitem.enums.*
 import com.toasterofbread.spmp.model.mediaitem.layout.*
@@ -37,16 +33,12 @@ import com.toasterofbread.spmp.platform.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.ErrorInfoDisplay
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
-import com.toasterofbread.spmp.ui.layout.apppage.mainpage.appTextField
 import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.apppage.AppPageState
 import com.toasterofbread.spmp.ui.layout.contentbar.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
-import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
-import com.toasterofbread.spmp.ui.theme.appHover
 import com.toasterofbread.spmp.ui.component.NotImplementedMessage
-import dev.toastbits.composekit.platform.ReentrantLock
-import dev.toastbits.composekit.platform.synchronized
+import dev.toastbits.composekit.util.composable.copy
 import dev.toastbits.ytmkt.endpoint.*
 import dev.toastbits.ytmkt.endpoint.SearchFilter
 import dev.toastbits.ytmkt.endpoint.SearchResults
@@ -56,6 +48,7 @@ import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.search_results_loading
 import spmp.shared.generated.resources.`search_suggested_correction_$x`
+import java.util.concurrent.locks.ReentrantLock
 
 internal val SEARCH_FIELD_FONT_SIZE: TextUnit = 18.sp
 internal const val SEARCH_SUGGESTIONS_LOAD_DELAY_MS: Long = 200
@@ -138,7 +131,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
         lazy: Boolean,
         modifier: Modifier
     ): Boolean {
-        val show_suggestions: Boolean by context.settings.behaviour.SEARCH_SHOW_SUGGESTIONS.observe()
+        val show_suggestions: Boolean by context.settings.Behaviour.SEARCH_SHOW_SUGGESTIONS.observe()
         var suggestions: List<SearchSuggestion> by remember { mutableStateOf(emptyList()) }
 
         LaunchedEffect(current_query, show_suggestions) {
@@ -260,7 +253,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
                             Modifier.fillMaxSize().padding(padding),
                             contentAlignment = Alignment.Center
                         ) {
-                            SubtleLoadingIndicator(getColour = { context.theme.on_background }, message = stringResource(Res.string.search_results_loading))
+                            SubtleLoadingIndicator(getColour = { context.theme.onBackground }, message = stringResource(Res.string.search_results_loading))
                         }
                     }
                 }
@@ -297,7 +290,7 @@ class SearchAppPage(override val state: AppPageState, val context: AppContext): 
             multiselect_context?.setActive(false)
 
             coroutine_scope.launchSingle {
-                val non_music: Boolean = context.settings.search.SEARCH_FOR_NON_MUSIC.get()
+                val non_music: Boolean = context.settings.Search.SEARCH_FOR_NON_MUSIC.get()
                 search_endpoint.search(query, filter?.params, non_music = non_music).fold(
                     { results ->
                         for (result in results.categories) {

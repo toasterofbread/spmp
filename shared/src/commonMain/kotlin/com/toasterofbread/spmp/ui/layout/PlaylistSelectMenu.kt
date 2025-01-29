@@ -22,16 +22,16 @@ import androidx.compose.runtime.snapshots.SnapshotStateList
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.platform.composable.SwipeRefresh
-import dev.toastbits.composekit.utils.common.addUnique
-import dev.toastbits.composekit.utils.common.launchSingle
+import dev.toastbits.composekit.components.platform.composable.SwipeRefresh
+import dev.toastbits.composekit.util.addUnique
+import dev.toastbits.composekit.util.platform.launchSingle
 import com.toasterofbread.spmp.model.mediaitem.library.MediaItemLibrary
 import com.toasterofbread.spmp.model.mediaitem.library.rememberLocalPlaylists
 import com.toasterofbread.spmp.model.mediaitem.playlist.Playlist
 import com.toasterofbread.spmp.model.mediaitem.playlist.rememberOwnedPlaylists
 import com.toasterofbread.spmp.service.playercontroller.LocalPlayerClickOverrides
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
-import dev.toastbits.composekit.settings.ui.on_accent
+import dev.toastbits.composekit.theme.core.onAccent
 
 @Composable
 fun PlaylistSelectMenu(
@@ -120,7 +120,7 @@ private fun PlaylistItem(selected: SnapshotStateList<Playlist>, playlist: Playli
             colors = CheckboxDefaults.colors(
                 uncheckedColor = LocalContentColor.current,
                 checkedColor = player.theme.accent,
-                checkmarkColor = player.theme.on_accent
+                checkmarkColor = player.theme.onAccent
             )
         )
         MediaItemPreviewLong(playlist)

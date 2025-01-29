@@ -44,10 +44,10 @@ import com.toasterofbread.spmp.platform.getOrNotify
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.component.multiselect.MediaItemMultiSelectContext
 import com.toasterofbread.spmp.ui.layout.PlaylistSelectMenu
-import dev.toastbits.composekit.platform.vibrateShort
-import dev.toastbits.composekit.settings.ui.on_accent
-import dev.toastbits.composekit.utils.composable.PlatformClickableButton
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.context.vibrateShort
+import dev.toastbits.composekit.theme.core.onAccent
+import dev.toastbits.composekit.components.utils.composable.PlatformClickableButton
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.NonCancellable
 import kotlinx.coroutines.launch
@@ -145,8 +145,8 @@ private fun AddToPlaylistDialog(multiselect_context: MediaItemMultiSelectContext
     val button_colours = IconButtonDefaults.iconButtonColors(
         containerColor = player.theme.accent,
         disabledContainerColor = player.theme.accent,
-        contentColor = player.theme.on_accent,
-        disabledContentColor = player.theme.on_accent.copy(alpha = 0.5f)
+        contentColor = player.theme.onAccent,
+        disabledContentColor = player.theme.onAccent.copy(alpha = 0.5f)
     )
 
     fun onPlaylistsSelected() {
@@ -188,7 +188,7 @@ private fun AddToPlaylistDialog(multiselect_context: MediaItemMultiSelectContext
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = player.theme.accent,
-                        contentColor = player.theme.on_accent
+                        contentColor = player.theme.onAccent
                     )
                 ) {
                     Text(stringResource(Res.string.playlist_create))

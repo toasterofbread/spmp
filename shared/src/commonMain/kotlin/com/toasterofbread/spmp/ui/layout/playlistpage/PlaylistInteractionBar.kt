@@ -4,22 +4,27 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyListState
+import androidx.compose.foundation.text.input.TextFieldLineLimits
+import androidx.compose.foundation.text.input.TextFieldState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.OutlinedTextFieldDefaults
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import dev.toastbits.composekit.utils.composable.ResizableOutlinedTextField
-import dev.toastbits.composekit.utils.composable.SubtleLoadingIndicator
+import dev.toastbits.composekit.components.utils.composable.SubtleLoadingIndicator
 import com.toasterofbread.spmp.model.mediaitem.MediaItem
 import com.toasterofbread.spmp.model.mediaitem.MediaItemSortType
 import com.toasterofbread.spmp.ui.component.WaveBorder
+import dev.toastbits.composekit.components.utils.modifier.horizontal
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.launch
 
 @Composable
@@ -142,12 +147,20 @@ internal fun PlaylistAppPage.PlaylistInteractionBar(
 
 @Composable
 private fun InteractionBarFilterBox(filter: String?, setFilter: (String?) -> Unit, modifier: Modifier = Modifier) {
+    val state: TextFieldState = remember { TextFieldState(filter ?: "") }
+    LaunchedEffect(state) {
+        snapshotFlow { state.text }
+            .collectLatest {
+                setFilter(it.toString().ifEmpty { null })
+            }
+    }
+
     Row(modifier) {
-        ResizableOutlinedTextField(
-            filter ?: "",
-            { setFilter(it.ifEmpty { null }) },
+        OutlinedTextField(
+            state,
             Modifier.height(45.dp).fillMaxWidth().weight(1f),
-            singleLine = true
+            lineLimits = TextFieldLineLimits.SingleLine,
+            contentPadding = OutlinedTextFieldDefaults.contentPadding().horizontal
         )
 
         IconButton(

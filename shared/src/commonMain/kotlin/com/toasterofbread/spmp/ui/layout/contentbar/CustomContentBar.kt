@@ -10,16 +10,15 @@ import androidx.compose.ui.*
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.*
-import dev.toastbits.composekit.utils.common.*
-import dev.toastbits.composekit.utils.composable.*
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.layout.apppage.AppPage
 import com.toasterofbread.spmp.ui.layout.contentbar.element.*
 import com.toasterofbread.spmp.ui.layout.contentbar.layoutslot.LayoutSlot
-import dev.toastbits.composekit.settings.ui.ThemeValues
-import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.components.utils.composable.*
+import dev.toastbits.composekit.theme.core.ThemeValues
+import dev.toastbits.composekit.theme.core.get
+import dev.toastbits.composekit.theme.core.vibrantAccent
+import dev.toastbits.composekit.util.*
 import kotlinx.serialization.*
-import kotlinx.serialization.json.Json
 
 const val CUSTOM_CONTENT_BAR_DEFAULT_SIZE_DP: Float = 50f
 
@@ -57,7 +56,7 @@ data class CustomContentBar(
     @Composable
     override fun BarContent(
         slot: LayoutSlot,
-        background_colour: ThemeValues.Colour?,
+        background_colour: ThemeValues.Slot?,
         content_padding: PaddingValues,
         distance_to_page: Dp,
         lazy: Boolean,
@@ -70,7 +69,7 @@ data class CustomContentBar(
     internal fun CustomBarContent(
         vertical: Boolean,
         content_padding: PaddingValues,
-        background_colour: ThemeValues.Colour? = null,
+        background_colour: ThemeValues.Slot? = null,
         modifier: Modifier = Modifier,
         selected_element_override: Int? = null,
         apply_size: Boolean = true,
@@ -112,7 +111,7 @@ internal fun CustomBarContent(
     vertical: Boolean,
     content_padding: PaddingValues,
     slot: LayoutSlot? = null,
-    background_colour: ThemeValues.Colour? = null,
+    background_colour: ThemeValues.Slot? = null,
     modifier: Modifier = Modifier,
     selected_element_override: Int? = null,
     apply_size: Boolean = true,
@@ -135,10 +134,10 @@ internal fun CustomBarContent(
     val content_colour: Color = LocalContentColor.current
     val indicator_colour: Color =
         when (background_colour) {
-            ThemeValues.Colour.BACKGROUND -> player.theme.vibrant_accent
-            ThemeValues.Colour.CARD -> player.theme.vibrant_accent
-            ThemeValues.Colour.ACCENT -> player.theme.background
-            ThemeValues.Colour.VIBRANT_ACCENT -> player.theme.background
+            ThemeValues.Slot.BuiltIn.BACKGROUND -> player.theme.vibrantAccent
+            ThemeValues.Slot.BuiltIn.CARD -> player.theme.vibrantAccent
+            ThemeValues.Slot.BuiltIn.ACCENT -> player.theme.background
+            ThemeValues.Slot.Extension.VIBRANT_ACCENT -> player.theme.background
             else -> content_colour
         }
 
@@ -183,7 +182,7 @@ internal fun CustomBarContent(
             CompositionLocalProvider(
                 LocalContentColor provides
                     if (index == selected_element) indicator_colour.getContrasted()
-                    else background_colour?.get(player.theme)?.getContrasted() ?: LocalContentColor.current
+                    else background_colour?.let { player.theme[it] }?.getContrasted() ?: LocalContentColor.current
             ) {
                 buttonContent(index, element, DpSize(this@BoxWithConstraints.maxWidth, this@BoxWithConstraints.maxHeight))
             }

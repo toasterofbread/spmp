@@ -2,6 +2,8 @@ package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import dev.toastbits.ytmkt.model.ApiAuthenticationState
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.requiredHeight
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
@@ -12,86 +14,80 @@ import androidx.compose.material3.IconButtonDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.derivedStateOf
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
-import dev.toastbits.composekit.platform.PlatformPreferences
-import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.LargeToggleSettingsItem
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
+import androidx.compose.ui.unit.dp
+import dev.toastbits.composekit.settings.PlatformSettings
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.ComposableSettingsItem
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.LargeToggleSettingsItem
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
 import com.toasterofbread.spmp.model.mediaitem.artist.Artist
 import com.toasterofbread.spmp.model.mediaitem.artist.ArtistRef
-import com.toasterofbread.spmp.model.settings.Settings
 import com.toasterofbread.spmp.model.settings.unpackSetData
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.component.mediaitempreview.MediaItemPreviewLong
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getYoutubeAccountCategory
-import dev.toastbits.ytmkt.impl.youtubei.YoutubeiAuthenticationState
 import com.toasterofbread.spmp.platform.isWebViewLoginSupported
 import com.toasterofbread.spmp.ui.component.NotImplementedMessage
 import com.toasterofbread.spmp.ui.layout.youtubemusiclogin.LoginPage
-import dev.toastbits.composekit.settings.ui.on_accent
-import dev.toastbits.composekit.settings.ui.vibrant_accent
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsEditor
+import dev.toastbits.composekit.theme.core.onAccent
+import dev.toastbits.composekit.theme.core.vibrantAccent
 import io.ktor.http.Headers
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.jsonPrimitive
 import kotlinx.serialization.json.boolean
 import kotlinx.serialization.json.JsonPrimitive
-import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.auth_not_signed_in
 import spmp.shared.generated.resources.auth_sign_in
 import spmp.shared.generated.resources.auth_sign_out
 
-fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String>>): SettingsItem {
+fun getYtmAuthItem(context: AppContext, ytmAuth: PlatformSettingsProperty<Set<String>>): SettingsItem {
     var own_channel: Artist? by mutableStateOf(null)
     val login_page: LoginPage = context.ytapi.LoginPage
 
     if (!login_page.isImplemented()) {
-        return ComposableSettingsItem {
+        return ComposableSettingsItem(resetComposeUiState = {}) {
             login_page.NotImplementedMessage(Modifier.fillMaxSize())
         }
     }
 
     return LargeToggleSettingsItem(
-        object : PreferencesProperty<Boolean> {
-            override val key: String = ytm_auth.key
+        object : PlatformSettingsProperty<Boolean> {
+            override val key: String = ytmAuth.key
             @Composable
-            override fun getName(): String = ytm_auth.getName()
+            override fun getName(): String = ytmAuth.getName()
             @Composable
-            override fun getDescription(): String? = ytm_auth.getDescription()
+            override fun getDescription(): String? = ytmAuth.getDescription()
 
-            override suspend fun get(): Boolean =
-                ytm_auth.get().isNotEmpty()
+            override fun get(): Boolean =
+                ytmAuth.get().isNotEmpty()
 
-            override fun set(value: Boolean, editor: PlatformPreferences.Editor?) {
+            override suspend fun set(value: Boolean, editor: PlatformSettingsEditor?) {
                 if (!value) {
-                    ytm_auth.set(emptySet(), editor)
+                    ytmAuth.set(emptySet(), editor)
                 }
             }
 
-            override fun set(data: JsonElement, editor: PlatformPreferences.Editor?) {
+            override suspend fun set(data: JsonElement, editor: PlatformSettingsEditor?) {
                 set(data.jsonPrimitive.boolean, editor)
             }
 
             override fun serialise(value: Any?): JsonElement =
                 JsonPrimitive(value as Boolean?)
 
-            override suspend fun getDefaultValue(): Boolean =
-                ytm_auth.getDefaultValue().isNotEmpty()
-
-            @Composable
-            override fun getDefaultValueComposable(): Boolean =
-                ytm_auth.getDefaultValueComposable().isNotEmpty()
+            override fun getDefaultValue(): Boolean =
+                ytmAuth.getDefaultValue().isNotEmpty()
 
             @Composable
             override fun observe(): MutableState<Boolean> {
-                val auth: Set<String> by ytm_auth.observe()
+                val auth: Set<String> by ytmAuth.observe()
 
                 val state: MutableState<Boolean> = remember { mutableStateOf(auth.isNotEmpty()) }
                 LaunchedEffect(auth.isNotEmpty()) {
@@ -101,8 +97,9 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String
                 return state
             }
 
-            override fun reset() =
-                ytm_auth.reset()
+            override suspend fun reset(editor: PlatformSettingsEditor?) {
+                ytmAuth.reset(editor)
+            }
         },
         enabledContent = { modifier ->
 //            val auth_value: Set<String> = ytm_auth.get()
@@ -114,14 +111,14 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String
 //                own_channel = data.first
 //            }
 
-            val auth: Set<String> by ytm_auth.observe()
+            val auth: Set<String> by ytmAuth.observe()
             val data: Pair<String?, Headers>? = ApiAuthenticationState.unpackSetData(auth, context)
             if (data?.first != null) {
                 own_channel = ArtistRef(data.first!!)
             }
 
             own_channel?.also { channel ->
-                MediaItemPreviewLong(channel, modifier, show_type = false)
+                MediaItemPreviewLong(channel, modifier.requiredHeight(45.dp), show_type = false)
             }
         },
         extra_items = getYoutubeAccountCategory(context),
@@ -135,7 +132,12 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String
             ) { param ->
                 dismiss()
                 if (param != null) {
-                    SpMp.player_state.app_page_state.Settings.settings_interface.openPageById(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, param)
+                    SpMp.player_state.app_page_state.Settings.openScreen(
+                        YoutubeMusicLoginScreen(
+                            context.settings.YoutubeAuth.YTM_AUTH,
+                            param
+                        )
+                    )
                 }
             }
         },
@@ -160,8 +162,8 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String
                 },
                 shape = CircleShape,
                 colours = IconButtonDefaults.iconButtonColors(
-                    containerColor = if (enabled) context.theme.background else context.theme.vibrant_accent,
-                    contentColor = if (enabled) context.theme.on_background else context.theme.on_accent
+                    containerColor = if (enabled) context.theme.background else context.theme.vibrantAccent,
+                    contentColor = if (enabled) context.theme.onBackground else context.theme.onAccent
                 ),
                 indication = null
             ) {
@@ -175,7 +177,12 @@ fun getYtmAuthItem(context: AppContext, ytm_auth: PreferencesProperty<Set<String
         }
     ) { target, setEnabled, _ ->
         if (target) {
-            SpMp.player_state.app_page_state.Settings.settings_interface.openPageById(PrefsPageScreen.YOUTUBE_MUSIC_LOGIN.ordinal, null)
+            SpMp.player_state.app_page_state.Settings.openScreen(
+                YoutubeMusicLoginScreen(
+                    context.settings.YoutubeAuth.YTM_AUTH,
+                    null
+                )
+            )
         }
         else {
             setEnabled(false)

@@ -479,8 +479,8 @@
     <string name="s_theme_editor_button_preview">プレビュー</string>
 
     <string name="s_key_accent_source">アクセント色</string>
-    <string name="s_option_accent_theme">テーマから</string>
-    <string name="s_option_accent_thumbnail">サムネイルから</string>
+    <string name="s_optionAccent_theme">テーマから</string>
+    <string name="s_optionAccent_thumbnail">サムネイルから</string>
 
     <string name="s_key_np_theme_mode">再生画面テーマモード</string>
     <string name="s_option_np_accent_background">バックグラウンドをアクセント色で彩る</string>
@@ -941,7 +941,7 @@
     <string name="theme_colour_vibrant_accent">明るいアクセント</string>
     <string name="theme_colour_card">カード</string>
     <string name="theme_colour_on_background">背景の上</string>
-    <string name="theme_colour_on_accent">アクセントの上</string>
+    <string name="theme_colour_onAccent">アクセントの上</string>
     <string name="theme_colour_error">エラー</string>
 
     <string name="shortcut_trigger_none">なし</string>
@@ -1072,7 +1072,7 @@
 
     <string name="widget_config_common_key_theme">テーマ</string>
     <string name="widget_config_common_key_accent_colour_source">アクセント色のソース</string>
-    <string name="widget_config_common_option_accent_colour_source_app">アプリの設定</string>
+    <string name="widget_config_common_optionAccent_colour_source_app">アプリの設定</string>
     <string name="widget_config_common_key_font">フォント</string>
     <string name="widget_config_common_key_font_size">フォントサイズ</string>
     <string name="widget_config_common_option_font_app">アプリの設定</string>

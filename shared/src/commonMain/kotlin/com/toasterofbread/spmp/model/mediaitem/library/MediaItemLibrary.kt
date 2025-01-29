@@ -10,9 +10,10 @@ import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.download.DownloadStatus
 import com.toasterofbread.spmp.platform.playerservice.ClientServerPlayerService
-import dev.toastbits.composekit.platform.PlatformFile
-import dev.toastbits.composekit.platform.ReentrantLock
-import dev.toastbits.composekit.utils.common.addUnique
+import dev.toastbits.composekit.context.PlatformFile
+import dev.toastbits.composekit.util.addUnique
+import java.util.concurrent.locks.ReentrantLock
+import kotlin.concurrent.withLock
 
 @Suppress("DeferredResultUnused")
 object MediaItemLibrary {
@@ -20,7 +21,7 @@ object MediaItemLibrary {
         context: AppContext,
         custom_location_uri: String? = null
     ): PlatformFile? {
-        val location_url: String = custom_location_uri ?: context.settings.system.LIBRARY_PATH.get()
+        val location_url: String = custom_location_uri ?: context.settings.Misc.LIBRARY_PATH.get()
         if (location_url.isNotBlank()) {
             val custom_dir: PlatformFile? = context.getUserDirectoryFile(location_url)
             if (custom_dir != null) {

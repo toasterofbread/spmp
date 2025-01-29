@@ -9,10 +9,10 @@ import androidx.compose.ui.Modifier
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.widget.action.LyricsWidgetClickAction
 import com.toasterofbread.spmp.widget.action.WidgetClickAction
-import dev.toastbits.composekit.platform.MutableStatePreferencesProperty
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.component.item.DropdownSettingsItem
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
+import dev.toastbits.composekit.settingsitem.domain.MutableStateSettingsProperty
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.DropdownSettingsItem
+import dev.toastbits.composekit.util.composable.OnChangedEffect
 import kotlinx.serialization.Serializable
 import org.jetbrains.compose.resources.StringResource
 import org.jetbrains.compose.resources.stringResource
@@ -69,8 +69,8 @@ internal data class LyricsWidgetConfig(
     private fun FuriganaModeItem(modifier: Modifier, onChanged: (TypeWidgetConfig<LyricsWidgetClickAction>) -> Unit) {
         val furigana_mode_state: MutableState<FuriganaMode> =
             remember { mutableStateOf(furigana_mode) }
-        val furigana_mode_property: PreferencesProperty<FuriganaMode> = remember {
-            MutableStatePreferencesProperty(
+        val furigana_mode_property: PlatformSettingsProperty<FuriganaMode> = remember {
+            MutableStateSettingsProperty(
                 furigana_mode_state,
                 { stringResource(Res.string.widget_config_lyrics_key_furigana_mode) },
                 { null }
@@ -82,7 +82,7 @@ internal data class LyricsWidgetConfig(
         }
 
         remember {
-            DropdownSettingsItem(furigana_mode_property) { mode ->
+            DropdownSettingsItem.ofEnumState(furigana_mode_property) { mode ->
                 when (mode) {
                     FuriganaMode.APP_DEFAULT -> stringResource(Res.string.widget_config_lyrics_option_furigana_mode_app)
                     FuriganaMode.SHOW -> stringResource(Res.string.widget_config_lyrics_option_furigana_mode_show)

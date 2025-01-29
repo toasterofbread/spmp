@@ -20,10 +20,8 @@ import com.toasterofbread.spmp.platform.PlayerListener
 import com.toasterofbread.spmp.service.playercontroller.DiscordStatusHandler
 import com.toasterofbread.spmp.service.playercontroller.PersistentQueueHandler
 import com.toasterofbread.spmp.service.playercontroller.RadioHandler
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.platform.PlatformPreferencesListener
-import dev.toastbits.composekit.platform.assert
-import dev.toastbits.composekit.platform.synchronized
+import dev.toastbits.composekit.util.platform.Platform
+import dev.toastbits.composekit.settings.PlatformSettingsListener
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerRepeatMode
 import dev.toastbits.spms.socketapi.shared.SpMsPlayerState
 import io.ktor.client.HttpClient
@@ -82,7 +80,7 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
     abstract fun onUndoStateChanged()
 
     private val prefs_listener =
-        PlatformPreferencesListener { key ->
+        PlatformSettingsListener { key ->
             when (key) {
 //                Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.name -> {
 //                    vol_notif_enabled = Settings.KEY_ACC_VOL_INTERCEPT_NOTIFICATION.get(preferences = prefs)
@@ -139,14 +137,14 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
         }
 
         private suspend fun sendStatusWebhook(song: Song?): Result<Unit> = runCatching {
-            val webhook_url: String = context.settings.misc.STATUS_WEBHOOK_URL.get()
+            val webhook_url: String = context.settings.Misc.STATUS_WEBHOOK_URL.get()
             if (webhook_url.isBlank()) {
                 return@runCatching
             }
 
             val payload: MutableMap<String, JsonElement>
 
-            val user_payload: String = context.settings.misc.STATUS_WEBHOOK_PAYLOAD.get()
+            val user_payload: String = context.settings.Misc.STATUS_WEBHOOK_PAYLOAD.get()
             if (!user_payload.isBlank()) {
                 payload =
                     try {
@@ -573,7 +571,7 @@ abstract class PlayerServicePlayer(internal val service: PlayerService) {
                         song.incrementPlayCount(context)
 
                         val mark_endpoint = context.ytapi.user_auth_state?.MarkSongAsWatched
-                        if (mark_endpoint?.isImplemented() == true && context.settings.system.ADD_SONGS_TO_HISTORY.get()) {
+                        if (mark_endpoint?.isImplemented() == true && context.settings.Misc.ADD_SONGS_TO_HISTORY.get()) {
                             val result = mark_endpoint.markSongAsWatched(song.id)
                             result.onFailure {
                                 context.sendNotification(it)

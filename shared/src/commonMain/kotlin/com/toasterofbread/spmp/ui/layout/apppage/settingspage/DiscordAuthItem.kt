@@ -1,6 +1,7 @@
 package com.toasterofbread.spmp.ui.layout.apppage.settingspage
 
 import LocalPlayerState
+import SpMp
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
@@ -21,12 +22,13 @@ import com.toasterofbread.spmp.platform.DiscordStatus
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
 import com.toasterofbread.spmp.ui.layout.DiscordAccountPreview
 import com.toasterofbread.spmp.ui.layout.DiscordLoginConfirmation
-import dev.toastbits.composekit.platform.PlatformPreferences
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.component.item.LargeToggleSettingsItem
-import dev.toastbits.composekit.settings.ui.on_accent
-import dev.toastbits.composekit.settings.ui.vibrant_accent
-import dev.toastbits.composekit.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.components.utils.composable.ShapedIconButton
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsEditor
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.LargeToggleSettingsItem
+import dev.toastbits.composekit.theme.core.onAccent
+import dev.toastbits.composekit.theme.core.vibrantAccent
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.JsonElement
 import kotlinx.serialization.json.JsonPrimitive
 import kotlinx.serialization.json.boolean
@@ -45,45 +47,43 @@ fun getDiscordAuthItem(
     ignore_prerequisite: Boolean = false,
     StartIcon: (@Composable () -> Unit)? = null
 ): LargeToggleSettingsItem {
-    val discord_auth: PreferencesProperty<String> = context.settings.discord_auth.DISCORD_ACCOUNT_TOKEN
+    val discord_auth: PlatformSettingsProperty<String> = context.settings.DiscordAuth.DISCORD_ACCOUNT_TOKEN
 
     val login_required: Boolean = DiscordStatus.isAccountTokenRequired()
-    val prerequisite: PreferencesProperty<Boolean>? =
+    val prerequisite: PlatformSettingsProperty<Boolean>? =
         if (login_required)
-            context.settings.discord_auth.DISCORD_WARNING_ACCEPTED
+            context.settings.DiscordAuth.DISCORD_WARNING_ACCEPTED
         else null
 
     return LargeToggleSettingsItem(
-        object : PreferencesProperty<Boolean> {
+        object : PlatformSettingsProperty<Boolean> {
             override val key: String get() = throw IllegalStateException()
             @Composable
             override fun getName(): String = ""
             @Composable
             override fun getDescription(): String = ""
 
-            override suspend fun get(): Boolean = discord_auth.get().isNotEmpty()
+            override fun get(): Boolean = discord_auth.get().isNotEmpty()
 
-            override fun set(value: Boolean, editor: PlatformPreferences.Editor?) {
+            override suspend fun set(value: Boolean, editor: PlatformSettingsEditor?) {
                 if (!value) {
                     discord_auth.set("", editor)
                 }
             }
 
-            override fun set(data: JsonElement, editor: PlatformPreferences.Editor?) {
+            override suspend fun set(data: JsonElement, editor: PlatformSettingsEditor?) {
                 set(data.jsonPrimitive.boolean, editor)
             }
 
             override fun serialise(value: Any?): JsonElement =
                 JsonPrimitive(value as Boolean?)
 
-            override fun reset() = discord_auth.reset()
+            override suspend fun reset(editor: PlatformSettingsEditor?) {
+                discord_auth.reset(editor)
+            }
 
-            override suspend fun getDefaultValue(): Boolean =
+            override fun getDefaultValue(): Boolean =
                 discord_auth.getDefaultValue().isNotEmpty()
-
-            @Composable
-            override fun getDefaultValueComposable(): Boolean =
-                discord_auth.getDefaultValueComposable().isNotEmpty()
 
             @Composable
             override fun observe(): MutableState<Boolean> {
@@ -130,7 +130,12 @@ fun getDiscordAuthItem(
                 DiscordLoginConfirmation { manual ->
                     dismiss()
                     if (manual != null) {
-                        SpMp.player_state.app_page_state.Settings.settings_interface.openPageById(PrefsPageScreen.DISCORD_LOGIN.ordinal, manual)
+                        SpMp.player_state.app_page_state.Settings.openScreen(
+                            DiscordLoginScreen(
+                                context.settings.DiscordAuth.DISCORD_ACCOUNT_TOKEN,
+                                manual
+                            )
+                        )
                     }
                 }
             }}
@@ -153,8 +158,8 @@ fun getDiscordAuthItem(
                 { show_info_dialog = !show_info_dialog },
                 shape = CircleShape,
                 colours = IconButtonDefaults.iconButtonColors(
-                    containerColor = if (enabled) player.theme.background else player.theme.vibrant_accent,
-                    contentColor = if (enabled) player.theme.on_background else player.theme.on_accent
+                    containerColor = if (enabled) player.theme.background else player.theme.vibrantAccent,
+                    contentColor = if (enabled) player.theme.onBackground else player.theme.onAccent
                 )
             ) {
                 Icon(
@@ -168,10 +173,17 @@ fun getDiscordAuthItem(
     ) { target, setEnabled, _ ->
         if (target) {
             if (login_required) {
-                SpMp.player_state.app_page_state.Settings.settings_interface.openPageById(PrefsPageScreen.DISCORD_LOGIN.ordinal, null)
+                SpMp.player_state.app_page_state.Settings.openScreen(
+                    DiscordLoginScreen(
+                        context.settings.DiscordAuth.DISCORD_ACCOUNT_TOKEN,
+                        false
+                    )
+                )
             }
             else {
-                discord_auth.set("0")
+                context.coroutineScope.launch {
+                    discord_auth.set("0")
+                }
             }
         }
         else {

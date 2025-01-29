@@ -22,7 +22,7 @@ internal class KugouLyricsSource(source_idx: Int): LyricsSource(source_idx) {
         lyrics_id: String,
         context: AppContext
     ): Result<SongLyrics> = runCatching {
-        val lines: List<List<SongLyrics.Term>> = loadKugouLyrics(lyrics_id, context.getUiLanguage()).getOrThrow()
+        val lines: List<List<SongLyrics.Term>> = loadKugouLyrics(lyrics_id, context.getUiLanguage().toTag()).getOrThrow()
 
         return@runCatching SongLyrics(
             LyricsReference(source_index, lyrics_id),

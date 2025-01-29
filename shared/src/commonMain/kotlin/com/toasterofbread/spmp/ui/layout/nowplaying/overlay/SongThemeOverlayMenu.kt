@@ -26,9 +26,9 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ImageBitmap
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
-import dev.toastbits.composekit.utils.composable.OnChangedEffect
-import dev.toastbits.composekit.utils.composable.LargeDropdownMenu
+import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyColumn
+import dev.toastbits.composekit.util.composable.OnChangedEffect
+import dev.toastbits.composekit.components.utils.composable.LargeDropdownMenu
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.FormFactor
@@ -149,44 +149,45 @@ class SongThemePlayerOverlayMenu(
                     ) {
                         ValueSlider(
                             song.ThumbnailRounding.observe(player.database),
-                            player.settings.theme.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING.getDefaultValueComposable(),
+                            player.settings.Theme.NOWPLAYING_DEFAULT_IMAGE_CORNER_ROUNDING.getDefaultValue(),
                             stringResource(Res.string.song_theme_menu_corner_radius)
                         )
 
                         ValueSlider(
                             song.PlayerGradientDepth.observe(player.database),
-                            player.settings.theme.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.getDefaultValueComposable(),
+                            player.settings.Theme.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.getDefaultValue(),
                             stringResource(Res.string.song_theme_menu_gradient_depth)
                         )
 
                         ValueSlider(
                             song.BackgroundWaveSpeed.observe(player.database),
-                            player.settings.theme.NOWPLAYING_DEFAULT_WAVE_SPEED.getDefaultValueComposable(),
+                            player.settings.Theme.NOWPLAYING_DEFAULT_WAVE_SPEED.getDefaultValue(),
                             stringResource(Res.string.song_theme_menu_wave_speed)
                         )
 
                         ValueSlider(
                             song.BackgroundWaveOpacity.observe(player.database),
-                            player.settings.theme.NOWPLAYING_DEFAULT_WAVE_OPACITY.getDefaultValueComposable(),
+                            player.settings.Theme.NOWPLAYING_DEFAULT_WAVE_OPACITY.getDefaultValue(),
                             stringResource(Res.string.song_theme_menu_wave_opacity)
                         )
 
                         if (true) { // isVideoPlaybackSupported()
-                            val default_video_position: ThemeSettings.VideoPosition by player.settings.theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
+                            val default_video_position: ThemeSettings.VideoPosition by player.settings.Theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
                             var song_video_position: ThemeSettings.VideoPosition? by song.VideoPosition.observe(player.database)
 
                             var show_position_selector: Boolean by remember { mutableStateOf(false) }
                             LargeDropdownMenu(
-                                show_position_selector,
-                                { show_position_selector = false },
-                                ThemeSettings.VideoPosition.entries.size,
-                                (song_video_position ?: default_video_position).ordinal,
-                                {
-                                    Text(ThemeSettings.VideoPosition.entries[it].getReadable())
+                                title = stringResource(Res.string.song_theme_menu_video_position),
+                                isOpen = show_position_selector,
+                                onDismissRequest = { show_position_selector = false },
+                                items = ThemeSettings.VideoPosition.entries,
+                                selectedItem = song_video_position ?: default_video_position,
+                                onSelected = { _, position ->
+                                    song_video_position = position
+                                    show_position_selector = false
                                 }
-                            ) {
-                                song_video_position = ThemeSettings.VideoPosition.entries[it]
-                                show_position_selector = false
+                            ) { position ->
+                                Text(position.getReadable())
                             }
 
                             FlowRow(
@@ -207,21 +208,21 @@ class SongThemePlayerOverlayMenu(
 
                         ValueSlider(
                             song.BackgroundImageOpacity.observe(player.database),
-                            player.settings.theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.getDefaultValueComposable(),
+                            player.settings.Theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.getDefaultValue(),
                             stringResource(Res.string.song_theme_menu_background_image_opacity)
                         )
 
                         if (player.form_factor == FormFactor.LANDSCAPE) {
                             ValueSlider(
                                 song.LandscapeQueueOpacity.observe(player.database),
-                                player.settings.theme.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.getDefaultValueComposable(),
+                                player.settings.Theme.NOWPLAYING_DEFAULT_LANDSCAPE_QUEUE_OPACITY.getDefaultValue(),
                                 stringResource(Res.string.song_theme_menu_queue_opacity)
                             )
                         }
 
                         ValueSlider(
                             song.ShadowRadius.observe(player.database),
-                            player.settings.theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS.getDefaultValueComposable(),
+                            player.settings.Theme.NOWPLAYING_DEFAULT_SHADOW_RADIUS.getDefaultValue(),
                             stringResource(Res.string.song_theme_menu_image_shadow_radius)
                         )
 
@@ -264,7 +265,7 @@ private fun ValueSlider(value_state: MutableState<Float?>, default_value: Float,
             Text((current_value * 100).roundToInt().toString().padStart(3, ' '), fontSize = 15.sp)
         }
 
-        val slider_colour: Color = player.theme.on_background
+        val slider_colour: Color = player.theme.onBackground
 
         Row(horizontalArrangement = Arrangement.spacedBy(5.dp)) {
             Slider(

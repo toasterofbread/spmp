@@ -11,6 +11,7 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -22,9 +23,10 @@ import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
 import com.toasterofbread.spmp.widget.configuration.ui.screen.WidgetConfigurationScreen
 import dev.toastbits.composekit.navigation.compositionlocal.LocalNavigator
 import dev.toastbits.composekit.navigation.navigator.Navigator
-import dev.toastbits.composekit.platform.composable.ScrollBarLazyColumn
-import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.components.platform.composable.ScrollBarLazyColumn
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.ComposableSettingsItem
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.action_cancel
@@ -35,10 +37,10 @@ import spmp.shared.generated.resources.s_key_default_widget_configurations
 
 internal fun getWidgetCategoryItems(context: AppContext): List<SettingsItem> =
     listOf(
-        ComposableSettingsItem {
+        ComposableSettingsItem(resetComposeUiState = {}) {
             val navigator: Navigator = LocalNavigator.current
-            val base_configuration: BaseWidgetConfig by context.settings.widget.DEFAULT_BASE_WIDGET_CONFIGURATION.observe()
-            val type_configurations: Map<SpMpWidgetType, TypeWidgetConfig<out TypeWidgetClickAction>> by context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.observe()
+            val base_configuration: BaseWidgetConfig by context.settings.Widget.DEFAULT_BASE_WIDGET_CONFIGURATION.observe()
+            val type_configurations: Map<SpMpWidgetType, TypeWidgetConfig<out TypeWidgetClickAction>> by context.settings.Widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.observe()
 
             var show_type_selector: Boolean by remember { mutableStateOf(false) }
 
@@ -64,13 +66,15 @@ internal fun getWidgetCategoryItems(context: AppContext): List<SettingsItem> =
                                 onDone = { new_base, _, new_type, _ ->
                                     navigator.navigateBackward()
 
-                                    if (new_base != null) {
-                                        context.settings.widget.DEFAULT_BASE_WIDGET_CONFIGURATION.set(new_base)
-                                    }
-                                    if (new_type != null) {
-                                        context.settings.widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.set(
-                                            type_configurations.toMutableMap().apply { set(type!!, new_type) }
-                                        )
+                                    context.coroutineScope.launch {
+                                        if (new_base != null) {
+                                            context.settings.Widget.DEFAULT_BASE_WIDGET_CONFIGURATION.set(new_base)
+                                        }
+                                        if (new_type != null) {
+                                            context.settings.Widget.DEFAULT_TYPE_WIDGET_CONFIGURATIONS.set(
+                                                type_configurations.toMutableMap().apply { set(type!!, new_type) }
+                                            )
+                                        }
                                     }
                                 }
                             )

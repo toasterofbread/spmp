@@ -27,7 +27,7 @@ import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.platform.PlatformBinder
 import com.toasterofbread.spmp.platform.PlatformServiceImpl
 import com.toasterofbread.spmp.platform.getUiLanguage
-import dev.toastbits.composekit.platform.PlatformFile
+import dev.toastbits.composekit.context.PlatformFile
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
@@ -69,7 +69,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
 
         override fun onPausedChanged() {
-            context.coroutine_scope.launch {
+            context.coroutineScope.launch {
                 pause_resume_action?.title =
                     if (paused) getString(Res.string.action_download_resume)
                     else getString(Res.string.action_download_pause)
@@ -103,7 +103,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         }
 
         override fun onDownloadProgress() {
-            context.coroutine_scope.launch {
+            context.coroutineScope.launch {
                 updateNotification()
             }
         }
@@ -222,7 +222,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
 
     override fun onMessage(data: Any?) {
         require(data is PlayerDownloadManager.PlayerDownloadMessage)
-        context.coroutine_scope.launch {
+        context.coroutineScope.launch {
             onActionIntentReceived(data)
         }
     }
@@ -332,7 +332,7 @@ class PlayerDownloadService: PlatformServiceImpl() {
         val action: Any? = intent?.extras?.get("action")
         if (action is IntentAction) {
             println("Download service received action $action")
-            context.coroutine_scope.launch {
+            context.coroutineScope.launch {
                 onActionIntentReceived(
                     PlayerDownloadManager.PlayerDownloadMessage(
                         action,

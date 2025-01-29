@@ -23,7 +23,7 @@ import androidx.compose.runtime.setValue
 import androidx.core.view.WindowCompat
 import com.toasterofbread.spmp.model.appaction.shortcut.ShortcutState
 import com.toasterofbread.spmp.platform.AppContext
-import dev.toastbits.composekit.platform.ApplicationContext
+import dev.toastbits.composekit.context.ApplicationContext
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.cancel

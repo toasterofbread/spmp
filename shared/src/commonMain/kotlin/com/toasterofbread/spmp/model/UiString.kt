@@ -13,6 +13,7 @@ import com.toasterofbread.spmp.platform.observeUiLanguage
 import com.toasterofbread.spmp.resources.Language
 import com.toasterofbread.spmp.resources.getResourceEnvironment
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
+import dev.toastbits.composekit.util.model.Locale
 import dev.toastbits.ytmkt.uistrings.RawUiString
 import dev.toastbits.ytmkt.uistrings.UiString
 import dev.toastbits.ytmkt.uistrings.YoutubeUiString
@@ -38,10 +39,10 @@ data class AppUiString(
 fun UiString.observe(): String {
     val player: PlayerState = LocalPlayerState.current
     var string: String by remember { mutableStateOf("") }
-    val ui_language: String by player.context.observeUiLanguage()
+    val ui_language: Locale by player.context.observeUiLanguage()
 
     LaunchedEffect(this, ui_language) {
-        string = getString(ui_language)
+        string = getString(ui_language.toTag())
     }
 
     return string
@@ -90,7 +91,7 @@ fun UiString.Companion.deserialise(data: String): UiString {
 }
 
 suspend fun UiString.getString(context: AppContext): String =
-    getString(context.getUiLanguage())
+    getString(context.getUiLanguage().toTag())
 
 //    companion object {
 //        fun mediaItemPage(key: String, item_type: MediaItemType, context: AppContext, source_language: String = context.getDataLanguage()): UiString =

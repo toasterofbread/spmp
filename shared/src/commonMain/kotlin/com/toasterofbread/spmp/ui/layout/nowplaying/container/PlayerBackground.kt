@@ -2,21 +2,43 @@ package com.toasterofbread.spmp.ui.layout.nowplaying.container
 
 import LocalNowPlayingExpansion
 import LocalPlayerState
-import androidx.compose.foundation.layout.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.*
-import androidx.compose.ui.graphics.*
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.BoxWithConstraints
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.offset
+import androidx.compose.foundation.layout.requiredHeight
+import androidx.compose.foundation.layout.requiredSize
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.derivedStateOf
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.composed
+import androidx.compose.ui.graphics.BlendMode
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.platform.LocalDensity
-import androidx.compose.ui.unit.*
+import androidx.compose.ui.unit.Density
+import androidx.compose.ui.unit.Dp
+import androidx.compose.ui.unit.IntOffset
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.times
 import com.toasterofbread.spmp.model.mediaitem.song.Song
 import com.toasterofbread.spmp.model.settings.category.ThemeSettings
 import com.toasterofbread.spmp.platform.FormFactor
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import com.toasterofbread.spmp.ui.layout.nowplaying.*
+import com.toasterofbread.spmp.ui.layout.nowplaying.NowPlayingPage
+import com.toasterofbread.spmp.ui.layout.nowplaying.PlayerExpansionState
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNPAltBackground
+import com.toasterofbread.spmp.ui.layout.nowplaying.getNPBackground
 import com.toasterofbread.spmp.ui.layout.nowplaying.maintab.NOW_PLAYING_LARGE_BOTTOM_BAR_HEIGHT
-import dev.toastbits.composekit.utils.common.*
-import dev.toastbits.composekit.utils.composable.wave.*
-import dev.toastbits.composekit.utils.modifier.brushBackground
+import dev.toastbits.composekit.components.utils.composable.wave.OverlappingWaves
+import dev.toastbits.composekit.components.utils.composable.wave.WaveLayer
+import dev.toastbits.composekit.components.utils.composable.wave.getDefaultOverlappingWavesLayers
+import dev.toastbits.composekit.components.utils.modifier.brushBackground
+import dev.toastbits.composekit.util.composable.getValue
+import dev.toastbits.composekit.util.thenIf
 import kotlin.math.absoluteValue
 
 private const val GRADIENT_BOTTOM_PADDING_DP: Float = 100f
@@ -39,11 +61,11 @@ internal fun PlayerBackground(
         getDefaultOverlappingWavesLayers(7, 0.35f)
     }
 
-    val default_wave_speed: Float by player.settings.theme.NOWPLAYING_DEFAULT_WAVE_SPEED.observe()
+    val default_wave_speed: Float by player.settings.Theme.NOWPLAYING_DEFAULT_WAVE_SPEED.observe()
     val song_wave_speed: Float? by current_song?.BackgroundWaveSpeed?.observe(player.database)
     val background_wave_speed: Float = song_wave_speed ?: default_wave_speed
 
-    val default_wave_opacity: Float by player.settings.theme.NOWPLAYING_DEFAULT_WAVE_OPACITY.observe()
+    val default_wave_opacity: Float by player.settings.Theme.NOWPLAYING_DEFAULT_WAVE_OPACITY.observe()
     val song_wave_opacity: Float? by current_song?.BackgroundWaveOpacity?.observe(player.database)
     val background_wave_opacity: Float = song_wave_opacity ?: default_wave_opacity
 
@@ -79,7 +101,7 @@ internal fun PlayerBackground(
             Modifier.requiredSize(player.screen_size.width, page_height - bottom_spacing)
         )
 
-        val show_waves: Boolean by player.settings.theme.SHOW_EXPANDED_PLAYER_WAVE.observe()
+        val show_waves: Boolean by player.settings.Theme.SHOW_EXPANDED_PLAYER_WAVE.observe()
         if (show_waves) {
             OverlappingWaves(
                 { player.theme.accent.copy(alpha = wave_alpha * expansion.getAbsolute()) },
@@ -108,13 +130,13 @@ private fun ImageBackground(
     val player: PlayerState = LocalPlayerState.current
     val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
 
-    val default_background_opacity: Float by player.settings.theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.observe()
+    val default_background_opacity: Float by player.settings.Theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.observe()
     val song_background_opacity: Float? by player.status.m_song?.BackgroundImageOpacity?.observe(player.database)
 
     val background_content_opacity: Float by remember { derivedStateOf { song_background_opacity ?: default_background_opacity } }
     val show_background_content: Boolean by remember { derivedStateOf { background_content_opacity > 0f } }
 
-    val default_video_position: ThemeSettings.VideoPosition by player.settings.theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
+    val default_video_position: ThemeSettings.VideoPosition by player.settings.Theme.NOWPLAYING_DEFAULT_VIDEO_POSITION.observe()
     val song_video_position: ThemeSettings.VideoPosition? by player.status.m_song?.VideoPosition?.observe(player.database)
 
     BoxWithConstraints(modifier) {
@@ -152,7 +174,7 @@ private fun Modifier.playerBackground(getPageHeight: () -> Dp): Modifier = compo
     val expansion: PlayerExpansionState = LocalNowPlayingExpansion.current
     val density: Density = LocalDensity.current
 
-    val default_gradient_depth: Float by player.settings.theme.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.observe()
+    val default_gradient_depth: Float by player.settings.Theme.NOWPLAYING_DEFAULT_GRADIENT_DEPTH.observe()
     val song_gradient_depth: Float? by player.status.m_song?.PlayerGradientDepth?.observe(player.database)
 
     brushBackground { with (density) {

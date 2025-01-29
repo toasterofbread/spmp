@@ -43,7 +43,7 @@ package com.toasterofbread.spmp.widget.impl
 //
 //        val on_background_colour: Color =
 //            when (configuration.base_configuration.content_colour) {
-//                THEME -> theme.theme.on_background
+//                THEME -> theme.theme.onBackground
 //                LIGHT -> Color.White
 //                DARK -> Color.Black
 //            }
@@ -67,7 +67,7 @@ package com.toasterofbread.spmp.widget.impl
 //                onClick = {},
 //                colors = ButtonDefaults.buttonColors(
 //                    backgroundColor = ColorProvider(theme.theme.accent),
-//                    contentColor = ColorProvider(theme.theme.on_accent)
+//                    contentColor = ColorProvider(theme.theme.onAccent)
 //                )
 //            )
 //        }

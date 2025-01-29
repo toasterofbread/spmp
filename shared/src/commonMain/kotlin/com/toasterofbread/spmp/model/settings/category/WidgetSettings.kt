@@ -4,6 +4,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.outlined.Widgets
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.vector.ImageVector
+import com.toasterofbread.spmp.model.settings.SettingsGroupImpl
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.ui.layout.apppage.settingspage.category.getWidgetCategoryItems
 import com.toasterofbread.spmp.widget.SpMpWidgetType
@@ -11,9 +12,9 @@ import com.toasterofbread.spmp.widget.action.TypeWidgetClickAction
 import com.toasterofbread.spmp.widget.configuration.base.BaseWidgetConfig
 import com.toasterofbread.spmp.widget.configuration.SpMpWidgetConfiguration
 import com.toasterofbread.spmp.widget.configuration.type.TypeWidgetConfig
-import dev.toastbits.composekit.platform.Platform
-import dev.toastbits.composekit.platform.PreferencesProperty
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
+import dev.toastbits.composekit.util.platform.Platform
+import dev.toastbits.composekit.settingsitem.domain.PlatformSettingsProperty
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.s_cat_desc_widget
@@ -21,15 +22,15 @@ import spmp.shared.generated.resources.s_cat_widget
 
 class WidgetSettings(
     val context: AppContext
-): SettingsGroup("WIDGET", context.getPrefs()) {
-    val DEFAULT_BASE_WIDGET_CONFIGURATION: PreferencesProperty<BaseWidgetConfig> by serialisableProperty(
+): SettingsGroupImpl("WIDGET", context.getPrefs()) {
+    val DEFAULT_BASE_WIDGET_CONFIGURATION: PlatformSettingsProperty<BaseWidgetConfig> by serialisableProperty(
         getName = { "" },
         getDescription = { null },
         getDefaultValue = { BaseWidgetConfig() },
         json = SpMpWidgetConfiguration.json
     )
 
-    val DEFAULT_TYPE_WIDGET_CONFIGURATIONS: PreferencesProperty<Map<SpMpWidgetType, TypeWidgetConfig<out TypeWidgetClickAction>>> by serialisableProperty(
+    val DEFAULT_TYPE_WIDGET_CONFIGURATIONS: PlatformSettingsProperty<Map<SpMpWidgetType, TypeWidgetConfig<out TypeWidgetClickAction>>> by serialisableProperty(
         getName = { "" },
         getDescription = { null },
         getDefaultValue = { emptyMap() },
@@ -45,8 +46,7 @@ class WidgetSettings(
     @Composable
     override fun getIcon(): ImageVector = Icons.Outlined.Widgets
 
-    override fun showPage(exporting: Boolean): Boolean =
-        Platform.ANDROID.isCurrent()
+    override val hidden: Boolean = !Platform.ANDROID.isCurrent()
 
     override fun getConfigurationItems(): List<SettingsItem> = getWidgetCategoryItems(context)
 }

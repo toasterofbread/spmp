@@ -33,12 +33,13 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.toasterofbread.spmp.DependencyInfo
 import com.toasterofbread.spmp.SpMpDeps
+import com.toasterofbread.spmp.model.settings.SettingsGroupImpl
 import com.toasterofbread.spmp.platform.AppContext
 import com.toasterofbread.spmp.service.playercontroller.PlayerState
-import dev.toastbits.composekit.settings.ui.component.item.ComposableSettingsItem
-import dev.toastbits.composekit.settings.ui.component.item.SettingsItem
-import dev.toastbits.composekit.settings.ui.vibrant_accent
-import dev.toastbits.composekit.utils.common.thenIf
+import dev.toastbits.composekit.settingsitem.domain.SettingsItem
+import dev.toastbits.composekit.settingsitem.presentation.ui.component.item.ComposableSettingsItem
+import dev.toastbits.composekit.theme.core.vibrantAccent
+import dev.toastbits.composekit.util.thenIf
 import org.jetbrains.compose.resources.stringResource
 import spmp.shared.generated.resources.Res
 import spmp.shared.generated.resources.`dependency_list_dep_$author`
@@ -49,7 +50,7 @@ import spmp.shared.generated.resources.dependency_list_title
 import spmp.shared.generated.resources.s_cat_dependencies
 import spmp.shared.generated.resources.s_cat_desc_dependencies
 
-class DependencySettings(val context: AppContext): SettingsGroup("DEPENDENCY", context.getPrefs()) {
+class DependencySettings(val context: AppContext): SettingsGroupImpl("DEPENDENCY", context.getPrefs()) {
     @Composable
     override fun getTitle(): String = stringResource(Res.string.s_cat_dependencies)
 
@@ -61,7 +62,7 @@ class DependencySettings(val context: AppContext): SettingsGroup("DEPENDENCY", c
 
     override fun getConfigurationItems(): List<SettingsItem> =
         listOf(
-            ComposableSettingsItem {
+            ComposableSettingsItem(resetComposeUiState = {}) {
                 DependencyList(Modifier.fillMaxSize())
             }
         )
@@ -101,7 +102,7 @@ private fun DependencyInfo(dependency: DependencyInfo, modifier: Modifier = Modi
     Column(
         modifier
             .background(
-                player.theme.vibrant_accent.copy(alpha = 0.2f),
+                player.theme.vibrantAccent.copy(alpha = 0.2f),
                 RoundedCornerShape(10.dp)
             )
             .padding(horizontal = 15.dp, vertical = 10.dp)

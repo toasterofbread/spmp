@@ -33,7 +33,7 @@ jobs:
       run: ./gradlew desktopApp:packageReleaseTarball
 
     - name: Upload tarball artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: spmp-linux-release
         path: desktopApp/build/outputs/*.tar.gz

@@ -27,21 +27,21 @@ jobs:
       run: ./gradlew androidApp:packageRelease
 
     - name: Upload universal debug APK artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: spmp-android-debug
         path: androidApp/build/outputs/apk/debug/*.apk
 
     - name: Upload universal release APK artifact
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: spmp-android-release
         path: androidApp/build/outputs/apk/release/*.apk
 
     - name: Rename output files
       run: |
-        mv androidApp/build/outputs/apk/release/*.apk androidApp/build/outputs/apk/release/spmp-nightly-android-universal.apk 
-        mv androidApp/build/outputs/apk/debug/*.apk androidApp/build/outputs/apk/debug/spmp-nightly-android-universal-debug.apk 
+        mv androidApp/build/outputs/apk/release/*.apk androidApp/build/outputs/apk/release/spmp-nightly-android-universal.apk
+        mv androidApp/build/outputs/apk/debug/*.apk androidApp/build/outputs/apk/debug/spmp-nightly-android-universal-debug.apk
 
     - name: Get current date and time
       id: date
@@ -55,7 +55,7 @@ jobs:
         tag: nightly-latest
         name: Nightly ${{ steps.date.outputs.date }}
         files: |
-          androidApp/build/outputs/apk/release/spmp-nightly-android-universal.apk 
+          androidApp/build/outputs/apk/release/spmp-nightly-android-universal.apk
           androidApp/build/outputs/apk/debug/spmp-nightly-android-universal-debug.apk
         clear_attachments: false
 

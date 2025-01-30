@@ -44,7 +44,7 @@ class AppThemeManager(
     private var accent_colour_source: AccentColourSource? by
         mutableStateOf(context.settings.Theme.ACCENT_COLOUR_SOURCE.get())
     private var background_opacity: Float by
-        mutableStateOf(context.settings.Theme.NOWPLAYING_DEFAULT_BACKGROUND_IMAGE_OPACITY.get())
+        mutableStateOf(context.settings.Theme.WINDOW_BACKGROUND_OPACITY.get())
 
     override fun selectAccentColour(values: ThemeValues, contextualColour: Color?): Color =
         when(accent_colour_source ?: AccentColourSource.THEME) {

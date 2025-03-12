@@ -5,9 +5,7 @@
         Release checklist:
         - Gradle clean
         - Things to update on version change:
-            - flake.nix
             - toasterofbread/flatpak-repo
-            - Nix flake reference in docs
             - AUR package
             - dev.toastbits.spmp.metainfo.xml
             - Flathub

@@ -22,12 +22,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
-        java-version: |
-          22
-          21
-
-    - name: Set up Gradle
-      uses: gradle/gradle-build-action@v3
+        java-version: 22
 
     - name: Build tarball
       run: ./gradlew desktopApp:packageReleaseTarball

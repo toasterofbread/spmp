@@ -25,9 +25,7 @@ jobs:
       uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
-        java-version: |
-          22
-          21
+        java-version: 22
 
     - name: Set PACKAGE_JAVA_HOME
       run: |
@@ -46,9 +44,6 @@ jobs:
       run: xcopy /s /i /y "${{ github.workspace }}\mpv\libmpv-2.dll" "${{ github.workspace }}\desktopApp\build\package\windows\mpv.dll*"
 
     - run: dir desktopApp\build\package\windows
-
-    - name: Set up Gradle
-      uses: gradle/gradle-build-action@v3
 
     - name: Build zip and exe
       run: .\gradlew.bat desktopApp:packageReleaseZip desktopApp:packageReleaseExe -PGIT_TAG_OVERRIDE="v0.4.0"

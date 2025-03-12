@@ -134,7 +134,7 @@ android {
 
     kotlin {
         jvmToolchain {
-            version = "17"
+            version = "22"
         }
     }
 

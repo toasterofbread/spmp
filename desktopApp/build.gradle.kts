@@ -47,7 +47,7 @@ fun getString(key: String): String {
 }
 
 kotlin {
-    jvmToolchain(21)
+    jvmToolchain(22)
 
     jvm()
     sourceSets {

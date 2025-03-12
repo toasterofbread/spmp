@@ -14,5 +14,5 @@ dependencies {
 }
 
 tasks.withType(JavaCompile::class) {
-    options.release.set(21)
+    options.release.set(22)
 }

@@ -372,7 +372,7 @@ abstract class SpMsPlayerService(val plays_audio: Boolean): PlatformServiceImpl(
         val events: List<String> =
             recvStringMultipart(timeout) ?: return@withContext false
 
-        if (events.size == 1 && events.first().contains("REPLY TO ")) {
+        if (events.size <= 1 && events.first().contains("REPLY TO ")) {
             return@withContext true
         }
 

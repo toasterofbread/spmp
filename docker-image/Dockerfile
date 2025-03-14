@@ -11,8 +11,8 @@ RUN test -n "$ANDROID_SDK_VERSION"
 RUN apt-get update && \
     apt-get install -y openjdk-21-jre wget git unzip binutils desktop-file-utils
 
-RUN wget https://download.oracle.com/java/22/latest/jdk-22_linux-x64_bin.deb && \
-    apt-get install -y ./jdk-22_linux-x64_bin.deb
+RUN wget https://download.oracle.com/java/23/latest/jdk-23_linux-x64_bin.deb && \
+    apt-get install -y ./jdk-23_linux-x64_bin.deb
 
 RUN wget https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage -O /appimagetool && \
     chmod +x /appimagetool && \
@@ -36,8 +36,8 @@ ENV GRADLE_HOME=/gradle-$GRADLE_VERSION
 ENV GRADLE_USER_HOME=/gradle-user-home
 
 ENV JAVA_21_HOME=/usr/lib/jvm/java-21-openjdk-amd64
-ENV JAVA_22_HOME=/usr/lib/jvm/jdk-22.0.2-oracle-x64
-ENV JAVA_HOME=$JAVA_22_HOME
+ENV JAVA_23_HOME=/usr/lib/jvm/jdk-23.0.2-oracle-x64
+ENV JAVA_HOME=$JAVA_23_HOME
 
 WORKDIR /src
 ENTRYPOINT ["/src/docker-image/gradleEntryPoint.sh"]

@@ -25,12 +25,12 @@ jobs:
       uses: actions/setup-java@v3
       with:
         distribution: 'temurin'
-        java-version: 22
+        java-version: 23
 
     - name: Set PACKAGE_JAVA_HOME
       run: |
         chcp 65001
-        echo ("PACKAGE_JAVA_HOME=" + $env:JAVA_HOME_22_X64) >> $env:GITHUB_ENV
+        echo ("PACKAGE_JAVA_HOME=" + $env:JAVA_HOME_23_X64) >> $env:GITHUB_ENV
 
     - name: Download mpv
       run: curl -L https://downloads.sourceforge.net/project/mpv-player-windows/libmpv/mpv-dev-x86_64-20240114-git-bd35dc8.7z --output mpv.7z

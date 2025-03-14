@@ -127,14 +127,14 @@ android {
     }
 
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_22
-        targetCompatibility = JavaVersion.VERSION_22
+        sourceCompatibility = JavaVersion.VERSION_23
+        targetCompatibility = JavaVersion.VERSION_23
         isCoreLibraryDesugaringEnabled = true
     }
 
     kotlin {
         jvmToolchain {
-            version = "22"
+            version = "23"
         }
     }
 

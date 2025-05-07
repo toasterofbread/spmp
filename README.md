@@ -1,3 +1,13 @@
+# Notice: SpMp is currently mostly non-functional
+
+Recent YouTube API changes made audio streaming from third-party applications more difficult.
+
+Until a fix is implemented, streaming music in SpMp usually doesn't work. The project isn't currently under active development so this might not happen for some time.
+
+<br>
+<br>
+<br>
+
 <p>
     <a href="readme/README-ja.md">日本語のREADMEへ</a>
     <a href="https://discord.gg/B4uY4FkkJ3"><img src="https://img.shields.io/discord/1133321339495788625?style=for-the-badge&logo=discord&label=Discord&color=4f58d6" align="right"></a>
